@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Guarded NL-Loo FIXNC 50-year case creator and FIRST five-year Slurm submitter.
 
-Use prepare to create a clone and verify generated namelist. Use submit ONLY
+Use prepare for fresh clones, recover for the existing incomplete clone. Submit ONLY
 after reviewing the results. Never changes the old NL-Loo case or old surface.
 Does not schedule AD or post-AD and cannot complete 550 years automatically.
 """
@@ -163,7 +163,7 @@ def rewrite_user_nl(path):
     path.write_text(modified)
 
 
-def verify_clone(exe):
+def verify_clone(exe, require_batch=True):
     if not CASE.is_dir() or not (CASE / "xmlquery").is_file():
         stop("Clone missing")
     if query(CASE, "CASE") != CASE_NAME:
@@ -193,15 +193,97 @@ def verify_clone(exe):
         stop("Cloned DATM stream incorrect")
     job = CASE / ".case.run"
     if not job.is_file():
-        stop("Missing .case.run")
-    batch = job.read_text(errors="replace")
-    if re.search(r"(?mi)^\s*#SBATCH.*--exclusive", batch):
-        stop("Exclusive Slurm allocation forbidden")
-    if re.search(r"(?mi)^\s*#SBATCH.*--nodes(?:=|\s+)([2-9]|\d{2,})", batch):
-        stop("Multi-node Slurm job forbidden")
+        if require_batch:
+            stop("Missing .case.run: CIME setup is incomplete. Use the guarded recover command.")
+    else:
+        batch = job.read_text(errors="replace")
+        if re.search(r"(?mi)^\s*#SBATCH.*--exclusive", batch):
+            stop("Exclusive Slurm allocation forbidden")
+        if re.search(r"(?mi)^\s*#SBATCH.*--nodes(?:=|\s+)([2-9]|\d{2,})", batch):
+            stop("Multi-node Slurm job forbidden")
+        for field in (r"--ntasks(?:-per-node)?", r"--cpus-per-task"):
+            m = re.search(r"(?mi)^\s*#SBATCH.*"+field+r"(?:=|\s+)(\d+)", batch)
+            if m and int(m.group(1)) != 1:
+                stop(f"Unexpected batch CPU layout: {m.group(0)}")
     print("VERIFIED: isolated FIXNC clone, generated namelist, preserved forcing and CO2")
     print("NOTE: CIME configuration does not prove model's actual PFT patch areas.")
 
+
+
+def save_prepared_manifest(exe):
+    if MANIFEST.exists():
+        stop("Manifest exists; never overwrite an existing preparation record")
+    manifest = {
+        "case": str(CASE), "stage": "PRE50", "site": "NL-Loo",
+        "first_submission_years": 5, "target_years": 50,
+        "later_stage_targets": {"AD": 200, "POSTAD": 300},
+        "surface": str(SURFACE), "surface_sha256": SURFACE_HASH,
+        "fates_paramfile_sha256": PARAM_HASH,
+        "source_case": str(OLD_CASE), "source_executable": exe,
+        "comp_set": EXPECTED_COMPSET, "new_mode": NML,
+        "runtime_xml": CONFIG, "no_competition": True,
+        "assumption": "3.5% open/heath/grass assigned to cool C3 grass proxy",
+        "submission_authorized": False,
+        "status": "PREPARED_FOR_MANUAL_REVIEW_FIRST_FIVE_YEARS",
+    }
+    MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
+
+
+def ensure_batch_scripts_for_new_case():
+    """CIME setup may be incomplete after create_clone; do not touch old cases."""
+    batch = CASE / ".case.run"
+    archive_script = CASE / "case.st_archive"
+    if batch.is_file() and archive_script.is_file():
+        return
+    history = (CASE / "CaseStatus").read_text(errors="replace") if (CASE / "CaseStatus").is_file() else ""
+    if re.search(r"case\.submit\s+(?:starting|success)|case\.run\s+starting|model execution starting", history, re.I):
+        stop("Case was submitted; do not reset batch setup")
+    if re.search(r"case\.setup success", history):
+        print("Missing batch script after recorded setup; regenerating NEW case setup (--reset).")
+        run(["./case.setup", "--reset"], CASE)
+    else:
+        print("Case setup not recorded; calling NEW case ./case.setup.")
+        run(["./case.setup"], CASE)
+    if not batch.is_file() or not archive_script.is_file():
+        stop("CIME case.setup returned but .case.run / case.st_archive is still absent. "
+             "Inspect CaseStatus and setup logs; do not submit.")
+
+
+def recover_incomplete_setup():
+    """Only recover the single known unsubmitted NL-Loo clone after prior setup stop."""
+    exe = check_source()
+    if not CASE.is_dir():
+        stop("NEW case does not exist; recover is only for the already-cloned case")
+    if MANIFEST.exists():
+        stop("Manifest exists; recover is not an overwrite/resubmit operation")
+    # No changes to the source case, old run, old archive, or to any NetCDF.
+    verify_clone(exe, require_batch=False)
+    status_path = CASE / "CaseStatus"
+    if not status_path.is_file():
+        stop("New case CaseStatus is missing; provenance ambiguous")
+    status = status_path.read_text(errors="replace")
+    if re.search(r"case\.submit\s+(?:starting|success)|case\.run\s+starting|model execution starting", status, re.I):
+        stop("Prior run/submission history detected; refuse recovery")
+    for p in (RUN, ARCHIVE):
+        if p.exists() and not p.is_dir():
+            stop(f"Output path is not directory: {p}")
+        if p.exists():
+            names = ("*.nc", "rpointer.*", "*.log.*", "cesm.log*", "*.r.*")
+            if any(next(p.rglob(pattern), None) is not None for pattern in names):
+                stop(f"Model files found in output path: {p}")
+    try:
+        queue = capture(["squeue", "-u", USER, "-h", "-o", "%j %i %T"])
+    except SystemExit:
+        stop("Unable to confirm Slurm queue; do not modify case setup")
+    if CASE_NAME in queue:
+        stop("Queue already has a matching job")
+    ensure_batch_scripts_for_new_case()
+    run(["./preview_namelists"], CASE)
+    verify_clone(exe)
+    save_prepared_manifest(exe)
+    print("RECOVERED NEW CASE SAFELY:", CASE)
+    print("No jobs have been submitted; inspect PRE50 namelist and .case.run.")
+    print("Then explicitly invoke submit only after review.")
 
 def prepare():
     exe = check_source()
@@ -219,22 +301,10 @@ def prepare():
     # Required for 1-rank original MPI build; retain existing 1-core batch layout.
     run(["./xmlchange",
          "MPI_RUN_COMMAND=srun --mpi=pmix --ntasks=1 --cpus-per-task=1 --cpu-bind=cores"], CASE)
+    ensure_batch_scripts_for_new_case()
     run(["./preview_namelists"], CASE)
     verify_clone(exe)
-    manifest = {
-        "case": str(CASE), "stage": "PRE50", "site": "NL-Loo",
-        "first_submission_years": 5, "target_years": 50,
-        "later_stage_targets": {"AD": 200, "POSTAD": 300},
-        "surface": str(SURFACE), "surface_sha256": SURFACE_HASH,
-        "fates_paramfile_sha256": PARAM_HASH,
-        "source_case": str(OLD_CASE), "source_executable": exe,
-        "comp_set": EXPECTED_COMPSET, "new_mode": NML,
-        "runtime_xml": CONFIG, "no_competition": True,
-        "assumption": "3.5% open/heath/grass assigned to cool C3 grass proxy",
-        "submission_authorized": False,
-        "status": "PREPARED_FOR_MANUAL_REVIEW_FIRST_FIVE_YEARS",
-    }
-    MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
+    save_prepared_manifest(exe)
     print("CASE PREPARED:", CASE)
     print("FIRST 5-YEAR SUBMISSION IS NOT AUTOMATIC.")
     print("Inspect .case.run, CaseDocs/lnd_in, quota and scientific mapping.")
@@ -287,6 +357,7 @@ def main():
     sub = ap.add_subparsers(dest="action", required=True)
     sub.add_parser("inspect")
     sub.add_parser("prepare")
+    sub.add_parser("recover")
     s = sub.add_parser("submit")
     s.add_argument("--confirm", required=True)
     args = ap.parse_args()
@@ -299,6 +370,8 @@ def main():
         if MANIFEST.is_file(): print(MANIFEST.read_text())
     elif args.action == "prepare":
         prepare()
+    elif args.action == "recover":
+        recover_incomplete_setup()
     else:
         submit(args.confirm)
 
