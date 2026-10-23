@@ -195,8 +195,12 @@ def validate_first5():
         fail("PRE50 not startup")
     if xml("PRE50","RUN_STARTDATE")!="1997-01-01":
         fail("PRE50 initial date changed")
-    if xml("PRE50","RESUBMIT")!="0" or xml("PRE50","CONTINUE_RUN").lower()!="false":
-        fail("First5 state changed; use status and inspect before resubmission")
+    # CIME settings may have been partially applied by an interrupted preparation.
+    # Prior first-five-year completion is established from exact sacct IDs and checkpoint,
+    # not from whether CONTINUE_RUN/RESUBMIT have already been edited.
+    cont, resub = xml("PRE50","CONTINUE_RUN").lower(), xml("PRE50","RESUBMIT")
+    if cont not in ("false","true") or resub not in ("0","8"):
+        fail(f"Unexpected PRE50 continuation state {cont}, RESUBMIT={resub}")
     stage_success("PRE50",2002)
     # Strict accounting verification for the exact first two jobs.
     result=subprocess.run(["sacct","-n","-X","-P","-j","4671182,4671183",
@@ -226,17 +230,32 @@ def preflight_quota():
     else:
         print("WARNING: could not parse Scratch inodes from myfiles")
 
-def assert_unsubmitted(stage):
+def assert_unsubmitted(stage, *, continuation=False):
     if queues(stage):
-        fail(f"{stage} already has queue entries")
-    if re.search(r"case\.submit starting|case\.submit success|case\.run starting",status_lines(stage),re.I):
-        fail(f"{stage} has previous submission history, refusing double-submit")
+        fail(f"{stage} already has matching Slurm job names")
+    history = status_lines(stage)
+    submissions = re.findall(
+        r"case\.submit starting case\.run:(\d+),?\s*case\.st_archive:(\d+)",
+        history, flags=re.I)
+    if continuation:
+        # Exactly one previously submitted pair is REQUIRED: first-five-year run and archive.
+        # The corresponding sacct and restart checks happen in validate_first5().
+        if stage != "PRE50" or submissions != [("4671182", "4671183")]:
+            fail(f"Expected exactly original first5 case.submit; found {submissions}")
+        if len(re.findall(r"case\.run starting", history, re.I)) > 1:
+            fail("Unexpected additional run starting entry: possible duplicate continuation")
+        if any((CASE[stage] / f).exists() for f in
+               ("observed_PFT_PRE50_continue45_SUBMITTED.txt",)):
+            fail("Continuation marker already exists")
+    elif re.search(r"case\.submit starting|case\.submit success|case\.run starting",
+                   history,re.I):
+        fail(f"{stage} has prior submission history, refusing double-submit")
 
-def do_submit(stage, ledger, confirm):
+def do_submit(stage, ledger, confirm, *, continuation=False):
     preflight_quota()
     if ledger.exists():
         fail(f"Prior submission ledger exists; inspect before retry: {ledger}")
-    assert_unsubmitted(stage)
+    assert_unsubmitted(stage, continuation=continuation)
     ledger.write_text(json.dumps({"stage":stage,"state":"SUBMISSION_ATTEMPTED",
                    "case":str(CASE[stage]),"mode":MODE[stage]},indent=2)+"\n")
     try:
@@ -261,12 +280,21 @@ def continue45():
         fail("PRE50 restart pointers not present in RUNDIR after archiving. "
              "Use CIME's verified restart staging or inspect the archive; "
              "do NOT re-submit as startup.")
-    command(["./xmlchange","CONTINUE_RUN=TRUE","RESUBMIT=8"],c)
+    # This CIME version accepts one XML setting per command, not two space-separated.
+    # Support an interrupted earlier preparation without deleting or re-cloning the case.
+    old_continue = xml("PRE50","CONTINUE_RUN").lower()
+    old_resubmit = xml("PRE50","RESUBMIT")
+    if old_continue not in ("false","true") or old_resubmit not in ("0","8"):
+        fail(f"Unexpected continuation XML: {old_continue}, RESUBMIT={old_resubmit}")
+    if old_continue!="true":
+        command(["./xmlchange","CONTINUE_RUN=TRUE"],c)
+    if old_resubmit!="8":
+        command(["./xmlchange","RESUBMIT=8"],c)
     if xml("PRE50","CONTINUE_RUN").lower()!="true" or xml("PRE50","RESUBMIT")!="8":
         fail("CONTINUE_RUN/RESUBMIT were not changed correctly")
     # check_case for unchanged forcing, surface, flags and normal decomposition
     check_case("PRE50")
-    do_submit("PRE50",ledger,CONFIRM["continue45"])
+    do_submit("PRE50",ledger,CONFIRM["continue45"],continuation=True)
     print("PLAN: first5 COMPLETE + 9 automatic 5y segments = 50y, target 2047-01-01")
 
 def stage_case(stage):
