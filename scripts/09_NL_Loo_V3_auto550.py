@@ -297,7 +297,12 @@ def main():
     if a.action=='preflight':
         validate_base()
         for p in P:print(p,'exists=',CASE[p].exists(),'jobs=',slurm(p))
-        print('READY_TO_PREPARE only; cross-stage scientifically untested')
+        if STATE.exists() or STOP.exists() or any(CASE[p].exists() or RUN[p].exists() or ARCH[p].exists() for p in P):
+            print('NOT READY TO LAUNCH: some V3 controller/case/output state exists; inspect status.')
+        else:
+            print('PREFLIGHT PASS: fresh V3 case namespace is free; launch NOT performed.')
+            print('NEXT COMMAND: python scripts/09_NL_Loo_V3_auto550.py launch --confirm LAUNCH_NL_LOO_FRESH_V3_550_YEARS')
+            print('CAUTION: stage transitions are guarded by runtime checks but remain scientifically untested on this local CTSM-FATES build.')
         return
     if a.action=='status':
         if STATE.exists():print(STATE.read_text())
