@@ -254,11 +254,13 @@ def continue45():
     ledger=c/"observed_PFT_PRE50_continue45.json"
     if ledger.exists():
         fail("45-year submission receipt already exists")
-    # Existing CIME archive must leave its most recent rpointer and restart in RUNDIR,
-    # or the user must explicitly recover them. Do not silently replace files.
+    # CIME short-term archiving may MOVE restart and pointers out of RUNDIR.
+    # Do not guess or overwrite the latest pointer: STOP for explicit restaging.
     rdir=RUN["PRE50"]
     if not rdir.is_dir() or not any(rdir.glob("rpointer.*")):
-        fail("PRE50 RUNDIR has no restart pointer; CIME restart staging needs review")
+        fail("PRE50 restart pointers not present in RUNDIR after archiving. "
+             "Use CIME's verified restart staging or inspect the archive; "
+             "do NOT re-submit as startup.")
     command(["./xmlchange","CONTINUE_RUN=TRUE","RESUBMIT=8"],c)
     if xml("PRE50","CONTINUE_RUN").lower()!="true" or xml("PRE50","RESUBMIT")!="8":
         fail("CONTINUE_RUN/RESUBMIT were not changed correctly")
@@ -346,6 +348,13 @@ def stage_case(stage):
 
 def launch_next(stage):
     if stage not in SOURCE:fail("Invalid stage")
+    # Current code has NOT validated that switching spinup_state across a FATES
+    # branch restart correctly rescales accelerated soil-carbon pools. Also
+    # create_clone --keepexe may not be appropriate for build-time toggles.
+    # Holding submission is intentional; preparation requires version audit.
+    fail(f"{stage} is intentionally BLOCKED pending local CTSM/FATES AD-to-normal "
+         "carbon-pool transition verification, restart semantics, and build compatibility. "
+         "No new stage case, data or Slurm job was created.")
     check_paths()
     src=SOURCE[stage]
     if stage=="AD200":
