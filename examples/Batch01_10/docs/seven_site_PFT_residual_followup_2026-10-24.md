@@ -29,3 +29,7 @@
 - **Functional types identified but exact shares not resolved**: **FR-Fon** (ENF + DBF woody others <3%), **FR-Pue** (possible DBF co-dominant under alternative 90/10 record), **BE-Vie** (ENF + DBF residual 20%). **FI-Sod** remaining tree 5% unidentified.
 - **All seven remain HOLD for final model land-area PFT fractions and soil evidence.** An unresolved numerical remainder may be represented by a named, independently approved forest-only proxy or explicit sensitivity analysis, but never silently labelled measured; no automatic GRA.
 - **No site-specific surface, forcing, case, restart or Slurm job created from this evidence note.**
+
+## Operator-selected modelling assumption — 24 October 2026
+
+For FI-Sod, the operator has **selected 100% ENF, 0% DBF, 0% EBF for the primary Batch01 tree-PFT candidate**, supported as a stand-level proxy by the ICOS Scots pine forest description. The **original measured/reported 95% Scots pine and 5% unidentified tree remainder stays unresolved observationally**. No remaining 5% was newly identified as pine; that 5% is allocated to ENF **by explicit modelling assumption**. The alternative ENF95/DBF5 sensitivity was not selected for this primary case. This does not approve whole-cell land cover or a production surface.
