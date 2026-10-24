@@ -3,8 +3,8 @@
   "site": "DE-Tha",
   "site_name": "Tharandt",
   "network": "ICOS",
-  "scientific_status": "EVIDENCE_VERIFIED_MAPPING_AND_AREA_PROXY_HOLD",
-  "operational_status": "DOCUMENTATION_ONLY_NOT_SUBMITTED",
+  "scientific_status": "TOWER_FOREST_PROXY_SELECTED_WITH_UNRESOLVED_2PCT_ASSUMPTION",
+  "operational_status": "SURFACE_BUILDER_AVAILABLE_NOT_YET_WRITTEN_NO_NEW_MODEL_JOB",
   "source_evidence": {
     "official_site": "https://meta.icos-cp.eu/resources/stations/ES_DE-Tha",
     "supplementary_site": "https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1",
@@ -31,22 +31,17 @@
     "DBF": 7
   },
   "scenario_candidates": {
-    "other_as_DBF_proxy": {
+    "tower_forest_proxy_ENF87_DNF10_DBF3": {
       "ENF": 87,
       "DNF": 10,
       "DBF": 3
-    },
-    "other_as_DNF_proxy": {
-      "ENF": 87,
-      "DNF": 12,
-      "DBF": 1
     }
   },
-  "scenario_approval": "NONE; scenarios are hypotheses NOT measured FATES PFT shares",
+  "scenario_approval": "USER_SELECTED_ONE_FOREST_PROXY; TWO_ASSUMPTION_ACKNOWLEDGEMENTS_REQUIRED_FOR_WRITE",
   "site_specific_paths": {
-    "forcing": "UNVERIFIED",
-    "original_surface": "UNVERIFIED",
-    "fates_parameter_file": "UNVERIFIED",
+    "forcing": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/DE-Tha/forcing/processed_v5/DE-Tha_CLM_forcing_1996_2025.csv",
+    "original_surface_structural_template": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/DE-Tha/subset_data/surfdata_DE-Tha_hist_2000_16pfts_c261011.nc",
+    "fates_parameter_file": "/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/src/fates/parameter_files/fates_params_default.json",
     "existing_compiled_executable": "UNVERIFIED"
   },
   "proposed_independent_case_names": {
@@ -80,12 +75,11 @@
   "fixed_biogeography": true,
   "no_inter_pft_competition": true,
   "forbid_slurm_until": [
-    "source metric and 2pct unknown reviewed",
-    "hypothetical area proxy explicitly approved",
-    "surface landunits and natpft mapping verified",
-    "site forcing/years/calendar/QC audited",
-    "parameter fates_hlm_pft_map verified",
-    "isolated case and executable reviewed"
+    "new isolated derived surface generated with explicit 2% DBF and NATVEG100 acknowledgements",
+    "derived surface SHA256 and FATES fixed-biogeography/no-competition namelists verified",
+    "existing v5 forcing status REVIEW (14 manual-review and 32 replacement events) interpreted",
+    "independent PRE50 case build and forcing/physical input confirmed",
+    "old DE-Tha_FATES_SPINUP500 and all other site cases preserved"
   ],
   "input_inventory_2026_10_24": {
     "status": "INPUTS_AUDITED_ORIGINAL_SURFACE_AND_FATES_MAP; SCIENTIFIC_SCENARIO_HOLD",
@@ -100,7 +94,7 @@
     "ctsm_revision": "d5ea9d0136530370a62ef267ccfaff6f001ef914",
     "fates_params_sha256": "0819f8fddcb3566f6209f72bb1159a3161d03c8225a1464727b1d2b21aec6c04",
     "verified_by": "User-executed 03_audit_live_inputs.py on IRIDIS6, 2026-10-24",
-    "next_action": "04_review_landunit_scenarios.py: read-only conditional FATES-PFT vs original grid comparison and QC receipts",
+    "next_action": "05_build_forest_observed_surface.py: read-only audit then explicit isolated write; retain source only as structural template",
     "original_surface_sha256": "7e4e4f8fc752d936f80e06a65db0f2163a3f74cdebff5d318973773450f5940d",
     "original_grid_landunits_percent": {
       "PCT_NATVEG": 62.674061760264706,
@@ -130,8 +124,40 @@
       "7_DBF": "broadleaf_colddecid_extratrop_tree"
     },
     "scientific_landunit_options": [
-      "preserve 62.674% natural vegetation and 37.326% crop (grid-conserving)",
-      "100% NATVEG / 0% crop (tower-forest proxy; unapproved)"
+      "SINGLE SELECTED TOWER FOREST PROXY: NATVEG100 CROP0 (unmeasured grid area, requires acknowledgement)"
     ]
-  }
+  },
+  "primary_experiment": {
+    "id": "DE-Tha_Forest_FIXNC_ENF87_DNF10_DBF3",
+    "scope": "ONE_SELECTED_FOREST_PROXY_ONLY",
+    "tower_species_reference": "https://meta.icos-cp.eu/resources/stations/ES_DE-Tha",
+    "mode": {
+      "fixed_biogeography": true,
+      "no_pft_competition": true
+    },
+    "landunits_percent": {
+      "PCT_NATVEG": 100,
+      "PCT_CROP": 0
+    },
+    "conditional_natural_pft_percent": {
+      "1_ENF": 87,
+      "3_DNF": 10,
+      "7_DBF": 3
+    },
+    "raw_site_reports": {
+      "Picea_abies": 72,
+      "Pinus_sylvestris": 15,
+      "Larix_decidua": 10,
+      "Betula": 1,
+      "unknown_in_deciduous": 2
+    },
+    "two_percent_assumption": "2% other species grouped as deciduous by ICOS, tentatively DBF for a single model mapping; species unknown",
+    "footprint_to_grid_assumption": "ICOS forest source composition used as 100% natural vegetation single-point proxy",
+    "is_measured_model_grid_PFT_area": false,
+    "source_surface_used_only_as_structure_soil_topography_template": true,
+    "surface_builder": "examples/DE-Tha/scripts/05_build_forest_observed_surface.py",
+    "generated_surface_expected": "surfdata_DE-Tha_ObsForest_FIXNC_ENF87_DNF10_DBF3_v1.nc",
+    "output_status": "NOT_WRITTEN"
+  },
+  "scientific_sensitivity_exploration": "04_review_landunit_scenarios.py is archive/read-only and NOT in this experiment scope"
 }
