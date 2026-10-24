@@ -147,6 +147,22 @@ This checkpoint separates **forest-tree functional-type closure** from **approva
 
 **New forest inventory evidence (24 October 2026):** [Four-site inventory search](docs/four_site_forest_inventory_search_2026-10-24.md) identifies a **BE-Vie 70% cumulative EC-footprint species classification** (2018 drone mapping; published ESSD 2026): Norway spruce 38% ENF, silver fir 14% ENF, Douglas fir 9% ENF, Scots pine 2% ENF, European beech 36% DBF. **ENF 63% + DBF 36% = 99% reported**; residual 1% is not silently normalized. This supersedes the *unknown-20% issue for this footprint-specific evidence*, NOT the older stand-study denominator or the production-surface HOLD. FR-Fon and FR-Pue now have documented tree-inventory plot leads but not minority-species fractions; FI-Sod remains unidentified at 5%. Targeted numerical residual gaps are now **FR-Fon, FR-Pue, FI-Sod**, plus BE-Vie's 1% rounding/area-basis audit.
 
+## Operator-selected candidate PFT scenarios — 24 October 2026
+
+**Decision type:** operator-specified, **assumption-based TREE-PFT mixture only**. These percentages are *not* newly observed forest inventory and are *not* approved `PCT_NAT_PFT` fractions or cell-area prescriptions. Do not change any production surface, CIME case or Slurm job from this documentation.
+
+| Site | ENF | DBF | EBF | Assumption/evidence |
+| --- | ---: | ---: | ---: | --- |
+| FR-Fon | **2%** | **98%** | 0% | Operator assigns 2% of the <3% miscellaneous basal-area share to ENF pine and 1% to DBF, added to published DBF 97%. Because original 'other' is **<3%**, the exact 2+1 partition is a convenient 100%-summing model approximation, NOT a measured or mathematically exact reconstruction. |
+| FR-Pue | 0% | **5%** | **95%** | Operator allocates all unclassified 5% tree composition to DBF; independent verification of this 5% is unavailable. Alternative published 90/10 from a different denominator should not be silently merged. |
+| BE-Vie | **64%** | **36%** | 0% | Operator allocates the 1 percentage point missing from ESSD 2026 rounded drone-classification figures (ENF reported 63%, DBF 36%, sum 99%) to ENF, conditional on a stable 70% cumulative EC footprint. **64% ENF is assumption, not directly measured.** Earlier stand 43/37/20 uses a different denominator. |
+| FI-Sod — provisional A | **100%** | 0% | 0% | Official station notes Scots pine dominated forest but does not classify the remaining 5% from the original 95% stand report. **ENF100 is a proposed proxy, not operator approval for production.** |
+| FI-Sod — sensitivity B | **95%** | **5%** | 0% | Illustrative DBF remainder, NOT a recorded local birch fraction. |
+
+FI-Sod renewed search: [ICOS tower](https://meta.icos-cp.eu/resources/stations/ES_FI-Sod) identifies Scots pine natural-regeneration forest; [FMI](https://en.ilmatieteenlaitos.fi/ghg-sodankylaicos) gives approximately 2,100 stems/ha and ~12 m height, **not** a species inventory; [Finnish NFI](https://www.silvafennica.fi/article/24045) provides only regional mixture evidence. None resolves the tower's tree-species 5%. Distinguish the Sodankylä forest EC tower from the neighboring Halssiaapa wetland tower.
+
+**Scientific gates:** precise inventory denominator, natural landunit area, soil texture and depth, compatible FATES PFT labels and actual model input QA are all still outstanding. **All ten final surfaces remain on HOLD.** For further baseline evidence see [four-site inventory follow-up](docs/four_site_forest_inventory_search_2026-10-24.md).
+
 ## Readiness gates to work through, in order
 
 1. **Observed PFT provenance:** retrieve actual station/forest source, verify measurement year, survey method, spatial coverage, specific **denominator** and any species sum. Record the unknown share. A scientific proxy must be proposed and explicitly recorded before it can become a fixed PFT surface.
