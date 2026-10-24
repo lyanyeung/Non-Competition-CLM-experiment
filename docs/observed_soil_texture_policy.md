@@ -1,5 +1,10 @@
 # Observed soil texture policy — all future CLM-FATES sites
 
+## Batch01 soil decision revision — CZ-BK1 and RU-Fyo (24 October 2026)
+
+**Most recent operator choice supersedes the earlier universal 'no old-grid fallback' text for exactly one site:** CZ-BK1 now uses **Flechard et al. (2020) Table S4** station-level Sand/Silt/Clay **22/58/21%**, with a **101% published sum** requiring transparent proportional normalization when constructing a *new* site surface. A separate vertical-depth profile assumption is still necessary; Table S4's 0.55 m value is site soil depth, not per-layer texture measurements. **RU-Fyo alone is approved to reuse the original surface `PCT_SAND`/`PCT_CLAY` as a labelled technical fallback**, not an observed soil profile. RU-Fyo peat/organic layers and water-table physics remain a mandatory preflight. This exception is SOIL TEXTURE ONLY: do not reuse old-grid land cover or PFT proportions. Existing files and cases remain untouched. Track the binding site decisions in [Batch01 soil decisions CSV](../data/batch01_10_soil_input_decisions.csv).
+
+
 ## Batch01-specific override (24 October 2026)
 
 **Scope: only [Batch01_10](../examples/Batch01_10/README.md).** The operator explicitly removed the inherited coarse-grid surface as a scientific benchmark. **Do not use the generic fallback in point 3 below** for Batch01. Instead require station/stand-measured soil texture at documented depths; if unavailable mark the station `NEED_SITE_OBSERVATION` and keep soil input parameterization on HOLD. Site-measured depth gaps may be handled only through a separately documented physical interpolation/extrapolation decision, never by silently importing `PCT_SAND` or `PCT_CLAY` from the old grid. The old grid NetCDF may still serve as a *structural schema* for a new independent versioned file, not a source of adopted soil/ecological values. This does not change previously running experiments or the generic policy for other batches.
