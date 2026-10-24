@@ -10,7 +10,7 @@ proxy (not original-grid/PFT experimental alternatives).
 
 | Site | Value for a standard example | Stage |
 | --- | --- | --- |
-| [DE-Tha](DE-Tha/README.md) | **Selected ONE forest EC-tower PFT proxy:** ENF87 / DNF10 / DBF3 (2% unknown deciduous allocated to DBF as explicit assumption); NATVEG100 / CROP0 | **Stage13 AD5 model+archive verified COMPLETED/0:0 with 2001 restart spinup_state=2; remaining AD395 not submitted; independent Stage14 AD5→Normal5 case staged and validated, not submitted** |
+| [DE-Tha](DE-Tha/README.md) | **Selected ONE forest EC-tower PFT proxy:** ENF87 / DNF10 / DBF3 (2% unknown deciduous allocated to DBF as explicit assumption); NATVEG100 / CROP0 | **Stage13 AD5 model+archive verified COMPLETED/0:0 with 2001 restart spinup_state=2; remaining AD395 successfully submitted as jobs 4713885/4713886, not completed; independent Stage14 AD5→Normal5 run and archive completed with normal restart spinup_state=0** |
 
 The completed NL-Loo PRE50 / first-5-year AD200 validation and submitted
 AD200 continuation are currently recorded under [scripts/09–15](../scripts/).
