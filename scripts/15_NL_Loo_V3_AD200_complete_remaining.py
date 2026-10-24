@@ -110,9 +110,15 @@ def pointer_state(pointer, component):
     lines = [x.strip().strip("'\"") for x in raw.splitlines() if x.strip()]
     if len(lines) != 1:
         fail(f"Unrecognized pointer content {pointer}: {lines}")
-    loc = Path(lines[0])
-    if loc.is_absolute() or ".." in loc.parts or loc.name != lines[0]:
-        fail(f"Unsafe or nonlocal restart pointer {pointer}: {loc}")
+    # CIME restart pointers may use "./filename.nc". pathlib removes the
+    # harmless leading "./" when normalizing, so comparing loc.name with
+    # the unnormalized input incorrectly rejected a valid pointer.
+    raw_name = lines[0]
+    loc = Path(raw_name)
+    if (loc.is_absolute() or ".." in loc.parts or len(loc.parts) != 1
+            or raw_name not in (loc.name, "./" + loc.name)):
+        fail(f"Unsafe or nonlocal restart pointer {pointer}: "
+             f"raw={raw_name!r}, normalized={str(loc)!r}")
     earlier = expected_restart(component, 2047)
     latest = expected_restart(component, 2052)
     if loc.name not in (earlier, latest):
