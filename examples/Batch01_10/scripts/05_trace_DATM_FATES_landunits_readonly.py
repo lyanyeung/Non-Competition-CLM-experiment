@@ -244,6 +244,7 @@ def run(input_path):
     print("=== BATCH01 STAGE05 ORIGINAL CASE / DATM / FATES AUDIT: READ ONLY ===")
     print("DATM dates are evidence fields, not verified contiguous forcing ranges.")
     print("NATVEG/CROP are inherited host-grid landunits, not approved tower areas.")
+    print("Selected landunit sum is NOT a full total: PCT_URBAN excluded; review urban field in JSON.")
     for site in rows:
         site_id = site["site"]
         cases = [inspect_case(site_id, x) for x in site.get("cases", [])]
@@ -254,12 +255,16 @@ def run(input_path):
         summary = {"site": site_id, "old_case_count": len(cases),
                    "candidate_tree_mix": site["candidate_tree_pft_pct"],
                    "source_host_landunits": landunits,
-                   "five_landunit_sum_if_all_scalar": total,
+                   "five_selected_landunit_sum_EXCLUDES_URBAN": total,
+                   "urban_field_from_stage03": [
+                       s.get("fields", {}).get("PCT_URBAN", {})
+                       for s in site.get("surface_reviews", [])
+                       if s.get("read_status") == "READ_OK"],
                    "cases": cases, "release": "HOLD"}
         out.append(summary)
         print(f"{site_id}: CASES={len(cases)} "
               f"NAT={landunits['PCT_NATVEG']} CROP={landunits['PCT_CROP']} "
-              f"OTHER_LANDUNIT_SUM={total}")
+              f"SELECTED_LANDUNIT_SUM_EXCLUDES_URBAN={total}")
         for case in cases:
             years = case.get("reported_datm_years", {})
             xm = case.get("xml_values", {})
