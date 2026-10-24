@@ -390,6 +390,10 @@ def case_settings(site):
         "CONTINUE_RUN":"FALSE",
         "CLM_FORCE_COLDSTART":"on",
         "CLM_ACCELERATED_SPINUP":"on",
+        # Old single-point compsets may still default to Satellite Phenology.
+        # FATES + accelerated spinup must use the FATES BGC namelist mode.
+        # This changes ONLY the new cloned case, never its old reference case.
+        "CLM_BLDNML_OPTS":"-bgc fates",
         "STOP_OPTION":"nyears","STOP_N":"5",
         "REST_OPTION":"nyears","REST_N":"5",
         "RESUBMIT":"0","DOUT_S":"TRUE",
@@ -422,19 +426,41 @@ def single_case(site):
     validate_surface(site,surf)
     case=case_path(site)
     ledger=ledger_path(site)
-    if case.exists() or ledger.exists():
-        if case.is_dir() and ledger.is_file():
-            print(site,"CASE EXISTS: skip creation; run 'status' / inspect if needed")
-            return
-        fail("Partial case/ledger present: manual resolution "+site)
+    # Recover the half-created *new* cases from the earlier namelist failure.
+    # Do not remove, overwrite, or clone on top of an existing CIME case.
     orig,exe=old_executable(site)
-    if run_path(site).exists() or archive_path(site).exists():
-        fail("Run/archive destination already exists "+site)
-    print(site,"CLONING existing case/executable; not building a new CTSM")
-    cmd([CIMESCRIPTS/"create_clone","--case",case,"--clone",orig,"--keepexe"],
-        cwd=CIMESCRIPTS,timeout=420)
-    if not case.is_dir():
-        fail("Clone command returned but CIME case missing "+site)
+    if ledger.is_file():
+        if not case.is_dir():
+            fail("Ledger exists but AD case missing; STOP "+site)
+        state=json.loads(ledger.read_text())
+        if (state.get("case")!=str(case) or
+            state.get("surface_sha256")!=digest(surf)):
+            fail("Existing AD ledger does not match selected case/surface "+site)
+        if state.get("phase")!="PREPARED_NOT_SUBMITTED":
+            fail("Case has already reached submission phase; no stage retry "+site)
+        if "-bgc fates" not in xmlquery(case,"CLM_BLDNML_OPTS"):
+            fail("Existing ready ledger uses non-FATES BGC mode "+site)
+        print(site,"CASE ALREADY STAGED WITH FATES BGC; retained")
+        return
+    if case.exists() or case.is_symlink():
+        if not case.is_dir() or case.is_symlink():
+            fail("Pre-existing new case path not a normal case directory "+site)
+        if xmlquery(case,"CASE")!=case_name(site):
+            fail("Pre-existing case identity mismatch; refuse to edit "+site)
+        state_file=case/"CaseStatus"
+        if state_file.is_file():
+            log=state_file.read_text(errors="replace")
+            if re.search(r"case\.submit starting|case\.run starting|case\.submit success",log):
+                fail("Pre-existing new case has run/submission history; STOP "+site)
+        print(site,"RESUMING FAILED PREVIEW IN EXISTING ISOLATED NEW CASE")
+    else:
+        if run_path(site).exists() or archive_path(site).exists():
+            fail("Run/archive path unexpectedly exists for uncreated case "+site)
+        print(site,"CLONING existing case/executable; not building a new CTSM")
+        cmd([CIMESCRIPTS/"create_clone","--case",case,"--clone",orig,"--keepexe"],
+            cwd=CIMESCRIPTS,timeout=420)
+        if not case.is_dir():
+            fail("Clone command returned but CIME case missing "+site)
     settings=case_settings(site)
     # Use the same single-key CIME xmlchange pattern as the successful DE-Tha AD case.
     for key,value in settings.items():
@@ -473,6 +499,8 @@ def single_case(site):
         fail("Generated run/lnd_in missing or differs from CaseDocs/lnd_in "+site)
     if xmlquery(case,"EXEROOT")!=str(exe.parent):
         fail("New case EXEROOT changed unexpectedly "+site)
+    if "-bgc fates" not in xmlquery(case,"CLM_BLDNML_OPTS"):
+        fail("New case does not select -bgc fates "+site)
     ledger.parent.mkdir(parents=True,exist_ok=True)
     with ledger.open("x") as file:
         json.dump({
@@ -484,6 +512,7 @@ def single_case(site):
             "phase":"PREPARED_NOT_SUBMITTED",
             "first_five_years_only":True,
             "CLM_ACCELERATED_SPINUP":"on",
+            "CLM_BLDNML_OPTS":"-bgc fates",
             "spinup_state":2,"RESUBMIT":0,
             "created_utc":datetime.now(timezone.utc).isoformat(),
         },file,indent=2)
@@ -539,7 +568,18 @@ def all_submit(ack):
             fail("Case stop changed "+site)
         if xmlquery(case_path(site),"CLM_ACCELERATED_SPINUP").lower()!="on":
             fail("Case not AD "+site)
-        # Do not re-run namelists or per-year forcing audits here.
+        if "-bgc fates" not in xmlquery(case_path(site),"CLM_BLDNML_OPTS"):
+            fail("Case incorrectly uses Satellite Phenology instead of FATES BGC "+site)
+        lnd=case_path(site)/"CaseDocs/lnd_in"
+        if not lnd.is_file():
+            fail("Generated effective CLM namelist missing "+site)
+        nml=lnd.read_text()
+        for key,value in desired_namelist(site).items():
+            if key=="hist_fincl1":
+                continue
+            if nml_get(nml,key)!=value.strip("'\\\""):
+                fail("AD5 generated namelist mismatch "+site+" "+key)
+        # No per-year forcing file scans.
         records[site]=obj
     queue=cmd(["squeue","-u","ly3n24","-h","-o","%j"],timeout=35)
     for site in SITE_ORDER:
