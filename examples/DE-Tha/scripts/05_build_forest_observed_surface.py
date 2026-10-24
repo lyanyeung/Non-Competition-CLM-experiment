@@ -124,6 +124,34 @@ def verify_output(path: Path):
                 if not np.isfinite(arr).all() or float(np.abs(arr).sum())>1e-8:
                     stop("New surface has unexpected landunit "+name)
 
+def verify_created(out: Path):
+    receipt = out.with_suffix(".json")
+    if not out.is_file() or not receipt.is_file():
+        stop("Generated surface or JSON receipt missing; write it first")
+    record = json.loads(receipt.read_text(encoding="utf-8"))
+    if record.get("generated_surface") != str(out):
+        stop("Receipt output path mismatches actual output")
+    if record.get("source_surface_sha256") != SRC_SHA256:
+        stop("Receipt source SHA256 does not match pinned source")
+    if record.get("pinned_fates_parameter_sha256") != PARAM_SHA256:
+        stop("Receipt FATES param SHA256 does not match")
+    if record.get("landunits") != {"PCT_NATVEG":100.0,"PCT_CROP":0.0}:
+        stop("Receipt landunit fractions inconsistent")
+    if record.get("clm_natpft_percent") != {"1_ENF":87.0,"3_DNF":10.0,"7_DBF":3.0}:
+        stop("Receipt modeled natpft composition inconsistent")
+    verify_output(out)
+    got = hashfile(out)
+    if got != record.get("generated_surface_sha256"):
+        stop("Generated NetCDF SHA256 does not match receipt")
+    if hashfile(SRC) != SRC_SHA256:
+        stop("Original source was modified; STOP")
+    print("PASS: generated surface NetCDF, receipt, SHA256, all PFTs and landunits")
+    print("OUTPUT:",out)
+    print("GENERATED SHA256:",got)
+    print("PASS: original CLM surface template unchanged")
+    print("READ ONLY VERIFY COMPLETE; NO CASE/JOBS SUBMITTED")
+
+
 def write_new_surface(out: Path):
     receipt=out.with_suffix(".json")
     if out.exists() or receipt.exists():
@@ -198,7 +226,7 @@ def write_new_surface(out: Path):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action",choices=("audit","write"))
+    parser.add_argument("action",choices=("audit","write","verify"))
     parser.add_argument("--ack-2pct",default="",
                         help="Required exact statement for 2% unknown-species proxy")
     parser.add_argument("--ack-forest",default="",
@@ -215,6 +243,9 @@ def main():
     print("WARNING: proxy for forest EC tower, NOT verified mapped grid-area observation")
     if args.action=="audit":
         print("READ ONLY AUDIT COMPLETE: no files written")
+        return
+    if args.action=="verify":
+        verify_created(args.output_dir/OUTPUT_NAME)
         return
     if args.ack_2pct!=ACK_2 or args.ack_forest!=ACK_LAND:
         stop("Write requires --ack-2pct "+ACK_2+" and --ack-forest "+ACK_LAND)
