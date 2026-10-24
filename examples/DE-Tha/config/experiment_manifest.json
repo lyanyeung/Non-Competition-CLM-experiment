@@ -76,7 +76,17 @@
         "remediation_status": "NOT_RUN_YET",
         "slurm_jobs_submitted": false,
         "no_model_integration_started": true,
-        "do_not": "Do not rerun stage10 stage, do not edit shared CTSM, do not submit until private overlay recovered & state=2 in both generated land namelists"
+        "do_not": "Do not rerun stage10 stage, do not edit shared CTSM, do not submit until private overlay recovered & state=2 in both generated land namelists",
+        "stage12_audit_2026_10_24": {
+          "status": "READ_ONLY_AUDIT_STOPPED_FALSE_NEGATIVE_OPTION_REGEX_NO_CHANGES",
+          "actual_bldnml_opts": "--bgc fates --no-megan --no-drydep --no-fire_emis",
+          "root_cause": "audit regex matched -bgc fates but did not accept CIME --bgc fates",
+          "fix_commit": "e04301196e845768f14846d6deb317452bfd2d8a",
+          "fix_description": "accept -bgc fates, --bgc fates or --bgc=fates; explicitly reject --bgc sp and other values",
+          "recovery_attempted": false,
+          "slurm_jobs_submitted": false,
+          "recommended_next": "git pull --ff-only; rerun Stage12 audit read-only, then only if AUDIT PASSED Stage12 repair with explicit ack; do not rerun Stage10 stage"
+        }
       }
     }
   ],
