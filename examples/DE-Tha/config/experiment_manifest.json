@@ -86,5 +86,20 @@
     "site forcing/years/calendar/QC audited",
     "parameter fates_hlm_pft_map verified",
     "isolated case and executable reviewed"
-  ]
+  ],
+  "input_inventory_2026_10_24": {
+    "status": "PATHS_DISCOVERED_CONTENT_NOT_YET_AUDITED",
+    "original_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/DE-Tha/subset_data/surfdata_DE-Tha_hist_2000_16pfts_c261011.nc",
+    "forcing_csv": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/DE-Tha/forcing/processed_v5/DE-Tha_CLM_forcing_1996_2025.csv",
+    "datm_yearly_nc_directory": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/DE-Tha/forcing/datm_v5_candidate_timevarying_zbot",
+    "legacy_reference_case": "/iridisfs/scratch/ly3n24/CLM_FATES/cases/DE-Tha_FATES_SPINUP500",
+    "legacy_case_mode": {
+      "use_fates_nocomp": false,
+      "use_fates_fixed_biogeog": false
+    },
+    "ctsm_revision": "d5ea9d0136530370a62ef267ccfaff6f001ef914",
+    "fates_params_sha256": "0819f8fddcb3566f6209f72bb1159a3161d03c8225a1464727b1d2b21aec6c04",
+    "verified_by": "02_inventory_iridis_inputs.py read-only output; values in netCDF not yet inspected",
+    "next_action": "03_audit_live_inputs.py read-only original surface / FATES mapping / DATM time axis"
+  }
 }
