@@ -1,0 +1,13 @@
+site,depth_top_cm,depth_bottom_cm,sand_pct_total,silt_pct_total,clay_pct_total,stones_pct_total,data_status,source,scope_and_processing_note
+CZ-BK1,,,,,,,NEED_SITE_OBSERVATION,,No grid soil fallback in Batch01 scientific texture; find measured horizon and depth
+IT-Ren,,,,,,,NEED_SITE_OBSERVATION,,No grid soil fallback in Batch01 scientific texture; find measured horizon and depth
+RU-Fyo,,,,,,,NEED_SITE_OBSERVATION,,No grid soil fallback in Batch01 scientific texture; find measured horizon and depth
+CH-Dav,,,,,,,NEED_SITE_OBSERVATION,,No grid soil fallback in Batch01 scientific texture; find measured horizon and depth
+IT-Col,,,,,,,NEED_SITE_OBSERVATION,,No grid soil fallback in Batch01 scientific texture; find measured horizon and depth
+FR-Fon,,,,,,,NEED_SITE_OBSERVATION,,No grid soil fallback in Batch01 scientific texture; find measured horizon and depth
+FR-Pue,,,,,,,NEED_SITE_OBSERVATION,,No grid soil fallback in Batch01 scientific texture; find measured horizon and depth
+DE-Hai,,,,,,,NEED_SITE_OBSERVATION,,No grid soil fallback in Batch01 scientific texture; find measured horizon and depth
+BE-Vie,,,,,,,NEED_SITE_OBSERVATION,,No grid soil fallback in Batch01 scientific texture; find measured horizon and depth
+FI-Sod,0,10,88.12,6,0.5,5.4,STATION_PROFILE_REPORTED,https://fluxnet.org/sites/siteinfo/FI-Sod,FLUXNET site description; includes stones; fine earth normalization required
+FI-Sod,10,20,93.5,4.1,0.3,2.1,STATION_PROFILE_REPORTED,https://fluxnet.org/sites/siteinfo/FI-Sod,FLUXNET site description; includes stones; fine earth normalization required
+FI-Sod,20,40,91.9,2.8,0.2,5.1,STATION_PROFILE_REPORTED,https://fluxnet.org/sites/siteinfo/FI-Sod,FLUXNET site description; includes stones; fine earth normalization required
