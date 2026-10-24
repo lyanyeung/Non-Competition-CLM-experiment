@@ -108,7 +108,7 @@ def fail(s):
 
 
 def read_csv(p):
-    with p.open(newline="",encoding="utf8-sig") as f:
+    with p.open(newline="",encoding="utf-8-sig") as f:
         return {r["site"]:r for r in csv.DictReader(f)}
 
 
