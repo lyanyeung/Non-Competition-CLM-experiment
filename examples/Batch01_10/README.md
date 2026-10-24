@@ -144,6 +144,9 @@ This checkpoint separates **forest-tree functional-type closure** from **approva
 
 **Scientific release gate remains 0/10**: All sites retain `EVIDENCE_ONLY_HOLD_SURFACE` until source metric/footprint, natural-vs-crop landunits, PFT mapping, soil provenance, actual case inputs and versioned-surface QA are reviewed. There is no authority here to write production `PCT_NAT_PFT`, modify old cases, launch AD400/NORMAL400, or send unknown residual to GRA.
 
+
+**New forest inventory evidence (24 October 2026):** [Four-site inventory search](docs/four_site_forest_inventory_search_2026-10-24.md) identifies a **BE-Vie 70% cumulative EC-footprint species classification** (2018 drone mapping; published ESSD 2026): Norway spruce 38% ENF, silver fir 14% ENF, Douglas fir 9% ENF, Scots pine 2% ENF, European beech 36% DBF. **ENF 63% + DBF 36% = 99% reported**; residual 1% is not silently normalized. This supersedes the *unknown-20% issue for this footprint-specific evidence*, NOT the older stand-study denominator or the production-surface HOLD. FR-Fon and FR-Pue now have documented tree-inventory plot leads but not minority-species fractions; FI-Sod remains unidentified at 5%. Targeted numerical residual gaps are now **FR-Fon, FR-Pue, FI-Sod**, plus BE-Vie's 1% rounding/area-basis audit.
+
 ## Readiness gates to work through, in order
 
 1. **Observed PFT provenance:** retrieve actual station/forest source, verify measurement year, survey method, spatial coverage, specific **denominator** and any species sum. Record the unknown share. A scientific proxy must be proposed and explicitly recorded before it can become a fixed PFT surface.
