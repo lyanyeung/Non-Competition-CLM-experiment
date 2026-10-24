@@ -4,7 +4,7 @@
   "site_name": "Tharandt",
   "network": "ICOS",
   "scientific_status": "TOWER_FOREST_PROXY_SELECTED_WITH_UNRESOLVED_2PCT_ASSUMPTION",
-  "operational_status": "STAGE12_REPAIRED_STAGE10_VALIDATED; DE_THA_FIRST5_RUNTIME_UNVERIFIED; NL_LOO_JOB_IDS_4713482_AND_4713483_ARE_SEPARATE",
+  "operational_status": "DE_THA_FIRST5_AD_1996_2001_VERIFIED_MODEL_ARCHIVE_RESTART; INDEPENDENT_AD5_TO_NORMAL5_STAGED_VALIDATED_NOT_SUBMITTED; AD395_NOT_SUBMITTED",
   "source_evidence": {
     "official_site": "https://meta.icos-cp.eu/resources/stations/ES_DE-Tha",
     "supplementary_site": "https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1",
@@ -61,7 +61,7 @@
       "planned_remaining_years": 395,
       "first_submit_resubmit": 0,
       "after_archive_success_resubmit": 78,
-      "status": "FIRST5_NOT_VERIFIED_RUN_OR_ARCHIVE; SUBMISSION_STATUS_NOT_ESTABLISHED_FROM_QUEUE",
+      "status": "AD5_COMPLETED_ARCHIVED_2001; 395_YEARS_NOT_SUBMITTED",
       "case": "DE-Tha_OBSPFT_NC_V1_AD400",
       "no_pre50": true,
       "postad_not_requested": true,
@@ -74,9 +74,9 @@
         "known_nl_loo_fix": "private namelist overlay widen use_cn OR use_fates and gate reseed_dead_plants under CN",
         "proposed_remediation_script": "examples/DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py",
         "remediation_status": "USER_EXECUTED_REPAIR_PASS_GENERATED_NAMELIST_SPINUP2_CASE_XML_LOCK_RESTORED",
-        "slurm_jobs_submitted": false,
-        "no_model_integration_started": true,
-        "do_not": "Do not rerun stage10 stage, do not edit shared CTSM, do not submit until private overlay recovered & state=2 in both generated land namelists",
+        "slurm_jobs_submitted": true,
+        "no_model_integration_started": false,
+        "do_not": "Historical Stage10/12 preview failure recovered; do not restage. First-5-year AD succeeded; only Stage11 audit can authorize 395-year continuation.",
         "stage12_audit_2026_10_24": {
           "status": "READ_ONLY_AUDIT_STOPPED_FALSE_NEGATIVE_OPTION_REGEX_NO_CHANGES",
           "actual_bldnml_opts": "--bgc fates --no-megan --no-drydep --no-fire_emis",
@@ -102,15 +102,43 @@
           "independent_stage10_validate": "PASS",
           "slurm_jobs_submitted": false
         }
+      },
+      "first5_verified": {
+        "result": "STATUS: VERIFIED_AD5_ARCHIVED",
+        "model_years_completed": 5,
+        "model_calendar_range": "1996-01-01 to 2001-01-01",
+        "run_job": {
+          "id": "4713351",
+          "job_name": "run.DE-Tha_OBSPFT_NC_V1_AD400",
+          "state": "COMPLETED",
+          "exit_code": "0:0"
+        },
+        "archive_job": {
+          "id": "4713352",
+          "job_name": "st_archive.DE-Tha_OBSPFT_NC_V1_AD400",
+          "state": "COMPLETED",
+          "exit_code": "0:0"
+        },
+        "archive_restart_timestamp": "2001-01-01-00000",
+        "archived_components_bytes": {
+          "clm2": 4273484,
+          "datm": 21102960,
+          "cpl": 32764
+        },
+        "clm_restart_spinup_state": 2,
+        "cime_run": "success",
+        "cime_archive": "success",
+        "stage13_readonly_report": "PASS"
       }
     }
   ],
   "fixed_biogeography": true,
   "no_inter_pft_competition": true,
   "forbid_slurm_until": [
-    "5-year Stage10 smoke: use explicit submit-smoke confirmation once; RESUBMIT=0; no automated 395-year continuation",
-    "after first 5-year run+archive complete: verify Slurm COMPLETED/0:0, 2001-01-01 cpl/datm/clm2 restart and spinup_state=2 before Stage11 audit",
-    "remaining forcing v5 REVIEW was explicitly accepted unchanged for exploratory AD400, not certified as validated"
+    "AD395 source continuation: Stage11 audit must pass (first AD5 archived 2001 spinup_state=2 and all Slurm/CIME/CIME submit option checks)",
+    "AD5->Normal5 independent case: Stage14 validate must pass immediately before first Normal submission; RESUBMIT=0",
+    "Normal AD5-to-Normal5 completed run and archived restart spinup_state=0 are not yet verified",
+    "Do not conflate 5-year technical Normal compatibility with soil C steady state or full AD400 completion"
   ],
   "input_inventory_2026_10_24": {
     "status": "INPUTS_AUDITED_ORIGINAL_SURFACE_AND_FATES_MAP; SCIENTIFIC_SCENARIO_HOLD",
@@ -221,14 +249,16 @@
     "stage13_script": "examples/DE-Tha/scripts/13_check_AD5_jobs_and_restart.py",
     "stage14_script": "examples/DE-Tha/scripts/14_AD_to_Normal_independent_branch.py",
     "AD_to_Normal_independent_test": {
-      "status": "SCRIPTS_COMMITTED_NO_NORMAL_CASE_OR_JOB_CREATED",
+      "status": "AD5_TO_NORMAL5_CASE_STAGED_AND_VALIDATED; NO_NORMAL_SLURM_SUBMITTED",
       "AD5_test": {
         "source_year": 2001,
         "target_year": 2006,
         "source_ad_case": "DE-Tha_OBSPFT_NC_V1_AD400",
         "new_case": "DE-Tha_OBSPFT_NC_AD5_TO_NORMAL5_TEST",
         "design": "hybrid normal five-year smoke, separate case+run/archive",
-        "purpose": "technical FATES/CIME conversion feasibility, not spinup equilibrium"
+        "purpose": "technical FATES/CIME conversion feasibility, not spinup equilibrium",
+        "status": "ISOLATED_CASE_CREATED, 2001 CLM/DATM/CPL copied and checked, normal hybrid namelist VALIDATE PASS, no Slurm submitted",
+        "next_action": "Stage14 validate then one-time submit-smoke, verify-run after both run/archive finish"
       },
       "AD400_test": {
         "source_year": 2396,
@@ -241,7 +271,7 @@
       },
       "no_source_modifications": true,
       "normal_mode": "CLM_ACCELERATED_SPINUP=off; generated spinup_state=0 or absent (FATES use_cn false); verify output restart spinup_state=0",
-      "first_task": "Stage13 read-only exact Slurm and archived 2001 restart test"
+      "first_task": "Stage11 independent read-only audit for remaining AD395; Stage14 Normal5 submit optional after independent validation"
     }
   },
   "scientific_sensitivity_exploration": "04_review_landunit_scenarios.py is archive/read-only and NOT in this experiment scope",
