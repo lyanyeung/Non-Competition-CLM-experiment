@@ -3,9 +3,13 @@
 
 SAFETY
 - 'audit': READ ONLY. Checks exact 5-year Slurm jobs, CIME CaseStatus,
-  full archived 2052 checkpoint, FATES AD spinup_state=2 and 3 restart pointers.
-- 'continue-195': single guarded submission for 2052->2057 + 38 subsequent
-  5-year CIME resubmissions; DOUT_S short-term archiver orchestrates them.
+  full archived 2052 checkpoint and FATES AD spinup_state=2.
+  Detects stale PRE50 2047 pointers left by a hybrid smoke run and validates
+  that only a 2052 restart pointer handoff is needed.
+- 'continue-195': backups original AD200 run pointers, checksums 2052 three
+  component restart files, stages ONLY AD200 run pointers and then submits
+  2052->2057 + 38 subsequent 5-year CIME resubmissions; DOUT_S archiver
+  orchestrates them.
 - Shared CTSM code/binaries, PRE50/POST300 and unrelated Slurm jobs untouched.
 - CIME --skip-preview-namelist preserves the verified private FATES AD namelist;
   *never* submit this case without this option.
@@ -25,6 +29,8 @@ import importlib.util
 import json
 import re
 import subprocess
+import shutil
+import os
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -47,6 +53,9 @@ FIRST_ARCH = "4710753"
 ACTION = "AD200_remaining_2052_to_2247_verified"
 CONFIRM = "CONTINUE_VERIFIED_NL_LOO_AD200_FROM_2052_TO_2247"
 HISTORY = ("TOTSOMC","TOTSOMN","TLAI","FATES_GPP","FATES_NPP","TWS","H2OSNO")
+HANDOFF = C.WORK / "AD200_2052_verified_pointer_handoff"
+POINTERS = (("rpointer.lnd","clm2"),("rpointer.atm","datm"),
+            ("rpointer.cpl","cpl"))
 
 def fail(s):
     raise RuntimeError(str(s))
@@ -87,25 +96,96 @@ def accounting():
             fail(f"Unexpected additional AD200 Slurm job: {line}")
     print(f"PASS: Slurm run {FIRST_JOB} and archive {FIRST_ARCH}: COMPLETED/0:0",flush=True)
 
-def check_pointer(pointer,component):
+def expected_restart(component, model_year):
+    case = C.NAME["PRE50"] if model_year == 2047 else C.NAME[STAGE]
+    return f"{case}.{component}.r.{model_year:04d}-01-01-00000.nc"
+
+
+def pointer_state(pointer, component):
+    """Read-only check: 2047 original or correct 2052 pointer, and archive content."""
     p = RUN / pointer
-    if not p.is_file():
-        fail(f"Active {pointer} missing; do NOT manually overwrite restart pointers")
-    lines=[x.strip().strip("'\"") for x in p.read_text(errors="replace").splitlines() if x.strip()]
-    if len(lines)!=1:
-        fail(f"Unexpected multi-line {pointer}: {lines}")
-    loc=Path(lines[0])
-    if loc.is_absolute() or ".." in loc.parts:
-        fail(f"Unsafe restart pointer {pointer}: {loc}")
-    expected = f"{C.NAME[STAGE]}.{component}.r.2052-01-01-00000.nc"
-    if loc.name != expected:
-        fail(f"{pointer} does not reference the 2052 checkpoint: {loc} != {expected}")
-    local=RUN/loc
-    saved=REF/expected
-    if not (local.is_file() and saved.is_file()):
-        fail(f"Missing latest restart: {local} / {saved}")
-    if C.hashfile(local)!=C.hashfile(saved):
-        fail(f"Latest run restart differs from archived checkpoint: {local}")
+    if not p.is_file() or p.is_symlink():
+        fail(f"Expected ordinary active pointer file: {p}")
+    raw = p.read_text(errors="replace")
+    lines = [x.strip().strip("'\"") for x in raw.splitlines() if x.strip()]
+    if len(lines) != 1:
+        fail(f"Unrecognized pointer content {pointer}: {lines}")
+    loc = Path(lines[0])
+    if loc.is_absolute() or ".." in loc.parts or loc.name != lines[0]:
+        fail(f"Unsafe or nonlocal restart pointer {pointer}: {loc}")
+    earlier = expected_restart(component, 2047)
+    latest = expected_restart(component, 2052)
+    if loc.name not in (earlier, latest):
+        fail(f"Unexpected restart date in {pointer}: {loc}")
+    archive_file = REF / latest
+    if not archive_file.is_file() or archive_file.is_symlink():
+        fail(f"Verified 2052 restart not found as regular archive file: {archive_file}")
+    if archive_file.stat().st_size < 1024:
+        fail(f"Archived 2052 restart too small: {archive_file}")
+    local_latest = RUN / latest
+    if local_latest.exists():
+        if not local_latest.is_file() or C.hashfile(local_latest) != C.hashfile(archive_file):
+            fail(f"Conflicting 2052 restart already in run directory: {local_latest}")
+    if loc.name == earlier:
+        previous = RUN / earlier
+        if not previous.is_file():
+            fail(f"Old pointer has no source file: {previous}")
+    elif not local_latest.exists():
+        # A correct active pointer with a missing file is recoverable using
+        # the fully checked archival copy; require explicit staging before submit.
+        pass
+    print(f"POINTER {pointer}: {loc.name} -> {latest}" +
+          (" (unchanged)" if loc.name == latest else " (handoff required)"),flush=True)
+    return loc.name == latest and local_latest.is_file()
+
+
+def audit_pointer_handoff():
+    valid = [pointer_state(pointer,component) for pointer,component in POINTERS]
+    if HANDOFF.exists():
+        fail("Previous 2052 handoff directory exists; inspect before any further submit")
+    if all(valid):
+        print("PASS: all 2052 pointers and restart files already staged",flush=True)
+    else:
+        print("PASS: archive verified; 2052 pointer/file staging needed for continuation",flush=True)
+
+
+def stage_2052_handoff():
+    """Only change three active pointers and stage verified AD200 2052 restarts."""
+    if HANDOFF.exists():
+        fail("2052 handoff backup already exists; do not repeat")
+    audit_pointer_handoff()
+    HANDOFF.mkdir(parents=True,exist_ok=False)
+    manifest = {"source":str(REF),"year":2052,"files":{}}
+    for ptr,comp in POINTERS:
+        p = RUN / ptr
+        back = HANDOFF / (ptr + ".before")
+        shutil.copy2(p,back)
+        manifest["files"][ptr]={"original":p.read_text(),
+                                "old_sha256":C.hashfile(p),
+                                "backup":str(back)}
+    (HANDOFF/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n")
+    for ptr,comp in POINTERS:
+        filename = expected_restart(comp,2052)
+        src = REF / filename
+        dest = RUN / filename
+        if not dest.exists():
+            shutil.copy2(src,dest)
+        if C.hashfile(dest) != C.hashfile(src):
+            fail(f"Staged restart checksum mismatch: {dest}")
+        p = RUN / ptr
+        # Rewrite only after all archived restart files were verified. The
+        # original pointers remain permanently backed up in HANDOFF.
+        tmp = RUN / (ptr+".stage2052_tmp")
+        if tmp.exists():
+            fail(f"Unexpected temporary pointer exists: {tmp}")
+        tmp.write_text(filename+"\n")
+        os.chmod(tmp,p.stat().st_mode & 0o777)
+        os.replace(tmp,p)
+    if not all(pointer_state(ptr,comp) for ptr,comp in POINTERS):
+        fail("2052 pointers not fully verified after staging")
+    print("PASS: AD200 2052 checkpoint pointers staged; PRE50 and archive untouched",
+          flush=True)
+
 
 def check_history():
     for path in (CASE/"CaseDocs/lnd_in",RUN/"lnd_in"):
@@ -183,13 +263,11 @@ def audit():
         fail("2052 archived checkpoint / CIME success not verified")
     if C.spinup_value(STAGE,2052)!=2:
         fail("2052 restart must be FATES AD spinup_state=2")
-    for comp,pointer in (("clm2","rpointer.lnd"),("datm","rpointer.atm"),
-                         ("cpl","rpointer.cpl")):
-        check_pointer(pointer,comp)
+    audit_pointer_handoff()
     check_history()
     # Also validate all PRE50 science/surface/executable preconditions.
     C.validate_base()
-    print("PASS: 2052 archived AD restart spinup_state=2, three checksummed live pointers",flush=True)
+    print("PASS: 2052 archived AD restart spinup_state=2, safe pointer handoff eligible",flush=True)
     print("PASS: controller disarmed; no queued AD jobs; 39 x 5-year segments remain",flush=True)
     print("AUDIT PASSED: 2052->2247 continuation eligible",flush=True)
     return d
@@ -204,6 +282,9 @@ def continue_remaining():
     d["ad_only"]=True
     C.save(d)
     try:
+        # CIME left PRE50's 2047 rpointer.lnd active after successful hybrid
+        # smoke. Stage only the verified 2052 restart in this AD200 RUNDIR.
+        stage_2052_handoff()
         C.change(STAGE,"CONTINUE_RUN","TRUE")
         C.change(STAGE,"RESUBMIT","38")
         if C.xq(STAGE,"RESUBMIT")!="38" or C.xq(STAGE,"CONTINUE_RUN").lower()!="true":
