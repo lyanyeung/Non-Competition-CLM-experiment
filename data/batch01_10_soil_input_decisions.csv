@@ -1,0 +1,11 @@
+site,soil_texture_decision,original_fsurdat_reference_if_exception,decision_note,ready_for_surface_build
+CZ-BK1,ORIGINAL_FSURDAT_TEXTURE_OPERATOR_EXCEPTION,/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/CZ-BK1/subset_data/surfdata_CZ-BK1_hist_2000_16pfts_c261012.nc,Use original PCT_SAND and PCT_CLAY soil profile by explicit operator decision; not measured; new forest NATVEG and PFT still independent,PENDING_COPY_AND_VERIFY_FULL_PROFILE
+IT-Ren,SITE_ICOS_SOIL_RAW_PENDING,,Obtain 2020 ICOS ETC Soil particle size class raw data by horizon,PENDING_SITE_DATA
+RU-Fyo,ORIGINAL_FSURDAT_TEXTURE_OPERATOR_EXCEPTION,/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/RU-Fyo/subset_data/surfdata_RU-Fyo_hist_2000_16pfts_c261011.nc,Use original PCT_SAND and PCT_CLAY soil profile by explicit operator decision; not measured; distinct peat thickness and organic soil physics review remains required,PENDING_COPY_AND_PEAT_VERIFY
+CH-Dav,SITE_LITERATURE_CANDIDATE,,Station 0 to 10cm measured sand53 silt25 clay22; deeper depths need mapping,PENDING_DEPTH_PROFILE
+IT-Col,SITE_LITERATURE_CANDIDATE,,Reported sand30 silt40 clay about30 inferred; exact horizons not validated,PENDING_DEPTH_PROFILE
+FR-Fon,SITE_LITERATURE_CANDIDATE,,Site upper and lower mineral texture values exist; exact depths not established,PENDING_DEPTH_PROFILE
+FI-Sod,SITE_MEASURED_PARTIAL,,0 to 40cm observed 3 horizons in separate soil observation CSV; deeper model layers unapproved,PENDING_DEPTH_PROFILE
+FR-Pue,SITE_LITERATURE_CANDIDATE,,0 to 10cm measured soil texture; coarse fragments and depth need handling,PENDING_DEPTH_AND_STONES
+DE-Hai,SITE_LITERATURE_CANDIDATE,,0 to 10cm measured 4 49 48; published rounding sums101; deeper horizons unknown,PENDING_DEPTH_PROFILE
+BE-Vie,SITE_LITERATURE_CANDIDATE,,Site 27 55 18 measured research site; horizon unclear,PENDING_DEPTH_PROFILE
