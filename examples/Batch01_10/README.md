@@ -34,6 +34,7 @@ examples/Batch01_10/
     scripts/01_audit_iridis_batch01_sources.py  # existing-site READ ONLY inventory
     scripts/02_trace_actual_case_inputs.py     # Stage02 generated effective CIME / DATM trace
     scripts/03_audit_surface_soil_pft.py        # Stage03 read-only source-surface and soil review
+    scripts/04_summarize_readonly_surface_gates.py # Stage04 report summary; no new model writes
 data/
     batch01_10_sites.csv            # source evidence, not approved surface fractions
     batch01_10_pft_scenarios.csv     # operator-selected tree-PFT assumptions; HOLD
@@ -203,6 +204,33 @@ python3 -B "$S3" --case-trace "$TRACE" \
 **Read output:** `~/Batch01_10_stage03_surface_soil_<UTCSTAMP>/summary.csv` and `all_sites.json`. Stage03 reports **each** candidate existing fsurdat and exact case path; it flags duplicate baseline cases (notably IT-Col / FR-Pue), missing source surfaces, nonzero crops, non-100 natural landunits, suspicious conditional PFT sums and the first sand/clay grid-layer values. It makes **no case choice** and does **not** claim that source-grid soil is locally measured. A `READ_OK` only confirms NetCDF readability, not scientific adequacy. Review each site's actual forcing calendar and effective DATM stream from Stage02 rather than assuming that the Stage01 shallow folder scan found it.
 
 **Next decision after reviewing these reports:** choose one validated baseline case/forcing configuration per station, verify soil depth/provenance and natural-vs-crop landunit coverage, and validate exact FATES host-PFT indices (ENF, DNF, DBF, EBF are broad ecological groups). Only after explicit scientific review should we implement *new versioned* FIXNC fsurdat candidates and one-site AD400 five-year smoke tests. **All Batch01 sites remain HOLD for production and Slurm.**
+
+## Stage02–03 confirmed IRIDIS6 outcomes and Stage04 extraction — 24 October 2026
+
+**Observed operator results, not an inference about production readiness:** Stage02 self-test passed; Stage03 self-test passed; both main scripts completed without modifying original inputs or submitting Slurm jobs. Stage02 found one candidate baseline case per site **except IT-Col and FR-Pue (two each)**, giving **12 case records for ten sites**. Stage03 read **one candidate original fsurdat successfully per site (10/10)**, and all selected 10-site tree-PFT hypotheses passed the 100% sum validation. All ten remain **HOLD**. A readable NetCDF says nothing about scientific validity of surface PFT, soil provenance or the effective FATES fixed-biogeography mapping.
+
+Operator report references:
+- Stage02 `/home/ly3n24/Batch01_10_stage02_case_trace_20261024T094433Z/case_trace.json`
+- Stage03 `/iridisfs/home/ly3n24/Batch01_10_stage03_surface_soil_20261024T094433Z/all_sites.json`
+
+Stage02 displayed `CSV=0` for **IT-Col, FR-Fon, FI-Sod, FR-Pue** and `DATM=0` for **IT-Col, FR-Pue**, which are **limitations of the initial shallow inventory, not evidence of missing real forcing**. RU-Fyo and DE-Hai each listed two DATM directory candidates. Duplicate IT-Col/FR-Pue case names refer to `S30EXCL` and `S30SHARED`; do not select by suffix alone.
+
+**Next: Stage04 print-only review of existing reports** (no additional NetCDF reads and no output except stdout). The new [04_summarize_readonly_surface_gates.py](scripts/04_summarize_readonly_surface_gates.py) prints original source-host `PCT_NATVEG`, `PCT_CROP`, first-layer source-grid `PCT_SAND`/`PCT_CLAY`, existing conditional host-PFT sum, Stage03 issue flags and Stage02 case calendar excerpts. Source-soil first layer is **not** verified field soil. For missing fields or ambiguous shapes the display is `-`, not zero.
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment || exit 1
+git status --short
+git pull --ff-only origin main || exit 1
+STAGE03="$HOME/Batch01_10_stage03_surface_soil_20261024T094433Z/all_sites.json"
+test -f "$STAGE03" || exit 1
+set -o pipefail
+python3 -B examples/Batch01_10/scripts/04_summarize_readonly_surface_gates.py \
+  --stage03 "$STAGE03" \
+  2>&1 | tee "$HOME/Batch01_10_stage04_review.log"
+```
+
+Review the full Stage04 table and flags before deciding whether to retain the old natural/crop landunit percentages, choose a different baseline case, use field-measured soil or a labelled grid fallback, or construct any new versioned FIXNC surface. **No AD400/Normal400 runs yet.**
 
 ## Readiness gates to work through, in order
 
