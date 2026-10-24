@@ -1,6 +1,6 @@
 # Non-Competition CLM-FATES experiment
 
-**Status: Pilot NL-Loo in preparation; NO IRIDIS cases or Slurm submissions have been performed from this repository.**
+**Status (24 October 2026):** NL-Loo V3 PRE50 completed (50 model years); the first AD200 five-year segment (2047–2052) and its archive were verified successful; the remaining AD200 195 years (2052–2247) were submitted to Slurm using scripts/15 (initial jobs 4711128/4711129), **not yet verified complete**. POST300 has not started. [DE-Tha standard evidence example](examples/DE-Tha/README.md) is now documented but **not approved to launch**.
 
 ## Objective
 
@@ -51,6 +51,13 @@ cat "$HOME/NL_Loo_NC_audit/00_overview.json"
 If already cloned, use `git -C ~/Non-Competition-CLM-experiment pull --ff-only` **only if the working tree is clean**.
 
 The inspector reads real `NL-Loo_FATES_SPINUP500` metadata, the active surface and PFT map. It does not write input files, modify original cases or start jobs. **Do not run any long spin-up until this audit is reviewed.** See [first-site runbook](docs/NL_Loo_first_site_runbook.md).
+
+## Standard site examples
+
+The [examples/ index](examples/README.md) provides reproducible site folders with observation provenance, transparent PFT grouping, explicit unresolved coverage, a read-only scientific audit and phase-specific readiness gates.
+
+- [DE-Tha — Tharandt](examples/DE-Tha/README.md): official ICOS tree-composition evidence ENF 87%, DNF 10%, identified DBF 1%, unidentified deciduous 2%; **FATES PFT area not yet approved**. Read-only audit: `python3 -B examples/DE-Tha/scripts/01_audit_evidence.py`.
+- NL-Loo: the proven PRE50 / AD200 operational history currently resides in `scripts/09`–`scripts/15`, with NL-Loo-specific paths and Slurm job IDs. These are not portable one-click scripts for other towers.
 
 ## Batch strategy
 
