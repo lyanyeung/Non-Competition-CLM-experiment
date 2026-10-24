@@ -37,9 +37,9 @@ def audit_evidence() -> dict:
     meta = json.loads(MANIFEST.read_text(encoding="utf-8"))
     if meta.get("site") != "DE-Tha":
         fail("Incorrect site ID")
-    if meta.get("scientific_status") != "EVIDENCE_VERIFIED_MAPPING_AND_AREA_PROXY_HOLD":
+    if meta.get("scientific_status") != "TOWER_FOREST_PROXY_SELECTED_WITH_UNRESOLVED_2PCT_ASSUMPTION":
         fail("Scientific approval status changed: manual review required")
-    if meta.get("scenario_approval") != "NONE; scenarios are hypotheses NOT measured FATES PFT shares":
+    if meta.get("scenario_approval") != "USER_SELECTED_ONE_FOREST_PROXY; TWO_ASSUMPTION_ACKNOWLEDGEMENTS_REQUIRED_FOR_WRITE":
         fail("Unexpected scientific scenario approval; inspect edits")
 
     with CSV.open(newline="", encoding="utf-8") as fp:
@@ -152,22 +152,22 @@ def main() -> None:
                     help="Optional actual pre-existing DE-Tha CLM surface (read only)")
     ap.add_argument("--fates-params", type=Path,
                     help="Optional active FATES parameter JSON (read only)")
-    ap.add_argument("--scenario", choices=("other_as_DBF_proxy","other_as_DNF_proxy"),
-                    help="Display a hypothetical, NOT approved, species-to-PFT allocation")
+    ap.add_argument("--scenario", choices=("tower_forest_proxy_ENF87_DNF10_DBF3",),
+                    help="Display selected tower-forest proxy; area/2pct remain assumptions")
     args = ap.parse_args()
     meta = audit_evidence()
     if args.scenario:
         scenario = meta["scenario_candidates"][args.scenario]
         if sum(scenario.values()) != 100:
             fail("Candidate scenario does not sum to 100")
-        print("UNAPPROVED HYPOTHESIS:", args.scenario, scenario)
-        print("Do NOT write a surface from this scenario without scientific sign-off")
+        print("SELECTED FOREST PFT PROXY (NOT MEASURED GRID AREA):", args.scenario, scenario)
+        print("For isolated new-surface write, use script 05 with two explicit assumption acknowledgements")
     if args.surface:
         audit_surface(args.surface)
     if args.fates_params:
         audit_params(args.fates_params, meta)
     print("READ ONLY COMPLETE: no input writes, no case build, no Slurm submissions")
-    print("SITE STATUS: HOLD_PFT_AREA_MAPPING_AND_INPUT_PATH_AUDIT")
+    print("SITE STATUS: SINGLE_TOWER_FOREST_PROXY_SELECTED; SURFACE_WRITE_REQUIRES_EXPLICIT_ACK")
 
 
 if __name__ == "__main__":
