@@ -1,0 +1,6 @@
+site,species_or_group,reported_percent,reported_group,provisional_fates_group,observed_metric,spatial_scope,reference_url,interpretation
+DE-Tha,Picea abies,72,coniferous evergreen,ENF,reported tree composition,ICOS station / flux-influence forest,https://meta.icos-cp.eu/resources/stations/ES_DE-Tha,Tree species share not verified as whole-grid natural PFT area
+DE-Tha,Pinus sylvestris,15,coniferous evergreen,ENF,reported tree composition,ICOS station / flux-influence forest,https://meta.icos-cp.eu/resources/stations/ES_DE-Tha,Tree species share not verified as whole-grid natural PFT area
+DE-Tha,Larix decidua,10,deciduous,DNF,reported tree composition,ICOS station / flux-influence forest,https://meta.icos-cp.eu/resources/stations/ES_DE-Tha,Needleleaf deciduous tree
+DE-Tha,Betula sp.,1,deciduous,DBF,reported tree composition,ICOS station / flux-influence forest,https://meta.icos-cp.eu/resources/stations/ES_DE-Tha,Broadleaf deciduous tree
+DE-Tha,Other deciduous trees (unidentified),2,deciduous,UNRESOLVED_DECIDUOUS,reported tree composition,ICOS station / flux-influence forest,https://meta.icos-cp.eu/resources/stations/ES_DE-Tha,No species-level assignment for remaining 2 percent
