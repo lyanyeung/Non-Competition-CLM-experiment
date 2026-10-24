@@ -2,7 +2,7 @@
 
 **Selected scientific experiment:** ONE tower-forest PFT scenario **ENF 87%, DNF 10%, DBF 3%**. No original-grid/cropland/PFT-mix experiments are part of the active DE-Tha experiment. This is an *observationally informed single-point forest proxy*, **not** a measured grid-wide area map.
 
-**Status (24 October 2026):** PFT-only v1 SHA256 verified; final forest + published measured-soil **v2 generated and independently verified** (`0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a`). **New plan: direct AD400 from cold startup 1996; NO PRE50, NO AD200 or POST300 at this stage.** Stage10 `inspect` PASSED and a new case was created; `preview_namelists` FAILED at the pinned FATES `spinup_state` guard. Stage12 private-overlay recovery is now available; **no Slurm job submitted**. Existing forcing v5 status is still `REVIEW`: the operator explicitly elects to use the unchanged existing forcing for this experiment; 11 LW + 3 VPD manual concerns remain scientifically unresolved.
+**Status (24 October 2026):** PFT-only v1 SHA256 verified; final forest + published measured-soil **v2 generated and independently verified** (`0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a`). **New plan: direct AD400 from cold startup 1996; NO PRE50, NO AD200 or POST300 at this stage.** Stage10 `inspect` passed and new case created. Stage12 **private-overlay repair PASSED on IRIDIS6**: `preview_namelists`/`check_input_data` RC0, real generated `spinup_state=2`, FIXNC, correct FATES GPP/NPP, case XML lock restored; **Stage10 independent `validate` PASSED**. The first 5-year AD smoke is now eligible for one-time submission; **no DE-Tha Slurm job was submitted in these audit/repair steps**. Existing forcing v5 status is still `REVIEW`: the operator explicitly elects to use the unchanged existing forcing for this experiment; 11 LW + 3 VPD manual concerns remain scientifically unresolved.
 
 ## 1. Observed PFT targets (single scenario)
 
@@ -219,6 +219,8 @@ python3 -B examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py validate
 ```
 
 If audit fails, **stop** and share output. If repair fails partway through, **do not rerun it**: it leaves a non-repeatable attempt ledger and preserves case/overlay for manual diagnosis. Once Stage10 validates, its one-time `submit-smoke` still preserves corrected `spinup_state=2` with `--skip-preview-namelist`.
+
+**Verified Stage12 recovery result (24 October 2026):** audit passed, private overlay repaired the CLMBuildNamelist FATES guard, `./preview_namelists` and `./check_input_data` returned 0, generated `CaseDocs/lnd_in` and `RUN/lnd_in` include `spinup_state=2` and FIXNC, no CN-only reseed, real `env_case.xml` was restored exactly, and an independent Stage10 `validate` passed. Therefore, **do not rerun Stage12 repair or Stage10 stage**. The next operator action is **exactly one** Stage10 `submit-smoke` (5 years, `RESUBMIT=0`), not Stage11 `continue-395`.
 
 ### Stage10 — Submit only initial 1996–2001 AD smoke (5 model years)
 
