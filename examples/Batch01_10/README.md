@@ -1,5 +1,31 @@
 # Batch01_10 — Site-observed-first fixed-biogeography / no-competition FATES
 
+## IMPORTANT HOLD: AD namelist `-bgc fates` not effective yet — 24 October 2026
+
+**Observed on IRIDIS6 after 10/10 new surface construction:** running Stage11 `stage` again after patch `24d735e` still fails in the first reported new cases at `CLMBuildNamelist::setup_cmdl_spinup()` with BGC mode **Satellite Phenology**, despite the Python script attempting `CLM_BLDNML_OPTS=-bgc fates`. Thus the claimed prior `-bgc fates` *fix is NOT verified and has not resolved the issue*. At least the new cases seen in the user log are partial clone directories, not ready AD cases. No `submit-smoke` should be run.
+
+**Single targeted diagnostic (not another science/forcing re-audit):** compare effective CIME build-option XML of the **failed CZ-BK1** clone with the earlier **proven DE-Tha AD** clone. The only information required now is the actual values of `CLM_BLDNML_OPTS`, `CLM_CONFIG_OPTS`, `CLM_NAMELIST_OPTS`, `CLM_ACCELERATED_SPINUP` and `COMPSET`. This determines whether the `-bgc` option was dropped, shadowed by a compset or bound to an incompatible build. Do not change shared CTSM, delete case directories, or rebuild old executables.
+
+```bash
+ROOT=/iridisfs/scratch/ly3n24/CLM_FATES/cases
+for C in CZ-BK1_B01_FIXNC_AD400 DE-Tha_OBSPFT_NC_V1_AD400; do
+  DIR="$ROOT/$C"
+  if [ ! -d "$DIR" ]; then echo "$C: CASE_NOT_FOUND"; continue; fi
+  echo "========== $C =========="
+  (
+    cd "$DIR" || exit
+    for KEY in CLM_BLDNML_OPTS CLM_CONFIG_OPTS CLM_NAMELIST_OPTS CLM_ACCELERATED_SPINUP COMPSET; do
+      printf '%s = ' "$KEY"
+      ./xmlquery "$KEY" --value 2>/dev/null || echo UNKNOWN
+    done
+  )
+done
+```
+
+**Do not submit any AD5** until one repaired independent case can actually generate a `lnd_in` with FATES noncompetition/fixed-biogeography and `spinup_state=2`. The 10 created new surfaces are preserved as-is. Once the build-option discrepancy is identified, fix the *same Stage11* bulk script and resume partial new cases without rechecking forcing or soil literature.
+
+
+
 ### 24 October 2026 HOTFIX — Stage11 plan CSV codec failure
 
 The **first Batch01_10 Stage11 `plan` run on IRIDIS6 failed before any model write** with `LookupError: unknown encoding: utf8-sig`. This was a Python encoding typo in our script, **not an invalid PFT/soil dataset or a DATM issue**. Fixed the actual CSV reader to `encoding="utf-8-sig"`. Added `self-test` that reads all ten PFT and soil-decision CSV rows, checks sums/selected profiles, and checks namelist-edit helpers. Aligned `xmlchange` with the prior successful DE-Tha implementation (one CIME key at a time), and added a generated RUNDIR/CaseDocs namelist equality check before declaring a case staged. These changes **do not** add forcing re-audits.
