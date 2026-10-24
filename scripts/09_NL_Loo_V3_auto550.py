@@ -275,6 +275,12 @@ def tick(d):
             once(d,'AD200_remaining',lambda:continuation('AD200'))
             return True
         die('AD first segment stalled without checkpoint; stopping')
+    if d.get('ad_only'):
+        d['armed']=False
+        d['ad_completed_at']=utc()
+        save(d)
+        print('AD200 COMPLETE at 2247; POST300 not launched (ad_only recovery)',flush=True)
+        return False
     if 'POST300_first' not in d['actions']:
         once(d,'POST300_first',lambda:(prepare('POST300'),submit('POST300','first')))
         return True
@@ -346,6 +352,7 @@ def main():
             d['armed']=True
             d.pop('error',None)
             d['recovery_started']=utc()
+            d['ad_only']=True  # this recovery requests only AD200, not POST300
             save(d)
             try:
                 once(d,'AD200_first',lambda:(prepare('AD200'),submit('AD200','first')))
