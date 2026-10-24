@@ -1,0 +1,11 @@
+site,flechar_pft_short_name,present_in_table_s4,soil_depth_m_NOT_texture_sample_interval,terrain_slope_deg,soil_texture_label,FAO_soil_class,sand_pct_reported,silt_pct_reported,clay_pct_reported,reported_percent_sum,data_status,scope_warning
+CZ-BK1,EN1,YES,0.55,15.0,Loamy sand,Ferric Podzol,22,58,21,101,INTEGER_ROUNDING_SUM_101,published site aggregate; not depth-resolved texture
+IT-Ren,EN5,YES,0.5,11.0,Loamy sand,Haplic Podzol,55,34,11,100,PUBLISHED_SITE_AGGREGATE,published site aggregate; not depth-resolved texture
+RU-Fyo,EN6,YES,0.3,1.0,Peat,Umbric Albeluvisol,,,,,TEXTURE_NOT_REPORTED_PEAT,paper leaves mineral sand/silt/clay as n.a.; model peat separately
+CH-Dav,,NO,,,,,,,,,NOT_IN_TABLE_S4,CH-Dav is not part of this supplementary table
+IT-Col,DB6,YES,0.3-1.5,n.a.,Silty clay,Humic Alisol,8,32,59,99,INTEGER_ROUNDING_SUM_99,published 8 sand 32 silt 59 clay; differs from Chiesi 2018 30/40/~30
+FR-Fon,DB3,YES,0.8,0.6,Loamy sand,Gleyic Luvisol,,,,,TEXTURE_NOT_REPORTED,paper reports class but leaves component fractions as n.a.; other site source has upper/lower measured values
+FI-Sod,EN11,YES,1.5,0.0,Loamy sand,Haplic podzol,94,4,0,98,INTEGER_ROUNDING_SUM_98,less complete than registered FI-Sod three-layer FLUXNET measurements; do not overwrite them
+FR-Pue,EB2,YES,0.5,0.0,Silty loam,Rhodo-chromic luvisol,26,35,39,100,PUBLISHED_SITE_AGGREGATE,very stony soils; other 0-10cm study reports 26/32/42
+DE-Hai,DB1,YES,0.48-0.71,2.5,Loamy clay,Dystric Cambisol,4,56,40,100,PUBLISHED_SITE_AGGREGATE,different from Meredith top 0-10cm 4/49/48; do not merge
+BE-Vie,MF1,YES,1.5,1.7,Sandy silt,Dystric Cambisol,27,55,18,100,PUBLISHED_SITE_AGGREGATE,consistent with Buysse 2013 27/55/18
