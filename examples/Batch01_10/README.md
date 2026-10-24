@@ -147,6 +147,34 @@ python3 -B "$S8" --stage05 "$S5" 2>&1 | tee "$HOME/Batch01_10_stage08_soil_prefl
 
 Stage08 resulting report is written only to `~/Batch01_10_stage08_soil_preflight_<UTCSTAMP>/all_sites.json`. After the preflight, resolve CZ-BK1 soil-layer vertical assumption, RU-Fyo peat/organic-soil compatibility and the actual FATES/DATM setup; only then construct new **versioned** surface candidates and run one-site AD5 smoke. The **AD400 multi-site production remains on HOLD**.
 
+## Stage08 observed results; next Stage09 CZ-BK1 AD5 readiness audit — 24 October 2026
+
+**Operator Stage08 actually PASSED**: the self-test passed; original CZ-BK1 and RU-Fyo point-NetCDF source files were readable (`READ_OK`); new source files and CIME/Slurm were untouched. Saved JSON: `/iridisfs/home/ly3n24/Batch01_10_stage08_soil_preflight_20261024T104122Z/all_sites.json`. **This is NOT an approved new AD run.**
+
+| Site | Stage08 result | Remaining soil gate |
+| --- | --- | --- |
+| CZ-BK1 | Flechard2020 S4 Sand 22 / Silt 58 / Clay 21, total 101; preview normalization **21.782178 / 57.425743 / 20.792079**. One existing CIME reference case. | Set/label vertical texture allocation and check soil depth and physical parameter treatment; new surface not yet generated. |
+| RU-Fyo | Old source `PCT_SAND` 10 layers = **43,43,43,43,45,45,49,51,55,55**; `PCT_CLAY` = **12,12,12,12,15,19,20,19,18,18**. One existing CIME reference case. | Original-grid soil-only fallback approved as **non-observed**, but peat organic layers and hydrology remain unverified. |
+
+**Current release state: new FIXNC surfaces 0/10, independent AD cases 0/10.** Four blocking phases to first AD5: (1) choose CZ depth-to-CLM-layer treatment; (2) inspect actual existing DATM streams, forcing calendar/year list, CO2 setup and executable/FATES PFT mapping; (3) create and validate new **isolated** CZ-BK1 `PCT_NATVEG=100`, `PCT_CROP=0`, `ENF100` surface; (4) create a separate verified `CLM_ACCELERATED_SPINUP=on`, fixed-biogeography/no-competition AD cold-start case and submit **only 5 years** (`STOP_N=5`, `REST_N=5`, `RESUBMIT=0`) once checks pass. Existing old reference cases have non-competition and fixed-biogeography flags `.false.`; never directly submit these as new experiments.
+
+**Next command**: the new [Stage09 CZ AD5 input-gate script](scripts/09_CZ_BK1_AD5_input_gate_readonly.py) reads original case small text docs and Stage08 output only. It checks whether the executable, FATES parameter source, original DATM stream and case references can be located. It **does not** build surfaces, cases or submit jobs, and data found in text is not yet a validated annual forcing stream.
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment || exit 1
+git status --short
+git pull --ff-only origin main || exit 1
+S9=examples/Batch01_10/scripts/09_CZ_BK1_AD5_input_gate_readonly.py
+S8="$HOME/Batch01_10_stage08_soil_preflight_20261024T104122Z/all_sites.json"
+test -f "$S8" || exit 1
+python3 -B "$S9" --self-test || exit 1
+set -o pipefail
+python3 -B "$S9" --stage08 "$S8" \
+  2>&1 | tee "$HOME/Batch01_10_stage09_CZ_inputs.log"
+```
+
+**Decision after Stage09:** resolve any stream/soil/FATES blockers, then implement an explicitly versioned fixed-PFT surface builder with write/verify separation. Do not infer AD readiness from a self-test alone.
 ## 4. Gates before new versioned surfaces and spin-up
 
 1. Verify original forcing streams, years, time conversion, QC, CO2 baseline, pinned executable and actual host↔FATES PFT map; **original cases are only technical provenance sources**.
