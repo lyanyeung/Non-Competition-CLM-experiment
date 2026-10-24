@@ -127,9 +127,13 @@ def archived_ad_checkpoint(opts):
         if jobs_for(C.NAME):
             fail("AD400 model/archive still queued; no final conversion yet")
         status=(C.CASE/"CaseStatus").read_text(errors="replace")
-        if not re.search(r"case\.run success",status) or not re.search(
-                r"(?:case\.)?st_archive success",status):
-            fail("Source AD400 CaseStatus lacks run/archive success")
+        # Require the full 400-year chain, rather than a single earlier
+        # successful 5-year segment plus a stale or incomplete date directory.
+        run_success=len(re.findall(r"case\.run success",status))
+        archive_success=len(re.findall(r"(?:case\.)?st_archive success",status))
+        if run_success<80 or archive_success<80:
+            fail(f"Cannot establish full AD400 80-segment run+archive: "
+                 f"run_success={run_success}, archive_success={archive_success}")
     if not source.is_dir():fail("Archived AD checkpoint missing: "+str(source))
     files={}
     for comp in RESTART_COMPONENTS:
@@ -253,6 +257,7 @@ def validate(opts):
         "RUN_TYPE":"hybrid","RUN_STARTDATE":f"{opts['year']:04d}-01-01",
         "RUN_REFCASE":C.NAME,"RUN_REFDATE":f"{opts['year']:04d}-01-01",
         "CLM_ACCELERATED_SPINUP":"off",
+        "CLM_FORCE_COLDSTART":"off","GET_REFCASE":"FALSE",
         "CONTINUE_RUN":"FALSE","RESUBMIT":"0","STOP_N":"5",
         "REST_N":"5","DOUT_S":"TRUE",
         "RUNDIR":str(opts["run"]),"DOUT_S_ROOT":str(opts["archive"])
