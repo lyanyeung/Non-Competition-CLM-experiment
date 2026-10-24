@@ -33,8 +33,10 @@ examples/Batch01_10/
     README.md                       # this scientific cohort runbook
     scripts/01_audit_iridis_batch01_sources.py  # existing-site READ ONLY inventory
     scripts/02_trace_actual_case_inputs.py     # Stage02 generated effective CIME / DATM trace
+    scripts/03_audit_surface_soil_pft.py        # Stage03 read-only source-surface and soil review
 data/
     batch01_10_sites.csv            # source evidence, not approved surface fractions
+    batch01_10_pft_scenarios.csv     # operator-selected tree-PFT assumptions; HOLD
 examples/Batch01_10/<site>/
     README.md                       # site evidence & model-input decisions
     config/site_manifest.json       # per-site forcing years, CO2, case paths & SHA256
@@ -163,6 +165,44 @@ This checkpoint separates **forest-tree functional-type closure** from **approva
 FI-Sod renewed search: [ICOS tower](https://meta.icos-cp.eu/resources/stations/ES_FI-Sod) identifies Scots pine natural-regeneration forest; [FMI](https://en.ilmatieteenlaitos.fi/ghg-sodankylaicos) gives approximately 2,100 stems/ha and ~12 m height, **not** a species inventory; [Finnish NFI](https://www.silvafennica.fi/article/24045) provides only regional mixture evidence. None resolves the tower's tree-species 5%. Distinguish the Sodankylä forest EC tower from the neighboring Halssiaapa wetland tower.
 
 **Scientific gates:** precise inventory denominator, natural landunit area, soil texture and depth, compatible FATES PFT labels and actual model input QA are all still outstanding. **All ten final surfaces remain on HOLD.** For further baseline evidence see [four-site inventory follow-up](docs/four_site_forest_inventory_search_2026-10-24.md).
+
+## Stage03 — ten-site candidate PFT, source surface and soil audit (read only)
+
+**New since Stage02:** [selected ten-site model-tree PFT scenarios](../../data/batch01_10_pft_scenarios.csv) preserve all 10 operator-defined **ENF/DNF/DBF/EBF** candidates **separately** from [raw source evidence](../../data/batch01_10_sites.csv). FR-Fon 2 ENF/98 DBF; FR-Pue 95 EBF/5 DBF; BE-Vie 64 ENF/36 DBF; FI-Sod 100 ENF. Scenario percentages sum to 100 **among modelled tree functional groups**, NOT automatically within the whole footprint/grid cell or current CLM host NATVEG area. No FATES PFT index is assigned at this step.
+
+**Run on IRIDIS6; the Stage01 inventory has already been reported at** \`/iridisfs/home/ly3n24/Batch01_10_source_inventory_20261024T090713Z/all_sites.json\`. **First run Stage02** if its \`case_trace.json\` is not already available or current, then **Stage03**. These two scripts read existing source/CIME files and write reports to new timestamped HOME directories only. They never create production fsurdat, change Slurm jobs, or approve any case.
+
+\`\`\`bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment || exit 1
+git status --short
+git pull --ff-only origin main || exit 1
+
+S1="$HOME/Batch01_10_source_inventory_20261024T090713Z/all_sites.json"
+S2="examples/Batch01_10/scripts/02_trace_actual_case_inputs.py"
+S3="examples/Batch01_10/scripts/03_audit_surface_soil_pft.py"
+
+test -f "$S1" || { echo "Stage01 report missing; stop safely"; exit 1; }
+python3 -B "$S2" --inventory "$S1" --self-test || exit 1
+python3 -B "$S3" --self-test || exit 1
+
+set -o pipefail
+python3 -B "$S2" --inventory "$S1" \
+  2>&1 | tee "$HOME/Batch01_10_stage02_latest.log" || exit 1
+
+TRACE=$(find "$HOME" -maxdepth 2 -type f -name case_trace.json \
+  -path "$HOME/Batch01_10_stage02_case_trace_*/case_trace.json" \
+  -printf '%T@ %p\n' | sort -rn | head -1 | cut -d' ' -f2-)
+test -n "$TRACE" && test -f "$TRACE" || exit 1
+echo "Stage02 trace: $TRACE"
+
+python3 -B "$S3" --case-trace "$TRACE" \
+  2>&1 | tee "$HOME/Batch01_10_stage03_latest.log"
+\`\`\`
+
+**Read output:** \`~/Batch01_10_stage03_surface_soil_<UTCSTAMP>/summary.csv\` and \`all_sites.json\`. Stage03 reports **each** candidate existing fsurdat and exact case path; it flags duplicate baseline cases (notably IT-Col / FR-Pue), missing source surfaces, nonzero crops, non-100 natural landunits, suspicious conditional PFT sums and the first sand/clay grid-layer values. It makes **no case choice** and does **not** claim that source-grid soil is locally measured. A \`READ_OK\` only confirms NetCDF readability, not scientific adequacy. Review each site's actual forcing calendar and effective DATM stream from Stage02 rather than assuming that the Stage01 shallow folder scan found it.
+
+**Next decision after reviewing these reports:** choose one validated baseline case/forcing configuration per station, verify soil depth/provenance and natural-vs-crop landunit coverage, and validate exact FATES host-PFT indices (ENF, DNF, DBF, EBF are broad ecological groups). Only after explicit scientific review should we implement *new versioned* FIXNC fsurdat candidates and one-site AD400 five-year smoke tests. **All Batch01 sites remain HOLD for production and Slurm.**
 
 ## Readiness gates to work through, in order
 
