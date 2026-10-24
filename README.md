@@ -7,7 +7,7 @@
 **Project status — 24 October 2026:**
 - **38 original European/FLUXNET experiment sites:** [38-site PFT evidence inventory](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/38_site_PFT_evidence.csv). Of these, **22 have some numerical vegetation evidence**, but **not all have verified PFT horizontal ground-area fractions**; 16 have only qualitative evidence.
 - **Protected examples (2):** **NL-Loo** and **DE-Tha**, with their existing operational histories retained unchanged. DE-Tha direct AD first five years 1996→2001 and independent AD5→Normal5 test 2001→2006 both succeeded technically; the AD395 continuation 2001→2396 was **submitted** (initial run 4713885 and archive 4713886), not proven finished at this documentation update. NL-Loo's previous PRE50/AD200 model is a **legacy exception**, not the new standard.
-- **Batch 01 (10 sites):** documented and selected for detailed site evidence checks; **no new Batch01 model case, surface or Slurm jobs created**.
+- **Batch 01 (10 sites):** [implemented ten-site Batch01 example](examples/Batch01_10/README.md). **All 10 independent FIXNC surfaces were created**; the operator reports the private-overlay FATES AD case recovery resolved. AD5 run/archive completion must be independently verified from Slurm and three-component restarts.
 - **Batch 02 (10 sites):** documented and reserved, with unresolved measurement-denominator and/or conflicting evidence issues.
 
 ## Standard run design: AD400 → NORMAL400
@@ -43,7 +43,7 @@ The two existing examples are **NL-Loo** and **DE-Tha**. The remaining 20 are se
 
 **Batch01 core goal:** assess quantitative tree-species evidence and obtain defensible **fixed FATES functional-type distributions**, accounting for the survey denominator, unknown species, nonforest/crop/bare-ground fraction, vegetation footprint, and active FATES PFT mapping.
 
-- [Batch01 site evidence and first IRIDIS6 read-only audit](examples/Batch01_10/README.md)
+- [**Batch01 ten-site FIXNC surface, successful private FATES AD recovery, guarded AD5 submit workflow and failed-code record**](examples/Batch01_10/README.md)
 - [Batch01 Stage01 ten-site source inventory script](examples/Batch01_10/scripts/01_audit_iridis_batch01_sources.py)
 - [Batch01 Stage02 actual CIME/DATM case-input tracer](examples/Batch01_10/scripts/02_trace_actual_case_inputs.py) — launched only after Stage01, original model files read-only
 - [Policy: never assign unknown forest-PFT remainder to GRA by default](docs/PFT_UNKNOWN_RESIDUAL_POLICY.md)
@@ -53,7 +53,7 @@ The two existing examples are **NL-Loo** and **DE-Tha**. The remaining 20 are se
 
 **Unclassified percentages are not automatically grass:** see the [mandatory residual-PFT policy](docs/PFT_UNKNOWN_RESIDUAL_POLICY.md). For example, BE-Vie's unresolved 20% is forest stand composition, and FR-Fon's <3% is tree basal area; neither is measured ground grass cover. A GRA fraction requires defensible grass-area observations and a checked HLM→FATES grass mapping.
 
-**Scientific disclaimer:** the original 38-site inventory is a *screening aid*, not a completed PFT area map. **No stand-species, tree-carbon-stock, basal-area or vegetated-cover percentage may be silently treated as CLM `PCT_NAT_PFT` ground area.** Even when a stand reports 100% spruce or beech, that does **not** by itself justify a 100% natural-landunit fraction for the tower footprint. Batch01 numeric grouping remains on **`EVIDENCE_ONLY_HOLD_SURFACE`** until each site's scientific provenance and surface mapping are accepted.
+**Scientific disclaimer:** the original 38-site inventory is a *screening aid*, not a completed PFT area map. **No stand-species, tree-carbon-stock, basal-area or vegetated-cover percentage may be silently treated as CLM `PCT_NAT_PFT` ground area.** Even when a stand reports 100% spruce or beech, that does **not** by itself justify a 100% natural-landunit fraction for the tower footprint. For Batch01, the operator has selected explicit **idealized stand-level forest PFT proxies** and generated ten versioned surfaces. They must not be misrepresented as measured whole-footprint PFT-area fractions; remaining soil/peat and convergence uncertainties are documented in the Batch01 example.
 
 For example, [ICOS CZ-BK1](https://meta.icos-cp.eu/resources/stations/ES_CZ-BK1) reports **99% Norway spruce and 1% silver fir within the investigated area**. Both are ENF, but the survey area and host-grid surface remain distinct. For comparison, DE-Hai's 64/28/7 reported tree composition refers to **carbon-stock shares**, not measured area.
 
@@ -74,7 +74,7 @@ Keep tree types distinct: `Larix decidua` is **DNF**, not ENF; `Quercus ilex` is
 
 **Forcing:** preserve the site-specific DATM streams, NO_LEAP calendar, meteorological QC records and concentration policy. A documented exploratory use of forcing still under `REVIEW` (as selected for the DE-Tha pilot) does not certify data quality for final scientific inference.
 
-**HPC safety:** independent case/run/archive directories, SHA256-pinned inputs, single-core or explicitly requested resources, and exact Slurm accounting, run/archive log, three-component restart and mode verification before each stage transition. Protect scratch inode/storage limits and archive verified results to Research Filestore where appropriate. **Nothing in the new Batch01/02 documentation submits a model job.**
+**HPC safety:** independent case/run/archive directories, SHA256-pinned inputs, single-core or explicitly requested resources, and exact Slurm accounting, run/archive log, three-component restart and mode verification before each stage transition. Protect scratch inode/storage limits and archive verified results to Research Filestore where appropriate. **Batch01 explicitly includes a guarded first-5-year `submit-smoke` action; do not rerun it after an attempted submission.** Batch02 remains separate. Check exact Slurm run/archive states and three-component restart files rather than assuming completion.
 
 ## Proven examples and why new sites must be independently adapted
 
