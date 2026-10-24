@@ -110,7 +110,7 @@ def nml_value(text,key):
     hits=re.findall(r"(?im)^\s*"+re.escape(key)+r"\s*=\s*([^\r\n]*)",text)
     if len(hits)>1:
         fail("Duplicate namelist setting: "+key)
-    return hits[0].strip().strip("'\"") if hits else None
+    return hits[0].strip().strip("'\"").strip() if hits else None
 
 def replace_nl(text,key,value):
     # Accept at most one existing assignment, do not alter unknown text.
