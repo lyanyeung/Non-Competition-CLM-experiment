@@ -4,7 +4,7 @@
   "site_name": "Tharandt",
   "network": "ICOS",
   "scientific_status": "TOWER_FOREST_PROXY_SELECTED_WITH_UNRESOLVED_2PCT_ASSUMPTION",
-  "operational_status": "STAGE12_PRIVATE_OVERLAY_REPAIR_PASS; STAGE10_VALIDATE_PASS; DE_THA_AD400_READY_FOR_FIRST5_SMOKE_NOT_SUBMITTED",
+  "operational_status": "STAGE12_REPAIRED_STAGE10_VALIDATED; DE_THA_FIRST5_RUNTIME_UNVERIFIED; NL_LOO_JOB_IDS_4713482_AND_4713483_ARE_SEPARATE",
   "source_evidence": {
     "official_site": "https://meta.icos-cp.eu/resources/stations/ES_DE-Tha",
     "supplementary_site": "https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1",
@@ -61,7 +61,7 @@
       "planned_remaining_years": 395,
       "first_submit_resubmit": 0,
       "after_archive_success_resubmit": 78,
-      "status": "FIRST_5Y_SMOKE_READY_NOT_SUBMITTED",
+      "status": "FIRST5_NOT_VERIFIED_RUN_OR_ARCHIVE; SUBMISSION_STATUS_NOT_ESTABLISHED_FROM_QUEUE",
       "case": "DE-Tha_OBSPFT_NC_V1_AD400",
       "no_pre50": true,
       "postad_not_requested": true,
@@ -217,7 +217,32 @@
     "stage11_script": "examples/DE-Tha/scripts/11_DE_Tha_AD400_continue_after_smoke.py",
     "initial_soil_carbon": "nominal arbitrary initial soil pools from FATES/CTSM cold start; no PRE50 restart or inventory initial condition",
     "spinup_note": "400 AD model years do not establish soil-pool steady state; normal post-AD may still be needed for final science",
-    "stage12_script": "examples/DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py"
+    "stage12_script": "examples/DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py",
+    "stage13_script": "examples/DE-Tha/scripts/13_check_AD5_jobs_and_restart.py",
+    "stage14_script": "examples/DE-Tha/scripts/14_AD_to_Normal_independent_branch.py",
+    "AD_to_Normal_independent_test": {
+      "status": "SCRIPTS_COMMITTED_NO_NORMAL_CASE_OR_JOB_CREATED",
+      "AD5_test": {
+        "source_year": 2001,
+        "target_year": 2006,
+        "source_ad_case": "DE-Tha_OBSPFT_NC_V1_AD400",
+        "new_case": "DE-Tha_OBSPFT_NC_AD5_TO_NORMAL5_TEST",
+        "design": "hybrid normal five-year smoke, separate case+run/archive",
+        "purpose": "technical FATES/CIME conversion feasibility, not spinup equilibrium"
+      },
+      "AD400_test": {
+        "source_year": 2396,
+        "target_year": 2401,
+        "source_ad_case": "DE-Tha_OBSPFT_NC_V1_AD400",
+        "new_case": "DE-Tha_OBSPFT_NC_AD400_TO_NORMAL5_TEST",
+        "design": "hybrid normal five-year post-AD400 test, separate case+run/archive",
+        "requirements": "all 80 AD five-year segments archived and restart spinup_state=2",
+        "purpose": "initial post-AD response, not convergence established"
+      },
+      "no_source_modifications": true,
+      "normal_mode": "CLM_ACCELERATED_SPINUP=off; generated spinup_state=0 or absent (FATES use_cn false); verify output restart spinup_state=0",
+      "first_task": "Stage13 read-only exact Slurm and archived 2001 restart test"
+    }
   },
   "scientific_sensitivity_exploration": "04_review_landunit_scenarios.py is archive/read-only and NOT in this experiment scope",
   "site_soil_texture_validation": {
@@ -310,5 +335,14 @@
     "disposition": "OPERATOR_ACCEPTED_UNMODIFIED_EXISTING_V5_FOR_EXPLORATORY_DIRECT_AD400; ORIGINAL_REVIEW_UNRESOLVED",
     "policy": "Do not change meteorological forcing before the first AD400 run at operator request. This is not scientific validation of the 14 manual issues or 32 substitutions."
   },
-  "previous_plan_deprecated_2026_10_24": "PRE50+AD200+POST300 (no normal 50 now, direct AD400 only)"
+  "previous_plan_deprecated_2026_10_24": "PRE50+AD200+POST300 (no normal 50 now, direct AD400 only)",
+  "live_queue_evidence_2026_10_24": {
+    "observed_squeue_run_id": "4713482",
+    "observed_squeue_archive_id": "4713483",
+    "observed_job_name_prefix": "run.NL-Loo",
+    "reported_run_status": "RUNNING",
+    "reported_archive_status": "PENDING_DEPENDENCY",
+    "is_de_tha_case": false,
+    "de_tha_job_status": "UNKNOWN: exact Stage10 controller Slurm IDs and archive need read-only check"
+  }
 }
