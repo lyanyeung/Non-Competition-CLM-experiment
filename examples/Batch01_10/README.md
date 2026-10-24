@@ -99,6 +99,14 @@ set -o pipefail
 python3 -B "$S7" 2>&1 | tee "$HOME/Batch01_10_stage07_soil_discovery.log"
 ```
 
+## Nine-site measured soil literature checkpoint — 24 October 2026
+
+**New targeted literature review:** [nine-site published soil texture and sampling-depth evidence](docs/nine_site_soil_texture_literature_2026-10-24.md), with a separate [12-row site literature candidate register](../../data/batch01_10_soil_literature_candidates.csv). **Six of the nine previously missing stations now have station-related numerical soil texture candidates** (CH-Dav, IT-Col, FR-Fon, FR-Pue, DE-Hai and BE-Vie). Some are direct laboratory topsoil values; others have undetermined horizon boundaries or derived components, so they have **NOT been silently transferred into the production soil register**. Original FI-Sod three-horizon record remains intact.
+
+Important new results: CH-Dav 0–10 cm Sand/Silt/Clay 53/25/22; FR-Pue 0–10 cm 26/32/42, plus alternate site study 26/35/39 with 75% stones at 0–50 cm; DE-Hai 0–10 cm 4/49/48 (published rounding makes 101%); FR-Fon same tower top/bottom soil 41.9/38.8/19.3 and 35.2/32.0/32.8; BE-Vie 27/55/18, layer unspecified; IT-Col 30/40/about 30, with clay **inferred** by closure not independently reported. **IT-Ren** has an ICOS ETC station particle-size data export with numeric values not yet extracted. **CZ-BK1** still needs a tower-matched texture profile. **RU-Fyo** has ~50 cm peat and should not be forced into a fabricated mineral-soil texture.
+
+**Next scientific step:** verify the newly retrieved sampling scopes and actual CLM soil-layer mapping, obtain ICOS IT-Ren particle-size data, independently examine RU-Fyo peat representation and the FR-Pue stone volume before constructing any new single-site surface or AD5 test. Old source-grid Sand/Clay remains excluded as a scientific source. **No AD job authorized yet.**
+
 ## 4. Gates before new versioned surfaces and spin-up
 
 1. Verify original forcing streams, years, time conversion, QC, CO2 baseline, pinned executable and actual host↔FATES PFT map; **original cases are only technical provenance sources**.
