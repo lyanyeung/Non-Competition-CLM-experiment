@@ -4,7 +4,7 @@
   "site_name": "Tharandt",
   "network": "ICOS",
   "scientific_status": "TOWER_FOREST_PROXY_SELECTED_WITH_UNRESOLVED_2PCT_ASSUMPTION",
-  "operational_status": "DIRECT_AD400_COLDSTART_SCRIPTS_STAGED_IN_GITHUB; NO_NEW_CASE_OR_JOB_SUBMITTED",
+  "operational_status": "STAGE10_CASE_CREATED_CASE_SETUP_SUCCESS_PREVIEW_NAMELISTS_FAILED; NO_SLURM_JOB; STAGE12_PRIVATE_OVERLAY_RECOVERY_READY",
   "source_evidence": {
     "official_site": "https://meta.icos-cp.eu/resources/stations/ES_DE-Tha",
     "supplementary_site": "https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1",
@@ -61,15 +61,29 @@
       "planned_remaining_years": 395,
       "first_submit_resubmit": 0,
       "after_archive_success_resubmit": 78,
-      "status": "NOT_STAGED_NOT_SUBMITTED",
+      "status": "CASE_CREATED_PREVIEW_FAILED_NOT_SUBMITTED",
       "case": "DE-Tha_OBSPFT_NC_V1_AD400",
       "no_pre50": true,
-      "postad_not_requested": true
+      "postad_not_requested": true,
+      "incident": {
+        "date": "2026-10-24",
+        "case": "/iridisfs/scratch/ly3n24/CLM_FATES/cases/DE-Tha_OBSPFT_NC_V1_AD400",
+        "failure_at": "./preview_namelists (after successful create_clone --keepexe and case.setup)",
+        "error": "spinup_state accelerated FATES incorrectly handled as Satellite Phenology in pinned CLMBuildNamelist.pm use_cn-only guard",
+        "original_builder_git_blob": "698f2396aba8e11cbbbdd58c74ad221e6b7e7038",
+        "known_nl_loo_fix": "private namelist overlay widen use_cn OR use_fates and gate reseed_dead_plants under CN",
+        "proposed_remediation_script": "examples/DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py",
+        "remediation_status": "NOT_RUN_YET",
+        "slurm_jobs_submitted": false,
+        "no_model_integration_started": true,
+        "do_not": "Do not rerun stage10 stage, do not edit shared CTSM, do not submit until private overlay recovered & state=2 in both generated land namelists"
+      }
     }
   ],
   "fixed_biogeography": true,
   "no_inter_pft_competition": true,
   "forbid_slurm_until": [
+    "Stage12 audit FATES -bgc fates and no jobs, then guarded private overlay recovery and lock restoration; Stage10 validate must pass before five-year smoke",
     "STAGE10 inspect passes pinned v2 soil/PFT, FATES params, forcing and CTSM/EXEROOT",
     "STAGE10 stage+validate generated direct cold-start FATES AD spinup_state=2 with FIXNC and FATES_GPP/FATES_NPP (no shared CIME edits)",
     "first submit is ONLY 5 model years with RESUBMIT=0; stage11 395y requires archived 2001 three-component checkpoint and spinup_state=2",
@@ -179,7 +193,8 @@
     "stage10_script": "examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py",
     "stage11_script": "examples/DE-Tha/scripts/11_DE_Tha_AD400_continue_after_smoke.py",
     "initial_soil_carbon": "nominal arbitrary initial soil pools from FATES/CTSM cold start; no PRE50 restart or inventory initial condition",
-    "spinup_note": "400 AD model years do not establish soil-pool steady state; normal post-AD may still be needed for final science"
+    "spinup_note": "400 AD model years do not establish soil-pool steady state; normal post-AD may still be needed for final science",
+    "stage12_script": "examples/DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py"
   },
   "scientific_sensitivity_exploration": "04_review_landunit_scenarios.py is archive/read-only and NOT in this experiment scope",
   "site_soil_texture_validation": {
