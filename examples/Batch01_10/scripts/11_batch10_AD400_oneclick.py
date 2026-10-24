@@ -98,6 +98,7 @@ SOIL={
  "BE-Vie":(27,55,18,"Buysse2013 Vielsalm site texture; depth unspecified"),
 }
 LAND_OTHER=("PCT_LAKE","PCT_WETLAND","PCT_GLACIER","PCT_URBAN")
+BGC_OPTS="--bgc fates --no-megan --no-drydep --no-fire_emis"
 ACK_STAGE="CREATE_TEN_INDEPENDENT_BATCH01_AD400_CASES"
 ACK_SUBMIT="SUBMIT_BATCH01_TEN_FIRST_FIVE_YEAR_AD_SMOKES"
 HISTORY=("TOTSOMC","TOTSOMN","TLAI","FATES_GPP","FATES_NPP","TWS","H2OSNO")
@@ -390,10 +391,9 @@ def case_settings(site):
         "CONTINUE_RUN":"FALSE",
         "CLM_FORCE_COLDSTART":"on",
         "CLM_ACCELERATED_SPINUP":"on",
-        # Old single-point compsets may still default to Satellite Phenology.
-        # FATES + accelerated spinup must use the FATES BGC namelist mode.
-        # This changes ONLY the new cloned case, never its old reference case.
-        "CLM_BLDNML_OPTS":"-bgc fates",
+        # Exact proven DE-Tha build-namelist flags, including TWO '-' before bgc.
+        # Modifies only the independent Batch01 clone.
+        "CLM_BLDNML_OPTS":BGC_OPTS,
         "STOP_OPTION":"nyears","STOP_N":"5",
         "REST_OPTION":"nyears","REST_N":"5",
         "RESUBMIT":"0","DOUT_S":"TRUE",
@@ -438,7 +438,7 @@ def single_case(site):
             fail("Existing AD ledger does not match selected case/surface "+site)
         if state.get("phase")!="PREPARED_NOT_SUBMITTED":
             fail("Case has already reached submission phase; no stage retry "+site)
-        if "-bgc fates" not in xmlquery(case,"CLM_BLDNML_OPTS"):
+        if xmlquery(case,"CLM_BLDNML_OPTS").split()!=BGC_OPTS.split():
             fail("Existing ready ledger uses non-FATES BGC mode "+site)
         print(site,"CASE ALREADY STAGED WITH FATES BGC; retained")
         return
@@ -499,7 +499,7 @@ def single_case(site):
         fail("Generated run/lnd_in missing or differs from CaseDocs/lnd_in "+site)
     if xmlquery(case,"EXEROOT")!=str(exe.parent):
         fail("New case EXEROOT changed unexpectedly "+site)
-    if "-bgc fates" not in xmlquery(case,"CLM_BLDNML_OPTS"):
+    if xmlquery(case,"CLM_BLDNML_OPTS").split()!=BGC_OPTS.split():
         fail("New case does not select -bgc fates "+site)
     ledger.parent.mkdir(parents=True,exist_ok=True)
     with ledger.open("x") as file:
@@ -512,7 +512,7 @@ def single_case(site):
             "phase":"PREPARED_NOT_SUBMITTED",
             "first_five_years_only":True,
             "CLM_ACCELERATED_SPINUP":"on",
-            "CLM_BLDNML_OPTS":"-bgc fates",
+            "CLM_BLDNML_OPTS":BGC_OPTS,
             "spinup_state":2,"RESUBMIT":0,
             "created_utc":datetime.now(timezone.utc).isoformat(),
         },file,indent=2)
@@ -568,7 +568,7 @@ def all_submit(ack):
             fail("Case stop changed "+site)
         if xmlquery(case_path(site),"CLM_ACCELERATED_SPINUP").lower()!="on":
             fail("Case not AD "+site)
-        if "-bgc fates" not in xmlquery(case_path(site),"CLM_BLDNML_OPTS"):
+        if xmlquery(case_path(site),"CLM_BLDNML_OPTS").split()!=BGC_OPTS.split():
             fail("Case incorrectly uses Satellite Phenology instead of FATES BGC "+site)
         lnd=case_path(site)/"CaseDocs/lnd_in"
         if not lnd.is_file():
@@ -631,6 +631,7 @@ def self_test():
     """Actually parse the repository's ten-site CSVs and namelist helpers."""
     import codecs
     codecs.lookup("utf-8-sig")
+    assert BGC_OPTS=="--bgc fates --no-megan --no-drydep --no-fire_emis"
     pt=read_csv(PFT_CSV)
     d=read_csv(SOIL_DECISION)
     s4=read_csv(S4_CSV)
