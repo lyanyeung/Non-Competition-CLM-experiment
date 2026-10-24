@@ -61,29 +61,33 @@ def all_old_jobs():
     s=cmd(['squeue','-u',U,'-h','-o','%i|%j|%T'])
     return [l for l in s.splitlines() if re.search(r'\b(?:run|st_archive)\.NL-Loo_OBSPFT_NC_(?:PRE50|V2_PRE50)\b',l)]
 def quota():
-    # Some IRIDIS installs vary the myfiles formatting: report but stop if >85% parsed.
+    # Login nodes have myfiles; compute nodes often do not.
+    from datetime import timedelta
+    stamp=WORK/'quota_verified.json'
     exe=shutil.which('myfiles')
-    if exe is None:
-        print('WARNING: myfiles not on PATH; computing inode quota with df -i',flush=True)
-        r=cmd(['df','-Pi',str(ROOT)])
-        lines=r.splitlines()
-        if len(lines)<2:die('Cannot read df inode quota')
-        a=lines[-1].split()
-        if len(a)<6:die('Cannot parse df inode quota')
-        used,limit=int(a[2]),int(a[1])
-        if limit<=0 or used/limit >= .85:die(f'Filesystem inode usage high/invalid: {used}/{limit}')
-        print(f'FILESYSTEM INODES {used}/{limit} (shared filesystem, not user quota)',flush=True)
-        die('User scratch file quota not verified: myfiles unavailable; '
-            'resume from login node or provide verified quota evidence')
-    r=cmd([exe])
-    for exp in [r'Scratch number of files used:\s*([\d,]+)/([\d,]+)',
-                r'Scratch.*?([\d,]+)\s*/\s*([\d,]+)\s*files']:
-        m=re.search(exp,r,re.I|re.S)
-        if m:
-            use,limit=(int(z.replace(',','')) for z in m.groups())
-            if use/limit >= .85:die(f'High Scratch inode use: {use}/{limit}')
-            print(f'SCRATCH INODES {use}/{limit}',flush=True);return
-    die('myfiles inode values not parsed; quota check cannot pass')
+    if exe:
+        r=cmd([exe])
+        for exp in [r'Scratch number of files used:\\s*([\\d,]+)/([\\d,]+)',
+                    r'Scratch.*?([\\d,]+)\\s*/\\s*([\\d,]+)\\s*files']:
+            m=re.search(exp,r,re.I|re.S)
+            if m:
+                used,limit=(int(z.replace(',','')) for z in m.groups())
+                if not limit or used/limit >= .85:
+                    die(f'High Scratch inode use: {used}/{limit}')
+                WORK.mkdir(parents=True,exist_ok=True)
+                stamp.write_text(json.dumps({'verified':utc(),'used':used,'limit':limit})+'\\n')
+                print(f'SCRATCH INODES {used}/{limit}',flush=True)
+                return
+        die('myfiles inode numbers unparseable')
+    if not stamp.is_file():
+        die('myfiles unavailable and no login-node quota verification present')
+    d=json.loads(stamp.read_text())
+    age=datetime.now(timezone.utc)-datetime.fromisoformat(d['verified'])
+    if age<timedelta(0) or age>timedelta(hours=24):
+        die('Login-node inode verification is over 24 h old; refresh on login node')
+    if d['limit']<=0 or d['used']/d['limit']>=.85:
+        die('Saved inode quota exceeds safety limit')
+    print(f"SCRATCH INODES cached {d['used']}/{d['limit']} age={age} (myfiles not on compute PATH)",flush=True)
 def validate_base():
     if not BASE.is_dir():die('V2 case (clone template) absent')
     if not SURF.is_file() or hashfile(SURF)!=SURF_HASH:die('Surface missing/changed')
