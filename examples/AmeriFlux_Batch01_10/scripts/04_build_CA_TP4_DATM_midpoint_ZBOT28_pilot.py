@@ -116,7 +116,7 @@ def inputs():
   files.append((expect,p))
  return source,files
 
-def reference_fields(nc):
+def reference_fields():
  import numpy as np
  from netCDF4 import Dataset
  xml=REFERENCE/"CaseDocs/datm.streams.xml"
@@ -202,13 +202,15 @@ def build_preview(out,files,ref,original,year_count):
    ds.source_stage81_sha256=sha(original_nc)
    ds.science_release="PROVISIONAL_AD5_SMOKE_TECHNICAL_PREVIEW_ONLY"
   with Dataset(dest) as ds:
-   if not np.allclose(ds.variables["time"][[0,1,-1]],
+   if not np.allclose(ds.variables["time"][[0,1,17519]],
                       [1/96,1/48+1/96,17519/48+1/96],atol=1e-10,rtol=0):
     raise RuntimeError("Midpoint readback failure "+str(year))
    if not np.all(ds.variables["ZBOT"][:]==28.0):
     raise RuntimeError("Pilot ZBOT readback failure "+str(year))
    for key in REQUIRED_META-{"time"}:
     if key not in ds.variables:raise RuntimeError("Lost forcing input "+key)
+   if ds.variables["QBOT"].dimensions!=ds.variables["ZBOT"].dimensions:
+    raise RuntimeError("Pilot ZBOT/QBOT dimensions mismatch "+str(year))
   written.append({"year":year,"path":str(dest),"sha256":sha(dest),"stage81_original_sha256":sha(original_nc)})
   print("PILOT NETCDF CHECK PASS",year,flush=True)
  tree,root,stream,dimensions,ref_sha=ref
@@ -224,10 +226,10 @@ def build_preview(out,files,ref,original,year_count):
  stream.find("offset").text="0"
  target_xml=out/"CA-TP4"/"datm.streams.CA-TP4.CANDIDATE_NOT_ACTIVATED.xml"
  tree.write(target_xml,encoding="utf-8",xml_declaration=True)
- with ET.parse(target_xml) as tree_read:
-  st=next(s for s in tree_read.iter("stream_info") if s.attrib.get("name","").startswith("CLM_USRDAT."))
-  assert len(st.find("datafiles"))==22
-  assert st.find("year_first").text=="2002" and st.find("year_last").text=="2023"
+ tree_read=ET.parse(target_xml)
+ st=next(s for s in tree_read.iter("stream_info") if s.attrib.get("name","").startswith("CLM_USRDAT."))
+ assert len(st.find("datafiles"))==22
+ assert st.find("year_first").text=="2002" and st.find("year_last").text=="2023"
  manifest={
   "stage":"AMERIFLUX_AD400_DATM_CA_TP4_PILOT_STAGE04",
   "source_stage80_selected_sha256":sha(S80/"10_site_selected_forcing_sources.tsv"),
@@ -280,7 +282,7 @@ def main():
   p.error("--check takes no output/approval flags")
  source,files=inputs()
  clock_rows,skipped=source_clock_audit(source)
- ref=reference_fields(None)
+ ref=reference_fields()
  inspect_nc(files,ref[3]["ZBOT_dims"])
  print("PREFLIGHT: 10-site Stage81 left unchanged; CA-TP4 raw time START match verified.")
  print("REFERENCE CDEPS mode: cycle/linear; QBOT -> Sa_shum; ZBOT -> Sa_z.")
