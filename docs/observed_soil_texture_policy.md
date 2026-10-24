@@ -1,5 +1,11 @@
 # Observed soil texture policy — all future CLM-FATES sites
 
+## Batch01-specific override (24 October 2026)
+
+**Scope: only [Batch01_10](../examples/Batch01_10/README.md).** The operator explicitly removed the inherited coarse-grid surface as a scientific benchmark. **Do not use the generic fallback in point 3 below** for Batch01. Instead require station/stand-measured soil texture at documented depths; if unavailable mark the station `NEED_SITE_OBSERVATION` and keep soil input parameterization on HOLD. Site-measured depth gaps may be handled only through a separately documented physical interpolation/extrapolation decision, never by silently importing `PCT_SAND` or `PCT_CLAY` from the old grid. The old grid NetCDF may still serve as a *structural schema* for a new independent versioned file, not a source of adopted soil/ecological values. This does not change previously running experiments or the generic policy for other batches.
+
+
+
 **Project decision: when reliable in-situ/site-specific sand–silt–clay observations exist, use those measurements in the site's FIXNC surface instead of retaining coarse-grid sand/clay.** Use a versioned, isolated surface. Do not modify raw source surfaces, existing reference experiments or earlier surface versions.
 
 ## Scope and evidence hierarchy
