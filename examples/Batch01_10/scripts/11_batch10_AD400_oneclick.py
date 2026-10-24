@@ -436,8 +436,9 @@ def single_case(site):
     if not case.is_dir():
         fail("Clone command returned but CIME case missing "+site)
     settings=case_settings(site)
-    cmd([case/"xmlchange"]+[k+"="+v for k,v in settings.items()],
-        cwd=case,timeout=240)
+    # Use the same single-key CIME xmlchange pattern as the successful DE-Tha AD case.
+    for key,value in settings.items():
+        cmd([case/"xmlchange",key+"="+value],cwd=case,timeout=90)
     nl=case/"user_nl_clm"
     if not nl.is_file():
         fail("Cloned user_nl_clm missing "+site)
@@ -467,6 +468,9 @@ def single_case(site):
         fail("CIME generated non-FATES use_cn "+site)
     if nml_get(text,"finidat") not in (None,""):
         fail("CIME generated nonempty finidat "+site)
+    run_lnd=run_path(site)/"lnd_in"
+    if not run_lnd.is_file() or digest(run_lnd)!=digest(generated):
+        fail("Generated run/lnd_in missing or differs from CaseDocs/lnd_in "+site)
     if xmlquery(case,"EXEROOT")!=str(exe.parent):
         fail("New case EXEROOT changed unexpectedly "+site)
     ledger.parent.mkdir(parents=True,exist_ok=True)
