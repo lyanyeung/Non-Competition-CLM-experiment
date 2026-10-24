@@ -1,5 +1,47 @@
 # Batch01_10 — Site-observed-first fixed-biogeography / no-competition FATES
 
+## CURRENT ONE-ENTRY TEN-SITE AD400 WORKFLOW — 24 October 2026
+
+**Supersedes the single-site CZ-BK1 Stage10 experimental audit.** User requires a **TEN-site simultaneous experiment**, reusing successful DE-Tha fixed-PFT FATES clone and AD5 smoke implementation. **Do not re-run Stage01–10, do not separately audit 22 CZ-BK1 annual forcing NetCDFs.** The Stage10 XML list parser failed because it assumed child `<file>` nodes; its failure is a script parsing error, not meteorological evidence. The existing DATM streams are inherited unchanged per site.
+
+Active code: **[11_batch10_AD400_oneclick.py](scripts/11_batch10_AD400_oneclick.py)**. One script handles **10 independent, versioned forest FIXNC surfaces**, **10 new CIME AD400 cases**, then **10×first five-year AD smoke jobs** (Slurm archive dependencies inherited from CIME), in bulk. The initial job cadence is strictly `STOP_N=5`, `REST_N=5`, `RESUBMIT=0`: **AD395 and Normal400 are separate later operations and NOT automatically submitted**. Existing sites, original surfaces, executable builds, forcing and cases must not be modified. Stage surfaces and CIME cases are isolated under experiment-unique names; do not overwrite preexisting output.
+
+**Soil texture selection simplified as requested:** use most representative reported **surface mineral horizon**, favour 0–10 cm where available, and use the published site aggregate otherwise. Each chosen Sand/Clay is **replicated across the 10 CLM texture input layers solely as a modelling proxy**, with the proxy/vertical extrapolation noted in receipts (it is NOT measured at every depth). RU-Fyo uniquely preserves its **10 original soil texture layers** from the old point NetCDF, following the operator's explicit fallback decision; peat physics uncertainty remains. The [source-and-layer decision CSV](../../data/batch01_10_soil_selected_batchAD.csv) records all ten, including the conflicting IT-Col literature. For new surfaces keep `PCT_NATVEG=100`, `PCT_CROP=0`, all other top landunits 0, and the ten operator-chosen PFT fractions from [PFT scenario CSV](../../data/batch01_10_pft_scenarios.csv). Exact FATES mapping is checked once against current parameter JSON, as in successful DE-Tha precedent.
+
+| Site | Selected Sand/Silt/Clay % (before sum normalization) | Selected literature depth/type |
+| --- | --- | --- |
+| CZ-BK1 | 22/58/21 | Flechard2020 S4 site aggregate, sum101 |
+| IT-Ren | 55/34/11 | Flechard2020 S4 site aggregate |
+| RU-Fyo | original 10-layer PCT_SAND/PCT_CLAY | explicit operator-only original soil exception (peat caveat) |
+| CH-Dav | 53/25/22 | Meredith2018 0–10 cm |
+| IT-Col | 8/32/59 | Flechard2020 S4 site aggregate (conflicts with Chiesi2018, recorded) |
+| FR-Fon | 41.9/38.8/19.3 | same-tower upper mineral soil, exact bounds unknown |
+| FI-Sod | 88.12/6/0.5 | FLUXNET 0–10 cm, stones excluded in fine-earth sum |
+| FR-Pue | 26/32/42 | Meredith2018 0–10 cm, coarse fragments caveat |
+| DE-Hai | 4/49/48 | Meredith2018 0–10 cm, sum101 |
+| BE-Vie | 27/55/18 | Buysse2013 site summary |
+
+**Commands on IRIDIS6**:
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment || exit 1
+git status --short
+git pull --ff-only origin main || exit 1
+S11=examples/Batch01_10/scripts/11_batch10_AD400_oneclick.py
+python3 -B "$S11" plan || exit 1
+python3 -B "$S11" surfaces || exit 1
+python3 -B "$S11" stage --confirm CREATE_TEN_INDEPENDENT_BATCH01_AD400_CASES || exit 1
+# The last action submits TEN independent five-year runs, not 400 years:
+python3 -B "$S11" submit-smoke --confirm SUBMIT_BATCH01_TEN_FIRST_FIVE_YEAR_AD_SMOKES
+python3 -B "$S11" status
+```
+
+**Important release boundary:** `plan` is read-only; `surfaces` writes ONLY ten newly versioned independent NetCDF candidates and receipts; `stage` creates ONLY new independent CIME cases; `submit-smoke` submits **ten five-year model jobs** and marks each attempt in its own ledger before calling `case.submit` to avoid duplicate submission on failure. Each site's failures in surfaces/stage are surfaced separately; submit refuses a partially staged batch. No repeated per-year weather file read/scan; original site streams are reused as they are. To minimize cluster risk, if a step prints an error, **do not force the next action**; show the concise error and fix only that site. If all stages succeed the ten model runs will start or queue via Slurm in parallel subject to scheduling limits.
+
+---
+
+
 **Current protocol, 24 October 2026.** Ten forest EC towers; planned **AD400 → NORMAL400** spin-up, 800 model years each, **not started**. NL-Loo and DE-Tha are protected separate examples.
 
 > **OVERRIDING BATCH01 DECISION:** The inherited coarse-grid surface is **not** the scientific benchmark for vegetation or station-measured soil. Never use source-grid `PCT_NATVEG`, `PCT_CROP` or `PCT_NAT_PFT` as a scientific prescription. Source soil `PCT_SAND` and `PCT_CLAY` are used **ONLY for RU-Fyo under the operator-approved, explicitly labelled technical exception**; all other site texture decisions require site-specific evidence. Stage03/04 comparisons were completed once and are **removed from the active workflow**. Their old-grid values are not site observations and are not used to choose new vegetation/soil parameters. **Do not delete or modify any original NetCDF, CIME case, restart or older experiment.** An original NetCDF may be used as the technical structural schema for building a separate versioned surface, **plus the explicitly selected RU-Fyo soil-only fallback**. It is not an observational reference for those soil values.
