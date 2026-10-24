@@ -2,7 +2,7 @@
 
 **Selected scientific experiment:** ONE tower-forest PFT scenario **ENF 87%, DNF 10%, DBF 3%**. No original-grid/cropland/PFT-mix experiments are part of the active DE-Tha experiment. This is an *observationally informed single-point forest proxy*, **not** a measured grid-wide area map.
 
-**Status:** Input provenance and FATES PFT map audited; new forest surface generator `scripts/05_build_forest_observed_surface.py` available; **surface not yet created on IRIDIS6 and no DE-Tha FIXNC case or Slurm job submitted**. Forcing v5 QC status is still `REVIEW` (14 manual-review rows, 32 replacement events), so inspect QC before any launch.
+**Status (24 October 2026):** DE-Tha ENF87/DNF10/DBF3 forest-proxy surface **created on IRIDIS6 and verified by `script 05 verify`**, including original-file unchanged SHA256 and generated NetCDF/receipt agreement. Generated SHA256: `6d415b420ece0f18dca051c91849dcd5a3a5748779f9ee349c98e84e52e80600`. **No DE-Tha FIXNC CIME case or Slurm job has been submitted.** Forcing v5 QC remains `REVIEW` (14 manual-review rows, 32 replacement events).
 
 ## 1. Observed PFT targets (single scenario)
 
@@ -52,7 +52,7 @@ python3 -B examples/DE-Tha/scripts/05_build_forest_observed_surface.py write \
   --ack-forest ACCEPT_TOWER_FOREST_PROXY_NATVEG100_CROP0
 ```
 
-After a successful single write, **do not rerun `write`**. Instead verify the saved NetCDF and SHA256 receipt without changing anything:
+The isolated surface was **already generated once and verified on IRIDIS6**, so **do not rerun `write`**. For any further checking, use the read-only verification instead:
 
 ```bash
 python3 -B examples/DE-Tha/scripts/05_build_forest_observed_surface.py verify
@@ -66,7 +66,7 @@ If successful the one-time write creates a *new* surface (never overwrites an ex
   surfdata_DE-Tha_ObsForest_FIXNC_ENF87_DNF10_DBF3_v1.json
 ```
 
-The JSON receipt stores both NetCDF SHA256 values, fixed percentages and assumptions. This operation creates **no case or Slurm jobs**. A subsequent script must verify output hashes before binding the new `fsurdat`.
+The user-observed generation created SHA256 `6d415b420ece0f18dca051c91849dcd5a3a5748779f9ee349c98e84e52e80600` and read-only verification passed. The JSON receipt stores both NetCDF SHA256 values, fixed percentages and assumptions. This operation creates **no case or Slurm jobs**. A subsequent script must verify output hashes before binding the new `fsurdat`.
 
 ## 3. Remaining model design: 50 → 200 AD → 300 normal
 
