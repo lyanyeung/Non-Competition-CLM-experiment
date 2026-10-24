@@ -67,15 +67,15 @@ def quota():
     exe=shutil.which('myfiles')
     if exe:
         r=cmd([exe])
-        for exp in [r'Scratch number of files used:\\s*([\\d,]+)/([\\d,]+)',
-                    r'Scratch.*?([\\d,]+)\\s*/\\s*([\\d,]+)\\s*files']:
+        for exp in [r'Scratch number of files used:\s*([\d,]+)/([\d,]+)',
+                    r'Scratch.*?([\d,]+)\s*/\s*([\d,]+)\s*files']:
             m=re.search(exp,r,re.I|re.S)
             if m:
                 used,limit=(int(z.replace(',','')) for z in m.groups())
                 if not limit or used/limit >= .85:
                     die(f'High Scratch inode use: {used}/{limit}')
                 WORK.mkdir(parents=True,exist_ok=True)
-                stamp.write_text(json.dumps({'verified':utc(),'used':used,'limit':limit})+'\\n')
+                stamp.write_text(json.dumps({'verified':utc(),'used':used,'limit':limit})+'\n')
                 print(f'SCRATCH INODES {used}/{limit}',flush=True)
                 return
         die('myfiles inode numbers unparseable')
