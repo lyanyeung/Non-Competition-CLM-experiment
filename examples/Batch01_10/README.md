@@ -175,6 +175,32 @@ python3 -B "$S9" --stage08 "$S8" \
 ```
 
 **Decision after Stage09:** resolve any stream/soil/FATES blockers, then implement an explicitly versioned fixed-PFT surface builder with write/verify separation. Do not infer AD readiness from a self-test alone.
+## Stage09 observed result → Stage10 CZ candidate surface gate — 24 October 2026
+
+**Actual operator Stage09 result** (`/iridisfs/home/ly3n24/Batch01_10_stage09_CZ_AD5_inputs_20261024T104558Z/all_sites.json`): Existing CZ-BK1 **CaseDocs/datm.streams.xml** and runtime stream both specify **2004–2025 inclusive** (22 annual `CZ-BK1_DATM_YYYY.nc` files) with `year_align=2004`; source folder `forcing/datm_v5_candidate_timevarying_zbot`. This replaces the misleading generic old XML fields `DATM_YR_START=2018/DATM_YR_END=2019` as the effective station-stream *configuration*. Annual files themselves still need validity/time inspection. Old `lnd_in` pins CO2 **376.95 ppm** constant and `soil_layerstruct_predefined='20SL_8.5m'`. `flds_co2=.false.` is in DATM namelist. Old case is ordinary competition/dynamic-biogeography FATES, NOT a new AD5 case.
+
+**Next Stage10**, [CZ forcing/FATES audit and guarded versioned surface builder](scripts/10_CZ_BK1_candidate_surface_gate.py), offers four distinct modes: `self-test`, `audit`, **separately acknowledged** `build`, and `verify`. It checks **all 22 source DATM NetCDF files**, annual half-hourly record counts, actual FATES JSON host-to-PFT index1 mapping, CZ source NetCDF technical structure, and the published Flechard S4 22/58/21 soil decision. The strict audit does **not** modify any old model input and only writes a small HOME report. Even 22/22 plausible time lengths are NOT a full forcing QC or calendar validation.
+
+**Run only Stage10 self-test and audit now:**
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment || exit 1
+git status --short
+git pull --ff-only origin main || exit 1
+S10=examples/Batch01_10/scripts/10_CZ_BK1_candidate_surface_gate.py
+S9="$HOME/Batch01_10_stage09_CZ_AD5_inputs_20261024T104558Z/all_sites.json"
+test -f "$S9" || exit 1
+python3 -B "$S10" --action self-test || exit 1
+set -o pipefail
+python3 -B "$S10" --action audit --stage09 "$S9" \
+  2>&1 | tee "$HOME/Batch01_10_stage10_CZ_audit.log"
+```
+
+The **optional `build` action must NOT be treated as approved by this log**. It explicitly requires selecting a uniform proxy texture over all 10 CLM texture-input layers, although Flechard S4 reports only a site-level soil texture and 0.55 m soil depth. Any extension below 0.55 m is a **model extrapolation**; an alternative depth-aware scheme could be chosen instead. The builder checks the FATES `fates_hlm_pft_map` 1:1 ENF tree assignment and creates only a new **versioned** isolated candidate in `experiments/NonCompetitionObserved22/Batch01_10/CZ-BK1/surface/`, never overwriting source, existing cases or forcing. Even `build` alone does not submit Slurm or establish AD5 readiness.
+
+**Current next-stage checklist**: check Stage10 audit; select soil vertical profile assumption with depth/bedrock cautions; verify annual forcing actual time axes and QC plus fixed CO2 policy; create versioned surface; clone new CIME AD case with actual `use_fates_fixed_biogeog=.true.`, `use_fates_nocomp=.true.`, `CLM_ACCELERATED_SPINUP=on`, generated `spinup_state=2`, `STOP_N=5`, `RESUBMIT=0`; validate then one isolated AD5 smoke only.
+
 ## 4. Gates before new versioned surfaces and spin-up
 
 1. Verify original forcing streams, years, time conversion, QC, CO2 baseline, pinned executable and actual host↔FATES PFT map; **original cases are only technical provenance sources**.
