@@ -39,7 +39,8 @@ examples/DE-Tha/
   config/
     experiment_manifest.json         # hypotheses, case names, stop/go gates
   scripts/
-    01_audit_evidence.py             # READ ONLY; NO source changes or Slurm jobs
+    01_audit_evidence.py             # READ ONLY; verify reported species composition
+    02_inventory_iridis_inputs.py     # READ ONLY; find original DE-Tha files/cases
 ```
 
 ## 4. Run the first reproducible audit (IRIDIS6)
@@ -50,6 +51,15 @@ cd ~/Non-Competition-CLM-experiment
 git pull --ff-only origin main
 python3 -B examples/DE-Tha/scripts/01_audit_evidence.py
 ```
+
+To locate actual DE-Tha surface, meteorological forcing, source CTSM revision, and legacy cases **without changing them**, run:
+
+```bash
+python3 -B examples/DE-Tha/scripts/02_inventory_iridis_inputs.py \
+  2>&1 | tee ~/DE-Tha_input_inventory.log
+```
+
+The inventory searches only targeted site subdirectories, with bounded depth and file counts. Its output does not establish whether a forcing file is scientifically suitable. Inspect the output before any case creation.
 
 To *view* (not approve) an explicit 2% allocation hypothesis:
 
