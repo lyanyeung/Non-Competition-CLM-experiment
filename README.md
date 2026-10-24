@@ -1,6 +1,6 @@
 # Non-Competition CLM-FATES experiment
 
-**Status (24 October 2026):** NL-Loo V3 PRE50 completed (50 model years); the first AD200 five-year segment (2047–2052) and its archive were verified successful; the remaining AD200 195 years (2052–2247) were submitted to Slurm using scripts/15 (initial jobs 4711128/4711129), **not yet verified complete**. POST300 has not started. [DE-Tha standard evidence example](examples/DE-Tha/README.md) is now documented but **selected ONE observed-forest PFT proxy (ENF87/DNF10/DBF3); surface generated and SHA256 verified; no DE-Tha jobs launched**.
+**Status (24 October 2026):** NL-Loo V3 PRE50 completed (50 model years); the first AD200 five-year segment (2047–2052) and its archive were verified successful; the remaining AD200 195 years (2052–2247) were submitted to Slurm using scripts/15 (initial jobs 4711128/4711129), **not yet verified complete**. POST300 has not started. [DE-Tha standard evidence example](examples/DE-Tha/README.md) is now documented but **selected ONE observed-forest PFT proxy ENF87/DNF10/DBF3 with measured-soil v2 SHA256 verified; DIRECT AD400 cold-start 1996-2396 code staged, no new DE-Tha jobs yet**.
 
 ## Objective
 
@@ -35,7 +35,7 @@ Do **not** presume changing `PCT_NAT_PFT` alone is enough. The active `fates_hlm
 
 **Project rule:** when reliable, site-specific observed mineral-soil texture (sand/silt/clay) exists, use it for the new FIXNC model rather than automatically inheriting gridded soil texture. Preserve the published source, measurement depths, and site representativeness; any missing-layer interpolation or extrapolation must be marked as a **model proxy**, not observation. If measured site data are unavailable, retain the source CLM grid soil and explicitly label the fallback. Do not alter old spin-ups or previous versions.
 
-See the [project-wide observed-soil policy](docs/observed_soil_texture_policy.md). The DE-Tha standard example has a verified ENF87/DNF10/DBF3 PFT-only v1 and a **new v2 builder** for published tower-forest **Sand17/Silt71/Clay12** (uniform ten input soil layers as an explicit extrapolated proxy). Use [07_audit/write/verify](examples/DE-Tha/scripts/07_build_site_soil_surface_v2.py) to make a separately versioned v2; **not yet confirmed created**. [08_review](examples/DE-Tha/scripts/08_audit_forcing_v5_review.py) triages the existing v5 forcing status `REVIEW` before any new PRE50 submission.
+See the [project-wide observed-soil policy](docs/observed_soil_texture_policy.md). The DE-Tha standard example now has a **verified v2** with observed-forest PFT 87/10/3, tower-reference **Sand17/Silt71/Clay12** across 10 input texture layers (explicit extrapolation proxy), and SHA256 `0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a`. The operator has selected **DIRECT AD400 1996→2396 from cold startup without PRE50**. [Stage10](examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py) stages a uniquely named first five-year AD smoke, and [Stage11](examples/DE-Tha/scripts/11_DE_Tha_AD400_continue_after_smoke.py) gates the remaining 395 years on an archived restart with spinup_state=2. Forcing v5 retains `REVIEW` but the operator explicitly accepts it unchanged for this exploratory spinup; known LW/VPD caveats remain.
 
 ## NL-Loo source observation / unmapped remainder
 
@@ -62,7 +62,7 @@ The inspector reads real `NL-Loo_FATES_SPINUP500` metadata, the active surface a
 
 The [examples/ index](examples/README.md) provides reproducible site folders with observation provenance, transparent PFT grouping, explicit unresolved coverage, a read-only scientific audit and phase-specific readiness gates.
 
-- [DE-Tha — Tharandt](examples/DE-Tha/README.md): **ONE selected observed-forest FIXNC proxy** ENF 87%, DNF 10%, DBF 3% (unidentified 2% deciduous allocated provisionally to DBF); NATVEG 100%, crop 0%. An isolated NetCDF surface builder is in `examples/DE-Tha/scripts/05_build_forest_observed_surface.py`. **New DE-Tha forest surface created and SHA256 verified; no DE-Tha FIXNC case submitted yet**; original CLM surface is retained for structural metadata only.
+- [DE-Tha — Tharandt](examples/DE-Tha/README.md): **direct AD400 cold start only**, 1996→2396, no PRE50; FIXNC ENF 87%, DNF 10%, DBF 3%, NATVEG 100%, site-soil 17/71/12. The independent [Stage10 smoke](examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py) and [Stage11 verified continuation](examples/DE-Tha/scripts/11_DE_Tha_AD400_continue_after_smoke.py) are staged in GitHub; **not yet executed on IRIDIS6**. Existing regular DE-Tha simulations are untouched.
 - NL-Loo: the proven PRE50 / AD200 operational history currently resides in `scripts/09`–`scripts/15`, with NL-Loo-specific paths and Slurm job IDs. These are not portable one-click scripts for other towers.
 
 ## Batch strategy
