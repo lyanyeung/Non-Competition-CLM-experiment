@@ -1,5 +1,10 @@
 # Flechard et al. (2020) — primary paper and soil/vegetation supplement
 
+## Later operator decision — 24 October 2026
+
+The prior section below records the *historical* original-grid fallback status. **Current binding selection: CZ-BK1 now uses the published Flechard Table S4 22 Sand / 58 Silt / 21 Clay**, retaining the reported sum 101 and recording proportional normalization only for planned model-surface construction. **RU-Fyo alone retains its explicitly selected original soil `PCT_SAND`/`PCT_CLAY` fallback**, with separate peat-soil physics review. This decision changes neither old NetCDF nor any ongoing CIME/Slurm job. [Current decision table](../../../data/batch01_10_soil_input_decisions.csv).
+
+
 ## Citation and permanent sources
 
 **Flechard, C. R., Ibrom, A., Skiba, U. M., de Vries, W., van Oijen, M., et al. (2020).** Carbon–nitrogen interactions in European forests and semi-natural vegetation – Part 1: Fluxes and budgets of carbon, nitrogen and greenhouse gases from ecosystem monitoring and modelling. *Biogeosciences*, **17**, 1583–1620. DOI **10.5194/bg-17-1583-2020**. Published 26 March 2020.
