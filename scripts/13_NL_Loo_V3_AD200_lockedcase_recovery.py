@@ -171,9 +171,26 @@ def smoke_settings():
             # reject duplicate ledger actions, but permit verification.
             if Path(C.xq(STAGE, "COMP_ROOT_DIR_LND")).resolve() != C.CTSM.resolve():
                 fail("Unexpected current component root")
-    existing, bad, fixed = O.inspect()
-    if existing != fixed:
-        fail("Corrected private namelist builder no longer present")
+    # Do not call O.inspect() here: it deliberately rejects the first
+    # submission marker, which MUST exist after the known locked-file failure.
+    # That marker is separately validated above and must be retained.
+    # Verify the private patch byte-for-byte against the pinned CTSM source.
+    if run(["git", "rev-parse", "HEAD"], cwd=C.CTSM) != O.PINNED_REV:
+        fail("Shared CTSM source revision unexpectedly changed")
+    if run(["git", "hash-object", O.ORIG], cwd=C.CTSM) != O.PINNED_BLOB:
+        fail("Shared CTSM namelist module differs from pinned source")
+    original_module = O.ORIG.read_text()
+    begin = original_module.index("sub setup_cmdl_spinup {")
+    end = original_module.index("sub setup_cmdl_simulation_year {", begin)
+    original_segment = original_module[begin:end]
+    if original_segment.count(O.OLD) != 1 or original_segment.count(O.RESEED) != 1:
+        fail("Original FATES spinup code does not match audited assumptions")
+    widened = original_segment.replace(O.OLD, O.WIDE, 1)
+    fixed_segment = widened.replace(O.RESEED, O.RESEED_FIXED, 1)
+    fixed_module = original_module[:begin] + fixed_segment + original_module[end:]
+    if not O.TARGET.is_file() or O.TARGET.read_text() != fixed_module:
+        fail("Private namelist overlay differs from approved corrected patch")
+    print("PASS: corrected isolated FATES AD namelist builder verified", flush=True)
     # O.verify_generated checks the overlay root; it MUST precede restoration.
     if Path(C.xq(STAGE, "COMP_ROOT_DIR_LND")).resolve() == O.OVERLAY.resolve():
         O.verify_generated()
