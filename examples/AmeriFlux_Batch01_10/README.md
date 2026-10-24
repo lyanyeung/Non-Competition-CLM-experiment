@@ -12,6 +12,24 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage02 user-confirmed successful; Stage03 next (24 October 2026)
+
+**User confirmed that Stage02 self-test and read-only actual CH-Dav reference inspection pass.**
+
+- **CA-TP4 candidate ZBOT** is **28.0 m, STATIC**, from official BASE variable `TA_PI_F_1_1_1`, no documented height events; its equivalence to FLUXNET `TA_F` remains `UNVERIFIED`. Other 8 candidate/blocked station details are in Stage02 output; CA-Cbo and CA-Man remain BLOCKED.
+- The real, already-existing `CH-Dav_B01_FIXNC_AD400` has `DATM_MODE=1PT`, `CALENDAR=NO_LEAP`, `ATM_NCPL=48`, `CLM_ACCELERATED_SPINUP=on`, `STOP_N=5`, `REST_N=5`; effective land namelist records `use_fates=.true.`, `use_fates_sp=.false.`, `use_fates_fixed_biogeog=.true.`, `use_fates_nocomp=.true.`, `spinup_state=2`. Its `RESUBMIT=19` and `DATM_YR_START=2018`, `DATM_YR_END=2019` are **reference values only** and must never be blindly assigned to CA-TP4.
+- The **actual** `CaseDocs/datm.streams.xml` is an XML `<file><stream_info ...>` with `taxmode=cycle`, `tintalgo=linear`, `year_first=1997`, `year_last=2025`, `year_align=1997` and explicitly listed annual NetCDF files. This differs from the Stage81 **legacy `<streamstemplate>` prototype**; it cannot be copied into an actual CDEPS case as-is. Do not assume CIME XML DATM_YR settings override the effective generated `stream_info` years.
+- The successful 213-file Stage81 NetCDF source labels are **unchanged native half-hour timestamps**; Stage81 did NOT independently prove whether they are interval starts, ends or midpoints, nor the model-to-local time relationship. For `linear` forcing interpolation, source time support and an appropriate offset must be established before active model use.
+
+**[Stage03: read-only real CA-TP4 TA height metadata + raw FLUXNET timestamp/NetCDF axis + actual stream datavars](scripts/03_CA_TP4_height_clock_DATM_stream_readonly.py)** is the immediate next step; it does **not** rewrite NetCDF, create a case, assign ZBOT as verified, or submit Slurm. It shows the precise remaining choice before an independent CA-TP4 AD5 smoke.
+
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/03_CA_TP4_height_clock_DATM_stream_readonly.py --self-test
+python3 -B examples/AmeriFlux_Batch01_10/scripts/03_CA_TP4_height_clock_DATM_stream_readonly.py --check
+```
+
+**Still not authorized:** AD400 bulk submissions, AD395 continuations, Normal branch and model run until time/stream domain/ZBOT and site surface/PFT/soil case inputs are appropriately validated.
+
 ## Stage01 user-confirmed successful; Stage02 next (24 October 2026)
 
 The user executed `01_audit_AD400_inputs_readonly.py --check` with **PASS**. Stage80(18 RH<1 replacements) → Stage81(213 annual NC) → Stage82(213/213 SHA) chain verified. Original Stage31 exact report exists: `reports/stage31_provisional_ZBOT_scenarios_20261022T022341481986Z/`.
