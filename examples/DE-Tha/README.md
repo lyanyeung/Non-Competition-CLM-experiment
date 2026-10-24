@@ -2,7 +2,7 @@
 
 **Selected scientific experiment:** ONE tower-forest PFT scenario **ENF 87%, DNF 10%, DBF 3%**. No original-grid/cropland/PFT-mix experiments are part of the active DE-Tha experiment. This is an *observationally informed single-point forest proxy*, **not** a measured grid-wide area map.
 
-**Status (24 October 2026):** PFT-only v1 SHA256 verified; final forest + published measured-soil **v2 generated and independently verified** (`0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a`). **New plan: direct AD400 from cold startup 1996; NO PRE50, NO AD200 or POST300 at this stage.** Stage10 `inspect` passed and new case created. Stage12 **private-overlay repair PASSED on IRIDIS6**: `preview_namelists`/`check_input_data` RC0, real generated `spinup_state=2`, FIXNC, correct FATES GPP/NPP, case XML lock restored; **Stage10 independent `validate` PASSED**. The first 5-year AD smoke is now eligible for one-time submission; **no DE-Tha Slurm job was submitted in these audit/repair steps**. Existing forcing v5 status is still `REVIEW`: the operator explicitly elects to use the unchanged existing forcing for this experiment; 11 LW + 3 VPD manual concerns remain scientifically unresolved.
+**Status (24 October 2026, later verified):** The forest+published-soil **v2** is SHA256 verified (`0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a`). Direct AD400 cold start (no PRE50) **successfully completed its initial 1996→2001 five-year AD run**: exact model job `4713351` and archive `4713352` both `COMPLETED/0:0`, three-component 2001 archive exists, land restart `spinup_state=2`. **AD395 remaining not yet submitted.** Separate `DE-Tha_OBSPFT_NC_AD5_TO_NORMAL5_TEST` case **created and validated**, from the 2001 AD checkpoint; **Normal5 model run not yet submitted**. Stage12 CIME private overlay recovery was successful and is no longer pending. Existing forcing v5 status is still `REVIEW`: the operator explicitly elects to use the unchanged existing forcing for this experiment; 11 LW + 3 VPD manual concerns remain scientifically unresolved.
 
 ## 1. Observed PFT targets (single scenario)
 
@@ -259,6 +259,18 @@ Never repeat the continuation command if submission is uncertain or a handoff fo
 
 ## 5. AD400 progress verification and independent AD → Normal experiment
 
+**Actual IRIDIS6 results, 24 October 2026:** Stage13 printed `STATUS: VERIFIED_AD5_ARCHIVED`, with `run.DE-Tha_OBSPFT_NC_V1_AD400` job **4713351 COMPLETED/0:0** and `st_archive.DE-Tha_OBSPFT_NC_V1_AD400` job **4713352 COMPLETED/0:0**. Checkpoint `2001-01-01-00000` contains land (4,273,484 B), DATM (21,102,960 B) and CPL (32,764 B) NetCDF restarts; land `spinup_state=2`. This **proves the initial AD5 run and archive completed**, not the full AD400 (395 remaining).
+
+**Separate Normal5 branch has now PASSED Stage14 `audit`, `stage` and `validate`.** The isolated `DE-Tha_OBSPFT_NC_AD5_TO_NORMAL5_TEST` case has a validated hybrid-from-AD-2001 Normal configuration. The script explicitly returned `STAGE PASS: ... NO SLURM submitted`. **Do not rerun Stage14 `stage`.**
+
+**Next separate decisions:**
+
+- To test conversion: run Stage14 `validate --source-year 2001` again; only after PASS use its one-time `submit-smoke --source-year 2001`. Run `verify-run` only after both Normal model/archive jobs finish.
+- To resume the source AD400: run Stage11 `audit` first and, only after `AUDIT PASSED`, Stage11 `continue-395`. Its Slurm resubmits are **for AD only**, independent of the Normal branch.
+- AD5→Normal5 is **technical feasibility**, not a scientifically equilibrated after-AD simulation; proper comparison needs a later AD400→Normal test from a 2396 restart.
+
+
+
 **Current operator report:** Slurm `squeue -u ly3n24` displayed `4713482 run.NL-L...` in state **R**, and `4713483 st_archive...` state **PD (Dependency)**. These jobs belong to **NL-Loo**, not DE-Tha, and do **not** prove DE-Tha AD completion. A missing DE-Tha row from `squeue` is not evidence of success: use exact `sacct` IDs, CIME `CaseStatus`, the archive and restart contents.
 
 Run the strict **read-only** [13_check_AD5_jobs_and_restart.py](scripts/13_check_AD5_jobs_and_restart.py):
@@ -282,7 +294,7 @@ The experiment is **independent of AD400**:
 | `DE-Tha_OBSPFT_NC_AD5_TO_NORMAL5_TEST` | archived AD restart at 2001-01-01 | 2006-01-01 | 5-year Normal hybrid feasibility test |
 | `DE-Tha_OBSPFT_NC_AD400_TO_NORMAL5_TEST` | final AD400 restart at 2396-01-01 | 2401-01-01 | 5-year Normal *post-AD400* pilot, only after full AD400 success |
 
-The two cases are **not currently created or submitted**. The first asks *can this CIME/FATES build switch from an AD-state restart to a normal-state hybrid and complete five years?* It is **not** a soil equilibrium test. The second is relevant after completion of all 400 AD years, to assess initial post-AD carbon-pool relaxation; longer Normal time series will likely be necessary.
+The **AD5→Normal5** case has already been **created and validated**, but **not submitted**; the eventual **AD400→Normal5** case has not been created or submitted. The first asks *can this CIME/FATES build switch from an AD-state restart to a normal-state hybrid and complete five years?* It is **not** a soil equilibrium test. The second is relevant after completion of all 400 AD years, to assess initial post-AD carbon-pool relaxation; longer Normal time series will likely be necessary.
 
 Use [14_AD_to_Normal_independent_branch.py](scripts/14_AD_to_Normal_independent_branch.py). It clones the original DE-Tha FATES case with `--keepexe`, sets **hybrid** start, references the **separate AD archive** using `RUN_REFCASE`, `RUN_REFDATE`, `finidat` and copies all three restart components into a separate run directory with locally verified pointers. It preserves the approved forest/soil v2 and FATES FIXNC flags. In generated normal `lnd_in`, `CLM_ACCELERATED_SPINUP=off` and `spinup_state` is **0 or omitted**; the exact pinned build rejects an explicitly provided FATES `spinup_state=0` when `use_cn=.false.`, so **do not hard-code that value**. The transition is verified scientifically/technically by the resulting normal restart's `spinup_state=0`, Slurm success and CIME logs.
 
