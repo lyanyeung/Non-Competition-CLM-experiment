@@ -1,0 +1,11 @@
+site,ENF,DNF,DBF,EBF,scenario_status,scenario_basis
+CZ-BK1,100,0,0,0,CANDIDATE_HOLD_SURFACE,Stand spruce 99 fir 1; ENF tree grouping
+IT-Ren,97,3,0,0,CANDIDATE_HOLD_SURFACE,Stand spruce and pine evergreen 97; larch DNF 3
+RU-Fyo,85,0,15,0,CANDIDATE_HOLD_SURFACE,Selected 85 spruce 15 birch; independent source gives 86 14
+CH-Dav,100,0,0,0,CANDIDATE_HOLD_SURFACE,Proxy ENF 100 from spruce >99.5 tree inventory
+IT-Col,0,0,100,0,CANDIDATE_HOLD_SURFACE,Stand beech DBF 100 tree inventory
+FR-Fon,2,0,98,0,CANDIDATE_HOLD_SURFACE,Operator proxy assign ENF 2 DBF 1 from nominal other 3 of basal area
+FI-Sod,100,0,0,0,CANDIDATE_HOLD_SURFACE,Operator proxy ENF 100 from ICOS Scots pine forest; original report pine 95
+FR-Pue,0,0,5,95,CANDIDATE_HOLD_SURFACE,Operator proxy unknown 5 to DBF; tree stand 95 EBF
+DE-Hai,0,0,100,0,CANDIDATE_HOLD_SURFACE,Proxy DBF 100 conditional on tree carbon species and residual identities
+BE-Vie,64,0,36,0,CANDIDATE_HOLD_SURFACE,Operator proxy 1 rounding remainder to ENF from 70pct footprint classification
