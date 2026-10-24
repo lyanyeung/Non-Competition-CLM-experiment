@@ -16,4 +16,8 @@
 - FI-Sod: https://en.ilmatieteenlaitos.fi/ghg-sodankyla-forest
 - WARNING: Grand Bois de Vielsalm reference forest report https://askafor.eu/wp-content/uploads/2021/09/BE-VIELSALM-english.pdf has **not been shown to overlap BE-Vie tower footprint**; its statistics must NOT be transferred.
 
+## FI-Sod selected model assumption (24 October 2026)
+
+**Operator selected ENF 100%, DBF 0%, EBF 0% as the primary Batch01 tree-PFT mixture**, using the ICOS identification of the tower stand as a Scots pine forest. The historical report of 95% Scots pine and 5% unidentified trees remains unchanged in the evidence table. This is **an explicit modelling allocation of an unmeasured remainder**, not a new forest-inventory result. The previously discussed 95% ENF / 5% DBF sensitivity is **not selected for this Batch01 primary case**. Do not interpret 100% ENF as 100% of the whole grid cell or release the `PCT_NAT_PFT` surface without separate landunit, soil, footprint and CIME input QA.
+
 No forcing, fsurdat, CIME cases, restart, or Slurm jobs changed.
