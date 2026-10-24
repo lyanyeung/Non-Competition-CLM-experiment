@@ -31,6 +31,12 @@ use_fates_nocomp = .true.
 
 Do **not** presume changing `PCT_NAT_PFT` alone is enough. The active `fates_hlm_pft_map` in the real FATES parameter file is essential. CLM surface PFT numbers and FATES PFT numbers differ. Keep original compset only if the actual FATES code and executable support the requested mode; check before reusing binary with `--keepexe`.
 
+## Soil texture for every future site
+
+**Project rule:** when reliable, site-specific observed mineral-soil texture (sand/silt/clay) exists, use it for the new FIXNC model rather than automatically inheriting gridded soil texture. Preserve the published source, measurement depths, and site representativeness; any missing-layer interpolation or extrapolation must be marked as a **model proxy**, not observation. If measured site data are unavailable, retain the source CLM grid soil and explicitly label the fallback. Do not alter old spin-ups or previous versions.
+
+See the [project-wide observed-soil policy](docs/observed_soil_texture_policy.md). The DE-Tha standard example has a verified ENF87/DNF10/DBF3 PFT-only v1 and a **new v2 builder** for published tower-forest **Sand17/Silt71/Clay12** (uniform ten input soil layers as an explicit extrapolated proxy). Use [07_audit/write/verify](examples/DE-Tha/scripts/07_build_site_soil_surface_v2.py) to make a separately versioned v2; **not yet confirmed created**. [08_review](examples/DE-Tha/scripts/08_audit_forcing_v5_review.py) triages the existing v5 forcing status `REVIEW` before any new PRE50 submission.
+
 ## NL-Loo source observation / unmapped remainder
 
 A published 500-m-radius area inventory reports Scots pine 89%, black pine 3.3%, Douglas fir 1.3%, birch 2.3%, oak 0.6%, and open heather / grass 3.5%. Thus ENF **93.6%**, DBF **2.9%**, open ground **3.5%**. These describe a fixed-radius *ground inventory*, not a footprint-weighted map. The open 3.5% **must be split scientifically** between heather/shrub and grass (or explicitly tested as a sensitivity scenario); this repository does **not** fabricate that split. Verify the original observed `PCT_CROP` and other landunits before defining 100% natural vegetation. See [Loobos original tower dataset](https://essd.copernicus.org/articles/18/2023/2026/) and Moors (2012) as quoted therein.
