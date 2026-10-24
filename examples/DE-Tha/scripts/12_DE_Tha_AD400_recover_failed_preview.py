@@ -150,10 +150,14 @@ def audit():
     print("CLM_BLDNML_OPTS:",repr(bldopts))
     # FATES BGC mode must be selected at build-namelist invocation level;
     # user_nl_clm: use_fates=true by itself is not sufficient evidence.
-    if not re.search(r"(?:^|\s)-bgc\s+fates(?:\s|$)",bldopts):
-        fail("Case CLM_BLDNML_OPTS does NOT contain '-bgc fates'. "
+    # CIME commonly emits '--bgc fates', whereas older CTSM scripts may
+    # use '-bgc fates'. Both explicitly select FATES BGC. Neither SP nor
+    # 'fates_other' should satisfy this anchored option match.
+    if not re.search(r"(?:^|\s)--?bgc(?:\s+|=)fates(?=\s|$)",bldopts):
+        fail("Case CLM_BLDNML_OPTS lacks explicit -bgc/--bgc fates. "
              "Do not apply overlay to SP-mode configuration. "
-             "Inspect case CLM_BLDNML_OPTS and CLM_CONFIG_OPTS first.")
+             "Inspect CLM_BLDNML_OPTS and CLM_CONFIG_OPTS first.")
+    print("PASS: CIME build-namelist explicitly selects FATES BGC mode")
     if C.xml(C.CASE,"CLM_ACCELERATED_SPINUP").lower()!="on":
         fail("AD accelerator not enabled")
     if C.xml(C.CASE,"RUN_TYPE").lower()!="startup":
