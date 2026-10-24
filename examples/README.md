@@ -10,7 +10,7 @@ proxy (not original-grid/PFT experimental alternatives).
 
 | Site | Value for a standard example | Stage |
 | --- | --- | --- |
-| [DE-Tha](DE-Tha/README.md) | **Selected ONE forest EC-tower PFT proxy:** ENF87 / DNF10 / DBF3 (2% unknown deciduous allocated to DBF as explicit assumption); NATVEG100 / CROP0 | **PFT-only v1 built and verified; 17/71/12 site-soil v2 builder 07 prepared; forcing QC 08 pending; no new case/job** |
+| [DE-Tha](DE-Tha/README.md) | **Selected ONE forest EC-tower PFT proxy:** ENF87 / DNF10 / DBF3 (2% unknown deciduous allocated to DBF as explicit assumption); NATVEG100 / CROP0 | **Verified PFT+site-soil v2; direct cold-start AD400 (1996→2396) staged as 5y smoke + guarded 395y; forcing REVIEW accepted as-is; no new case/job yet** |
 
 The completed NL-Loo PRE50 / first-5-year AD200 validation and submitted
 AD200 continuation are currently recorded under [scripts/09–15](../scripts/).
