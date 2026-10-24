@@ -109,6 +109,14 @@ Important new results: CH-Dav 0–10 cm Sand/Silt/Clay 53/25/22; FR-Pue 0–10 c
 
 **IT-Ren source-provenance correction, 24 October 2026:** A widely copied soil description, **Andosol (16% clay, 56% silt, 28% sand)**, belongs to **FR-Lqu Laqueuille grassland**, NOT IT-Ren. Authoritative station match: [ICOS FR-Lqu](https://meta.icos-cp.eu/resources/stations/ES_FR-Lqu). For **IT-Ren**, Flechard et al. (2020) [supplementary Table S4, PDF p. 9](https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-supplement.pdf) reports **Haplic Podzol; clay 11%, sand 55%, silt 34%**. This is a **published site-level soil texture candidate, sample-depth unspecified**, not a validated full CLM soil profile; ICOS 2020 measured soil-horizon CSV remains to be extracted. Do not use the FR-Lqu Andosol values for IT-Ren.
 
+## Flechard et al. (2020) — publisher literature reference and verified Table S4
+
+**Primary literature archived as a citation/index with direct publisher PDF links:** [Flechard (2020) source record and Table S4 audit](references/Flechard_2020_Biogeosciences_Part1.md). Machine-readable [10-site Table S4 transcription](../../data/batch01_10_Flechard2020_TableS4_soil.csv) contains original published **Sand/Silt/Clay values**, missing cells, soil depths and rounding warnings. It does **not** embed the binary full-text PDFs in GitHub; it links the publisher originals under CC BY 4.0.
+
+**Crucial correction:** Table S4 covers **9 of our 10** Batch01 sites; **CH-Dav is absent**. Among the nine, **RU-Fyo and FR-Fon have n.a. for all three texture fractions**. The most relevant values: **CZ-BK1 22/58/21** (Sand/Silt/Clay, published total **101%**), **IT-Ren 55/34/11**, **IT-Col 8/32/59** (total **99%**, conflicts with the separate Chiesi paper), **DE-Hai 4/56/40**, **FR-Pue 26/35/39**, **BE-Vie 27/55/18**, **FI-Sod 94/4/0** (total **98%**, less reliable than the recorded fine-earth horizon dataset).
+
+**Previous operator choices preserved:** CZ-BK1 and RU-Fyo have exceptional, explicitly selected old-surface **soil-only** fallbacks in [soil decisions CSV](../../data/batch01_10_soil_input_decisions.csv). **CZ-BK1 now has published station composition (22/58/21), so its fallback is scientifically worth reconsidering—but has not been silently changed.** RU-Fyo remains a peat-model caveat because Flechard provides no numeric mineral texture. No sourced land-cover fractions are reactivated, and no AD5 launch is approved based on these published whole-site soil parameters alone.
+
 ## 4. Gates before new versioned surfaces and spin-up
 
 1. Verify original forcing streams, years, time conversion, QC, CO2 baseline, pinned executable and actual host↔FATES PFT map; **original cases are only technical provenance sources**.
