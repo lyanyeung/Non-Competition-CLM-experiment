@@ -587,12 +587,41 @@ def status():
               f"QUEUE={'; '.join(jobs) or '-'}")
 
 
+def self_test():
+    """Actually parse the repository's ten-site CSVs and namelist helpers."""
+    import codecs
+    codecs.lookup("utf-8-sig")
+    pt=read_csv(PFT_CSV)
+    d=read_csv(SOIL_DECISION)
+    s4=read_csv(S4_CSV)
+    assert set(pt)==set(SITE_ORDER), "Ten PFT site IDs mismatch"
+    assert set(d)==set(SITE_ORDER), "Ten soil decision site IDs mismatch"
+    assert "CZ-BK1" in s4
+    for site in SITE_ORDER:
+        sh=mix(site)
+        assert abs(sum(sh.values())-100)<1e-9, site
+        x=soil_choice(site)
+        if site!="RU-Fyo":
+            assert abs(x["sand"]+x["silt"]+x["clay"]-100)<1e-8,site
+        else:
+            assert x["mode"]=="INHERITED_ORIGINAL_PCT_SAND_CLAY_LAYERS_ONLY"
+        for name in ("use_fates","use_fates_sp","use_fates_nocomp",
+                     "use_fates_fixed_biogeog","spinup_state"):
+            assert name in desired_namelist(site), (site,name)
+    assert nml_get("use_fates_nocomp = .true.\n","use_fates_nocomp")==".true."
+    assert nml_set("use_fates = .false.\n","use_fates",".true.").strip()=="use_fates = .true."
+    print("SELF-TEST PASS | 10 station PFT/soil CSVs and CIME namelist helpers")
+    print("NO netCDF writes, no CIME case creation, no Slurm jobs.")
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action",choices=("plan","surfaces","stage","submit-smoke","status"))
+    parser.add_argument("action",choices=("self-test","plan","surfaces","stage","submit-smoke","status"))
     parser.add_argument("--confirm",default="")
     args=parser.parse_args()
-    if args.action=="plan":
+    if args.action=="self-test":
+        self_test()
+    elif args.action=="plan":
         plan()
     elif args.action=="surfaces":
         all_surfaces()
