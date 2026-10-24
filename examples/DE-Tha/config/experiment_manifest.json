@@ -4,7 +4,7 @@
   "site_name": "Tharandt",
   "network": "ICOS",
   "scientific_status": "TOWER_FOREST_PROXY_SELECTED_WITH_UNRESOLVED_2PCT_ASSUMPTION",
-  "operational_status": "SITE_SOIL_V2_GENERATED_AND_USER_VERIFIED; FORCING_BASIC_QC_PASSED_BUT_14_MANUAL_REVIEW_REMAIN; NO_NEW_CASE_OR_JOBS",
+  "operational_status": "DIRECT_AD400_COLDSTART_SCRIPTS_STAGED_IN_GITHUB; NO_NEW_CASE_OR_JOB_SUBMITTED",
   "source_evidence": {
     "official_site": "https://meta.icos-cp.eu/resources/stations/ES_DE-Tha",
     "supplementary_site": "https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1",
@@ -45,45 +45,35 @@
     "existing_compiled_executable": "UNVERIFIED"
   },
   "proposed_independent_case_names": {
-    "PRE50": "DE-Tha_OBSPFT_NC_V1_PRE50",
-    "AD200": "DE-Tha_OBSPFT_NC_V1_AD200",
-    "POST300": "DE-Tha_OBSPFT_NC_V1_POST300"
+    "AD400": "DE-Tha_OBSPFT_NC_V1_AD400"
   },
   "stages": [
     {
-      "name": "PRE50",
-      "years": 50,
-      "accelerated_spinup": "off",
-      "segments_five_year": 10,
-      "status": "NOT_STARTED"
-    },
-    {
-      "name": "AD200",
-      "years": 200,
-      "accelerated_spinup": "on",
-      "segments_five_year": 40,
-      "status": "NOT_STARTED"
-    },
-    {
-      "name": "POST300",
-      "years": 300,
-      "accelerated_spinup": "off",
-      "segments_five_year": 60,
-      "status": "NOT_STARTED"
+      "name": "AD400",
+      "duration_model_years": 400,
+      "start_year": 1996,
+      "end_year": 2396,
+      "initial_run_type": "startup",
+      "initial_coldstart": true,
+      "clm_accelerated_spinup": "on",
+      "required_fates_spinup_state": 2,
+      "planned_first_smoke_years": 5,
+      "planned_remaining_years": 395,
+      "first_submit_resubmit": 0,
+      "after_archive_success_resubmit": 78,
+      "status": "NOT_STAGED_NOT_SUBMITTED",
+      "case": "DE-Tha_OBSPFT_NC_V1_AD400",
+      "no_pre50": true,
+      "postad_not_requested": true
     }
   ],
   "fixed_biogeography": true,
   "no_inter_pft_competition": true,
   "forbid_slurm_until": [
-    "use and hash-verify new forest-site-soil v2 sha256 0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a in independent PRE50 case fsurdat",
-    "generated forest surface 6d415b42..80600 must be read and hashed by new independent CIME preflight before binding fsurdat",
-    "derived surface SHA256 and FATES fixed-biogeography/no-competition namelists verified",
-    "existing v5 forcing status REVIEW (14 manual-review and 32 replacement events) interpreted",
-    "independent PRE50 case build and forcing/physical input confirmed",
-    "old DE-Tha_FATES_SPINUP500 and all other site cases preserved",
-    "review measured DE-Tha soil sand/silt/clay 17/71/12 versus inherited surface profiles using read-only 06 audit",
-    "complete 08 existing forcing QC REVIEW event-by-event assessment before first PRE50 5y smoke job",
-    "09 audit and scientific interpretation of 2005 low LW, 2017/2022 VPD episodic concerns; no automatic REVIEW-to-PASS"
+    "STAGE10 inspect passes pinned v2 soil/PFT, FATES params, forcing and CTSM/EXEROOT",
+    "STAGE10 stage+validate generated direct cold-start FATES AD spinup_state=2 with FIXNC and FATES_GPP/FATES_NPP (no shared CIME edits)",
+    "first submit is ONLY 5 model years with RESUBMIT=0; stage11 395y requires archived 2001 three-component checkpoint and spinup_state=2",
+    "user accepted using existing forcing v5 status REVIEW as-is for exploratory spin-up; unresolved LW/VPD issues must be documented"
   ],
   "input_inventory_2026_10_24": {
     "status": "INPUTS_AUDITED_ORIGINAL_SURFACE_AND_FATES_MAP; SCIENTIFIC_SCENARIO_HOLD",
@@ -184,7 +174,12 @@
       "generated_v2_sha256": "0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a",
       "validation": "07 verify PASS: only PCT_SAND/PCT_CLAY changed, ten input layers 17/12 percent, other variables and PFT identical to v1"
     },
-    "selected_final_surface_sha256": "0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a"
+    "selected_final_surface_sha256": "0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a",
+    "selected_pipeline": "DIRECT_COLDSTART_AD400_1996_TO_2396",
+    "stage10_script": "examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py",
+    "stage11_script": "examples/DE-Tha/scripts/11_DE_Tha_AD400_continue_after_smoke.py",
+    "initial_soil_carbon": "nominal arbitrary initial soil pools from FATES/CTSM cold start; no PRE50 restart or inventory initial condition",
+    "spinup_note": "400 AD model years do not establish soil-pool steady state; normal post-AD may still be needed for final science"
   },
   "scientific_sensitivity_exploration": "04_review_landunit_scenarios.py is archive/read-only and NOT in this experiment scope",
   "site_soil_texture_validation": {
@@ -273,6 +268,9 @@
       "2022-06-27 15:30/16:00 VPD reconstructions 16.77/16.80 hPa vs ERA 28.7/29.0 (QC2); check saturation/RH consistency"
     ],
     "target_script": "examples/DE-Tha/scripts/09_audit_critical_meteorological_episodes.py",
-    "no_forcing_modification": true
-  }
+    "no_forcing_modification": true,
+    "disposition": "OPERATOR_ACCEPTED_UNMODIFIED_EXISTING_V5_FOR_EXPLORATORY_DIRECT_AD400; ORIGINAL_REVIEW_UNRESOLVED",
+    "policy": "Do not change meteorological forcing before the first AD400 run at operator request. This is not scientific validation of the 14 manual issues or 32 substitutions."
+  },
+  "previous_plan_deprecated_2026_10_24": "PRE50+AD200+POST300 (no normal 50 now, direct AD400 only)"
 }
