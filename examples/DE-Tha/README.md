@@ -187,7 +187,9 @@ spinup_state is accelerated (=1 or 2) which is for a BGC mode of CN or BGC,
 but the BGC mode is Satellite Phenology
 ```
 
-The exact pinned upstream `CLMBuildNamelist.pm` (Git blob `698f2396aba8e11cbbbdd58c74ad221e6b7e7038`) **incorrectly checks only `use_cn`**, rather than `use_cn OR use_fates`, before supporting AD state. This reproduces the underlying NL-Loo AD namelist error. The *wording* about Satellite Phenology is hardcoded in the source's `else` branch and **does not prove** the CIME `-bgc` flag was actually `sp`; Stage12 also audits `CLM_BLDNML_OPTS` and requires `-bgc fates`.
+The exact pinned upstream `CLMBuildNamelist.pm` (Git blob `698f2396aba8e11cbbbdd58c74ad221e6b7e7038`) **incorrectly checks only `use_cn`**, rather than `use_cn OR use_fates`, before supporting AD state. This reproduces the underlying NL-Loo AD namelist error. The *wording* about Satellite Phenology is hardcoded in the source's `else` branch and **does not prove** the CIME `-bgc` flag was actually `sp`; Stage12 also audits `CLM_BLDNML_OPTS` and accepts **either `--bgc fates` (the format actually observed on IRIDIS6) or `-bgc fates`**, rejecting `--bgc sp`.
+
+**Follow-up audit incident (24 October 2026):** an early Stage12 read-only run stopped at `CLM_BLDNML_OPTS='--bgc fates --no-megan --no-drydep --no-fire_emis'` because its regex erroneously allowed only one leading hyphen. This was an **audit false negative**: `--bgc fates` is the expected FATES option. The GitHub script was corrected in commit `e043011` to accept both option spellings, while preserving all other fail-closed checks. That interrupted `audit` made **no changes**, and `repair` has **not** been attempted; a fresh read-only `audit` is safe.
 
 **Do NOT rerun Stage10 `stage` or delete/re-clone the CIME case.**
 
@@ -196,7 +198,7 @@ The guarded [12_DE_Tha_AD400_recover_failed_preview.py](scripts/12_DE_Tha_AD400_
 1. Allow FATES **or** CN to use `spinup_state=2` in `setup_cmdl_spinup`.
 2. Keep `reseed_dead_plants` CN-only; do not add that CN namelist to FATES.
 
-It checks source Git blob, CIME `-bgc fates`, no previous Slurm jobs or attempted `case.submit`, `RESUBMIT=0`, locked `env_case.xml`, correct original executable and pinned site inputs. During recovery it temporarily sets ONLY the independent case's `COMP_ROOT_DIR_LND` to the private overlay, regenerates `CaseDocs/lnd_in` and `RUN/lnd_in`, verifies real FATES `spinup_state=2` and the history fields, then **restores the literal `$SRCROOT` locked case XML**. Only after both generated namelists and CIME locks validate does it create the initial submission state ledger. **No Slurm job is submitted by Stage12.**
+It checks source Git blob, CIME `--bgc fates` or `-bgc fates`, no previous Slurm jobs or attempted `case.submit`, `RESUBMIT=0`, locked `env_case.xml`, correct original executable and pinned site inputs. During recovery it temporarily sets ONLY the independent case's `COMP_ROOT_DIR_LND` to the private overlay, regenerates `CaseDocs/lnd_in` and `RUN/lnd_in`, verifies real FATES `spinup_state=2` and the history fields, then **restores the literal `$SRCROOT` locked case XML**. Only after both generated namelists and CIME locks validate does it create the initial submission state ledger. **No Slurm job is submitted by Stage12.**
 
 ```bash
 cd ~/Non-Competition-CLM-experiment
