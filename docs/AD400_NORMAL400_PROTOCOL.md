@@ -1,5 +1,10 @@
 # Standard FIXNC protocol: 400-year AD + 400-year Normal
 
+## Batch01 latest CZ-BK1/RU-Fyo site-soil decisions — 24 October 2026
+
+**This updates the earlier Batch01 ban on grid fallback only for RU-Fyo.** CZ-BK1 uses Flechard (2020) Table S4 published Sand 22%, Silt 58%, Clay 21% (sum 101%; normalize transparently before new-surface production, no automatic uniform depth allocation). RU-Fyo uses the original fsurdat `PCT_SAND`/`PCT_CLAY` as an explicit **non-observed soil-only fallback** while separately reviewing peat representation, organics, soil hydrology and the water table. Do not transfer original-grid NATVEG, CROP or PFT fractions. Old cases remain references for CIME and DATM metadata, and no new AD5 or AD400 is authorized until new surfaces, soil layer decisions, new no-competition/fixed-biogeography flags and real forcing files pass preflight. See [Batch01 README](../examples/Batch01_10/README.md).
+
+
 ## Batch01 station-first override (24 October 2026)
 
 For **Batch01 only**, the operator has explicitly chosen an idealized forest-point target of `PCT_NATVEG=100%`, `PCT_CROP=0%` and operator-selected forest PFT compositions in [Batch01 README](../examples/Batch01_10/README.md). **Retire any gate comparing new forest landunits, tree PFTs or soil Sand/Clay to the old coarse gridded source surface**. The grid values are not accepted as station measurements. Require measured soil texture or keep the site on HOLD; no automatic gridded texture fallback. Compatibility checks for required NetCDF shape/variables, scientific scrutiny of other soil fields, actual forcing, FATES mapping and archived restart handoffs remain essential. No existing model files or jobs should be changed.
