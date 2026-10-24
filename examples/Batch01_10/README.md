@@ -129,6 +129,21 @@ After Stage02, adjudicate `IT-Col` and `FR-Pue` duplicate cases, determine the a
 
 **Other seven towers:** [Seven-site PFT residual follow-up (24 October 2026)](docs/seven_site_PFT_residual_followup_2026-10-24.md) adds primary/official evidence for RU-Fyo, CH-Dav, FR-Fon, FI-Sod, FR-Pue, DE-Hai and BE-Vie. Main findings: RU-Fyo wet spruce 86/14 versus older 85/15; DE-Hai small remainder belongs to DBF tree species; CH-Dav nearly all ENF trees; FR-Fon other <3% includes ENF pine; FR-Pue secondary 90/10 claim requires reconciliation; FI-Sod 5% trees still unclassified; BE-Vie remaining 20% has ENF and DBF species but no exact shares. **None authorizes automatic GRA or complete EC-footprint PFT-area allocations.**
 
+## Batch01 PFT closure checkpoint — 24 October 2026
+
+This checkpoint separates **forest-tree functional-type closure** from **approval of a CLM-FATES horizontal-area surface**. It summarises the 10-site register and the [seven-site evidence follow-up](docs/seven_site_PFT_residual_followup_2026-10-24.md). No species percentage in this table is automatically `PCT_NAT_PFT`.
+
+| Evidence group | Sites | Reported forest-tree PFT information | Outstanding decision |
+| --- | --- | --- | --- |
+| Complete reported tree-type grouping (3) | CZ-BK1, IT-Ren, IT-Col | CZ-BK1 ENF 100% (99 spruce + 1 fir); IT-Ren ENF ~97% + DNF ~3%; IT-Col DBF 100% | Confirm denominators, footprint/landunits, soil and original case inputs |
+| Functionally near-resolved / conditional proxy (3) | RU-Fyo, DE-Hai, CH-Dav | RU-Fyo ENF/DBF 85/15 (alternate 86/14 with different birch species); DE-Hai named remaining tree species DBF, so DBF 100% **only as a conditional tree-group proxy**; CH-Dav ENF >99.5%, ENF 100% **only as a labelled proxy** | RU-Fyo reconcile source year and birch identity; DE-Hai verify ~1% residual is entirely DBF; CH-Dav retain <0.5% uncertainty |
+| Species groups found, residual percentages unresolved (3) | FR-Fon, FR-Pue, BE-Vie | FR-Fon DBF 97% of basal area with other <3% including ENF pine and deciduous species; FR-Pue EBF 95% stand composition vs unverified 90/10 EBF/DBF alternative; BE-Vie DBF 43% + ENF 37% + mixed woody residual 20% | Obtain comparable source-year, denominator-specific quantitative shares; BE-Vie 20% is highest-priority gap |
+| Residual trees not identified (1) | FI-Sod | ENF pine 95%, other 5% trees not confirmed; ground-layer lichen/moss/shrub percentages use a different denominator | Identify remaining tree species and fractions; never fill remainder with ground-layer percentages |
+
+**Four sites still need targeted species/residual resolution: FR-Fon, FR-Pue, BE-Vie, FI-Sod.** The other six are suitable for *drafting*, not approving, stand-tree PFT proposals. Neither the 3 complete reported groups nor the 3 conditional proxies prove EC-footprint area fractions.
+
+**Scientific release gate remains 0/10**: All sites retain `EVIDENCE_ONLY_HOLD_SURFACE` until source metric/footprint, natural-vs-crop landunits, PFT mapping, soil provenance, actual case inputs and versioned-surface QA are reviewed. There is no authority here to write production `PCT_NAT_PFT`, modify old cases, launch AD400/NORMAL400, or send unknown residual to GRA.
+
 ## Readiness gates to work through, in order
 
 1. **Observed PFT provenance:** retrieve actual station/forest source, verify measurement year, survey method, spatial coverage, specific **denominator** and any species sum. Record the unknown share. A scientific proxy must be proposed and explicitly recorded before it can become a fixed PFT surface.
