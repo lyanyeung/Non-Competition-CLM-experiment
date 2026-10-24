@@ -12,6 +12,24 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage01 user-confirmed successful; Stage02 next (24 October 2026)
+
+The user executed `01_audit_AD400_inputs_readonly.py --check` with **PASS**. Stage80(18 RH<1 replacements) → Stage81(213 annual NC) → Stage82(213/213 SHA) chain verified. Original Stage31 exact report exists: `reports/stage31_provisional_ZBOT_scenarios_20261022T022341481986Z/`.
+
+**Stage31 actual ZBOT status:** 5 static candidates (BR-Ma2, CA-Ca3, CA-LP1, CA-TP4, US-Bar); 3 dynamic candidates (CA-TP1, CA-TP3, US-Aud); and 2 blocked multi-level TA stations (CA-Cbo, CA-Man). **All eight candidates still report TA_F source-sensor crosswalk=UNVERIFIED**, so no approved height should be inserted into model as an observed fact.
+
+The Stage01 preflight found numerous real completed-style European CIME case directories with `CaseDocs/datm_in`, `CaseDocs/datm.streams*` and `CaseDocs/lnd_in`, including `/iridisfs/scratch/ly3n24/CLM_FATES/cases/CH-Dav_B01_FIXNC_AD400`. These are better reference-config candidates than the prior NL-Loo recovery folder which lacked recognized stream documents.
+
+**Run new [Stage02 read-only exact ZBOT + real DATM/FATES case inspection](scripts/02_inspect_ZBOT_DATM_AD5_reference_readonly.py)** to expose CA-TP4's actual candidate BASE TA height, source variable and any dated events, and the true CH-Dav case `datm_in`, stream, CIME clock and land namelist flags. It does not change cases or generate DATM; European site parameters are reference-only.
+
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/02_inspect_ZBOT_DATM_AD5_reference_readonly.py --self-test
+python3 -B examples/AmeriFlux_Batch01_10/scripts/02_inspect_ZBOT_DATM_AD5_reference_readonly.py --check \
+  --reference-case /iridisfs/scratch/ly3n24/CLM_FATES/cases/CH-Dav_B01_FIXNC_AD400
+```
+
+After source ZBOT, stream format/time centering, appropriate point domain, AmeriFlux site PFT and observed/fallback soil are explicitly chosen, prepare **one independent CA-TP4 AD5 smoke case only**. Do not stage or submit a ten-site AD400 job now.
+
 ## Plan: do NOT submit AD400 yet
 
 1. Run [AmeriFlux-specific read-only Stage01](scripts/01_audit_AD400_inputs_readonly.py): provenance-link Stage80→Stage81→Stage82, find latest Stage31 provisional ZBOT evidence if it exists on IRIDIS6, and list potentially **complete CIME reference cases**. This script DOES NOT resolve heights or create a case.
