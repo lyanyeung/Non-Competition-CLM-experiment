@@ -68,7 +68,28 @@ If successful the one-time write creates a *new* surface (never overwrites an ex
 
 The user-observed generation created SHA256 `6d415b420ece0f18dca051c91849dcd5a3a5748779f9ee349c98e84e52e80600` and read-only verification passed. The JSON receipt stores both NetCDF SHA256 values, fixed percentages and assumptions. This operation creates **no case or Slurm jobs**. A subsequent script must verify output hashes before binding the new `fsurdat`.
 
-## 3. Remaining model design: 50 → 200 AD → 300 normal
+## 3. Soil texture consistency — READ ONLY preflight (before running PRE50)
+
+The `PCT_SAND` and `PCT_CLAY` arrays of the original grid-based surface are inherited *unchanged* by the new observed-forest FIXNC NetCDF. We must compare these inherited **model soil-texture assumptions** to the published field measurements at DE-Tha rather than assuming they represent tower mineral soil.
+
+A Tharandt tower-forest study reports for the **first mineral soil layer** **17% sand, 71% silt, 12% clay**, described as approximately stable through 1.2 m. Source: [Net Ecosystem Exchange and Net Biome Productivity of different land use in eastern Germany](https://www.researchgate.net/publication/241243196_Net_Ecosystem_Exchange_and_Net_Biome_Productivity_of_different_land_use_in_eastern_Germany). These are **site-reference measurements**, not layer-by-layer measurements of every model depth, and are *not* soil-water/stone fractions.
+
+Independent measurements in other (non-tower) 2024 plots of the Tharandt Forest found much wider ranges: sand 5.4–64.8 mass-%, silt 25.1–73.9 mass-%, clay 10.1–21.0 mass-%. [Virano-Riquelme et al. 2024](https://onlinelibrary.wiley.com/doi/10.1002/jpln.202400073). These nearby values demonstrate heterogeneity and **must not be treated as field measurements at the DE-Tha tower**. See the [source evidence file](data/observed_soil_texture_references.csv).
+
+The new [06_audit_soil_texture_vs_observations.py](scripts/06_audit_soil_texture_vs_observations.py) does **strictly READ-ONLY** comparison: verifies the original and derived surface SHA256 hashes, confirms every inherited soil variable stayed identical, lists PCT_SAND / PCT_CLAY and derived silt `100 − sand − clay` by model layer, computes percentage-point differences from 17/71/12, and reports whether model depth coordinates actually exist. It never changes the validated forest PFT NetCDF.
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment
+git pull --ff-only origin main
+python3 -m py_compile examples/DE-Tha/scripts/06_audit_soil_texture_vs_observations.py
+python3 -B examples/DE-Tha/scripts/06_audit_soil_texture_vs_observations.py \
+  2>&1 | tee ~/DE-Tha_soil_texture_reference_vs_surface.log
+```
+
+The observed values are in **mass percentages of fine mineral particles**, not stone volume fraction. Differences of 5 or 10 percentage points are descriptive flags only, not a formal validation threshold. If a significant mismatch is found, stop before PRE50 to decide whether to keep the grid-derived soil texture as a separate assumption or build a **new versioned surface** after reviewing soil depth, rock fraction and EC footprint. **Do not overwrite the already validated v1 surface.**
+
+## 4. Remaining model design: 50 → 200 AD → 300 normal
 
 Use **new isolated DE-Tha case names**, with no edits to `DE-Tha_FATES_SPINUP500` or its output and no dependency on the NL-Loo Slurm jobs.
 
@@ -84,7 +105,7 @@ Use **new isolated DE-Tha case names**, with no edits to `DE-Tha_FATES_SPINUP500
 
 **Important:** the legacy `DE-Tha_FATES_SPINUP500` case is *ordinary FATES*: both `use_fates_nocomp` and `use_fates_fixed_biogeog` are `.false.`. It can supply forcing/case configuration references only, not serve as the requested FIXNC run. The validated NL-Loo scripts `scripts/09`–`scripts/15` contain incident-specific absolute paths and Slurm job IDs; **never execute them unchanged** for DE-Tha.
 
-## 4. Forcing QC and other launch gates
+## 5. Forcing QC and other launch gates
 
 Existing `forcing/processed_v5/DE-Tha_CLM_forcing_1996_2025.csv` has 525,600 records, 17,520 half hours per no-leap year; 30 candidate yearly DATM files have been found. The `qc_v5/DE-Tha_status.json` is currently **`REVIEW`** with 14 manual-review events, 32 replacement events, and 0 new low-RH decisions. These are not automatically fatal, but require event-by-event scientific interpretation before a new run.
 
@@ -98,6 +119,7 @@ Next scientific gate: review the 14 manual cases and 32 substitutions, confirm t
 examples/DE-Tha/
   README.md
   data/observed_tree_composition.csv
+  data/observed_soil_texture_references.csv
   config/experiment_manifest.json
   scripts/
     01_audit_evidence.py
@@ -105,4 +127,5 @@ examples/DE-Tha/
     03_audit_live_inputs.py
     04_review_landunit_scenarios.py
     05_build_forest_observed_surface.py    # selected single forest scenario
+    06_audit_soil_texture_vs_observations.py  # READ ONLY soil texture consistency
 ```
