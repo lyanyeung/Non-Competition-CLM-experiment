@@ -1,5 +1,25 @@
 # Batch01_10 — Ten-site fixed-biogeography / no-competition CLM-FATES
 
+## AD5 Slurm 10/10 completed — guarded AD395 continuation (24 October 2026)
+
+**Operator-confirmed Slurm accounting:** all ten `run.*_B01_FIXNC_AD400` jobs and all ten corresponding `st_archive.*_B01_FIXNC_AD400` jobs returned `COMPLETED 0:0`. Source Job IDs are encoded as pinned site-to-run/archive pairs in [Stage13 ten-site AD395](scripts/13_batch10_continue_verified_AD395.py), based on the proven [DE-Tha continuation script](../DE-Tha/scripts/11_DE_Tha_AD400_continue_after_smoke.py). Slurm success is **not yet evidence of all ten restart triplets or land restart spinup_state=2**; Stage13 checks exactly those prerequisites (no annual forcing checks).
+
+**New continuation workflow** (perform only once; NOT a re-run of surface, AD5 or private overlay):
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment || exit 1
+git pull --ff-only origin main || exit 1
+S13=examples/Batch01_10/scripts/13_batch10_continue_verified_AD395.py
+python3 -B "$S13" audit || exit 1   # READ ONLY: all ten restart triplets + state=2
+# Explicitly opt-in only when all 10/10 audit PASS:
+python3 -B "$S13" continue-395 --confirm CONTINUE_BATCH01_TEN_VERIFIED_AD5_BY_395_YEARS
+```
+
+Stage13 is an adaptation of a successful **single-site** DE-Tha workflow; its exact ten-site implementation has **not yet been runtime-tested on IRIDIS6**. It will abort on missing/inconsistent checkpoint, existing job, or altered controller state. On continuation, it pins the 5-year archive restart into the same independent case's RUNDIR, sets `CONTINUE_RUN=TRUE`, `RESUBMIT=78` (79×5 additional years), and calls `case.submit --skip-preview-namelist` exactly once. To protect against duplicate submissions, each site is stamped with `AD395_CONTINUATION_ATTEMPTED_UNCERTAIN` **before any handoff edits**, and `AD395_CONTINUATION_SUBMITTED` only after job IDs are parsed. If a site has an uncertain attempt, do not rerun bulk submit. Monitoring/convergence and AD400→Normal400 are separate tasks.
+
+
+
 **Maintained Batch example | 24 October 2026**
 
 This example prepares ten forest-tower experiments with observed/literature-informed tree PFT composition and representative mineral soil texture. It uses the **successful DE-Tha Stage12 private FATES AD namelist-overlay recovery method**, adapted to a ten-case batch, rather than the earlier unpatched direct CIME staging code.
@@ -8,7 +28,7 @@ This example prepares ten forest-tower experiments with observed/literature-info
 
 - **10/10 new, versioned FIXNC surface NetCDFs: CREATED successfully on IRIDIS6**, as confirmed by `SURFACES SUMMARY success=10 issues=0`.
 - **Ten-site FATES AD configuration problem: operator reports RESOLVED** using the recovered private-overlay workflow. The exact ten-case success log and Slurm accounting are not archived in this README; do not infer ten completed AD5 jobs from that statement.
-- **AD5 model/archive completion: NOT independently verified here.** First segment is 5 years at each site. AD395 continuation and Normal400 must be treated as separate, restart-dependent steps.
+- **AD5 model/archive Slurm completion: VERIFIED 10/10** (`run` and `st_archive` all `COMPLETED 0:0` from operator `sacct`). The archived three-component restart files and `spinup_state=2` require Stage13 verification before continuing.
 - No shared CTSM source modification is permitted. Do not delete or recreate existing model cases, restart files, original surfaces, historical forcing or private recovery ledgers merely to tidy up this repository.
 
 ## Current, retained example code
