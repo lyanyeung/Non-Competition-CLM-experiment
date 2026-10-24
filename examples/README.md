@@ -1,22 +1,18 @@
-# Standard site examples — fixed-biogeography / no-PFT-competition
+# Site examples and batch cohorts — Fixed Biogeography & no competition FATES experiment
 
-The `examples/` tree is for **site-specific, reproducible scientific examples**.
-Every site should keep observed evidence, original denominators and references
-separate from modeling assumptions, include a read-only audit, and make model
-submission an explicit gated decision. When credible station-observed soil texture exists,
-use it in a new versioned model surface rather than default gridded soil. See
-[the global measured-soil rule](../docs/observed_soil_texture_policy.md). DE-Tha runs ONLY the selected forest
-proxy (not original-grid/PFT experimental alternatives).
+**Standard new-site protocol:** [AD400 → NORMAL400](../docs/AD400_NORMAL400_PROTOCOL.md), total **800 model years per site**, with a strict first-five-year + 395-year continuation gate for each mode. No PRE50 is planned for new batches. Every station requires a separate versioned source audit and a scientifically accepted fixed-PFT mapping, not just a land-cover label.
 
-| Site | Value for a standard example | Stage |
+| Example/cohort | Evidence or science | Operational status |
 | --- | --- | --- |
-| [DE-Tha](DE-Tha/README.md) | **Selected ONE forest EC-tower PFT proxy:** ENF87 / DNF10 / DBF3 (2% unknown deciduous allocated to DBF as explicit assumption); NATVEG100 / CROP0 | **Stage13 AD5 model+archive verified COMPLETED/0:0 with 2001 restart spinup_state=2; remaining AD395 successfully submitted as jobs 4713885/4713886, not completed; independent Stage14 AD5→Normal5 run and archive completed with normal restart spinup_state=0** |
+| [DE-Tha](DE-Tha/README.md) | Tower stand species mapped ENF87/DNF10/DBF3; literature soil 17/71/12 proxy | Direct AD5 1996–2001 verified and independent AD5→Normal5 verified; remaining AD395 submitted, completion unverified |
+| NL-Loo (scripts 09–15) | 500-m-radius surveyed species/ground area; open-ground allocation unresolved | Existing legacy PRE50/AD200 workflow protected; **not standardized or altered** |
+| **[Batch 01 — 10 sites](Batch01_10/README.md)** | CZ-BK1, IT-Ren, RU-Fyo, CH-Dav, IT-Col, FR-Fon, FI-Sod, FR-Pue, DE-Hai, BE-Vie | **Evidence screening only**, new surface/model cases not created |
+| [Batch 02 — 10 reserved sites](../data/batch02_10_sites.csv) | DK-Sor, FR-Hes, FR-FBn, BE-Bra, IT-Noe, CH-Fru, CH-Lae, ES-LJu, FI-Hyy, IT-MBo | Reserved; additional measurement/denominator reconciliation |
 
-The completed NL-Loo PRE50 / first-5-year AD200 validation and submitted
-AD200 continuation are currently recorded under [scripts/09–15](../scripts/).
-Those scripts contain NL-Loo-specific absolute paths and Slurm incident IDs:
-**do not run them for another site unchanged**.
+**Core science gate:** The [38-site PFT evidence inventory](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/38_site_PFT_evidence.csv) contains 22 *numeric-evidence candidates*, **not** 22 measured EC-ground-area PFT maps. Published species, basal-area or biomass composition may be used to *inform* a defensible site proxy, but must not silently become `PCT_NAT_PFT`.
 
-22 quantitative-evidence candidates are listed in
-[data/22_site_cohort.csv](../data/22_site_cohort.csv). Membership is not
-certification of precise PFT area fractions.
+Keep original and model-specific site files separate. Require read-only source audit, original and output SHA256, exact FATES functional map, documented landunit fractions, vetted DATM years, and the [site measured-soil-first policy](../docs/observed_soil_texture_policy.md). Preserve original case status. Existing DE-Tha/NL-Loo scripts hard-code site-specific paths and **must not be executed for Batch01 without adaptation and scientific approval**.
+
+- [Master 22-site cohort assignment](../data/22_site_cohort.csv)
+- [Batch01 numerical evidence register](../data/batch01_10_sites.csv)
+- [Batch02 reserve evidence register](../data/batch02_10_sites.csv)
