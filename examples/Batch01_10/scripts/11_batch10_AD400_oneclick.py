@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
-"""Batch01 10-site fixed-biogeography/no-competition AD400 launcher.
+"""Batch01 10-site surface builder and validated AD5 submit/status controller.
 
-Reuses the working DE-Tha 'create_clone --keepexe' / new fsurdat / CIME
-preview / first-5-year submit workflow. DOES NOT re-audit 22 forcing files.
+Reuses the successful ten-site surfaces and the DE-Tha Stage12 private
+FATES build-namelist overlay recovery. Does NOT attempt direct case staging;
+that retired Stage11 'stage' path was known to fail under pinned CTSM.
+DOES NOT re-audit any annual forcing NetCDF.
 The ten original DATM streams, CO2 policy, model EXEROOT and site machine
 settings are inherited without altering original files.
 
 Actions:
   plan            show choices; never writes model inputs
   surfaces        create 10 versioned independent site surface NetCDFs
-  stage           create 10 independent cold-start AD400 CIME cases (no jobs)
   submit-smoke    submit 10 x FIRST FIVE YEARS ONLY, then STOP
   status          summarize 10 case paths and scheduler jobs (read only)
 
-Always run 'surfaces' before 'stage', 'stage' before 'submit-smoke'.
+Run 'surfaces' once, use the separate proven Stage12 private-overlay
+recovery for independent FATES AD cases, then 'submit-smoke'.
 Every action is idempotence-safe: never overwrite an existing target,
 never submit duplicate case jobs. Each site is handled separately and
 failures are reported at the end (other sites continue during surfaces/stage).
@@ -415,111 +417,6 @@ def desired_namelist(site):
     }
 
 
-def single_case(site):
-    surf=surface(site)
-    rec=receipt(site)
-    if not surf.is_file() or not rec.is_file():
-        fail("Run 'surfaces' first for "+site)
-    saved=json.loads(rec.read_text())
-    if saved.get("surface_sha256")!=digest(surf):
-        fail("Surface digest does not match receipt "+site)
-    validate_surface(site,surf)
-    case=case_path(site)
-    ledger=ledger_path(site)
-    # Recover the half-created *new* cases from the earlier namelist failure.
-    # Do not remove, overwrite, or clone on top of an existing CIME case.
-    orig,exe=old_executable(site)
-    if ledger.is_file():
-        if not case.is_dir():
-            fail("Ledger exists but AD case missing; STOP "+site)
-        state=json.loads(ledger.read_text())
-        if (state.get("case")!=str(case) or
-            state.get("surface_sha256")!=digest(surf)):
-            fail("Existing AD ledger does not match selected case/surface "+site)
-        if state.get("phase")!="PREPARED_NOT_SUBMITTED":
-            fail("Case has already reached submission phase; no stage retry "+site)
-        if xmlquery(case,"CLM_BLDNML_OPTS").split()!=BGC_OPTS.split():
-            fail("Existing ready ledger uses non-FATES BGC mode "+site)
-        print(site,"CASE ALREADY STAGED WITH FATES BGC; retained")
-        return
-    if case.exists() or case.is_symlink():
-        if not case.is_dir() or case.is_symlink():
-            fail("Pre-existing new case path not a normal case directory "+site)
-        if xmlquery(case,"CASE")!=case_name(site):
-            fail("Pre-existing case identity mismatch; refuse to edit "+site)
-        state_file=case/"CaseStatus"
-        if state_file.is_file():
-            log=state_file.read_text(errors="replace")
-            if re.search(r"case\.submit starting|case\.run starting|case\.submit success",log):
-                fail("Pre-existing new case has run/submission history; STOP "+site)
-        print(site,"RESUMING FAILED PREVIEW IN EXISTING ISOLATED NEW CASE")
-    else:
-        if run_path(site).exists() or archive_path(site).exists():
-            fail("Run/archive path unexpectedly exists for uncreated case "+site)
-        print(site,"CLONING existing case/executable; not building a new CTSM")
-        cmd([CIMESCRIPTS/"create_clone","--case",case,"--clone",orig,"--keepexe"],
-            cwd=CIMESCRIPTS,timeout=420)
-        if not case.is_dir():
-            fail("Clone command returned but CIME case missing "+site)
-    settings=case_settings(site)
-    # Use the same single-key CIME xmlchange pattern as the successful DE-Tha AD case.
-    for key,value in settings.items():
-        cmd([case/"xmlchange",key+"="+value],cwd=case,timeout=90)
-    nl=case/"user_nl_clm"
-    if not nl.is_file():
-        fail("Cloned user_nl_clm missing "+site)
-    txt=nl.read_text()
-    if nml_get(txt,"finidat") not in (None,""):
-        fail("Inherited finidat must be removed explicitly, not blindly cloned: "+site)
-    if nml_get(txt,"reseed_dead_plants") is not None:
-        fail("CN-only reseed_dead_plants in copied source case "+site)
-    for k,v in desired_namelist(site).items():
-        txt=nml_set(txt,k,v)
-    nl.write_text(txt,encoding="utf8")
-    if not (case/".case.run").is_file():
-        cmd([case/"case.setup"],cwd=case,timeout=300)
-    cmd([case/"preview_namelists"],cwd=case,timeout=480)
-    generated=case/"CaseDocs/lnd_in"
-    if not generated.is_file():
-        fail("preview_namelists created no CaseDocs/lnd_in "+site)
-    text=generated.read_text()
-    for k,v in desired_namelist(site).items():
-        if k=="hist_fincl1":
-            continue
-        expected=v.strip("'\"")
-        got=nml_get(text,k)
-        if got!=expected:
-            fail(f"{site}: generated {k}={got}, expected {expected}")
-    if nml_get(text,"use_cn") not in (".false.","false"):
-        fail("CIME generated non-FATES use_cn "+site)
-    if nml_get(text,"finidat") not in (None,""):
-        fail("CIME generated nonempty finidat "+site)
-    run_lnd=run_path(site)/"lnd_in"
-    if not run_lnd.is_file() or digest(run_lnd)!=digest(generated):
-        fail("Generated run/lnd_in missing or differs from CaseDocs/lnd_in "+site)
-    if xmlquery(case,"EXEROOT")!=str(exe.parent):
-        fail("New case EXEROOT changed unexpectedly "+site)
-    if xmlquery(case,"CLM_BLDNML_OPTS").split()!=BGC_OPTS.split():
-        fail("New case does not select -bgc fates "+site)
-    ledger.parent.mkdir(parents=True,exist_ok=True)
-    with ledger.open("x") as file:
-        json.dump({
-            "site":site,"case":str(case),
-            "surface":str(surf),"surface_sha256":digest(surf),
-            "template_case":str(orig),"reused_executable":str(exe),
-            "DATM":"INHERITED_EXISTING_TEMPLATE_STREAMS_UNMODIFIED",
-            "CO2":"INHERITED_EXISTING_TEMPLATE_SETTINGS",
-            "phase":"PREPARED_NOT_SUBMITTED",
-            "first_five_years_only":True,
-            "CLM_ACCELERATED_SPINUP":"on",
-            "CLM_BLDNML_OPTS":BGC_OPTS,
-            "spinup_state":2,"RESUBMIT":0,
-            "created_utc":datetime.now(timezone.utc).isoformat(),
-        },file,indent=2)
-        file.write("\n")
-    print(site,"NEW AD400 CASE READY FOR 5-YEAR SMOKE",case)
-
-
 def dispatch(name,method):
     problems=[]
     for site in SITE_ORDER:
@@ -534,21 +431,6 @@ def dispatch(name,method):
         for s,detail in problems:
             print("HOLD",s,detail)
         raise SystemExit(2)
-
-
-def all_stage(ack):
-    if ack!=ACK_STAGE:
-        fail("stage requires --confirm "+ACK_STAGE)
-    # Pinned shared CLMBuildNamelist.pm has an old CN-only spinup_state guard.
-    # Never blindly retry its failing preview_namelists for FATES.
-    fail("HOLD: pinned CTSM requires proven private FATES AD namelist overlay. "
-         "Use 12_batch10_recover_FATES_AD_private_overlay.py recover; "
-         "keep all 10 existing surfaces and partial new cases.")
-
-
-def queued_case(site):
-    # Exactly matching case name substring; one scheduler query per batch.
-    return False
 
 
 def all_submit(ack):
@@ -665,7 +547,7 @@ def self_test():
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action",choices=("self-test","plan","surfaces","stage","submit-smoke","status"))
+    parser.add_argument("action",choices=("self-test","plan","surfaces","submit-smoke","status"))
     parser.add_argument("--confirm",default="")
     args=parser.parse_args()
     if args.action=="self-test":
@@ -674,8 +556,6 @@ def main():
         plan()
     elif args.action=="surfaces":
         all_surfaces()
-    elif args.action=="stage":
-        all_stage(args.confirm)
     elif args.action=="submit-smoke":
         all_submit(args.confirm)
     else:
