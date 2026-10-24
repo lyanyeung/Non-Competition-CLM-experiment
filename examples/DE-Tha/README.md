@@ -2,7 +2,7 @@
 
 **Selected scientific experiment:** ONE tower-forest PFT scenario **ENF 87%, DNF 10%, DBF 3%**. No original-grid/cropland/PFT-mix experiments are part of the active DE-Tha experiment. This is an *observationally informed single-point forest proxy*, **not** a measured grid-wide area map.
 
-**Status (24 October 2026):** PFT-only **v1 generated and SHA256 verified** (`6d415b420ece0f18dca051c91849dcd5a3a5748779f9ee349c98e84e52e80600`); **v2 with published site-specific soil texture is the selected next model input**, with GitHub builder script 07 available but **not yet executed on IRIDIS6**. No DE-Tha FIXNC CIME case or Slurm job submitted. Forcing v5 QC status is `REVIEW` (14 manual events, 32 replacements; triage script 08 ready).
+**Status (24 October 2026):** PFT-only v1 SHA256 verified; final forest + published measured-soil **v2 generated and independently verified** (`0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a`). **New plan: direct AD400 from cold startup 1996; NO PRE50, NO AD200 or POST300 at this stage.** First-five-year gated scripts 10/11 committed, **not yet executed on IRIDIS6**. Existing forcing v5 status is still `REVIEW`: the operator explicitly elects to use the unchanged existing forcing for this experiment; 11 LW + 3 VPD manual concerns remain scientifically unresolved.
 
 ## 1. Observed PFT targets (single scenario)
 
@@ -68,7 +68,7 @@ If successful the one-time write creates a *new* surface (never overwrites an ex
 
 The user-observed generation created SHA256 `6d415b420ece0f18dca051c91849dcd5a3a5748779f9ee349c98e84e52e80600` and read-only verification passed. The JSON receipt stores both NetCDF SHA256 values, fixed percentages and assumptions. This operation creates **no case or Slurm jobs**. A subsequent script must verify output hashes before binding the new `fsurdat`.
 
-## 3. Soil texture consistency — READ ONLY preflight (before running PRE50)
+## 3. Measured soil texture and verified v2 surface
 
 The `PCT_SAND` and `PCT_CLAY` arrays of the original grid-based surface are inherited *unchanged* by the new observed-forest FIXNC NetCDF. We must compare these inherited **model soil-texture assumptions** to the published field measurements at DE-Tha rather than assuming they represent tower mineral soil.
 
@@ -128,7 +128,7 @@ Then **do not rerun write**. Verify NetCDF and its JSON receipt read-only:
 python3 -B examples/DE-Tha/scripts/07_build_site_soil_surface_v2.py verify
 ```
 
-The new PRE50 case must reference the verified `surfdata_DE-Tha_ObsForest_FIXNC_ENF87_DNF10_DBF3_SoilField17_71_12_v2.nc`, NOT the older v1 or the original grid soil.
+The new direct AD400 case must reference the verified `surfdata_DE-Tha_ObsForest_FIXNC_ENF87_DNF10_DBF3_SoilField17_71_12_v2.nc`, NOT the older v1 or the original grid soil.
 
 ### Stage 08: interpret existing forcing QC before PRE50 submission
 
@@ -141,29 +141,91 @@ python3 -B examples/DE-Tha/scripts/08_audit_forcing_v5_review.py \
 
 
 
-## 4. Remaining model design: 50 → 200 AD → 300 normal
+## 4. Selected run design — DIRECT AD400 only (no PRE50)
 
-Use **new isolated DE-Tha case names**, with no edits to `DE-Tha_FATES_SPINUP500` or its output and no dependency on the NL-Loo Slurm jobs.
+**Explicit operator change (24 October 2026):** Do not run a 50-year normal stage first. Perform **400 model years in accelerated decomposition mode** with independent **cold start** from 1996-01-01, `RUN_TYPE=startup`, `CLM_FORCE_COLDSTART=on`, `CLM_ACCELERATED_SPINUP=on` and explicitly verified `spinup_state=2`. The old NL-Loo hybrid AD200 procedure is **NOT** directly reusable here because it has a PRE50 restart and requires private namelist fixes. This direct-cold-start case requires its *own* smoke test.
 
-| Proposed case | Years | Mode | Technical gate |
-| --- | ---: | --- | --- |
-| `DE-Tha_OBSPFT_NC_V1_PRE50` | 50 | Normal | 5-year first segment, check no competition/fixed biogeography and saved restart |
-| `DE-Tha_OBSPFT_NC_V1_AD200` | 200 | Accelerated `spinup_state=2` | 5-year hybrid smoke, FATES_GPP/FATES_NPP, verify three-component restart and pointer |
-| `DE-Tha_OBSPFT_NC_V1_POST300` | 300 | Normal `spinup_state=0` | 5-year hybrid smoke and validated restart |
+| Case | First model year | Final target | Duration | Segment rule |
+| --- | ---: | ---: | ---: | --- |
+| `DE-Tha_OBSPFT_NC_V1_AD400` | 1996 | 2396 | **400 AD years** | 80 × 5y: 1 smoke, then 79 after scientific+technical gate |
 
-`RUN_STARTDATE=1996-01-01` with 1996–2025 no-leap forcing files is a verified **existing legacy case** setup. For new PRE50 we can reuse that same audited cycle after checking stream/QC, rather than copying NL-Loo's 1997 calendar. 50 spin-up years are 10 five-year jobs; the next 200 are 40; the final 300 are 60. These durations are research design choices, not guarantees of convergence.
+No PRE50 or POST phase is created; separate decisions about post-AD normal relaxation and scientific convergence are deferred until the AD400 checkpoint is achieved and checked. AD pool turnover acceleration is *not* proof of soil-carbon equilibrium.
 
-**Required FATES namelist flags**: `use_fates=.true.`, `use_fates_sp=.false.`, `use_fates_fixed_biogeog=.true.`, `use_fates_nocomp=.true.`.
+**Model science inputs:** `fsurdat` = the SHA256-pinned `...SoilField17_71_12_v2.nc`, `PCT_NATVEG=100`, ENF87/DNF10/DBF3 and ten input texture layers with sand17/clay12. Site forcing loops over the existing 1996–2025 NO_LEAP 30-year, half-hour DATM stream files. The existing `DE-Tha_FATES_SPINUP500` provides the CIME/machine/forcing baseline and built executable *only*; its original normal-FATES case is never overwritten or submitted. No NL-Loo jobs/cases are touched.
 
-**Important:** the legacy `DE-Tha_FATES_SPINUP500` case is *ordinary FATES*: both `use_fates_nocomp` and `use_fates_fixed_biogeog` are `.false.`. It can supply forcing/case configuration references only, not serve as the requested FIXNC run. The validated NL-Loo scripts `scripts/09`–`scripts/15` contain incident-specific absolute paths and Slurm job IDs; **never execute them unchanged** for DE-Tha.
+### Stage10 — Inspect and stage independent AD400 cold-start case
 
-## 5. Forcing QC and other launch gates
+[10_DE_Tha_direct_AD400.py](scripts/10_DE_Tha_direct_AD400.py) enforces sha256 of the v2 surface, FATES parameters, preprocessed forcing CSV, source CTSM revision and built legacy executable; reads the original DE-Tha site DATM streams. It clones using `create_clone --keepexe` and sets a **unique case/run/archive**. It forces the correct FIXNC mode and **explicit `spinup_state=2`** in `user_nl_clm`, regenerates namelists and refuses staging if actual generated `CaseDocs/lnd_in` or RUNDIR `lnd_in` lack the requested mode. `hist_fincl1` uses `FATES_GPP,FATES_NPP`, NOT original `GPP,NPP`. It does not patch shared CTSM or change any existing cases.
 
-Existing `forcing/processed_v5/DE-Tha_CLM_forcing_1996_2025.csv` has 525,600 records, 17,520 half hours per no-leap year; 30 candidate yearly DATM files have been found. The `qc_v5/DE-Tha_status.json` is currently **`REVIEW`** with 14 manual-review events, 32 replacement events, and 0 new low-RH decisions. These are not automatically fatal, but require event-by-event scientific interpretation before a new run.
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment
+git pull --ff-only origin main
+python3 -m py_compile examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py
+python3 -B examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py inspect
+```
 
-The earlier `01_audit_evidence.py`, `02_inventory_iridis_inputs.py`, `03_audit_live_inputs.py` and `04_review_landunit_scenarios.py` remain as **read-only provenance and exploratory archives**, not additional active experiment configurations. `04` examines alternative grid/forest scenarios only to document why they were not chosen.
+Only if `inspect` passes, clone and stage without submitting:
 
-Next scientific gate: verify the newly created **v2 forest+observed-soil surface** using script 07, review the 14 manual cases and 32 substitutions using script 08, then confirm actual DATM streams, `fsurdat` and FIXNC namelists in a new isolated CIME PRE50 case. Do not submit jobs or modify the old spin-up until these checks pass.
+```bash
+python3 -B examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py stage \
+  --confirm STAGE_DE_THA_DIRECT_AD400_COLDSTART_REVIEWED_FORCING
+```
+
+If the pinned CIME build-namelist cannot produce `spinup_state=2` for **FATES cold-start**, `preview_namelists` or `validate` stops. **Do not bypass it or manually edit shared CTSM.** Submit nothing until the case validates.
+
+```bash
+python3 -B examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py validate
+```
+
+### Stage10 — Submit only initial 1996–2001 AD smoke (5 model years)
+
+**This is the first five years of the planned 400**, not a throwaway. `RESUBMIT=0`, and no watcher is enabled. `--skip-preview-namelist` is used to preserve the verified `spinup_state=2` namelist, applying the NL-Loo incident lesson.
+
+```bash
+python3 -B examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py submit-smoke \
+  --confirm SUBMIT_DE_THA_AD400_FIRST_FIVE_YEARS_ONLY
+```
+
+Submission is one-time and logged at `~/DE_Tha_AD400_controller/submission_state.json`; do not re-run it after uncertain output. Monitor:
+
+```bash
+python3 -B examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py status
+squeue -u "$USER" -o "%.12i %.60j %.10T %R"
+```
+
+### Stage11 — continue the remaining 395 years, only if smoke is proven
+
+[11_DE_Tha_AD400_continue_after_smoke.py](scripts/11_DE_Tha_AD400_continue_after_smoke.py) checks the exact original model/archive Slurm job IDs and their `COMPLETED/0:0` results, `CaseStatus`, archived **2001-01-01** CLM/DATM/CPL restart files, `spinup_state=2`, saved CIME `skip_pnl=True`, generated land namelist hashes, and all current `rpointer` targets. If any prerequisite fails, 395y submission is prohibited. Then it backs up and stages only the verified 2001 component checkpoints in the new case RUNDIR. `CONTINUE_RUN=TRUE` and `RESUBMIT=78` give **2001→2006 + 78×5 years = 395 years**, ending 2396 if all jobs complete.
+
+**Run ONLY AFTER archived five-year success**, with no queued jobs:
+
+```bash
+python3 -B examples/DE-Tha/scripts/11_DE_Tha_AD400_continue_after_smoke.py audit
+```
+
+After the script reports `AUDIT PASSED`:
+
+```bash
+python3 -B examples/DE-Tha/scripts/11_DE_Tha_AD400_continue_after_smoke.py continue-395 \
+  --confirm CONTINUE_VERIFIED_DE_THA_AD400_FROM_2001_TO_2396
+```
+
+Never repeat the continuation command if submission is uncertain or a handoff folder already exists. There is **no automatic** continuation after first 5y until explicitly requested.
+
+## 5. Forcing QC disposition
+
+A previous read-only audit, [08_audit_forcing_v5_review.py](scripts/08_audit_forcing_v5_review.py), found complete 1996–2025 30-min NO_LEAP continuity and no **gross** physical-range violations, but **status remains REVIEW** due to 14 manual-review items (11 low daytime LW in 2005; 3 VPD reconstructions) and 32 replacement events. [09_audit_critical_meteorological_episodes.py](scripts/09_audit_critical_meteorological_episodes.py) provides optional read-only physics-aware episodic checks.
+
+**Operator decision for this AD400 pilot:** accept the existing `processed_v5` forcing and already linked `datm_v5_candidate_timevarying_zbot` files unchanged; **do not repair those 14/32 events now**. This is an operational acceptance for an exploratory spin-up, **not** a scientific certification of the 2005 LW or 2017/2022 VPD. The risks belong in the experiment's methods and limitations. A later historical validation should revisit them.
+
+### Safety scope
+
+- NO edits to old DE-Tha, NL-Loo, CTSM shared source or binaries.
+- NO automatic `RESUBMIT` before first AD smoke archive is independently verified.
+- A missing `spinup_state=2`, `FATES_GPP/FATES_NPP`, restart mismatch or CIME option check fails closed.
+- NO new normal-stage case is created, even if the AD400 smoke/continuation succeeds.
+- Do not confuse accelerated carbon pool spin-up with normal climate–soil equilibrium.
 
 ## Folder index
 
@@ -182,4 +244,7 @@ examples/DE-Tha/
     06_audit_soil_texture_vs_observations.py  # READ ONLY soil texture consistency
     07_build_site_soil_surface_v2.py        # selected forest + in-situ-soil v2
     08_audit_forcing_v5_review.py           # READ ONLY 14+32 forcing QC review
+    09_audit_critical_meteorological_episodes.py # optional READ ONLY QC episodes
+    10_DE_Tha_direct_AD400.py              # direct AD400 cold start, first 5y smoke
+    11_DE_Tha_AD400_continue_after_smoke.py # guarded 395y only after 2001 archive
 ```
