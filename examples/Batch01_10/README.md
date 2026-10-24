@@ -32,6 +32,7 @@ Suggested per-site future structure (directories or scripts should be created **
 examples/Batch01_10/
     README.md                       # this scientific cohort runbook
     scripts/01_audit_iridis_batch01_sources.py  # existing-site READ ONLY inventory
+    scripts/02_trace_actual_case_inputs.py     # Stage02 generated effective CIME / DATM trace
 data/
     batch01_10_sites.csv            # source evidence, not approved surface fractions
 examples/Batch01_10/<site>/
@@ -79,6 +80,52 @@ The script reads `data/batch01_10_sites.csv`, verifies exactly ten sites and exc
 - Next stage: evidence-by-evidence decisions for the 10 sites, plus their site soil measurements and surface landunits, then **versioned** fixed-PFT surfaces and site-specific AD400 five-year smoke tests. Do not immediately launch 10×800 years.
 
 **Operator follow-up:** share the Stage01 summary table, and for any missing/mismatched source cases inspect the corresponding detail in `all_sites.json` so we can construct the exact per-site setup instead of guessing paths.
+
+## Stage01 IRIDIS6 observed result — 24 October 2026
+
+The operator completed the ten-site Stage01 inventory and reported **SELF-TEST PASS**, 10/10 site roots found, no model/source writes and no Slurm jobs submitted. Report files on IRIDIS6 are:
+
+- `/iridisfs/home/ly3n24/Batch01_10_source_inventory_20261024T090713Z/all_sites.json`
+- `/iridisfs/home/ly3n24/Batch01_10_source_inventory_20261024T090713Z/summary.csv`
+
+| Site | Existing cases | Candidate point surfaces | Scanned processed CSV count | Scanned DATM directories | Operational attention |
+| --- | ---: | ---: | ---: | ---: | --- |
+| CZ-BK1 | 1 | 1 | 6 | 1 | confirm surface and exact DATM stream |
+| IT-Ren | 1 | 1 | 6 | 1 | confirm surface and exact DATM stream |
+| RU-Fyo | 1 | 1 | 10 | 2 | resolve two alternative DATM locations |
+| CH-Dav | 1 | 1 | 6 | 1 | confirm surface and exact DATM stream |
+| IT-Col | 2 | 1 | 0 | 0 | **two existing cases; trace actual forcing from CIME** |
+| FR-Fon | 1 | 1 | 0 | 1 | DATM candidate directory exists; find actual forcing |
+| FI-Sod | 1 | 1 | 0 | 1 | DATM candidate directory exists; find actual forcing |
+| FR-Pue | 2 | 1 | 0 | 0 | **two existing cases; trace actual forcing from CIME** |
+| DE-Hai | 1 | 1 | 10 | 2 | resolve two alternative DATM locations |
+| BE-Vie | 1 | 1 | 6 | 1 | confirm surface and exact DATM stream |
+
+**Interpretation:** this scan only checks a few known folder naming conventions. `CSV=0` or `DATM=0` is **not** proof of missing forcing, and two cases do not mean two independent valid baseline datasets. No Batch01 site has passed scientific fixed-PFT area/soil-depth gates yet.
+
+### Stage02 — trace exact baseline CIME inputs before choosing any surface
+
+GitHub script: [02_trace_actual_case_inputs.py](scripts/02_trace_actual_case_inputs.py), **read-only for model inputs**, writes only a new HOME report.
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment
+git pull --ff-only origin main
+
+INPUT=/iridisfs/home/ly3n24/Batch01_10_source_inventory_20261024T090713Z/all_sites.json
+SCRIPT=examples/Batch01_10/scripts/02_trace_actual_case_inputs.py
+
+python3 -m py_compile "$SCRIPT"
+python3 -B "$SCRIPT" --inventory "$INPUT" --self-test
+
+set -o pipefail
+python3 -B "$SCRIPT" --inventory "$INPUT" \
+  2>&1 | tee ~/Batch01_10_stage02_case_trace.log
+```
+
+Stage02 reads `CaseDocs/lnd_in`, `CaseDocs/datm_in`, actual DATM stream candidates, `user_nl_datm_streams`, candidate runtime stream files, original `fsurdat` checksums, CIME XML metadata and existing `#SBATCH` lines. It does **not** repair forcing, create PFT surfaces, alter old cases or submit jobs. A source inventory identifies paths but **does not validate tower field soil or EC footprint PFT fractions**.
+
+After Stage02, adjudicate `IT-Col` and `FR-Pue` duplicate cases, determine the actual DATM streams for all ten, and review source-area denominators. Only then advance CZ-BK1, IT-Ren and IT-Col to an explicit site-specific FIXNC surface candidate. Unknown vegetation composition must **not** automatically become GRA.
 
 ## Readiness gates to work through, in order
 
