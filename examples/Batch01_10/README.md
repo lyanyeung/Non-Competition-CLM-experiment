@@ -127,6 +127,8 @@ Stage02 reads `CaseDocs/lnd_in`, `CaseDocs/datm_in`, actual DATM stream candidat
 
 After Stage02, adjudicate `IT-Col` and `FR-Pue` duplicate cases, determine the actual DATM streams for all ten, and review source-area denominators. Only then advance CZ-BK1, IT-Ren and IT-Col to an explicit site-specific FIXNC surface candidate. Unknown vegetation composition must **not** automatically become GRA.
 
+**Other seven towers:** [Seven-site PFT residual follow-up (24 October 2026)](docs/seven_site_PFT_residual_followup_2026-10-24.md) adds primary/official evidence for RU-Fyo, CH-Dav, FR-Fon, FI-Sod, FR-Pue, DE-Hai and BE-Vie. Main findings: RU-Fyo wet spruce 86/14 versus older 85/15; DE-Hai small remainder belongs to DBF tree species; CH-Dav nearly all ENF trees; FR-Fon other <3% includes ENF pine; FR-Pue secondary 90/10 claim requires reconciliation; FI-Sod 5% trees still unclassified; BE-Vie remaining 20% has ENF and DBF species but no exact shares. **None authorizes automatic GRA or complete EC-footprint PFT-area allocations.**
+
 ## Readiness gates to work through, in order
 
 1. **Observed PFT provenance:** retrieve actual station/forest source, verify measurement year, survey method, spatial coverage, specific **denominator** and any species sum. Record the unknown share. A scientific proxy must be proposed and explicitly recorded before it can become a fixed PFT surface.
