@@ -281,8 +281,13 @@ def validation_settings():
 def validation_namelists():
     user=(CASE/"user_nl_clm").read_text()
     for key,value in NAMELIST.items():
+        if key=="hist_fincl1":
+            registered=re.findall(r"'([^']+)'",nml_value_raw(user,key))
+            if registered!=HISTORY:
+                fail(f"USER_NL hist_fincl1 mismatch: {registered}")
+            continue
         present=nml_value(user,key)
-        wanted=value.strip("'\"") if key!="hist_fincl1" else value
+        wanted=value.strip("'\"")
         if (present or "").strip()!=wanted:
             fail(f"USER_NL expected {key}={value} but got {present}")
     for file in (CASE/"CaseDocs/lnd_in",RUN/"lnd_in"):
@@ -349,7 +354,7 @@ def submit_smoke():
     # user_nl_clm has EXPLICIT spinup_state=2, so avoid private module
     # patch and CIME immutable-env lock used in the NL-Loo hybrid handoff.
     print("Submitting ONE 5y cold-start AD smoke job + conditional archive; RESUBMIT=0",flush=True)
-    output=run(["./case.submit"],cwd=CASE,timeout=300,verbose=True)
+    output=run(["./case.submit","--skip-preview-namelist"],cwd=CASE,timeout=300,verbose=True)
     match=re.search(r"Submitted job case\.run with id (\d+)",output)
     archive=re.search(r"Submitted job case\.st_archive with id (\d+)",output)
     if not match or not archive:
