@@ -1,6 +1,6 @@
 # Non-Competition CLM-FATES experiment
 
-**Status (24 October 2026):** NL-Loo V3 PRE50 completed (50 model years); the first AD200 five-year segment (2047–2052) and its archive were verified successful; the remaining AD200 195 years (2052–2247) were submitted to Slurm using scripts/15 (initial jobs 4711128/4711129), **not yet verified complete**. POST300 has not started. [DE-Tha standard evidence example](examples/DE-Tha/README.md) is now documented but **not approved to launch**.
+**Status (24 October 2026):** NL-Loo V3 PRE50 completed (50 model years); the first AD200 five-year segment (2047–2052) and its archive were verified successful; the remaining AD200 195 years (2052–2247) were submitted to Slurm using scripts/15 (initial jobs 4711128/4711129), **not yet verified complete**. POST300 has not started. [DE-Tha standard evidence example](examples/DE-Tha/README.md) is now documented but **selected ONE observed-forest PFT proxy (ENF87/DNF10/DBF3); surface generator ready; no DE-Tha jobs launched**.
 
 ## Objective
 
@@ -56,7 +56,7 @@ The inspector reads real `NL-Loo_FATES_SPINUP500` metadata, the active surface a
 
 The [examples/ index](examples/README.md) provides reproducible site folders with observation provenance, transparent PFT grouping, explicit unresolved coverage, a read-only scientific audit and phase-specific readiness gates.
 
-- [DE-Tha — Tharandt](examples/DE-Tha/README.md): official ICOS tree-composition evidence ENF 87%, DNF 10%, identified DBF 1%, unidentified deciduous 2%; **FATES PFT area not yet approved**. Read-only audit: `python3 -B examples/DE-Tha/scripts/01_audit_evidence.py`.
+- [DE-Tha — Tharandt](examples/DE-Tha/README.md): **ONE selected observed-forest FIXNC proxy** ENF 87%, DNF 10%, DBF 3% (unidentified 2% deciduous allocated provisionally to DBF); NATVEG 100%, crop 0%. An isolated NetCDF surface builder is in `examples/DE-Tha/scripts/05_build_forest_observed_surface.py`. **No DE-Tha new surface created or case submitted yet**; original CLM surface is retained for structural metadata only.
 - NL-Loo: the proven PRE50 / AD200 operational history currently resides in `scripts/09`–`scripts/15`, with NL-Loo-specific paths and Slurm job IDs. These are not portable one-click scripts for other towers.
 
 ## Batch strategy
