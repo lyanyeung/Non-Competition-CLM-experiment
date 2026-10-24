@@ -257,7 +257,79 @@ python3 -B examples/DE-Tha/scripts/11_DE_Tha_AD400_continue_after_smoke.py conti
 
 Never repeat the continuation command if submission is uncertain or a handoff folder already exists. There is **no automatic** continuation after first 5y until explicitly requested.
 
-## 5. Forcing QC disposition
+## 5. AD400 progress verification and independent AD → Normal experiment
+
+**Current operator report:** Slurm `squeue -u ly3n24` displayed `4713482 run.NL-L...` in state **R**, and `4713483 st_archive...` state **PD (Dependency)**. These jobs belong to **NL-Loo**, not DE-Tha, and do **not** prove DE-Tha AD completion. A missing DE-Tha row from `squeue` is not evidence of success: use exact `sacct` IDs, CIME `CaseStatus`, the archive and restart contents.
+
+Run the strict **read-only** [13_check_AD5_jobs_and_restart.py](scripts/13_check_AD5_jobs_and_restart.py):
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment
+git pull --ff-only origin main
+python3 -B examples/DE-Tha/scripts/13_check_AD5_jobs_and_restart.py \
+  2>&1 | tee ~/DE-Tha_AD400_first5_verified_status.log
+```
+
+This explicitly distinguishes full `run.DE-Tha_OBSPFT_NC_V1_AD400` and `st_archive.DE-Tha_OBSPFT_NC_V1_AD400` from `run.NL-Loo_...`. It prints the Stage10 controller state and, **only after both exact Slurm jobs finish `COMPLETED/0:0`**, checks three components of the `2001-01-01-00000` archive restart and the land `spinup_state=2`. Expected result for a genuinely completed AD smoke: **`STATUS: VERIFIED_AD5_ARCHIVED`**. Otherwise **do not submit** an AD continuation or Normal branch.
+
+### Separate Normal conversion pilot — source 2001 AD5 (technical feasibility only)
+
+The experiment is **independent of AD400**:
+
+| Case name | AD reference state | Normal target | Design |
+| --- | --- | --- | --- |
+| `DE-Tha_OBSPFT_NC_AD5_TO_NORMAL5_TEST` | archived AD restart at 2001-01-01 | 2006-01-01 | 5-year Normal hybrid feasibility test |
+| `DE-Tha_OBSPFT_NC_AD400_TO_NORMAL5_TEST` | final AD400 restart at 2396-01-01 | 2401-01-01 | 5-year Normal *post-AD400* pilot, only after full AD400 success |
+
+The two cases are **not currently created or submitted**. The first asks *can this CIME/FATES build switch from an AD-state restart to a normal-state hybrid and complete five years?* It is **not** a soil equilibrium test. The second is relevant after completion of all 400 AD years, to assess initial post-AD carbon-pool relaxation; longer Normal time series will likely be necessary.
+
+Use [14_AD_to_Normal_independent_branch.py](scripts/14_AD_to_Normal_independent_branch.py). It clones the original DE-Tha FATES case with `--keepexe`, sets **hybrid** start, references the **separate AD archive** using `RUN_REFCASE`, `RUN_REFDATE`, `finidat` and copies all three restart components into a separate run directory with locally verified pointers. It preserves the approved forest/soil v2 and FATES FIXNC flags. In generated normal `lnd_in`, `CLM_ACCELERATED_SPINUP=off` and `spinup_state` is **0 or omitted**; the exact pinned build rejects an explicitly provided FATES `spinup_state=0` when `use_cn=.false.`, so **do not hard-code that value**. The transition is verified scientifically/technically by the resulting normal restart's `spinup_state=0`, Slurm success and CIME logs.
+
+**Only after Stage13 prints `VERIFIED_AD5_ARCHIVED`**, run strict read-only branch preflight:
+
+```bash
+python3 -B examples/DE-Tha/scripts/14_AD_to_Normal_independent_branch.py \
+  audit --source-year 2001 \
+  2>&1 | tee ~/DE-Tha_AD5_to_Normal5_readonly_audit.log
+```
+
+Only if it prints `PASS: NORMAL branch source and isolation gates`, create a **separate case without submitting any jobs**:
+
+```bash
+python3 -B examples/DE-Tha/scripts/14_AD_to_Normal_independent_branch.py \
+  stage --source-year 2001 \
+  --confirm CREATE_ISOLATED_DE_THA_AD_TO_NORMAL_5Y_TEST \
+  2>&1 | tee ~/DE-Tha_AD5_to_Normal5_stage.log
+```
+
+If staging passes, run an **independent validation**:
+
+```bash
+python3 -B examples/DE-Tha/scripts/14_AD_to_Normal_independent_branch.py \
+  validate --source-year 2001
+```
+
+Only after that validation, you may opt to **submit ONE 5-year Normal** test (no resubmits). This is an explicit action separate from staging:
+
+```bash
+python3 -B examples/DE-Tha/scripts/14_AD_to_Normal_independent_branch.py \
+  submit-smoke --source-year 2001 \
+  --confirm SUBMIT_ISOLATED_DE_THA_NORMAL_5Y_ONLY
+```
+
+When both independent Normal run and archive complete, execute:
+
+```bash
+python3 -B examples/DE-Tha/scripts/14_AD_to_Normal_independent_branch.py \
+  verify-run --source-year 2001
+```
+
+For the final **AD400→Normal** branch, the same commands use `--source-year 2396`, but **only after** all 80 AD 5-year segments complete, the 2396 CLM/DATM/CPL archive exists and `spinup_state=2`. The full normal simulation, if any, should be planned only after both pilot tests demonstrate model compatibility.
+
+**Safety:** Neither script edits or submits NL-Loo or the existing DE-Tha AD400 source case; do not interpret NL-Loo queue states as DE-Tha progress. The source AD case may separately continue for 395 years after its own Stage11 gate.
+
+## 6. Forcing QC disposition
 
 A previous read-only audit, [08_audit_forcing_v5_review.py](scripts/08_audit_forcing_v5_review.py), found complete 1996–2025 30-min NO_LEAP continuity and no **gross** physical-range violations, but **status remains REVIEW** due to 14 manual-review items (11 low daytime LW in 2005; 3 VPD reconstructions) and 32 replacement events. [09_audit_critical_meteorological_episodes.py](scripts/09_audit_critical_meteorological_episodes.py) provides optional read-only physics-aware episodic checks.
 
@@ -268,7 +340,7 @@ A previous read-only audit, [08_audit_forcing_v5_review.py](scripts/08_audit_for
 - NO edits to old DE-Tha, NL-Loo, CTSM shared source or binaries.
 - NO automatic `RESUBMIT` before first AD smoke archive is independently verified.
 - A missing `spinup_state=2`, `FATES_GPP/FATES_NPP`, restart mismatch or CIME option check fails closed.
-- NO new normal-stage case is created, even if the AD400 smoke/continuation succeeds.
+- The AD400 workflow creates NO Normal stage; the separately requested Stage14 experiment may create its own isolated AD→Normal branch only after a verified AD archive.
 - Do not confuse accelerated carbon pool spin-up with normal climate–soil equilibrium.
 
 ## Folder index
@@ -292,4 +364,6 @@ examples/DE-Tha/
     10_DE_Tha_direct_AD400.py              # direct AD400 cold start, first 5y smoke
     11_DE_Tha_AD400_continue_after_smoke.py # guarded 395y only after 2001 archive
     12_DE_Tha_AD400_recover_failed_preview.py # private FATES AD CIME namelist recovery
+    13_check_AD5_jobs_and_restart.py       # READ ONLY DE-Tha exact Slurm/restart audit
+    14_AD_to_Normal_independent_branch.py   # separate AD5/AD400 to NORMAL5 hybrid
 ```
