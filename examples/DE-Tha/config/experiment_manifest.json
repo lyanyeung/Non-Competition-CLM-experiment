@@ -4,7 +4,7 @@
   "site_name": "Tharandt",
   "network": "ICOS",
   "scientific_status": "TOWER_FOREST_PROXY_SELECTED_WITH_UNRESOLVED_2PCT_ASSUMPTION",
-  "operational_status": "DE_THA_FIRST5_AD_1996_2001_VERIFIED_MODEL_ARCHIVE_RESTART; INDEPENDENT_AD5_TO_NORMAL5_STAGED_VALIDATED_NOT_SUBMITTED; AD395_NOT_SUBMITTED",
+  "operational_status": "NORMAL5_HYBRID_VERIFIED; AD395_CONTINUATION_SUBMITTED_NOT_COMPLETE",
   "source_evidence": {
     "official_site": "https://meta.icos-cp.eu/resources/stations/ES_DE-Tha",
     "supplementary_site": "https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1",
@@ -61,7 +61,7 @@
       "planned_remaining_years": 395,
       "first_submit_resubmit": 0,
       "after_archive_success_resubmit": 78,
-      "status": "AD5_COMPLETED_ARCHIVED_2001; 395_YEARS_NOT_SUBMITTED",
+      "status": "AD5_VERIFIED; 395_AD_YEARS_SUBMITTED_AWAITING_COMPLETION",
       "case": "DE-Tha_OBSPFT_NC_V1_AD400",
       "no_pre50": true,
       "postad_not_requested": true,
@@ -129,6 +129,17 @@
         "cime_run": "success",
         "cime_archive": "success",
         "stage13_readonly_report": "PASS"
+      },
+      "continuation_status_2026_10_24": {
+        "stage11_audit": "PASS",
+        "pointer_staging": "PASS: CLM/DATM/CPL 2001 restarts copied and pointed correctly",
+        "model_job_id": "4713885",
+        "archive_job_id": "4713886",
+        "submission": "SUCCESS",
+        "remaining_ad_years": 395,
+        "continuation_years": "2001-2396",
+        "resubmit": 78,
+        "finished": false
       }
     }
   ],
@@ -249,7 +260,7 @@
     "stage13_script": "examples/DE-Tha/scripts/13_check_AD5_jobs_and_restart.py",
     "stage14_script": "examples/DE-Tha/scripts/14_AD_to_Normal_independent_branch.py",
     "AD_to_Normal_independent_test": {
-      "status": "AD5_TO_NORMAL5_CASE_STAGED_AND_VALIDATED; NO_NORMAL_SLURM_SUBMITTED",
+      "status": "AD5_TO_NORMAL5_VERIFIED",
       "AD5_test": {
         "source_year": 2001,
         "target_year": 2006,
@@ -257,8 +268,12 @@
         "new_case": "DE-Tha_OBSPFT_NC_AD5_TO_NORMAL5_TEST",
         "design": "hybrid normal five-year smoke, separate case+run/archive",
         "purpose": "technical FATES/CIME conversion feasibility, not spinup equilibrium",
-        "status": "ISOLATED_CASE_CREATED, 2001 CLM/DATM/CPL copied and checked, normal hybrid namelist VALIDATE PASS, no Slurm submitted",
-        "next_action": "Stage14 validate then one-time submit-smoke, verify-run after both run/archive finish"
+        "status": "NORMAL5_RUN_AND_ARCHIVE_VERIFIED_SUCCESS",
+        "next_action": "Stage14 validate then one-time submit-smoke, verify-run after both run/archive finish",
+        "model_job_id": "4713698",
+        "archive_job_id": "4713699",
+        "land_final_spinup_state": 0,
+        "result": "5-year 2001-2006 hybrid AD restart to normal restart technically successful; does not imply equilibrium"
       },
       "AD400_test": {
         "source_year": 2396,
