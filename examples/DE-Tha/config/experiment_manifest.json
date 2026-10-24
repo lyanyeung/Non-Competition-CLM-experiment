@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0",
+  "site": "DE-Tha",
+  "site_name": "Tharandt",
+  "network": "ICOS",
+  "scientific_status": "EVIDENCE_VERIFIED_MAPPING_AND_AREA_PROXY_HOLD",
+  "operational_status": "DOCUMENTATION_ONLY_NOT_SUBMITTED",
+  "source_evidence": {
+    "official_site": "https://meta.icos-cp.eu/resources/stations/ES_DE-Tha",
+    "supplementary_site": "https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1",
+    "provenance": "ICOS station descriptions; reported tree/canopy composition in flux-influence forest",
+    "is_measured_clm_natpft_area": false,
+    "is_time_invariant_footprint_validated": false
+  },
+  "observed_tree_species_percent": {
+    "Picea abies": 72,
+    "Pinus sylvestris": 15,
+    "Larix decidua": 10,
+    "Betula sp.": 1,
+    "other deciduous unidentified": 2
+  },
+  "grouped_observed_percent": {
+    "ENF": 87,
+    "DNF": 10,
+    "DBF_identified": 1,
+    "UNRESOLVED_DECIDUOUS": 2
+  },
+  "potential_clm_natpft_index": {
+    "ENF": 1,
+    "DNF": 3,
+    "DBF": 7
+  },
+  "scenario_candidates": {
+    "other_as_DBF_proxy": {
+      "ENF": 87,
+      "DNF": 10,
+      "DBF": 3
+    },
+    "other_as_DNF_proxy": {
+      "ENF": 87,
+      "DNF": 12,
+      "DBF": 1
+    }
+  },
+  "scenario_approval": "NONE; scenarios are hypotheses NOT measured FATES PFT shares",
+  "site_specific_paths": {
+    "forcing": "UNVERIFIED",
+    "original_surface": "UNVERIFIED",
+    "fates_parameter_file": "UNVERIFIED",
+    "existing_compiled_executable": "UNVERIFIED"
+  },
+  "proposed_independent_case_names": {
+    "PRE50": "DE-Tha_OBSPFT_NC_V1_PRE50",
+    "AD200": "DE-Tha_OBSPFT_NC_V1_AD200",
+    "POST300": "DE-Tha_OBSPFT_NC_V1_POST300"
+  },
+  "stages": [
+    {
+      "name": "PRE50",
+      "years": 50,
+      "accelerated_spinup": "off",
+      "segments_five_year": 10,
+      "status": "NOT_STARTED"
+    },
+    {
+      "name": "AD200",
+      "years": 200,
+      "accelerated_spinup": "on",
+      "segments_five_year": 40,
+      "status": "NOT_STARTED"
+    },
+    {
+      "name": "POST300",
+      "years": 300,
+      "accelerated_spinup": "off",
+      "segments_five_year": 60,
+      "status": "NOT_STARTED"
+    }
+  ],
+  "fixed_biogeography": true,
+  "no_inter_pft_competition": true,
+  "forbid_slurm_until": [
+    "source metric and 2pct unknown reviewed",
+    "hypothetical area proxy explicitly approved",
+    "surface landunits and natpft mapping verified",
+    "site forcing/years/calendar/QC audited",
+    "parameter fates_hlm_pft_map verified",
+    "isolated case and executable reviewed"
+  ]
+}
