@@ -109,7 +109,11 @@ def check(stage):
       ('use_fates_fixed_biogeog','.true.'),('use_fates_nocomp','.true.'),('fsurdat',str(SURF))]:
         if (nml_get(n,k) or '').lower()!=expected.lower():die(f'{stage}: {k} differs')
     if stage=='AD200' and nml_get(n,'spinup_state') not in ('1','2'):
-        die('AD not selected in land namelist (spinup_state missing/invalid)')
+        die('AD200 NOT SAFE TO SUBMIT: generated lnd_in lacks accelerated '
+            'spinup_state=1/2. Pinned CTSM -bgc fates selects use_cn=.false., '
+            'and its CLMBuildNamelist.pm only sets spinup_state under use_cn=.true. '
+            'CLM_ACCELERATED_SPINUP=on alone does not prove AD is active. '
+            'Do not bypass this guard or modify shared CTSM without isolation.')
     if stage!='AD200' and nml_get(n,'spinup_state') not in (None,'0'):
         die('Normal stage spinup_state not 0')
     for k,v in [('CLM_ACCELERATED_SPINUP',MODE[stage]),('STOP_OPTION','nyears'),
@@ -334,13 +338,16 @@ def audit_ad200():
               'RUNDIR','DOUT_S_ROOT','EXEROOT'):
         try:print('XML',k,':',xq(stage,k),flush=True)
         except Exception as e:print('XML ERROR',k,':',e,flush=True)
+    for k in ('CLM_BLDNML_OPTS','CLM_NAMELIST_OPTS'):
+        try:print('XML',k,':',xq(stage,k),flush=True)
+        except Exception as e:print('XML ERROR',k,':',e,flush=True)
     for f in (CASE[stage]/'CaseDocs/lnd_in',CASE[stage]/'user_nl_clm',
-              CASE[stage]/'CaseStatus'):
+              BASE/'CaseDocs/lnd_in',CASE[stage]/'CaseStatus'):
         print('---',f,'exists=',f.is_file(),flush=True)
         if not f.is_file():continue
         lines=f.read_text(errors='replace').splitlines()
         for i,line in enumerate(lines,1):
-            if re.search(r'(?i)spinup_state|finidat|use_fates|case\\.submit|case\\.run|archive',line):
+            if re.search(r'(?i)spinup_state|finidat|use_fates|use_cn|bgc_mode|soil_decomp_method|case\\.submit|case\\.run|archive',line):
                 print(f'{i}: {line[:240]}',flush=True)
     for f in (CTSM/'bld/namelist_files/namelist_defaults_ctsm.xml',
               CTSM/'bld/namelist_files/namelist_defaults_clm.xml'):
