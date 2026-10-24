@@ -18,6 +18,27 @@ python3 -B "$S11" plan || exit 1
 
 Only **after both return normally**, proceed using the previously documented `surfaces` → `stage` → `submit-smoke` actions. The original failed `plan` submitted **no Slurm jobs and created no candidate NetCDF**. A successful local self-test validates configuration/CSV logic, not a full CIME run.
 
+## 2026-10-24 HOTFIX: ten surfaces created, AD case staging needs `-bgc fates`
+
+**Observed IRIDIS6 result:** `11_batch10_AD400_oneclick.py surfaces` created all **10/10 separate FIXNC surface NetCDFs**, with `SURFACES SUMMARY success=10 issues=0`. No need to rebuild or overwrite any surface. Immediately afterward, `stage` created several new independent case directories but every shown `preview_namelists` invocation exited with `setup_cmdl_spinup(): spinup_state accelerated but bgc mode Satellite Phenology`. This is **not** a site-soil or forcing-file error. The Perl `undefined import method` line is a secondary wrapper failure from the CTSM build-namelist abort.
+
+**Root and fix:** Old one-point compset build-namelist options may default to SP. The cloned **new** AD cases need `CLM_BLDNML_OPTS='-bgc fates'`, alongside `CLM_ACCELERATED_SPINUP=on`, generated `spinup_state=2`, `use_fates=.true.`, `use_fates_sp=.false.`, `use_fates_fixed_biogeog=.true.`, `use_fates_nocomp=.true.`. This is consistent with the [official CTSM namelist BGC mode and accelerated spinup rules](https://github.com/ESCOMP/CTSM/blob/master/bld/CLMBuildNamelist.pm). **Stage11 has been patched to apply that setting only in its new cloned cases**. The improved `stage` action now recognizes and resumes an existing half-created Batch01-specific case with no submission ledger, without deleting any old/new case or re-cloning over it. For untouched sites it creates the case normally. Any already submitted case is explicitly protected.
+
+**Resume exactly where the failed stage stopped:**
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment || exit 1
+git pull --ff-only origin main || exit 1
+S11=examples/Batch01_10/scripts/11_batch10_AD400_oneclick.py
+set -o pipefail
+python3 -B "$S11" stage --confirm CREATE_TEN_INDEPENDENT_BATCH01_AD400_CASES \
+  2>&1 | tee "$HOME/Batch01_10_stage_FATES_mode_fixed.log"
+python3 -B "$S11" status
+```
+
+Do **NOT** rerun `surfaces`; existing validated ten versioned NetCDFs are preserved. Do **NOT** call `submit-smoke` if even one `stage` case fails. Once `STAGE SUMMARY success=10 issues=0` appears, the previously documented `submit-smoke --confirm SUBMIT_BATCH01_TEN_FIRST_FIVE_YEAR_AD_SMOKES` may be invoked to start only **10 independent 5-year AD smoke** cases. `AD395` and `Normal400` remain separate. No new per-year DATM audits are added.
+
 ## CURRENT ONE-ENTRY TEN-SITE AD400 WORKFLOW — 24 October 2026
 
 **Supersedes the single-site CZ-BK1 Stage10 experimental audit.** User requires a **TEN-site simultaneous experiment**, reusing successful DE-Tha fixed-PFT FATES clone and AD5 smoke implementation. **Do not re-run Stage01–10, do not separately audit 22 CZ-BK1 annual forcing NetCDFs.** The Stage10 XML list parser failed because it assumed child `<file>` nodes; its failure is a script parsing error, not meteorological evidence. The existing DATM streams are inherited unchanged per site.
