@@ -1,26 +1,60 @@
-# Non-Competition CLM-FATES experiment
+# Fixed Biogeography & no competition FATES experiment
 
-**Status (24 October 2026):** NL-Loo V3 PRE50 completed (50 model years); the first AD200 five-year segment (2047–2052) and its archive were verified successful; the remaining AD200 195 years (2052–2247) were submitted to Slurm using scripts/15 (initial jobs 4711128/4711129), **not yet verified complete**. POST300 has not started. [DE-Tha standard evidence example](examples/DE-Tha/README.md) is now documented but **selected ONE observed-forest PFT proxy ENF87/DNF10/DBF3 with measured-soil v2 SHA256 verified; DIRECT AD400 first 5 years 1996-2001 completed and archived; remaining 395 AD years submitted (4713885/4713886), NOT yet completed; independent AD5→Normal5 run+archive COMPLETED and restart spinup_state=0 verified**.
+**Research aim:** Evaluate forest- and ecosystem-carbon responses in FATES under **fixed biogeography** and **no inter-PFT competition**, using the best available EC-station vegetation evidence and transparently versioned site surface data.
 
-## Objective
+**Standard spin-up for all NEW sites: 400 years of accelerated decomposition (AD400), followed by 400 years of Normal decomposition (NORMAL400). Total: 800 model years per site.** This is an experimental design, **not** evidence of convergence or a chronological 800-year historical simulation.
 
-Investigate the effect of prescribing EC-tower vegetation distribution in **FATES fixed-biogeography + no-inter-PFT-competition (FIXNC)** spin-up, starting with NL-Loo; eventually extend to **22 quantitative-evidence sites** in two batches. The original CLM-FATES experiments are retained untouched as reference runs.
+**Project status — 24 October 2026:**
+- **38 original European/FLUXNET experiment sites:** [38-site PFT evidence inventory](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/38_site_PFT_evidence.csv). Of these, **22 have some numerical vegetation evidence**, but **not all have verified PFT horizontal ground-area fractions**; 16 have only qualitative evidence.
+- **Protected examples (2):** **NL-Loo** and **DE-Tha**, with their existing operational histories retained unchanged. DE-Tha direct AD first five years 1996→2001 and independent AD5→Normal5 test 2001→2006 both succeeded technically; the AD395 continuation 2001→2396 was **submitted** (initial run 4713885 and archive 4713886), not proven finished at this documentation update. NL-Loo's previous PRE50/AD200 model is a **legacy exception**, not the new standard.
+- **Batch 01 (10 sites):** documented and selected for detailed site evidence checks; **no new Batch01 model case, surface or Slurm jobs created**.
+- **Batch 02 (10 sites):** documented and reserved, with unresolved measurement-denominator and/or conflicting evidence issues.
 
-## Time plan: three distinct restart stages
+## Standard run design: AD400 → NORMAL400
 
-| Stage | Duration (model years) | Decomposition | Proposed case suffix | Segments |
-|---|---:|---|---|---:|
-| PRE50 | 50 | Normal / `CLM_ACCELERATED_SPINUP=off` | `_OBSPFT_NC_PRE50` | 10 × 5 years |
-| AD200 | 200 | Accelerated decomposition / `CLM_ACCELERATED_SPINUP=on` | `_OBSPFT_NC_AD200` | 40 × 5 years |
-| POST300 | 300 | Normal / `CLM_ACCELERATED_SPINUP=off` | `_OBSPFT_NC_POST300` | 60 × 5 years |
+| Stage | Duration | CIME/land mode | Case separation | Submission plan |
+| --- | ---: | --- | --- | --- |
+| **AD400** | **400 model years** | `CLM_ACCELERATED_SPINUP=on`; FATES generated `spinup_state=2` | Independent AD case, cold-start only after correct site inputs validated | **5-year smoke**, verify archived CLM/DATM/CPL restart; only then guarded **395-year continuation** |
+| **NORMAL400** | **400 model years** | `CLM_ACCELERATED_SPINUP=off`; verify Normal restart `spinup_state=0` | A **separate hybrid-restart case** from the final AD400 checkpoint | **5-year Normal smoke**, verify archived Normal restart; only then guarded **395-year continuation** |
+| **Total spin-up** | **800 model years/site** | Recycled site forcing; constant documented spin-up CO₂ baseline | The two model modes **must never be interchanged inside an active self-resubmitting case** | 160 validated five-year segments, or 80 per mode |
 
-Total intended: **550 model years per site**, followed by convergence assessment and a *separate* historical/transient run if justified. Durations are a **research choice**, not a verified equilibrium guarantee. Pre50 is a warm-up; its **validated restarts** must seed AD200, and AD200 must seed POST300. Use **separate case names**, `CONTINUE_RUN=FALSE` and a version-appropriate `RUN_TYPE=hybrid` or equivalent restart initialization for mode transitions. Never simply edit `CLM_ACCELERATED_SPINUP` inside an active self-resubmitting case or treat a new startup as a continuation.
+Use **each site's own vetted forcing years and model start date**. Example DE-Tha uses 1996→2396 for AD400; these dates cannot be reused unmodified for another tower. A site starting at Y reaches AD400 at Y+400 and NORMAL400 at Y+800, using artificial model calendar years and repeated climate forcing rather than historical forcing repeated once. Any chronological historical/transient run is a **different later experiment**, started from an independently chosen spun-up state.
 
-The first complete 5-year segment is a **technical gate**, NOT a separate discarded 5-year spin-up. 50-year PRE50 submission only after observed surface approval and accurate FATES mode have been demonstrated.
+**New Batch01/02 sites do NOT run an initial Normal50.** The old repo's `PRE50→AD200→POST300` plan is retained only as part of the historical NL-Loo example, not the current new-site protocol. The target 400+400 years is not proof of soil or vegetation-carbon equilibrium; track the relevant trends over the final run years.
 
-## PFT mode
+See the complete [AD400 → NORMAL400 reproducible protocol](docs/AD400_NORMAL400_PROTOCOL.md) before building or submitting a new case.
 
-Intended generated `CaseDocs/lnd_in` flags (validate on IRIDIS):
+## Cohort assignment (22 quantitative-evidence leads)
+
+The two existing examples are **NL-Loo** and **DE-Tha**. The remaining 20 are separated into two new **ten-site** cohorts:
+
+| **Batch01: investigate first** | **Batch02: reserve for later** |
+| --- | --- |
+| CZ-BK1 | DK-Sor |
+| IT-Ren | FR-Hes |
+| RU-Fyo | FR-FBn |
+| CH-Dav | BE-Bra |
+| IT-Col | IT-Noe |
+| FR-Fon | CH-Fru |
+| FI-Sod | CH-Lae |
+| FR-Pue | ES-LJu |
+| DE-Hai | FI-Hyy |
+| BE-Vie | IT-MBo |
+
+**Batch01 core goal:** assess quantitative tree-species evidence and obtain defensible **fixed FATES functional-type distributions**, accounting for the survey denominator, unknown species, nonforest/crop/bare-ground fraction, vegetation footprint, and active FATES PFT mapping.
+
+- [Batch01 site evidence and runbook](examples/Batch01_10/README.md)
+- [Batch01 10-site register and source URLs](data/batch01_10_sites.csv)
+- [Batch02 10-site reserve register](data/batch02_10_sites.csv)
+- [Master 22-candidate role ledger](data/22_site_cohort.csv)
+
+**Scientific disclaimer:** the original 38-site inventory is a *screening aid*, not a completed PFT area map. **No stand-species, tree-carbon-stock, basal-area or vegetated-cover percentage may be silently treated as CLM `PCT_NAT_PFT` ground area.** Even when a stand reports 100% spruce or beech, that does **not** by itself justify a 100% natural-landunit fraction for the tower footprint. Batch01 numeric grouping remains on **`EVIDENCE_ONLY_HOLD_SURFACE`** until each site's scientific provenance and surface mapping are accepted.
+
+For example, [ICOS CZ-BK1](https://meta.icos-cp.eu/resources/stations/ES_CZ-BK1) reports **99% Norway spruce and 1% silver fir within the investigated area**. Both are ENF, but the survey area and host-grid surface remain distinct. For comparison, DE-Hai's 64/28/7 reported tree composition refers to **carbon-stock shares**, not measured area.
+
+## Required land-model options
+
+FATES must be enabled in the **actual generated** `CaseDocs/lnd_in` and run-directory namelists, not just `user_nl_clm`:
 
 ```fortran
 use_fates = .true.
@@ -29,61 +63,24 @@ use_fates_fixed_biogeog = .true.
 use_fates_nocomp = .true.
 ```
 
-Do **not** presume changing `PCT_NAT_PFT` alone is enough. The active `fates_hlm_pft_map` in the real FATES parameter file is essential. CLM surface PFT numbers and FATES PFT numbers differ. Keep original compset only if the actual FATES code and executable support the requested mode; check before reusing binary with `--keepexe`.
+Keep tree types distinct: `Larix decidua` is **DNF**, not ENF; `Quercus ilex` is generally mapped EBF only after checking supported PFT parameters. Verify the active `fates_hlm_pft_map` and the exact CTSM executable/parameter file; host CLM PFT indices are not necessarily FATES indices.
 
-## Soil texture for every future site
+**Soil texture:** [observed first, grid fallback if none](docs/observed_soil_texture_policy.md). Use reliable site sand/silt/clay measurements where they exist, including sampling depth, reference and explicit interpolation/extrapolation. Never overwrite raw surfaces, previously verified NetCDFs, older case files or restart checkpoints.
 
-**Project rule:** when reliable, site-specific observed mineral-soil texture (sand/silt/clay) exists, use it for the new FIXNC model rather than automatically inheriting gridded soil texture. Preserve the published source, measurement depths, and site representativeness; any missing-layer interpolation or extrapolation must be marked as a **model proxy**, not observation. If measured site data are unavailable, retain the source CLM grid soil and explicitly label the fallback. Do not alter old spin-ups or previous versions.
+**Forcing:** preserve the site-specific DATM streams, NO_LEAP calendar, meteorological QC records and concentration policy. A documented exploratory use of forcing still under `REVIEW` (as selected for the DE-Tha pilot) does not certify data quality for final scientific inference.
 
-See the [project-wide observed-soil policy](docs/observed_soil_texture_policy.md). The DE-Tha standard example now has a **verified v2** with observed-forest PFT 87/10/3, tower-reference **Sand17/Silt71/Clay12** across 10 input texture layers (explicit extrapolation proxy), and SHA256 `0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a`. The operator has selected **DIRECT AD400 1996→2396 from cold startup without PRE50**. [Stage10](examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py) stages a uniquely named first five-year AD smoke, and [Stage11](examples/DE-Tha/scripts/11_DE_Tha_AD400_continue_after_smoke.py) gates the remaining 395 years on an archived restart with spinup_state=2. Forcing v5 retains `REVIEW` but the operator explicitly accepts it unchanged for this exploratory spinup; known LW/VPD caveats remain.
+**HPC safety:** independent case/run/archive directories, SHA256-pinned inputs, single-core or explicitly requested resources, and exact Slurm accounting, run/archive log, three-component restart and mode verification before each stage transition. Protect scratch inode/storage limits and archive verified results to Research Filestore where appropriate. **Nothing in the new Batch01/02 documentation submits a model job.**
 
-## NL-Loo source observation / unmapped remainder
+## Proven examples and why new sites must be independently adapted
 
-A published 500-m-radius area inventory reports Scots pine 89%, black pine 3.3%, Douglas fir 1.3%, birch 2.3%, oak 0.6%, and open heather / grass 3.5%. Thus ENF **93.6%**, DBF **2.9%**, open ground **3.5%**. These describe a fixed-radius *ground inventory*, not a footprint-weighted map. The open 3.5% **must be split scientifically** between heather/shrub and grass (or explicitly tested as a sensitivity scenario); this repository does **not** fabricate that split. Verify the original observed `PCT_CROP` and other landunits before defining 100% natural vegetation. See [Loobos original tower dataset](https://essd.copernicus.org/articles/18/2023/2026/) and Moors (2012) as quoted therein.
+**DE-Tha — Tharandt**: [site example](examples/DE-Tha/README.md) documents the published forest mixture proxy **ENF 87%, DNF 10%, DBF 3%**, NATVEG100/CROP0 as a local tower proxy and measured-soil literature proxy **sand17/silt71/clay12** (10 texture input layers; deeper extrapolation noted). Its first AD5 1996–2001 achieved `spinup_state=2`, and separate AD5→Normal5 2001–2006 achieved `spinup_state=0`. Remaining AD395 was **submitted**, not confirmed complete. The [Stage10](examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py), [Stage11](examples/DE-Tha/scripts/11_DE_Tha_AD400_continue_after_smoke.py), [Stage12](examples/DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py), [Stage13](examples/DE-Tha/scripts/13_check_AD5_jobs_and_restart.py) and [Stage14](examples/DE-Tha/scripts/14_AD_to_Normal_independent_branch.py) scripts are **DE-Tha-specific** and must not be run unchanged for another station.
 
-### What to execute now (read-only)
+**NL-Loo — Loobos**: older PRE50/AD200 experiment in [scripts/](scripts/) with its own case history. Its [500-m-radius ground area study](https://essd.copernicus.org/articles/18/2023/2026/) reported pine/conifer, broadleaf and open-ground fractions; unresolved grass-versus-heath area and local footprint interpretation must be preserved. NL-Loo is **excluded** from the new Batch01/02 list; no running cases are changed.
 
-From an IRIDIS6 login node:
+The older [NL-Loo three-stage runbook](docs/NL_Loo_V3_550_pipeline.md) remains available as **archival example documentation**, not the universal current protocol.
 
-```bash
-conda activate clm_fates_env
-git clone https://github.com/lyanyeung/Non-Competition-CLM-experiment.git ~/Non-Competition-CLM-experiment
-cd ~/Non-Competition-CLM-experiment
-python -m py_compile scripts/*.py
-python scripts/01_inspect_NL_Loo.py --out "$HOME/NL_Loo_NC_audit"
-cat "$HOME/NL_Loo_NC_audit/00_overview.json"
-```
+## Origin, methods and no-overwrite policy
 
-If already cloned, use `git -C ~/Non-Competition-CLM-experiment pull --ff-only` **only if the working tree is clean**.
+Original site forcing preparation, 6/8/11/13-site experiment development, ICOS site PFT research and diagnostics are in [CLM-FATES-single-site-workflows](https://github.com/lyanyeung/CLM-FATES-single-site-workflows). This repository adds isolated **fixed-biogeography/no-competition** scientific cases. Never rewrite earlier experiments or infer a successful 800-year run from successful CIME submission. Site inventory, raw meteorological packages, generated NetCDF, restarts and binaries do not belong in this source-code GitHub repository.
 
-The inspector reads real `NL-Loo_FATES_SPINUP500` metadata, the active surface and PFT map. It does not write input files, modify original cases or start jobs. **Do not run any long spin-up until this audit is reviewed.** See [first-site runbook](docs/NL_Loo_first_site_runbook.md).
-
-## Standard site examples
-
-The [examples/ index](examples/README.md) provides reproducible site folders with observation provenance, transparent PFT grouping, explicit unresolved coverage, a read-only scientific audit and phase-specific readiness gates.
-
-- [DE-Tha — Tharandt](examples/DE-Tha/README.md): **direct AD400 cold start**, 1996→2396, no PRE50; FIXNC ENF87/DNF10/DBF3, NATVEG100, field-reference sand17/silt71/clay12. Stage12 FATES AD private-overlay repair and Stage10 independent namelist validation have **passed on IRIDIS6**. First-5y AD model+archive **verified successful** by [Stage13](examples/DE-Tha/scripts/13_check_AD5_jobs_and_restart.py): jobs 4713351/4713352 COMPLETED/0:0, 2001 three-component restart, land spinup_state=2. Remaining 395 AD years SUBMITTED as initial run 4713885 and archive 4713886; completion unverified. A **new independent AD→Normal experiment** is available in [Stage14](examples/DE-Tha/scripts/14_AD_to_Normal_independent_branch.py) for technical AD5→Normal5 testing and eventual AD400→Normal5 testing. The independent AD5→Normal5 conversion run+archive COMPLETED with Normal restart spinup_state=0; existing site simulations are untouched.
-- NL-Loo: the proven PRE50 / AD200 operational history currently resides in `scripts/09`–`scripts/15`, with NL-Loo-specific paths and Slurm job IDs. These are not portable one-click scripts for other towers.
-
-## Batch strategy
-
-* **Pilot:** NL-Loo, one original six-site member, validate PFT coverage and first 5-year segment before promoting PRE50.
-* **Batch A:** 11 sites total, NL-Loo included; run after pilot gates.
-* **Batch B:** remaining 11 sites.
-* Batch manifest: [data/22_site_cohort.csv](data/22_site_cohort.csv).
-* Quantitative evidence includes species/basal area/biomass/vegetated-cover metrics. **22 evidence sites does not mean 22 accepted PFT areal mixtures**.
-
-## Existing work, unchanged
-
-[CLM-FATES-single-site-workflows](https://github.com/lyanyeung/CLM-FATES-single-site-workflows) and its [38-site PFT evidence table](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/38_site_PFT_evidence.csv).
-
-## References
-
-* [FATES technical document: prescribed biogeography/no-competition](https://fates-users-guide.readthedocs.io/projects/tech-doc/en/stable/fates_tech_note.html)
-* [FATES HLM-to-PFT mapping guide](https://fates-users-guide.readthedocs.io/en/latest/user/HLM-FATES-PFT-map.html)
-* [CESM 2026 tutorial: modifying FATES surface data](https://ncar.github.io/CESM-Tutorial/notebooks/challenge/clm_ctsm/clm_exercise_3.html)
-* [CTSM spin-up modes and restart handoff](https://github.com/ESCOMP/CTSM/blob/master/bld/CLMBuildNamelist.pm)
-
-### Safety
-
-No data licenses are redistributed; do not commit original EC archives, forcing CSV/NetCDF, surfaces, executable binaries, restart or Slurm files. Scratch inodes and Research Filestore archiving should be checked before scale-out.
+**Reference reading:** [FATES prescribed biogeography/no-competition](https://fates-users-guide.readthedocs.io/projects/tech-doc/en/stable/fates_tech_note.html), [HLM↔FATES PFT map](https://fates-users-guide.readthedocs.io/en/latest/user/HLM-FATES-PFT-map.html), [Flechard et al. 2020 site inventory supplement](https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-supplement.pdf).
