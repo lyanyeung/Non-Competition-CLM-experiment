@@ -107,6 +107,8 @@ Important new results: CH-Dav 0–10 cm Sand/Silt/Clay 53/25/22; FR-Pue 0–10 c
 
 **Next scientific step:** verify the newly retrieved sampling scopes and actual CLM soil-layer mapping, obtain ICOS IT-Ren particle-size data, independently examine RU-Fyo peat representation and the FR-Pue stone volume before constructing any new single-site surface or AD5 test. Old source-grid Sand/Clay remains excluded as a scientific source. **No AD job authorized yet.**
 
+**IT-Ren source-provenance correction, 24 October 2026:** A widely copied soil description, **Andosol (16% clay, 56% silt, 28% sand)**, belongs to **FR-Lqu Laqueuille grassland**, NOT IT-Ren. Authoritative station match: [ICOS FR-Lqu](https://meta.icos-cp.eu/resources/stations/ES_FR-Lqu). For **IT-Ren**, Flechard et al. (2020) [supplementary Table S4, PDF p. 9](https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-supplement.pdf) reports **Haplic Podzol; clay 11%, sand 55%, silt 34%**. This is a **published site-level soil texture candidate, sample-depth unspecified**, not a validated full CLM soil profile; ICOS 2020 measured soil-horizon CSV remains to be extracted. Do not use the FR-Lqu Andosol values for IT-Ren.
+
 ## 4. Gates before new versioned surfaces and spin-up
 
 1. Verify original forcing streams, years, time conversion, QC, CO2 baseline, pinned executable and actual host↔FATES PFT map; **original cases are only technical provenance sources**.
