@@ -4,7 +4,7 @@
   "site_name": "Tharandt",
   "network": "ICOS",
   "scientific_status": "TOWER_FOREST_PROXY_SELECTED_WITH_UNRESOLVED_2PCT_ASSUMPTION",
-  "operational_status": "SOIL_SITE_OBS_V2_BUILDER_AVAILABLE_NOT_YET_CREATED; FORCING_REVIEW_PENDING; NO_NEW_CASE_OR_JOBS",
+  "operational_status": "SITE_SOIL_V2_GENERATED_AND_USER_VERIFIED; FORCING_BASIC_QC_PASSED_BUT_14_MANUAL_REVIEW_REMAIN; NO_NEW_CASE_OR_JOBS",
   "source_evidence": {
     "official_site": "https://meta.icos-cp.eu/resources/stations/ES_DE-Tha",
     "supplementary_site": "https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1",
@@ -75,14 +75,15 @@
   "fixed_biogeography": true,
   "no_inter_pft_competition": true,
   "forbid_slurm_until": [
-    "run 07 site-measured-soil builder and verify newly generated v2 SHA256/receipt before choosing CIME fsurdat",
+    "use and hash-verify new forest-site-soil v2 sha256 0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a in independent PRE50 case fsurdat",
     "generated forest surface 6d415b42..80600 must be read and hashed by new independent CIME preflight before binding fsurdat",
     "derived surface SHA256 and FATES fixed-biogeography/no-competition namelists verified",
     "existing v5 forcing status REVIEW (14 manual-review and 32 replacement events) interpreted",
     "independent PRE50 case build and forcing/physical input confirmed",
     "old DE-Tha_FATES_SPINUP500 and all other site cases preserved",
     "review measured DE-Tha soil sand/silt/clay 17/71/12 versus inherited surface profiles using read-only 06 audit",
-    "complete 08 existing forcing QC REVIEW event-by-event assessment before first PRE50 5y smoke job"
+    "complete 08 existing forcing QC REVIEW event-by-event assessment before first PRE50 5y smoke job",
+    "09 audit and scientific interpretation of 2005 low LW, 2017/2022 VPD episodic concerns; no automatic REVIEW-to-PASS"
   ],
   "input_inventory_2026_10_24": {
     "status": "INPUTS_AUDITED_ORIGINAL_SURFACE_AND_FATES_MAP; SCIENTIFIC_SCENARIO_HOLD",
@@ -97,7 +98,7 @@
     "ctsm_revision": "d5ea9d0136530370a62ef267ccfaff6f001ef914",
     "fates_params_sha256": "0819f8fddcb3566f6209f72bb1159a3161d03c8225a1464727b1d2b21aec6c04",
     "verified_by": "User-executed 03_audit_live_inputs.py on IRIDIS6, 2026-10-24",
-    "next_action": "Read-only forcing v5 REVIEW item-by-item triage and new isolated PRE50 case preflight; no Slurm jobs yet",
+    "next_action": "Stage09 read-only targeted QC: retained 11 suspect LW_IN values and 2017/2022 VPD reconstruction consistency with TBOT/QBOT/PSRF",
     "original_surface_sha256": "7e4e4f8fc752d936f80e06a65db0f2163a3f74cdebff5d318973773450f5940d",
     "original_grid_landunits_percent": {
       "PCT_NATVEG": 62.674061760264706,
@@ -168,7 +169,7 @@
     "scientific_status": "87/10/3 is fixed forest footprint proxy, 2% unspecified deciduous trees assigned to DBF as documented assumption",
     "selected_final_surface_version": "v2_field_soil_texture",
     "site_soil_texture_policy": {
-      "status": "BUILDER_COMMITTED_PENDING_IRIDIS_AUDIT_WRITE_VERIFY",
+      "status": "USER_GENERATED_AND_VERIFIED_ON_IRIDIS_2026_10_24",
       "field_reference_percent": {
         "sand": 17,
         "silt": 71,
@@ -179,8 +180,11 @@
       "depth_limitation": "top mineral layer with relative stability reported down to about 1.2m; beyond is extrapolated, not measured",
       "unchanged_soil_fields": "organic matter, stone content, soil color and others inherited from v1",
       "proposed_v2_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/DE-Tha/surface/surfdata_DE-Tha_ObsForest_FIXNC_ENF87_DNF10_DBF3_SoilField17_71_12_v2.nc",
-      "v2_build_script": "examples/DE-Tha/scripts/07_build_site_soil_surface_v2.py"
-    }
+      "v2_build_script": "examples/DE-Tha/scripts/07_build_site_soil_surface_v2.py",
+      "generated_v2_sha256": "0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a",
+      "validation": "07 verify PASS: only PCT_SAND/PCT_CLAY changed, ten input layers 17/12 percent, other variables and PFT identical to v1"
+    },
+    "selected_final_surface_sha256": "0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a"
   },
   "scientific_sensitivity_exploration": "04_review_landunit_scenarios.py is archive/read-only and NOT in this experiment scope",
   "site_soil_texture_validation": {
@@ -246,5 +250,29 @@
     "warning": "Significant texture mismatch; do not silently modify already verified v1. Existing grid soil differs from DE-Tha forest first-mineral-layer reference. Coarse-fragment, depth and spatial heterogeneity remain uncertain.",
     "next_action": "run 07 audit, explicit v2 write, v2 verify; then 08 forcing review, finally new independent PRE50 preflight",
     "no_new_surface_written": true
+  },
+  "forcing_v5_review_2026_10_24": {
+    "result": "HOLD_MANUAL_REVIEW_NOT_AUTOMATICALLY_APPROVED",
+    "processed_csv_sha256": "ed347a37dbd64c19420bb96a0738bc3d579c4717f6149591fc8ee2218f69cf43",
+    "continuous_no_leap_halfhour_records": 525600,
+    "broad_physical_bounds_violations": 0,
+    "qc_v5_status": "REVIEW",
+    "manual_review_total": 14,
+    "manual_review_by_variable": {
+      "LW_IN_F": 11,
+      "VPD_F": 3
+    },
+    "substitutions_total": 32,
+    "substitutions_by_variable": {
+      "VPD_F": 31,
+      "LW_IN_F": 1
+    },
+    "primary_concerns": [
+      "2005 LW_IN_F 90-98 W/m2 at some daylight hours versus ERA 215-268; many QC0 records were intentionally retained; investigate original sensor and local context",
+      "2017 VPD_F source 12-15 hPa versus ERA 1-5; ERA and interpolation corrections may have inconsistent contiguous boundaries; verify VPD calculated from forcing QBOT/PSRF/TBOT",
+      "2022-06-27 15:30/16:00 VPD reconstructions 16.77/16.80 hPa vs ERA 28.7/29.0 (QC2); check saturation/RH consistency"
+    ],
+    "target_script": "examples/DE-Tha/scripts/09_audit_critical_meteorological_episodes.py",
+    "no_forcing_modification": true
   }
 }
