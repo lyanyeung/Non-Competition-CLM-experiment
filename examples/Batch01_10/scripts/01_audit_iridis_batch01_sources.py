@@ -200,7 +200,7 @@ def audit_site(row,cases):
                 })
             if p.is_dir() and any(tok in p.name.lower()
                                   for tok in ("datm","clm_forcing","annual")):
-                first,_=list_path(p,"*.nc")
+                first,top_count=list_path(p,"*.nc")
                 second=[]
                 if not first:
                     for child in sorted(p.iterdir(),key=lambda z:z.name)[:12]:
@@ -210,7 +210,7 @@ def audit_site(row,cases):
                                                     "annual_nc_files":n,
                                                     "sample":items[:2]})
                 result["datm_candidate_dirs"].append({
-                    "path":str(p),"top_level_nc_count":len(first),
+                    "path":str(p),"top_level_nc_count":top_count,
                     "top_level_sample":first[:3],"subfolder_samples":second[:6]})
     return result
 
