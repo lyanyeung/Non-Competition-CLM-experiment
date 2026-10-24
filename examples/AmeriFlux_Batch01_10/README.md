@@ -12,6 +12,17 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage03 user-confirmed successful — Stage04 isolated CA-TP4 DATM pilot next (24 October 2026)
+
+**Observed Stage03 results:**
+- CA-TP4 BASE TA sensors explicitly include `TA_1_1_1 = 28m`, `TA_1_2_1 = 14m`, `TA_1_3_1 = 2m`, plus `TA_PI_F_1_1_1 = 28m` in official 2026-09-08 source snapshot. All lack dated relocations. The **scientific mapping to the combined FLUXNET `TA_F` variable has not been proven**, so 28m is a defensible **provisional technical test option**, not a verified height or permission for science production.
+- Stage80 selected CSV first times `2002-01-01 00:00`, `00:30`, `01:00`, while official original `FLUXMET_HH` records have `TIMESTAMP_START=200201010000`/`END=200201010030` etc. Stage81 unchanged time coordinates begin at `0, 1/48, 2/48` **days**. FLUXNET documentation says HH records carry both explicit start/end and are **site local standard time**. Thus a CDEPS `tintalgo=linear` native-time midpoint candidate requires **+15 minutes**, but the complete 22-year per-record provenance and coupler local-clock behavior need checking first.
+- Actual CH-Dav FIXNC AD reference `CaseDocs/datm.streams.xml` is `<file><stream_info>`, first stream `taxmode=cycle`, `tintalgo=linear`, `mapalgo=none`, `year_first=1997`, `year_last=2025`, `year_align=1997`, `offset=0`. The model mapping includes **`QBOT Sa_shum`** and **`ZBOT Sa_z`** with `PRECTmms`, `FSDS`, `TBOT`, `WIND`, `PSRF`, `FLDS`. Stage81 already contains `QBOT` and `SHUM`, but lacks `ZBOT`, and its simple `<streamstemplate>` is **not** the case's effective CDEPS XML schema. Ancillary aero/N deposition/ozone/topo streams also appear in the effective reference case.
+
+**[Stage04: CA-TP4 isolated DATM midpoint + provisional 28m ZBOT candidate](scripts/04_build_CA_TP4_DATM_midpoint_ZBOT28_pilot.py)** is now available; it must **first pass `--check`** across the entire selected Stage80 CSV and original FLUXNET HH timestamp ledger, validate the CDEPS reference variable/dimension schema, and verify 22 original Stage81 NC SHA256s. If no discrepancies, an explicitly requested `--build-preview --ack-provisional-height --outdir NEW` makes 22 isolated copied/modified CA-TP4 annual NCs with midpoint `time`, provisional `ZBOT=28m`, and a **DETACHED** real-format 5-stream XML candidate. Neither original Stage81 NetCDF nor any active case/streams/jobserver/Slurm is changed; **this is NOT an AD5 submission**.
+
+Keep site-PFT/soil/landunit and exact DATM case build / preview gates separate; do NOT submit a 5-year AD smoke until actual target `lnd_in`, `datm_in`, streams and timer fields are verified. Prior European Batch01 staged/recovery scripts are not transferable unchanged.
+
 ## Stage02 user-confirmed successful; Stage03 next (24 October 2026)
 
 **User confirmed that Stage02 self-test and read-only actual CH-Dav reference inspection pass.**
