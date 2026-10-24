@@ -4,7 +4,7 @@
   "site_name": "Tharandt",
   "network": "ICOS",
   "scientific_status": "TOWER_FOREST_PROXY_SELECTED_WITH_UNRESOLVED_2PCT_ASSUMPTION",
-  "operational_status": "SURFACE_BUILDER_AVAILABLE_NOT_YET_WRITTEN_NO_NEW_MODEL_JOB",
+  "operational_status": "FOREST_PROXY_SURFACE_CREATED_AND_VERIFIED_NO_NEW_CIME_CASE_OR_SLURM_JOB",
   "source_evidence": {
     "official_site": "https://meta.icos-cp.eu/resources/stations/ES_DE-Tha",
     "supplementary_site": "https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1",
@@ -75,7 +75,7 @@
   "fixed_biogeography": true,
   "no_inter_pft_competition": true,
   "forbid_slurm_until": [
-    "new isolated derived surface generated with explicit 2% DBF and NATVEG100 acknowledgements",
+    "generated forest surface 6d415b42..80600 must be read and hashed by new independent CIME preflight before binding fsurdat",
     "derived surface SHA256 and FATES fixed-biogeography/no-competition namelists verified",
     "existing v5 forcing status REVIEW (14 manual-review and 32 replacement events) interpreted",
     "independent PRE50 case build and forcing/physical input confirmed",
@@ -94,7 +94,7 @@
     "ctsm_revision": "d5ea9d0136530370a62ef267ccfaff6f001ef914",
     "fates_params_sha256": "0819f8fddcb3566f6209f72bb1159a3161d03c8225a1464727b1d2b21aec6c04",
     "verified_by": "User-executed 03_audit_live_inputs.py on IRIDIS6, 2026-10-24",
-    "next_action": "05_build_forest_observed_surface.py: read-only audit then explicit isolated write; retain source only as structural template",
+    "next_action": "Read-only forcing v5 REVIEW item-by-item triage and new isolated PRE50 case preflight; no Slurm jobs yet",
     "original_surface_sha256": "7e4e4f8fc752d936f80e06a65db0f2163a3f74cdebff5d318973773450f5940d",
     "original_grid_landunits_percent": {
       "PCT_NATVEG": 62.674061760264706,
@@ -157,7 +157,12 @@
     "source_surface_used_only_as_structure_soil_topography_template": true,
     "surface_builder": "examples/DE-Tha/scripts/05_build_forest_observed_surface.py",
     "generated_surface_expected": "surfdata_DE-Tha_ObsForest_FIXNC_ENF87_DNF10_DBF3_v1.nc",
-    "output_status": "NOT_WRITTEN"
+    "output_status": "USER_REPORTED_GENERATED_AND_READ_ONLY_VERIFIED_2026_10_24",
+    "generated_surface_path": "/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/DE-Tha/surface/surfdata_DE-Tha_ObsForest_FIXNC_ENF87_DNF10_DBF3_v1.nc",
+    "generated_surface_sha256": "6d415b420ece0f18dca051c91849dcd5a3a5748779f9ee349c98e84e52e80600",
+    "generated_surface_receipt": "/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/DE-Tha/surface/surfdata_DE-Tha_ObsForest_FIXNC_ENF87_DNF10_DBF3_v1.json",
+    "verification_scope": "05_build_forest_observed_surface.py verify confirmed NetCDF, JSON receipt, all 15 PCT_NAT_PFT entries, PCT_NATVEG100, PCT_CROP0, unchanged source surface SHA256, pinned FATES mapping. Model case and spinup not yet validated.",
+    "scientific_status": "87/10/3 is fixed forest footprint proxy, 2% unspecified deciduous trees assigned to DBF as documented assumption"
   },
   "scientific_sensitivity_exploration": "04_review_landunit_scenarios.py is archive/read-only and NOT in this experiment scope"
 }
