@@ -4,7 +4,7 @@
   "site_name": "Tharandt",
   "network": "ICOS",
   "scientific_status": "TOWER_FOREST_PROXY_SELECTED_WITH_UNRESOLVED_2PCT_ASSUMPTION",
-  "operational_status": "FOREST_PROXY_SURFACE_CREATED_AND_VERIFIED_NO_NEW_CIME_CASE_OR_SLURM_JOB",
+  "operational_status": "SOIL_SITE_OBS_V2_BUILDER_AVAILABLE_NOT_YET_CREATED; FORCING_REVIEW_PENDING; NO_NEW_CASE_OR_JOBS",
   "source_evidence": {
     "official_site": "https://meta.icos-cp.eu/resources/stations/ES_DE-Tha",
     "supplementary_site": "https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1",
@@ -75,13 +75,14 @@
   "fixed_biogeography": true,
   "no_inter_pft_competition": true,
   "forbid_slurm_until": [
+    "run 07 site-measured-soil builder and verify newly generated v2 SHA256/receipt before choosing CIME fsurdat",
     "generated forest surface 6d415b42..80600 must be read and hashed by new independent CIME preflight before binding fsurdat",
     "derived surface SHA256 and FATES fixed-biogeography/no-competition namelists verified",
     "existing v5 forcing status REVIEW (14 manual-review and 32 replacement events) interpreted",
     "independent PRE50 case build and forcing/physical input confirmed",
     "old DE-Tha_FATES_SPINUP500 and all other site cases preserved",
     "review measured DE-Tha soil sand/silt/clay 17/71/12 versus inherited surface profiles using read-only 06 audit",
-    "scientific decision on confirmed DE-Tha soil texture mismatch: source top layer 24/51/25 vs measured 17/71/12; record use-grid-versus-site-soil choice before PRE50"
+    "complete 08 existing forcing QC REVIEW event-by-event assessment before first PRE50 5y smoke job"
   ],
   "input_inventory_2026_10_24": {
     "status": "INPUTS_AUDITED_ORIGINAL_SURFACE_AND_FATES_MAP; SCIENTIFIC_SCENARIO_HOLD",
@@ -164,11 +165,26 @@
     "generated_surface_sha256": "6d415b420ece0f18dca051c91849dcd5a3a5748779f9ee349c98e84e52e80600",
     "generated_surface_receipt": "/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/DE-Tha/surface/surfdata_DE-Tha_ObsForest_FIXNC_ENF87_DNF10_DBF3_v1.json",
     "verification_scope": "05_build_forest_observed_surface.py verify confirmed NetCDF, JSON receipt, all 15 PCT_NAT_PFT entries, PCT_NATVEG100, PCT_CROP0, unchanged source surface SHA256, pinned FATES mapping. Model case and spinup not yet validated.",
-    "scientific_status": "87/10/3 is fixed forest footprint proxy, 2% unspecified deciduous trees assigned to DBF as documented assumption"
+    "scientific_status": "87/10/3 is fixed forest footprint proxy, 2% unspecified deciduous trees assigned to DBF as documented assumption",
+    "selected_final_surface_version": "v2_field_soil_texture",
+    "site_soil_texture_policy": {
+      "status": "BUILDER_COMMITTED_PENDING_IRIDIS_AUDIT_WRITE_VERIFY",
+      "field_reference_percent": {
+        "sand": 17,
+        "silt": 71,
+        "clay": 12
+      },
+      "application": "PCT_SAND=17 and PCT_CLAY=12 in ten soil texture input layers; derived silt=71",
+      "spatial_scope": "forest EC station reference (not proven 1-point full-grid area)",
+      "depth_limitation": "top mineral layer with relative stability reported down to about 1.2m; beyond is extrapolated, not measured",
+      "unchanged_soil_fields": "organic matter, stone content, soil color and others inherited from v1",
+      "proposed_v2_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/DE-Tha/surface/surfdata_DE-Tha_ObsForest_FIXNC_ENF87_DNF10_DBF3_SoilField17_71_12_v2.nc",
+      "v2_build_script": "examples/DE-Tha/scripts/07_build_site_soil_surface_v2.py"
+    }
   },
   "scientific_sensitivity_exploration": "04_review_landunit_scenarios.py is archive/read-only and NOT in this experiment scope",
   "site_soil_texture_validation": {
-    "status": "LARGE_FIELD_GRID_TEXTURE_DIFFERENCE_CONFIRMED_READ_ONLY; NO_SURFACE_EDITS",
+    "status": "USER_SELECTED_SITE_REFERENCE_17_71_12_FOR_ALL10_INPUT_LAYERS_AS_EXTRAPOLATED_PROXY; V2_PENDING_GENERATION",
     "field_reference_site": "DE-Tha tower forest first mineral layer",
     "field_reference_mass_pct": {
       "sand": 17,
@@ -228,7 +244,7 @@
     "surface_identity": "PASS: original soil fields and derived forest-only surface soil fields identical",
     "verified_primary_publication": "Prescher et al. (2010), Agricultural and Forest Meteorology 150:1016-1025; doi:10.1016/j.agrformet.2010.03.008",
     "warning": "Significant texture mismatch; do not silently modify already verified v1. Existing grid soil differs from DE-Tha forest first-mineral-layer reference. Coarse-fragment, depth and spatial heterogeneity remain uncertain.",
-    "next_action": "Before PRE50, choose whether to maintain grid-soil as explicitly acknowledged proxy or create independent v2 site-measured soil proxy after depth/coarse-fragment audit",
+    "next_action": "run 07 audit, explicit v2 write, v2 verify; then 08 forcing review, finally new independent PRE50 preflight",
     "no_new_surface_written": true
   }
 }
