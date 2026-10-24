@@ -1,381 +1,99 @@
-# Batch01_10 — Site-observed-first fixed-biogeography / no-competition FATES
+# Batch01_10 — Ten-site fixed-biogeography / no-competition CLM-FATES
 
-## ROOT CAUSE RESOLVED IN CODE: FATES AD private namelist overlay (24 October 2026)
+**Maintained Batch example | 24 October 2026**
 
-The earlier Stage11 `stage` attempts all failed before generating CIME namelists despite switching from `-bgc fates` to `--bgc fates`. The **actual old pinned CTSM Perl source** (Git blob `698f2396aba8e11cbbbdd58c74ad221e6b7e7038`, version `d5ea9d0136530370a62ef267ccfaff6f001ef914`) checks `use_cn` **only** in `CLMBuildNamelist.pm::setup_cmdl_spinup`. FATES uses `use_cn=.false.`, so the old code rejects `spinup_state=2` and prints its **hardcoded/misleading** Satellite Phenology error **even if the case really specifies FATES BGC**. Single/double-hyphen was NOT the underlying root cause. This was already explained and solved in the [DE-Tha Stage12 successful recovery](../DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py), but was omitted during adaptation. Shared CTSM must remain unmodified.
+This example prepares ten forest-tower experiments with observed/literature-informed tree PFT composition and representative mineral soil texture. It uses the **successful DE-Tha Stage12 private FATES AD namelist-overlay recovery method**, adapted to a ten-case batch, rather than the earlier unpatched direct CIME staging code.
 
-**The correct ten-site recovery is now implemented** as [12_batch10_recover_FATES_AD_private_overlay.py](scripts/12_batch10_recover_FATES_AD_private_overlay.py), reusing the *same two exact targeted source transformations* as DE-Tha Stage12: (1) allow FATES or CN to use accelerated spinup_state, (2) keep CN-only `reseed_dead_plants` from being applied to FATES. It creates ONE private CTSM `bld` overlay shared by all ten *new cases*, temporarily redirects each new case for namelist generation, verifies generated `CaseDocs/lnd_in` and RUNDIR `lnd_in`, and restores its exact locked `env_case.xml` before recording `PREPARED_NOT_SUBMITTED`. The validated **10/10 new surfaces** are retained; do not rerun `surfaces`. This step does NOT submit Slurm. Subsequent Stage11 `submit-smoke` explicitly requires the private-overlay recovery receipt and uses `case.submit --skip-preview-namelist`, preserving the verified AD namelist. The old Stage11 `stage` command is now blocked to prevent repeated failed attempts.
+**Status and scope**
 
-**Run from IRIDIS6** (ten cases at once; zero per-year forcing audits):
+- **10/10 new, versioned FIXNC surface NetCDFs: CREATED successfully on IRIDIS6**, as confirmed by `SURFACES SUMMARY success=10 issues=0`.
+- **Ten-site FATES AD configuration problem: operator reports RESOLVED** using the recovered private-overlay workflow. The exact ten-case success log and Slurm accounting are not archived in this README; do not infer ten completed AD5 jobs from that statement.
+- **AD5 model/archive completion: NOT independently verified here.** First segment is 5 years at each site. AD395 continuation and Normal400 must be treated as separate, restart-dependent steps.
+- No shared CTSM source modification is permitted. Do not delete or recreate existing model cases, restart files, original surfaces, historical forcing or private recovery ledgers merely to tidy up this repository.
 
-```bash
-conda activate clm_fates_env
-bash <<'BASH'
-set -euo pipefail
-cd ~/Non-Competition-CLM-experiment
-git pull --ff-only origin main
-S12=examples/Batch01_10/scripts/12_batch10_recover_FATES_AD_private_overlay.py
-S11=examples/Batch01_10/scripts/11_batch10_AD400_oneclick.py
-python3 -B "$S12" self-test
-python3 -B "$S12" recover --confirm RECOVER_BATCH01_TEN_FATES_AD_CASES_NO_SLURM 2>&1 | tee "$HOME/Batch01_10_private_overlay_recovery.log"
-# This line is reached only if ALL ten recoveries returned normally.
-python3 -B "$S11" submit-smoke --confirm SUBMIT_BATCH01_TEN_FIRST_FIVE_YEAR_AD_SMOKES 2>&1 | tee "$HOME/Batch01_10_submit.log"
-python3 -B "$S11" status
-BASH
-```
+## Current, retained example code
 
-If any per-site recovery is interrupted, do NOT rerun recover automatically: its per-site attempt ledger records the ambiguous state. Inspect only that isolated new case. Existing old sites / original surface NetCDFs / executables / shared CTSM are never edited. Ten sites first run 5 years each; no automated AD395 or Normal400 continuation.
-
-
-
-## 24 October 2026 — definitive BGC argument fix: `--bgc`, not `-bgc`
-
-**Direct operator comparison of actual CIME values (source of truth):**
-
-- Failed new CZ-BK1: `CLM_BLDNML_OPTS = -bgc fates` — **INVALID single hyphen**; builder silently defaults to SP and rejects accelerated spinup state 2.
-- Proven working DE-Tha AD case: `CLM_BLDNML_OPTS = --bgc fates --no-megan --no-drydep --no-fire_emis` — **correct double hyphen**.
-- Both cases have `COMPSET = 2000_DATM%1PT_CLM60%FATES_SICE_SOCN_SROF_SGLC_SWAV_SESP` and `CLM_ACCELERATED_SPINUP = on`.
-
-The ten-site script is now corrected to set and require the **exact DE-Tha build options**, not merely look for substring `-bgc fates` (which is also contained in `--bgc fates`). Previous `-bgc fates` patches were *not* effective. All 10 independently generated site surfaces remain ready; existing new incomplete cases are resumed without deleting them or modifying any old experiments.
-
-**Now run ONLY stage, then 10×AD5 smoke if all ten stage successfully:**
-
-```bash
-set -euo pipefail
-cd ~/Non-Competition-CLM-experiment || exit 1
-git pull --ff-only origin main
-S11=examples/Batch01_10/scripts/11_batch10_AD400_oneclick.py
-python3 -B "$S11" stage --confirm CREATE_TEN_INDEPENDENT_BATCH01_AD400_CASES 2>&1 | tee "$HOME/Batch01_10_stage_correct_double_dash.log"
-python3 -B "$S11" submit-smoke --confirm SUBMIT_BATCH01_TEN_FIRST_FIVE_YEAR_AD_SMOKES 2>&1 | tee "$HOME/Batch01_10_submit.log"
-python3 -B "$S11" status
-```
-
-If any `stage` operation fails, `set -euo pipefail` prevents submission. **Do NOT rerun surfaces.** The FATES mode fix is in GitHub, but live CIME preview success on all ten sites is to be confirmed by the operator run.
-
-
-
-## IMPORTANT HOLD: AD namelist `-bgc fates` not effective yet — 24 October 2026
-
-**Observed on IRIDIS6 after 10/10 new surface construction:** running Stage11 `stage` again after patch `24d735e` still fails in the first reported new cases at `CLMBuildNamelist::setup_cmdl_spinup()` with BGC mode **Satellite Phenology**, despite the Python script attempting `CLM_BLDNML_OPTS=-bgc fates`. Thus the claimed prior `-bgc fates` *fix is NOT verified and has not resolved the issue*. At least the new cases seen in the user log are partial clone directories, not ready AD cases. No `submit-smoke` should be run.
-
-**Single targeted diagnostic (not another science/forcing re-audit):** compare effective CIME build-option XML of the **failed CZ-BK1** clone with the earlier **proven DE-Tha AD** clone. The only information required now is the actual values of `CLM_BLDNML_OPTS`, `CLM_CONFIG_OPTS`, `CLM_NAMELIST_OPTS`, `CLM_ACCELERATED_SPINUP` and `COMPSET`. This determines whether the `-bgc` option was dropped, shadowed by a compset or bound to an incompatible build. Do not change shared CTSM, delete case directories, or rebuild old executables.
-
-```bash
-ROOT=/iridisfs/scratch/ly3n24/CLM_FATES/cases
-for C in CZ-BK1_B01_FIXNC_AD400 DE-Tha_OBSPFT_NC_V1_AD400; do
-  DIR="$ROOT/$C"
-  if [ ! -d "$DIR" ]; then echo "$C: CASE_NOT_FOUND"; continue; fi
-  echo "========== $C =========="
-  (
-    cd "$DIR" || exit
-    for KEY in CLM_BLDNML_OPTS CLM_CONFIG_OPTS CLM_NAMELIST_OPTS CLM_ACCELERATED_SPINUP COMPSET; do
-      printf '%s = ' "$KEY"
-      ./xmlquery "$KEY" --value 2>/dev/null || echo UNKNOWN
-    done
-  )
-done
-```
-
-**Do not submit any AD5** until one repaired independent case can actually generate a `lnd_in` with FATES noncompetition/fixed-biogeography and `spinup_state=2`. The 10 created new surfaces are preserved as-is. Once the build-option discrepancy is identified, fix the *same Stage11* bulk script and resume partial new cases without rechecking forcing or soil literature.
-
-
-
-### 24 October 2026 HOTFIX — Stage11 plan CSV codec failure
-
-The **first Batch01_10 Stage11 `plan` run on IRIDIS6 failed before any model write** with `LookupError: unknown encoding: utf8-sig`. This was a Python encoding typo in our script, **not an invalid PFT/soil dataset or a DATM issue**. Fixed the actual CSV reader to `encoding="utf-8-sig"`. Added `self-test` that reads all ten PFT and soil-decision CSV rows, checks sums/selected profiles, and checks namelist-edit helpers. Aligned `xmlchange` with the prior successful DE-Tha implementation (one CIME key at a time), and added a generated RUNDIR/CaseDocs namelist equality check before declaring a case staged. These changes **do not** add forcing re-audits.
-
-**Retry from the fast, non-writing entry points first:**
-
-```bash
-conda activate clm_fates_env
-cd ~/Non-Competition-CLM-experiment || exit 1
-git status --short
-git pull --ff-only origin main || exit 1
-S11=examples/Batch01_10/scripts/11_batch10_AD400_oneclick.py
-python3 -B "$S11" self-test || exit 1
-python3 -B "$S11" plan || exit 1
-```
-
-Only **after both return normally**, proceed using the previously documented `surfaces` → `stage` → `submit-smoke` actions. The original failed `plan` submitted **no Slurm jobs and created no candidate NetCDF**. A successful local self-test validates configuration/CSV logic, not a full CIME run.
-
-## 2026-10-24 HOTFIX: ten surfaces created, AD case staging needs `-bgc fates`
-
-**Observed IRIDIS6 result:** `11_batch10_AD400_oneclick.py surfaces` created all **10/10 separate FIXNC surface NetCDFs**, with `SURFACES SUMMARY success=10 issues=0`. No need to rebuild or overwrite any surface. Immediately afterward, `stage` created several new independent case directories but every shown `preview_namelists` invocation exited with `setup_cmdl_spinup(): spinup_state accelerated but bgc mode Satellite Phenology`. This is **not** a site-soil or forcing-file error. The Perl `undefined import method` line is a secondary wrapper failure from the CTSM build-namelist abort.
-
-**Root and fix:** Old one-point compset build-namelist options may default to SP. The cloned **new** AD cases need `CLM_BLDNML_OPTS='-bgc fates'`, alongside `CLM_ACCELERATED_SPINUP=on`, generated `spinup_state=2`, `use_fates=.true.`, `use_fates_sp=.false.`, `use_fates_fixed_biogeog=.true.`, `use_fates_nocomp=.true.`. This is consistent with the [official CTSM namelist BGC mode and accelerated spinup rules](https://github.com/ESCOMP/CTSM/blob/master/bld/CLMBuildNamelist.pm). **Stage11 has been patched to apply that setting only in its new cloned cases**. The improved `stage` action now recognizes and resumes an existing half-created Batch01-specific case with no submission ledger, without deleting any old/new case or re-cloning over it. For untouched sites it creates the case normally. Any already submitted case is explicitly protected.
-
-**Resume exactly where the failed stage stopped:**
-
-```bash
-conda activate clm_fates_env
-cd ~/Non-Competition-CLM-experiment || exit 1
-git pull --ff-only origin main || exit 1
-S11=examples/Batch01_10/scripts/11_batch10_AD400_oneclick.py
-set -o pipefail
-python3 -B "$S11" stage --confirm CREATE_TEN_INDEPENDENT_BATCH01_AD400_CASES \
-  2>&1 | tee "$HOME/Batch01_10_stage_FATES_mode_fixed.log"
-python3 -B "$S11" status
-```
-
-Do **NOT** rerun `surfaces`; existing validated ten versioned NetCDFs are preserved. Do **NOT** call `submit-smoke` if even one `stage` case fails. Once `STAGE SUMMARY success=10 issues=0` appears, the previously documented `submit-smoke --confirm SUBMIT_BATCH01_TEN_FIRST_FIVE_YEAR_AD_SMOKES` may be invoked to start only **10 independent 5-year AD smoke** cases. `AD395` and `Normal400` remain separate. No new per-year DATM audits are added.
-
-## CURRENT ONE-ENTRY TEN-SITE AD400 WORKFLOW — 24 October 2026
-
-**Supersedes the single-site CZ-BK1 Stage10 experimental audit.** User requires a **TEN-site simultaneous experiment**, reusing successful DE-Tha fixed-PFT FATES clone and AD5 smoke implementation. **Do not re-run Stage01–10, do not separately audit 22 CZ-BK1 annual forcing NetCDFs.** The Stage10 XML list parser failed because it assumed child `<file>` nodes; its failure is a script parsing error, not meteorological evidence. The existing DATM streams are inherited unchanged per site.
-
-Active code: **[11_batch10_AD400_oneclick.py](scripts/11_batch10_AD400_oneclick.py)**. One script handles **10 independent, versioned forest FIXNC surfaces**, **10 new CIME AD400 cases**, then **10×first five-year AD smoke jobs** (Slurm archive dependencies inherited from CIME), in bulk. The initial job cadence is strictly `STOP_N=5`, `REST_N=5`, `RESUBMIT=0`: **AD395 and Normal400 are separate later operations and NOT automatically submitted**. Existing sites, original surfaces, executable builds, forcing and cases must not be modified. Stage surfaces and CIME cases are isolated under experiment-unique names; do not overwrite preexisting output.
-
-**Soil texture selection simplified as requested:** use most representative reported **surface mineral horizon**, favour 0–10 cm where available, and use the published site aggregate otherwise. Each chosen Sand/Clay is **replicated across the 10 CLM texture input layers solely as a modelling proxy**, with the proxy/vertical extrapolation noted in receipts (it is NOT measured at every depth). RU-Fyo uniquely preserves its **10 original soil texture layers** from the old point NetCDF, following the operator's explicit fallback decision; peat physics uncertainty remains. The [source-and-layer decision CSV](../../data/batch01_10_soil_selected_batchAD.csv) records all ten, including the conflicting IT-Col literature. For new surfaces keep `PCT_NATVEG=100`, `PCT_CROP=0`, all other top landunits 0, and the ten operator-chosen PFT fractions from [PFT scenario CSV](../../data/batch01_10_pft_scenarios.csv). Exact FATES mapping is checked once against current parameter JSON, as in successful DE-Tha precedent.
-
-| Site | Selected Sand/Silt/Clay % (before sum normalization) | Selected literature depth/type |
+| File | Purpose | Status |
 | --- | --- | --- |
-| CZ-BK1 | 22/58/21 | Flechard2020 S4 site aggregate, sum101 |
-| IT-Ren | 55/34/11 | Flechard2020 S4 site aggregate |
-| RU-Fyo | original 10-layer PCT_SAND/PCT_CLAY | explicit operator-only original soil exception (peat caveat) |
-| CH-Dav | 53/25/22 | Meredith2018 0–10 cm |
-| IT-Col | 8/32/59 | Flechard2020 S4 site aggregate (conflicts with Chiesi2018, recorded) |
-| FR-Fon | 41.9/38.8/19.3 | same-tower upper mineral soil, exact bounds unknown |
-| FI-Sod | 88.12/6/0.5 | FLUXNET 0–10 cm, stones excluded in fine-earth sum |
-| FR-Pue | 26/32/42 | Meredith2018 0–10 cm, coarse fragments caveat |
-| DE-Hai | 4/49/48 | Meredith2018 0–10 cm, sum101 |
-| BE-Vie | 27/55/18 | Buysse2013 site summary |
+| [`11_batch10_AD400_oneclick.py`](scripts/11_batch10_AD400_oneclick.py) | `self-test`, `plan`, ten versioned `surfaces`, validated `submit-smoke`, `status` | **RETAINED**. Its original direct `stage` implementation was removed; no direct-staging action remains. |
+| [`12_batch10_recover_FATES_AD_private_overlay.py`](scripts/12_batch10_recover_FATES_AD_private_overlay.py) | Create one private CTSM build-namelist overlay, recover ten existing isolated cases, validate generated AD namelists, restore CIME XML lock; no Slurm submission | **RETAINED — successful recovery method**, based on the proven DE-Tha Stage12 |
+| [`01`–`08` historical scripts](scripts/) | Read-only source inventory, PFT/soil and CIME input provenance, including successful CZ-BK1/RU-Fyo soil preflight | **RETAINED** as independent historical evidence/diagnostics, not required before each new submission |
 
-**Commands on IRIDIS6**:
+**Do not rerun `surfaces`, `recover`, or `submit-smoke` if the original action succeeded.** Private overlay recovery and job submission are stateful; consult the existing per-site receipts, attempt ledgers, jobs and restarts. For a non-writing summary:
 
 ```bash
-conda activate clm_fates_env
 cd ~/Non-Competition-CLM-experiment || exit 1
-git status --short
-git pull --ff-only origin main || exit 1
-S11=examples/Batch01_10/scripts/11_batch10_AD400_oneclick.py
-python3 -B "$S11" plan || exit 1
-python3 -B "$S11" surfaces || exit 1
-python3 -B "$S11" stage --confirm CREATE_TEN_INDEPENDENT_BATCH01_AD400_CASES || exit 1
-# The last action submits TEN independent five-year runs, not 400 years:
-python3 -B "$S11" submit-smoke --confirm SUBMIT_BATCH01_TEN_FIRST_FIVE_YEAR_AD_SMOKES
-python3 -B "$S11" status
+python3 -B examples/Batch01_10/scripts/11_batch10_AD400_oneclick.py status
 ```
 
-**Important release boundary:** `plan` is read-only; `surfaces` writes ONLY ten newly versioned independent NetCDF candidates and receipts; `stage` creates ONLY new independent CIME cases; `submit-smoke` submits **ten five-year model jobs** and marks each attempt in its own ledger before calling `case.submit` to avoid duplicate submission on failure. Each site's failures in surfaces/stage are surfaced separately; submit refuses a partially staged batch. No repeated per-year weather file read/scan; original site streams are reused as they are. To minimize cluster risk, if a step prints an error, **do not force the next action**; show the concise error and fix only that site. If all stages succeed the ten model runs will start or queue via Slurm in parallel subject to scheduling limits.
+`status` reports the case and controller/Slurm state, **not** authoritative confirmation that an AD5 model/archive pair completed with a valid CLM/DATM/CPL restart. Completion requires exact Slurm and restart evidence.
 
----
+### Successful workflow design (not instructions to repeat completed steps)
 
+1. `Stage11 surfaces` builds **ten isolated forest-point surfaces**, each with its own SHA256 receipt, and leaves the original point NetCDF untouched.
+2. `Stage12 recover` uses one independent **private CTSM namelist overlay** based on [DE-Tha Stage12](../DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py). The source is pinned and only two narrow modifications are allowed: accept `use_cn OR use_fates` for `spinup_state=2`, and gate CN-specific `reseed_dead_plants` under `use_cn`. It temporarily directs each *new* CIME case to this overlay; generates FATES AD namelists; restores the locked `env_case.xml`; and marks valid cases `PREPARED_NOT_SUBMITTED`.
+3. `Stage11 submit-smoke` accepts only recovery receipts with restored CIME XML locks. It uses `case.submit --skip-preview-namelist` to preserve the verified `spinup_state=2` namelist and submits **only one 5-year run per station**, `RESUBMIT=0`. Submission is guarded against duplicates.
+4. After confirmed **run and st_archive success plus CLM/DATM/CPL restarts**, continue the remaining 395 AD years separately. A distinct Normal400 case should start from the verified final AD restart, initially as a 5-year transition smoke. No continuation is automatic here.
 
-**Current protocol, 24 October 2026.** Ten forest EC towers; planned **AD400 → NORMAL400** spin-up, 800 model years each, **not started**. NL-Loo and DE-Tha are protected separate examples.
+**AD run configuration:** fixed biogeography, no competition, `use_fates=.true.`, `use_fates_sp=.false.`, `use_fates_fixed_biogeog=.true.`, `use_fates_nocomp=.true.`, `CLM_ACCELERATED_SPINUP=on`, generated `spinup_state=2`, `STOP_N=5`, `REST_N=5`, `RESUBMIT=0`. CIME `CLM_BLDNML_OPTS` follows the proven DE-Tha `--bgc fates --no-megan --no-drydep --no-fire_emis` option set. The original site-specific DATM stream, CO₂ policy and built executable are inherited; forcing NetCDF files are not reprocessed in this example.
 
-> **OVERRIDING BATCH01 DECISION:** The inherited coarse-grid surface is **not** the scientific benchmark for vegetation or station-measured soil. Never use source-grid `PCT_NATVEG`, `PCT_CROP` or `PCT_NAT_PFT` as a scientific prescription. Source soil `PCT_SAND` and `PCT_CLAY` are used **ONLY for RU-Fyo under the operator-approved, explicitly labelled technical exception**; all other site texture decisions require site-specific evidence. Stage03/04 comparisons were completed once and are **removed from the active workflow**. Their old-grid values are not site observations and are not used to choose new vegetation/soil parameters. **Do not delete or modify any original NetCDF, CIME case, restart or older experiment.** An original NetCDF may be used as the technical structural schema for building a separate versioned surface, **plus the explicitly selected RU-Fyo soil-only fallback**. It is not an observational reference for those soil values.
+## Failed / retired code — documented only, files removed
 
-## 1. New model forest-point assumptions
+These paths describe **historical unsuccessful or superseded attempts and must not be used**. Their file contents were removed from the current branch; history is still available through older Git commits if forensic reconstruction is needed.
 
-**Explicit operator-approved idealization:** new Batch01 candidates target `PCT_NATVEG=100%` and `PCT_CROP=0%`, with other landunits set to zero as appropriate for a single idealized forest point and the pinned model's conventions. This is an *experimental assumption*, **not** a claim that all EC footprints have measured 100% forest ground cover. No source-grid fractions are carried over as scientific values.
+| Old code or action | What happened | Current replacement |
+| --- | --- | --- |
+| `scripts/10_CZ_BK1_candidate_surface_gate.py` **FAILED** | Single-site Stage10 `audit` incorrectly assumed a particular DATM stream XML file-list structure and raised `Expected 22 unique annual forcing files in XML`. This was a parsing assumption, **not** missing forcing data. | Ten-site Stage11 `surfaces`; no redundant 22-year re-audit |
+| `scripts/09_CZ_BK1_AD5_input_gate_readonly.py` **RETIRED** | The single-station Stage09 read-only audit completed, but became unnecessary once the user selected a ten-site simultaneous experiment. **Not itself a failed scientific analysis.** | Existing Batch01 site provenance / Stage11 ten-site workflow |
+| Original Stage11 `stage` action **FAILED; IMPLEMENTATION REMOVED** | Old pinned `CLMBuildNamelist.pm` checks `use_cn` only for accelerated `spinup_state=2`; FATES uses `use_cn=.false.`. The hardcoded error misleadingly calls this Satellite Phenology, even when `--bgc fates` was configured. | Stage12 private namelist overlay recovery |
+| Original Stage11 `plan` CSV read **FAILED; FIXED** | Misspelled Python codec `utf8-sig`, causing `LookupError`. Corrected to `utf-8-sig`; later `self-test` and ten-site `plan` both passed. | Retained corrected Stage11 `self-test` and `plan` |
+| Intermediate `-bgc fates` / `--bgc fates`-only attempts **FAILED** | CLI option changes alone did not fix the pinned *Perl FATES spinup guard*. The DE-Tha Stage12 private patch was the actual missing step. | Stage12 private overlay, validated FATES AD namelist |
 
-| Site | ENF % | DNF % | DBF % | EBF % | Basis |
-| --- | ---: | ---: | ---: | ---: | --- |
-| CZ-BK1 | 100 | 0 | 0 | 0 | Spruce/fir stand |
-| IT-Ren | 97 | 3 | 0 | 0 | Evergreen conifers + larch |
-| RU-Fyo | 85 | 0 | 15 | 0 | Selected 85/15 (another survey gives 86/14) |
-| CH-Dav | 100 | 0 | 0 | 0 | Spruce >99.5%; labelled proxy |
-| IT-Col | 0 | 0 | 100 | 0 | Beech stand |
-| FR-Fon | 2 | 0 | 98 | 0 | Operator assumption: 2 ENF + 1 DBF from residual |
-| FI-Sod | 100 | 0 | 0 | 0 | Operator Scots pine forest proxy |
-| FR-Pue | 0 | 0 | 5 | 95 | Operator maps remaining 5% to DBF |
-| DE-Hai | 0 | 0 | 100 | 0 | All named sampled trees broadleaf deciduous |
-| BE-Vie | 64 | 0 | 36 | 0 | Operator assigns reported rounding residual to ENF |
+**Root cause / provenance:** The pinned source Git blob `698f2396aba8e11cbbbdd58c74ad221e6b7e7038` (`CLMBuildNamelist.pm`) had a CN-only accelerated-spinup branch. The already successful [DE-Tha technical example](../DE-Tha/README.md) documents this and the private-overlay recovery that preserved shared CTSM and generated `spinup_state=2`. This batch deliberately reuses that solution.
 
-Proposed fractions: [machine-readable PFT scenarios](../../data/batch01_10_pft_scenarios.csv). Keep the [original numerical tree evidence](../../data/batch01_10_sites.csv) unchanged: literature denominators differ (species counts, carbon stocks, basal area or forest footprint). **No host-to-FATES PFT indices have yet been certified; do not assume broad ENF/DBF labels are exact model indices.**
+## Ten-site PFT composition selected for FIXNC
 
-## 2. Soil: station literature/measurements, with RU-Fyo soil-only exception
+All new points use the **idealized site-stand experiment** `PCT_NATVEG=100%`, `PCT_CROP=0%`, and other top landunits 0. These are experimental point-scale assumptions, **not** measured whole-flux-footprint landcover percentages. Source-grid PFT fractions are not used as observed station composition.
 
-**Batch01-specific rule:** use in-situ soil particle-size measurements from the tower footprint or the same forest stand, with documented location, horizon, sampling/analysis, provenance and year. **No routine inherited CLM grid Sand/Clay fallback** and no guessed percentages from soil class labels. **The sole currently selected original-grid texture exception is RU-Fyo**, which lacks published mineral texture (peat site); use only source `PCT_SAND`/`PCT_CLAY` with clear non-observed provenance, and independently check peat thickness, organic layers and soil hydrology. If station values are unavailable, hold that site's soil parameterization for further evidence collection. Unmeasured depths need clearly labelled interpolation/extrapolation choices and appropriate uncertainty: do not call these observed. Other soil quantities (organic matter, coarse fragments, bulk density, thermal/hydraulic properties) also need source-aware treatment.
-
-**FI-Sod measured horizons now found** in the [FLUXNET FI-Sod site description](https://fluxnet.org/sites/siteinfo/FI-Sod):
-
-| Depth | Sand % | Silt % | Clay % | Stones % |
+| Station | ENF % | DNF % | DBF % | EBF % |
 | --- | ---: | ---: | ---: | ---: |
-| 0–10 cm | 88.12 | 6.0 | 0.5 | 5.4 |
-| 10–20 cm | 93.5 | 4.1 | 0.3 | 2.1 |
-| 20–40 cm | 91.9 | 2.8 | 0.2 | 5.1 |
+| CZ-BK1 | 100 | 0 | 0 | 0 |
+| IT-Ren | 97 | 3 | 0 | 0 |
+| RU-Fyo | 85 | 0 | 15 | 0 |
+| CH-Dav | 100 | 0 | 0 | 0 |
+| IT-Col | 0 | 0 | 100 | 0 |
+| FR-Fon | 2 | 0 | 98 | 0 |
+| FI-Sod | 100 | 0 | 0 | 0 |
+| FR-Pue | 0 | 0 | 5 | 95 |
+| DE-Hai | 0 | 0 | 100 | 0 |
+| BE-Vie | 64 | 0 | 36 | 0 |
 
-These observed percentages include **stones**, unlike the fine-earth `PCT_SAND`/`PCT_CLAY` inputs. Process each horizon as `sand/(sand+silt+clay)*100`, `clay/(sand+silt+clay)*100` (same for silt), preserving stones and original values in evidence. Tiny non-100 totals reflect reporting precision. **No depth below 40 cm has been documented from this record**, and no full model soil profile has been approved yet.
+Binding source of model fractions: [PFT scenarios CSV](../../data/batch01_10_pft_scenarios.csv); [site register](../../data/batch01_10_sites.csv); [seven-site PFT residual review](docs/seven_site_PFT_residual_followup_2026-10-24.md), [four-site tree evidence](docs/four_site_forest_inventory_search_2026-10-24.md).
 
-[Station soil measured-horizon CSV](../../data/batch01_10_soil_site_observations.csv) retains FI-Sod's three explicitly depth-bounded records, while [site-published soil fractions](../../data/batch01_10_Flechard2020_TableS4_soil.csv) and [binding soil decisions](../../data/batch01_10_soil_input_decisions.csv) additionally specify CZ-BK1 and other station-level candidates; its **9 remaining placeholder rows reflect missing depth-bounded measurements, not that all nine lack literature soil values** (no invented values). [ICOS ETC Level-II site soil dataset gateway](https://traitementinfosol.pages-forge.inrae.fr/icos/index.html) is a potential source for the other ICOS towers; check whether the observations represent each target tower, review sample depths and respect site PI/data use conditions.
+## Soil texture: chosen representative surface horizon or station aggregate
 
-Run the **evidence-only soil validator**:
+For stations with a sampled mineral upper horizon, use the nearest representative surface observation (e.g. 0–10 cm). Otherwise use the selected published station-level composition. Except RU-Fyo, **one selected Sand/Silt/Clay composition is normalized to fine-earth 100% and replicated as a modelling proxy across the ten CLM texture-input layers**. This is a vertical extrapolation, *not* ten observed depth profiles.
 
-~~~bash
-python3 -B examples/Batch01_10/scripts/06_audit_observed_soil_only.py
-~~~
-
-It computes fine-earth percentages for *observed horizons only*, flags missing stations, and never reads or writes a source surface.
-
-## 3. What is finished, and what to do next
-
-| Stage | Status | Role in CURRENT workflow |
+| Station | Selected original Sand / Silt / Clay (%) | Basis |
 | --- | --- | --- |
-| Stage01 | Completed | Original site-file inventory, historical provenance |
-| Stage02 | Completed | Original CIME/DATM cases: 12 candidates for 10 sites |
-| Stage03/04 | Completed historically; **retired** | Readable old NetCDF, grid-landunit/soil comparisons **not used further** |
-| **Stage05** | Completed | Original CIME/DATM flags traced; old cases are not FIXNC |
-| **Stage06** | Completed | FI-Sod measured depth profiles; other sites' source literature in separate register |
-| Stage07 | Available | Read-only local site-soil discovery, optional | 
-| **Stage08** | **Next** | CZ-BK1 and RU-Fyo soil input preflight; schema and peat warnings only | 
-| Future separate surface builder | Not yet approved | Versioned FIXNC forest surface after FATES/DATM/soil-layer gates |
-| AD400 → Normal400 | Not started | 5-year first AD smoke, then verified continuation, then independent Normal branch |
+| CZ-BK1 | 22 / 58 / 21 | Flechard2020 Table S4; reported sum **101**; proportional normalization |
+| IT-Ren | 55 / 34 / 11 | Flechard2020 Table S4; station aggregate |
+| RU-Fyo | original surface 10-layer Sand/Clay | Explicit original-soil-only exception; **peat physics remains an uncertainty** |
+| CH-Dav | 53 / 25 / 22 | Meredith2018, 0–10 cm mineral topsoil |
+| IT-Col | 8 / 32 / 59 | Flechard2020, reported sum **99**; alternative literature conflicts |
+| FR-Fon | 41.9 / 38.8 / 19.3 | Same-tower upper mineral soil |
+| FI-Sod | 88.12 / 6.0 / 0.5 | 0–10 cm, with stones excluded from fine-earth normalization |
+| FR-Pue | 26 / 32 / 42 | Meredith2018, 0–10 cm; stoniness caveat |
+| DE-Hai | 4 / 49 / 48 | Meredith2018, 0–10 cm; sum **101** |
+| BE-Vie | 27 / 55 / 18 | Site summary |
 
-**Historical Stage05/Stage06 commands (already executed successfully; no need to repeat):**
+References/data: [selected Batch01 soil texture policy](../../data/batch01_10_soil_selected_batchAD.csv), [operator's binding soil decision register](../../data/batch01_10_soil_input_decisions.csv), [Flechard2020 supplement transcription](../../data/batch01_10_Flechard2020_TableS4_soil.csv), [Flechard 2020 literature note and publisher PDFs](references/Flechard_2020_Biogeosciences_Part1.md), [site-soil literature review](docs/nine_site_soil_texture_literature_2026-10-24.md), [original measured horizon register](../../data/batch01_10_soil_site_observations.csv). Unchanged source surface soil/terrain fields not explicitly replaced are inherited as technical schema/physics, **not validated field measurements**.
 
-~~~bash
-conda activate clm_fates_env
-cd ~/Non-Competition-CLM-experiment || exit 1
-git status --short
-git pull --ff-only origin main || exit 1
+## Scientific limits, preservation and provenance
 
-S2="$HOME/Batch01_10_stage02_case_trace_20261024T094433Z/case_trace.json"
-SCRIPT=examples/Batch01_10/scripts/05_trace_DATM_FATES_readonly.py
-test -f "$S2" || { echo "Stage02 report missing"; exit 1; }
-
-python3 -B "$SCRIPT" --self-test || exit 1
-set -o pipefail
-python3 -B "$SCRIPT" --stage02 "$S2" \
-  2>&1 | tee "$HOME/Batch01_10_stage05_latest.log"
-
-python3 -B examples/Batch01_10/scripts/06_audit_observed_soil_only.py \
-  2>&1 | tee "$HOME/Batch01_10_stage06_soil_evidence.log"
-~~~
-
-Stage05 writes **only** a new report under `~/Batch01_10_stage05_station_inputs_<UTCSTAMP>/all_sites.json`. It audits old CIME metadata for technical consistency (especially true DATM stream/calendar and FATES parameter-map evidence), not the old gridded vegetation or soil. **Years found in CIME config are candidates and must be verified against actual forcing files/NO_LEAP treatment.** IT-Col and FR-Pue have two original cases (`S30EXCL` vs `S30SHARED`); compare the actual DATM/CIME input configuration, not their source-surface values. FR-Fon, FI-Sod, IT-Col and FR-Pue's shallow folder scan missed some CSV/DATM paths — **not proof that forcing is absent**.
-
-## Stage05/06 completed — AD readiness decision (24 October 2026)
-
-**Actual results:** [Stage05/06 status, soil source priorities and AD gate](docs/stage05_06_status_and_AD_gate_2026-10-24.md). Stage05 checked 12 reference cases for 10 sites: every old generated lnd_in has `use_fates_nocomp=.false.` and `use_fates_fixed_biogeog=.false.`; none is a ready-to-run new Batch01 FIXNC case. Old DATM XML lists 2018–2019 but contains conflicting effective stream-year hints; verify exact DATM source files/calendars. Stage06 confirms FI-Sod has **three measured soil horizons only**, and the other **nine** sites still lack registered site-specific numeric soil texture. **No AD400 or even AD5 smoke is yet authorized.**
-
-**Optional soil-document discovery:** [Stage07 station-soil metadata search](scripts/07_inventory_local_soil_evidence_readonly.py) can examine existing local BIF/ancillary/ZIP files, but CZ-BK1 already has a selected published candidate and RU-Fyo has an explicit soil-only fallback. **Stage08 below is the immediate next step**. Then obtain missing site-specific measured soil, check soil layer and coarse-fragment handling, verify actual forcing and FATES parameter-map support, and build an isolated versioned site surface and new AD case. FI-Sod is the best first *preparation* candidate, not yet a launch-ready AD case.
-
-```bash
-conda activate clm_fates_env
-cd ~/Non-Competition-CLM-experiment || exit 1
-git status --short
-git pull --ff-only origin main || exit 1
-S7=examples/Batch01_10/scripts/07_inventory_local_soil_evidence_readonly.py
-python3 -B "$S7" --self-test || exit 1
-set -o pipefail
-python3 -B "$S7" 2>&1 | tee "$HOME/Batch01_10_stage07_soil_discovery.log"
-```
-
-## Nine-site measured soil literature checkpoint — 24 October 2026
-
-**New targeted literature review:** [nine-site published soil texture and sampling-depth evidence](docs/nine_site_soil_texture_literature_2026-10-24.md), with a separate [12-row site literature candidate register](../../data/batch01_10_soil_literature_candidates.csv). **Six of the nine previously missing stations now have station-related numerical soil texture candidates** (CH-Dav, IT-Col, FR-Fon, FR-Pue, DE-Hai and BE-Vie). Some are direct laboratory topsoil values; others have undetermined horizon boundaries or derived components, so they have **NOT been silently transferred into the production soil register**. Original FI-Sod three-horizon record remains intact.
-
-Important new results: CH-Dav 0–10 cm Sand/Silt/Clay 53/25/22; FR-Pue 0–10 cm 26/32/42, plus alternate site study 26/35/39 with 75% stones at 0–50 cm; DE-Hai 0–10 cm 4/49/48 (published rounding makes 101%); FR-Fon same tower top/bottom soil 41.9/38.8/19.3 and 35.2/32.0/32.8; BE-Vie 27/55/18, layer unspecified; IT-Col 30/40/about 30, with clay **inferred** by closure not independently reported. **IT-Ren** has an ICOS ETC station particle-size data export with numeric values not yet extracted. **CZ-BK1** still needs a tower-matched texture profile. **RU-Fyo** has ~50 cm peat and should not be forced into a fabricated mineral-soil texture.
-
-**Updated scientific work:** verify actual CLM soil-layer mapping, examine RU-Fyo peat representation and FR-Pue stone volume, and settle incompatible literature reports. **RU-Fyo alone retains original soil PCT_SAND/PCT_CLAY as an explicit modelling fallback; original-grid vegetation and all other station soil texture remain excluded.** **No AD job authorized yet.**
-
-**IT-Ren source-provenance correction, 24 October 2026:** A widely copied soil description, **Andosol (16% clay, 56% silt, 28% sand)**, belongs to **FR-Lqu Laqueuille grassland**, NOT IT-Ren. Authoritative station match: [ICOS FR-Lqu](https://meta.icos-cp.eu/resources/stations/ES_FR-Lqu). For **IT-Ren**, Flechard et al. (2020) [supplementary Table S4, PDF p. 9](https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-supplement.pdf) reports **Haplic Podzol; clay 11%, sand 55%, silt 34%**. This is a **published site-level soil texture candidate, sample-depth unspecified**, not a validated full CLM soil profile; ICOS 2020 measured soil-horizon CSV remains to be extracted. Do not use the FR-Lqu Andosol values for IT-Ren.
-
-## Flechard et al. (2020) — publisher literature reference and verified Table S4
-
-**Primary literature archived as a citation/index with direct publisher PDF links:** [Flechard (2020) source record and Table S4 audit](references/Flechard_2020_Biogeosciences_Part1.md). Machine-readable [10-site Table S4 transcription](../../data/batch01_10_Flechard2020_TableS4_soil.csv) contains original published **Sand/Silt/Clay values**, missing cells, soil depths and rounding warnings. It does **not** embed the binary full-text PDFs in GitHub; it links the publisher originals under CC BY 4.0.
-
-**Crucial correction:** Table S4 covers **9 of our 10** Batch01 sites; **CH-Dav is absent**. Among the nine, **RU-Fyo and FR-Fon have n.a. for all three texture fractions**. The most relevant values: **CZ-BK1 22/58/21** (Sand/Silt/Clay, published total **101%**), **IT-Ren 55/34/11**, **IT-Col 8/32/59** (total **99%**, conflicts with the separate Chiesi paper), **DE-Hai 4/56/40**, **FR-Pue 26/35/39**, **BE-Vie 27/55/18**, **FI-Sod 94/4/0** (total **98%**, less reliable than the recorded fine-earth horizon dataset).
-
-**Latest operator decisions:** **CZ-BK1 is now explicitly assigned Flechard (2020) Table S4 Sand/Silt/Clay 22/58/21; the previous original-grid soil fallback is discontinued for CZ-BK1.** The 101% published total requires transparent normalization to 100% **when preparing the new surface**, and an explicitly labelled vertical-layer assumption because Table S4 does not resolve each CLM depth. **RU-Fyo alone retains the old-surface PCT_SAND/PCT_CLAY exception** in [soil decisions CSV](../../data/batch01_10_soil_input_decisions.csv). RU-Fyo remains a peat-model caveat because Flechard provides no numeric mineral texture. No sourced land-cover fractions are reactivated, and no AD5 launch is approved based on these published whole-site soil parameters alone.
-
-## Stage08 — CZ-BK1 published texture and RU-Fyo original-soil exception
-
-**Effective model soil decisions (operator, 24 October 2026):**
-
-| Site | Soil composition policy | Important limit |
-| --- | --- | --- |
-| **CZ-BK1** | Use **Flechard et al. (2020) Table S4**: **Sand 22%, Silt 58%, Clay 21%** | The **101%** published sum is retained in provenance. Candidate for CLM input after proportional normalization: **Sand 21.782178%, Silt 57.425743%, Clay 20.792079%**; this is a **modelling normalization, not an additional observation**. Published soil depth 0.55 m does not establish measured texture in every CLM layer. |
-| **RU-Fyo** | **Use original surface soil `PCT_SAND` and `PCT_CLAY` for the new model as an explicit fallback**, unchanged until the source-layer audit | No observed mineral texture in Flechard Table S4 (Peat). Original surface may lack appropriate peat/organic-layer representation; peat thickness/hydrology remain a **separate physical-model gate**. |
-
-**Important:** New Batch01 PFT fractions and forest idealization (`PCT_NATVEG=100%`, `PCT_CROP=0%`) remain independent of the old surface in both sites. All prior source CIME cases have fixed-biogeography/no-competition flags set to `.false.` and must never be recycled as launch-ready FIXNC cases. A fresh isolated case, verified actual DATM files and FATES mapping are still needed.
-
-**Next on IRIDIS6:** [Stage08 read-only two-site preflight script](scripts/08_preflight_CZ_BK1_RU_Fyo_soil_readonly.py) verifies both science decisions, previews the CZ rounding correction, reads old NetCDF schema, and reads **only RU-Fyo's** authorized original sand/clay profile values. **It does not create a new surface, CIME case or Slurm job.**
-
-```bash
-conda activate clm_fates_env
-cd ~/Non-Competition-CLM-experiment || exit 1
-git status --short
-git pull --ff-only origin main || exit 1
-S8=examples/Batch01_10/scripts/08_preflight_CZ_BK1_RU_Fyo_soil_readonly.py
-S5="$HOME/Batch01_10_stage05_station_inputs_20261024T100531Z/all_sites.json"
-test -f "$S5" || exit 1
-python3 -B "$S8" --self-test || exit 1
-set -o pipefail
-python3 -B "$S8" --stage05 "$S5" 2>&1 | tee "$HOME/Batch01_10_stage08_soil_preflight.log"
-```
-
-Stage08 resulting report is written only to `~/Batch01_10_stage08_soil_preflight_<UTCSTAMP>/all_sites.json`. After the preflight, resolve CZ-BK1 soil-layer vertical assumption, RU-Fyo peat/organic-soil compatibility and the actual FATES/DATM setup; only then construct new **versioned** surface candidates and run one-site AD5 smoke. The **AD400 multi-site production remains on HOLD**.
-
-## Stage08 observed results; next Stage09 CZ-BK1 AD5 readiness audit — 24 October 2026
-
-**Operator Stage08 actually PASSED**: the self-test passed; original CZ-BK1 and RU-Fyo point-NetCDF source files were readable (`READ_OK`); new source files and CIME/Slurm were untouched. Saved JSON: `/iridisfs/home/ly3n24/Batch01_10_stage08_soil_preflight_20261024T104122Z/all_sites.json`. **This is NOT an approved new AD run.**
-
-| Site | Stage08 result | Remaining soil gate |
-| --- | --- | --- |
-| CZ-BK1 | Flechard2020 S4 Sand 22 / Silt 58 / Clay 21, total 101; preview normalization **21.782178 / 57.425743 / 20.792079**. One existing CIME reference case. | Set/label vertical texture allocation and check soil depth and physical parameter treatment; new surface not yet generated. |
-| RU-Fyo | Old source `PCT_SAND` 10 layers = **43,43,43,43,45,45,49,51,55,55**; `PCT_CLAY` = **12,12,12,12,15,19,20,19,18,18**. One existing CIME reference case. | Original-grid soil-only fallback approved as **non-observed**, but peat organic layers and hydrology remain unverified. |
-
-**Current release state: new FIXNC surfaces 0/10, independent AD cases 0/10.** Four blocking phases to first AD5: (1) choose CZ depth-to-CLM-layer treatment; (2) inspect actual existing DATM streams, forcing calendar/year list, CO2 setup and executable/FATES PFT mapping; (3) create and validate new **isolated** CZ-BK1 `PCT_NATVEG=100`, `PCT_CROP=0`, `ENF100` surface; (4) create a separate verified `CLM_ACCELERATED_SPINUP=on`, fixed-biogeography/no-competition AD cold-start case and submit **only 5 years** (`STOP_N=5`, `REST_N=5`, `RESUBMIT=0`) once checks pass. Existing old reference cases have non-competition and fixed-biogeography flags `.false.`; never directly submit these as new experiments.
-
-**Next command**: the new [Stage09 CZ AD5 input-gate script](scripts/09_CZ_BK1_AD5_input_gate_readonly.py) reads original case small text docs and Stage08 output only. It checks whether the executable, FATES parameter source, original DATM stream and case references can be located. It **does not** build surfaces, cases or submit jobs, and data found in text is not yet a validated annual forcing stream.
-
-```bash
-conda activate clm_fates_env
-cd ~/Non-Competition-CLM-experiment || exit 1
-git status --short
-git pull --ff-only origin main || exit 1
-S9=examples/Batch01_10/scripts/09_CZ_BK1_AD5_input_gate_readonly.py
-S8="$HOME/Batch01_10_stage08_soil_preflight_20261024T104122Z/all_sites.json"
-test -f "$S8" || exit 1
-python3 -B "$S9" --self-test || exit 1
-set -o pipefail
-python3 -B "$S9" --stage08 "$S8" \
-  2>&1 | tee "$HOME/Batch01_10_stage09_CZ_inputs.log"
-```
-
-**Decision after Stage09:** resolve any stream/soil/FATES blockers, then implement an explicitly versioned fixed-PFT surface builder with write/verify separation. Do not infer AD readiness from a self-test alone.
-## Stage09 observed result → Stage10 CZ candidate surface gate — 24 October 2026
-
-**Actual operator Stage09 result** (`/iridisfs/home/ly3n24/Batch01_10_stage09_CZ_AD5_inputs_20261024T104558Z/all_sites.json`): Existing CZ-BK1 **CaseDocs/datm.streams.xml** and runtime stream both specify **2004–2025 inclusive** (22 annual `CZ-BK1_DATM_YYYY.nc` files) with `year_align=2004`; source folder `forcing/datm_v5_candidate_timevarying_zbot`. This replaces the misleading generic old XML fields `DATM_YR_START=2018/DATM_YR_END=2019` as the effective station-stream *configuration*. Annual files themselves still need validity/time inspection. Old `lnd_in` pins CO2 **376.95 ppm** constant and `soil_layerstruct_predefined='20SL_8.5m'`. `flds_co2=.false.` is in DATM namelist. Old case is ordinary competition/dynamic-biogeography FATES, NOT a new AD5 case.
-
-**Next Stage10**, [CZ forcing/FATES audit and guarded versioned surface builder](scripts/10_CZ_BK1_candidate_surface_gate.py), offers four distinct modes: `self-test`, `audit`, **separately acknowledged** `build`, and `verify`. It checks **all 22 source DATM NetCDF files**, annual half-hourly record counts, actual FATES JSON host-to-PFT index1 mapping, CZ source NetCDF technical structure, and the published Flechard S4 22/58/21 soil decision. The strict audit does **not** modify any old model input and only writes a small HOME report. Even 22/22 plausible time lengths are NOT a full forcing QC or calendar validation.
-
-**Run only Stage10 self-test and audit now:**
-
-```bash
-conda activate clm_fates_env
-cd ~/Non-Competition-CLM-experiment || exit 1
-git status --short
-git pull --ff-only origin main || exit 1
-S10=examples/Batch01_10/scripts/10_CZ_BK1_candidate_surface_gate.py
-S9="$HOME/Batch01_10_stage09_CZ_AD5_inputs_20261024T104558Z/all_sites.json"
-test -f "$S9" || exit 1
-python3 -B "$S10" --action self-test || exit 1
-set -o pipefail
-python3 -B "$S10" --action audit --stage09 "$S9" \
-  2>&1 | tee "$HOME/Batch01_10_stage10_CZ_audit.log"
-```
-
-The **optional `build` action must NOT be treated as approved by this log**. It explicitly requires selecting a uniform proxy texture over all 10 CLM texture-input layers, although Flechard S4 reports only a site-level soil texture and 0.55 m soil depth. Any extension below 0.55 m is a **model extrapolation**; an alternative depth-aware scheme could be chosen instead. The builder checks the FATES `fates_hlm_pft_map` 1:1 ENF tree assignment and creates only a new **versioned** isolated candidate in `experiments/NonCompetitionObserved22/Batch01_10/CZ-BK1/surface/`, never overwriting source, existing cases or forcing. Even `build` alone does not submit Slurm or establish AD5 readiness.
-
-**Current next-stage checklist**: check Stage10 audit; select soil vertical profile assumption with depth/bedrock cautions; verify annual forcing actual time axes and QC plus fixed CO2 policy; create versioned surface; clone new CIME AD case with actual `use_fates_fixed_biogeog=.true.`, `use_fates_nocomp=.true.`, `CLM_ACCELERATED_SPINUP=on`, generated `spinup_state=2`, `STOP_N=5`, `RESUBMIT=0`; validate then one isolated AD5 smoke only.
-
-## 4. Gates before new versioned surfaces and spin-up
-
-1. Verify original forcing streams, years, time conversion, QC, CO2 baseline, pinned executable and actual host↔FATES PFT map; **original cases are only technical provenance sources**.
-2. Complete station **soil measurements** for remaining sites and depth-aware mapping; no old grid Sand/Clay substitution. Require decisions on all other physically necessary soil/hydraulic/organic parameters before production.
-3. Create **new isolated surfaces** with the above experiment NATVEG/CROP assumption, chosen tree PFT fractions and proven site soil; validate numerical landunit/PFT sums, exact CTSM NetCDF schema, fixed-biogeography/no-competition flags and unchanged protected old inputs. Binary schema compatibility checks remain required even though old ecological values are discarded.
-4. Run a **single site's** 5-year AD400 test first: `CLM_ACCELERATED_SPINUP=on`, correct generated `spinup_state=2`, `STOP_N=5`, `RESUBMIT=0`. Verify run and archival restart success. Only then complete the remaining AD395.
-5. Start **a separate Normal400 case** from the verified AD400 restart, with normal state (`spinup_state=0`), 5-year smoke then Normal395, and convergence diagnostics. [Detailed spin-up protocol](../../docs/AD400_NORMAL400_PROTOCOL.md).
-
-**Current science release: HOLD (10/10).** The 10 PFT mixtures and forest idealization are **chosen**; station soil is only *partly measured* for FI-Sod; DATM and mapping are still being verified. No new Batch01 cases, fsurdat, forcing or Slurm jobs have been generated by these steps.
-
-## Supporting evidence and historical material
-
-- [Seven-site PFT literature review](docs/seven_site_PFT_residual_followup_2026-10-24.md)
-- [Four-site forest inventory evidence](docs/four_site_forest_inventory_search_2026-10-24.md)
-- [Original ICOS PFT inventory](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/tree/main/examples/ICOS_sites/ICOS_PFT)
-- [General field-soil policy](../../docs/observed_soil_texture_policy.md); Batch01 uses station evidence except explicitly RU-Fyo original-soil-only fallback
-- Historic [Stage01](scripts/01_audit_iridis_batch01_sources.py), [Stage02](scripts/02_trace_actual_case_inputs.py), [Stage03](scripts/03_audit_surface_soil_pft.py) and [Stage04](scripts/04_summarize_readonly_surface_gates.py) scripts are retained to reproduce prior audits but **are not part of the active site-first pipeline**.
+- **RU-Fyo** is a peat site. Reusing its original mineral `PCT_SAND`/`PCT_CLAY` layering is an explicitly approved pragmatic fallback, not proof that the model captures peat carbon, organic layers or water table physics.
+- **FR-Pue** has notable coarse fragments; **IT-Col** has conflicting published textures; **CZ-BK1** soil sample-depth allocation is unknown. Site texture choice does not close those model-physics uncertainties.
+- The site-level forcing loop reuses each tower's already existing DATM streams; no replacement or further per-year checking is performed by this workflow.
+- Preserve source files, existing experimental cases, Slurm ledgers, restart NetCDF and recovery receipts. Removal of legacy **GitHub scripts** must not be interpreted as permission to delete historical HPC files.
+- The old source/soil preflight history remains in the kept `scripts/01`–`08` and the [Stage05/06 evidence record](docs/stage05_06_status_and_AD_gate_2026-10-24.md). Those are historical checkpoints, **not today's AD readiness decision**.
+- This example demonstrates a technical mode and site-input workflow. Scientific convergence and historical model-vs-EC validation require independent diagnostics.
