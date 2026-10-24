@@ -62,7 +62,20 @@ def all_old_jobs():
     return [l for l in s.splitlines() if re.search(r'\b(?:run|st_archive)\.NL-Loo_OBSPFT_NC_(?:PRE50|V2_PRE50)\b',l)]
 def quota():
     # Some IRIDIS installs vary the myfiles formatting: report but stop if >85% parsed.
-    r=cmd(['myfiles'])
+    exe=shutil.which('myfiles')
+    if exe is None:
+        print('WARNING: myfiles not on PATH; computing inode quota with df -i',flush=True)
+        r=cmd(['df','-Pi',str(ROOT)])
+        lines=r.splitlines()
+        if len(lines)<2:die('Cannot read df inode quota')
+        a=lines[-1].split()
+        if len(a)<6:die('Cannot parse df inode quota')
+        used,limit=int(a[2]),int(a[1])
+        if limit<=0 or used/limit >= .85:die(f'Filesystem inode usage high/invalid: {used}/{limit}')
+        print(f'FILESYSTEM INODES {used}/{limit} (shared filesystem, not user quota)',flush=True)
+        die('User scratch file quota not verified: myfiles unavailable; '
+            'resume from login node or provide verified quota evidence')
+    r=cmd([exe])
     for exp in [r'Scratch number of files used:\s*([\d,]+)/([\d,]+)',
                 r'Scratch.*?([\d,]+)\s*/\s*([\d,]+)\s*files']:
         m=re.search(exp,r,re.I|re.S)
@@ -70,7 +83,7 @@ def quota():
             use,limit=(int(z.replace(',','')) for z in m.groups())
             if use/limit >= .85:die(f'High Scratch inode use: {use}/{limit}')
             print(f'SCRATCH INODES {use}/{limit}',flush=True);return
-    print('WARNING: myfiles inode values not parsed; review quotas manually',flush=True)
+    die('myfiles inode values not parsed; quota check cannot pass')
 def validate_base():
     if not BASE.is_dir():die('V2 case (clone template) absent')
     if not SURF.is_file() or hashfile(SURF)!=SURF_HASH:die('Surface missing/changed')
@@ -291,7 +304,7 @@ exec '{sys.executable}' '{Path(__file__).resolve()}' tick
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('action',choices=['preflight','launch','tick','status','disarm'])
+    ap.add_argument('action',choices=['preflight','launch','tick','status','disarm','resume-ad200'])
     ap.add_argument('--confirm',default='')
     a=ap.parse_args()
     if a.action=='preflight':
@@ -307,6 +320,38 @@ def main():
     if a.action=='status':
         if STATE.exists():print(STATE.read_text())
         for p in P:print(p,'exists=',CASE[p].exists(),'jobs=',slurm(p))
+        return
+    if a.action=='resume-ad200':
+        if a.confirm!='RESUME_NL_LOO_V3_AD200_FROM_2047':
+            die('Requires --confirm RESUME_NL_LOO_V3_AD200_FROM_2047')
+        if not STATE.exists():die('V3 controller state missing')
+        with LOCK.open('a') as fh:
+            fcntl.flock(fh,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            d=load()
+            if STOP.exists():die('STOP marker exists; do not override')
+            if d.get('armed'):die('Controller still armed; inspect watchdog')
+            if d.get('actions',{}).get('PRE50_first')!='DONE':
+                die('PRE50 not recorded as submitted successfully')
+            if 'AD200_first' in d.get('actions',{}):
+                die('AD200 already attempted; manual audit required')
+            if any(v.exists() for v in (CASE['AD200'],RUN['AD200'],ARCH['AD200'])):
+                die('AD200 already has a case/run/archive: refuse overwrite')
+            validate_base()
+            if not complete('PRE50',2047):die('PRE50 final checkpoint not verified')
+            quota()
+            d['armed']=True
+            d.pop('error',None)
+            d['recovery_started']=utc()
+            save(d)
+            try:
+                once(d,'AD200_first',lambda:(prepare('AD200'),submit('AD200','first')))
+                next_watch(d)
+            except Exception as ex:
+                d['armed']=False
+                d['error']={'at':utc(),'message':str(ex)}
+                save(d)
+                raise
+            print('AD200 first 5 years submitted. Verify 2052 restart before continuing.',flush=True)
         return
     if a.action=='disarm':
         WORK.mkdir(parents=True,exist_ok=True);STOP.write_text('operator stopped watcher\n')
