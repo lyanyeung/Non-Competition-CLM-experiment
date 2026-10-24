@@ -2,7 +2,7 @@
 
 **Selected scientific experiment:** ONE tower-forest PFT scenario **ENF 87%, DNF 10%, DBF 3%**. No original-grid/cropland/PFT-mix experiments are part of the active DE-Tha experiment. This is an *observationally informed single-point forest proxy*, **not** a measured grid-wide area map.
 
-**Status (24 October 2026):** PFT-only v1 SHA256 verified; final forest + published measured-soil **v2 generated and independently verified** (`0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a`). **New plan: direct AD400 from cold startup 1996; NO PRE50, NO AD200 or POST300 at this stage.** First-five-year gated scripts 10/11 committed, **not yet executed on IRIDIS6**. Existing forcing v5 status is still `REVIEW`: the operator explicitly elects to use the unchanged existing forcing for this experiment; 11 LW + 3 VPD manual concerns remain scientifically unresolved.
+**Status (24 October 2026):** PFT-only v1 SHA256 verified; final forest + published measured-soil **v2 generated and independently verified** (`0d3d827cc4bbfab277d629fafc33ee26933404a84b56ba1bfcac8b3e6cd5e60a`). **New plan: direct AD400 from cold startup 1996; NO PRE50, NO AD200 or POST300 at this stage.** Stage10 `inspect` PASSED and a new case was created; `preview_namelists` FAILED at the pinned FATES `spinup_state` guard. Stage12 private-overlay recovery is now available; **no Slurm job submitted**. Existing forcing v5 status is still `REVIEW`: the operator explicitly elects to use the unchanged existing forcing for this experiment; 11 LW + 3 VPD manual concerns remain scientifically unresolved.
 
 ## 1. Observed PFT targets (single scenario)
 
@@ -178,6 +178,46 @@ If the pinned CIME build-namelist cannot produce `spinup_state=2` for **FATES co
 python3 -B examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py validate
 ```
 
+### Stage12 — Recover the encountered FATES accelerated cold-start namelist error
+
+**Real IRIDIS6 incident, 24 October 2026:** Stage10 `inspect` verified the v2 surface, FATES parameters, 1996–2025 forcing, compiled legacy executable and original DATM streams. `stage` **created** a new independent `DE-Tha_OBSPFT_NC_V1_AD400` case; `case.setup` succeeded, but `./preview_namelists` failed **BEFORE any Slurm submission**:
+
+```text
+spinup_state is accelerated (=1 or 2) which is for a BGC mode of CN or BGC,
+but the BGC mode is Satellite Phenology
+```
+
+The exact pinned upstream `CLMBuildNamelist.pm` (Git blob `698f2396aba8e11cbbbdd58c74ad221e6b7e7038`) **incorrectly checks only `use_cn`**, rather than `use_cn OR use_fates`, before supporting AD state. This reproduces the underlying NL-Loo AD namelist error. The *wording* about Satellite Phenology is hardcoded in the source's `else` branch and **does not prove** the CIME `-bgc` flag was actually `sp`; Stage12 also audits `CLM_BLDNML_OPTS` and requires `-bgc fates`.
+
+**Do NOT rerun Stage10 `stage` or delete/re-clone the CIME case.**
+
+The guarded [12_DE_Tha_AD400_recover_failed_preview.py](scripts/12_DE_Tha_AD400_recover_failed_preview.py) performs a strictly read-only `audit`, then (only with exact user confirmation) creates a private build-namelist overlay with the two previously verified NL-Loo patches:
+
+1. Allow FATES **or** CN to use `spinup_state=2` in `setup_cmdl_spinup`.
+2. Keep `reseed_dead_plants` CN-only; do not add that CN namelist to FATES.
+
+It checks source Git blob, CIME `-bgc fates`, no previous Slurm jobs or attempted `case.submit`, `RESUBMIT=0`, locked `env_case.xml`, correct original executable and pinned site inputs. During recovery it temporarily sets ONLY the independent case's `COMP_ROOT_DIR_LND` to the private overlay, regenerates `CaseDocs/lnd_in` and `RUN/lnd_in`, verifies real FATES `spinup_state=2` and the history fields, then **restores the literal `$SRCROOT` locked case XML**. Only after both generated namelists and CIME locks validate does it create the initial submission state ledger. **No Slurm job is submitted by Stage12.**
+
+```bash
+cd ~/Non-Competition-CLM-experiment
+git pull --ff-only origin main
+python3 -m py_compile examples/DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py
+python3 -B examples/DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py audit \
+  2>&1 | tee ~/DE-Tha_AD400_12_readonly_audit.log
+```
+
+**ONLY IF** audit prints `AUDIT PASSED`:
+
+```bash
+python3 -B examples/DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py repair \
+  --confirm RECOVER_DE_THA_AD400_FATES_PRIVATE_NAMELIST_NO_SLURM \
+  2>&1 | tee ~/DE-Tha_AD400_12_repair.log
+
+python3 -B examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py validate
+```
+
+If audit fails, **stop** and share output. If repair fails partway through, **do not rerun it**: it leaves a non-repeatable attempt ledger and preserves case/overlay for manual diagnosis. Once Stage10 validates, its one-time `submit-smoke` still preserves corrected `spinup_state=2` with `--skip-preview-namelist`.
+
 ### Stage10 — Submit only initial 1996–2001 AD smoke (5 model years)
 
 **This is the first five years of the planned 400**, not a throwaway. `RESUBMIT=0`, and no watcher is enabled. `--skip-preview-namelist` is used to preserve the verified `spinup_state=2` namelist, applying the NL-Loo incident lesson.
@@ -247,4 +287,5 @@ examples/DE-Tha/
     09_audit_critical_meteorological_episodes.py # optional READ ONLY QC episodes
     10_DE_Tha_direct_AD400.py              # direct AD400 cold start, first 5y smoke
     11_DE_Tha_AD400_continue_after_smoke.py # guarded 395y only after 2001 archive
+    12_DE_Tha_AD400_recover_failed_preview.py # private FATES AD CIME namelist recovery
 ```
