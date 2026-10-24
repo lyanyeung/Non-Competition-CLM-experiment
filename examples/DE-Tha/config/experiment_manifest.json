@@ -80,7 +80,8 @@
     "existing v5 forcing status REVIEW (14 manual-review and 32 replacement events) interpreted",
     "independent PRE50 case build and forcing/physical input confirmed",
     "old DE-Tha_FATES_SPINUP500 and all other site cases preserved",
-    "review measured DE-Tha soil sand/silt/clay 17/71/12 versus inherited surface profiles using read-only 06 audit"
+    "review measured DE-Tha soil sand/silt/clay 17/71/12 versus inherited surface profiles using read-only 06 audit",
+    "scientific decision on confirmed DE-Tha soil texture mismatch: source top layer 24/51/25 vs measured 17/71/12; record use-grid-versus-site-soil choice before PRE50"
   ],
   "input_inventory_2026_10_24": {
     "status": "INPUTS_AUDITED_ORIGINAL_SURFACE_AND_FATES_MAP; SCIENTIFIC_SCENARIO_HOLD",
@@ -167,7 +168,7 @@
   },
   "scientific_sensitivity_exploration": "04_review_landunit_scenarios.py is archive/read-only and NOT in this experiment scope",
   "site_soil_texture_validation": {
-    "status": "FIELD_REFERENCE_FOUND_GRID_SURFACE_LAYER_COMPARISON_NOT_YET_RUN",
+    "status": "LARGE_FIELD_GRID_TEXTURE_DIFFERENCE_CONFIRMED_READ_ONLY; NO_SURFACE_EDITS",
     "field_reference_site": "DE-Tha tower forest first mineral layer",
     "field_reference_mass_pct": {
       "sand": 17,
@@ -185,6 +186,49 @@
     "original_surface_sha256": "7e4e4f8fc752d936f80e06a65db0f2163a3f74cdebff5d318973773450f5940d",
     "derived_surface_sha256": "6d415b420ece0f18dca051c91849dcd5a3a5748779f9ee349c98e84e52e80600",
     "next_read_only_script": "examples/DE-Tha/scripts/06_audit_soil_texture_vs_observations.py",
-    "scientific_rule": "Do not reinterpret field measurement as identical across all model depths or edit validated v1 surface"
+    "scientific_rule": "Do not reinterpret field measurement as identical across all model depths or edit validated v1 surface",
+    "original_surface_profile_percent": {
+      "layers_1_to_4": {
+        "sand": 24,
+        "silt": 51,
+        "clay": 25
+      },
+      "layer_5": {
+        "sand": 22,
+        "silt": 47,
+        "clay": 31
+      },
+      "layer_6": {
+        "sand": 22,
+        "silt": 44,
+        "clay": 34
+      },
+      "layer_7": {
+        "sand": 23,
+        "silt": 41,
+        "clay": 36
+      },
+      "layer_8": {
+        "sand": 29,
+        "silt": 38,
+        "clay": 33
+      },
+      "layers_9_to_10": {
+        "sand": 33,
+        "silt": 35,
+        "clay": 32
+      }
+    },
+    "top_layer_model_minus_reference_pp": {
+      "sand": 7,
+      "silt": -20,
+      "clay": 13
+    },
+    "model_depth_metadata": "MODEL_DEPTH_UNKNOWN_FROM_SURFACE_AUDIT; layer indices not validated physical depths",
+    "surface_identity": "PASS: original soil fields and derived forest-only surface soil fields identical",
+    "verified_primary_publication": "Prescher et al. (2010), Agricultural and Forest Meteorology 150:1016-1025; doi:10.1016/j.agrformet.2010.03.008",
+    "warning": "Significant texture mismatch; do not silently modify already verified v1. Existing grid soil differs from DE-Tha forest first-mineral-layer reference. Coarse-fragment, depth and spatial heterogeneity remain uncertain.",
+    "next_action": "Before PRE50, choose whether to maintain grid-soil as explicitly acknowledged proxy or create independent v2 site-measured soil proxy after depth/coarse-fragment audit",
+    "no_new_surface_written": true
   }
 }
