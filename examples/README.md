@@ -10,7 +10,7 @@ proxy (not original-grid/PFT experimental alternatives).
 
 | Site | Value for a standard example | Stage |
 | --- | --- | --- |
-| [DE-Tha](DE-Tha/README.md) | **Selected ONE forest EC-tower PFT proxy:** ENF87 / DNF10 / DBF3 (2% unknown deciduous allocated to DBF as explicit assumption); NATVEG100 / CROP0 | **Verified PFT+site-soil v2; AD400 case cloned and set up but Stage10 preview failed at the pinned FATES AD namelist guard; Stage12 private-overlay recovery ready; no Slurm jobs** |
+| [DE-Tha](DE-Tha/README.md) | **Selected ONE forest EC-tower PFT proxy:** ENF87 / DNF10 / DBF3 (2% unknown deciduous allocated to DBF as explicit assumption); NATVEG100 / CROP0 | **Stage12 repair+Stage10 validation passed; AD400 first-5-year runtime not yet verified; Stage13 exact-job audit and independent Stage14 AD→Normal hybrid test available; no AD400 completion claim** |
 
 The completed NL-Loo PRE50 / first-5-year AD200 validation and submitted
 AD200 continuation are currently recorded under [scripts/09–15](../scripts/).
