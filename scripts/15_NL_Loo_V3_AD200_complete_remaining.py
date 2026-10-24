@@ -200,7 +200,7 @@ def check_history():
         # C.nml_get() strips the outer quotes of a scalar value;
         # for a comma-delimited Fortran string list that would drop the
         # first/last delimiters. Read the full line without stripping them.
-        hist = re.findall(r"(?im)^\\s*hist_fincl1\\s*=\\s*([^\\r\\n]*)$", text)
+        hist = re.findall(r"(?im)^\s*hist_fincl1\s*=\s*([^\r\n]*)$", text)
         if len(hist)!=1:
             fail(f"Expected one hist_fincl1 in {path}, got {len(hist)}")
         fields=re.findall(r"'([^']+)'",hist[0])
