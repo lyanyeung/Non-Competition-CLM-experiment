@@ -43,10 +43,14 @@ The two existing examples are **NL-Loo** and **DE-Tha**. The remaining 20 are se
 
 **Batch01 core goal:** assess quantitative tree-species evidence and obtain defensible **fixed FATES functional-type distributions**, accounting for the survey denominator, unknown species, nonforest/crop/bare-ground fraction, vegetation footprint, and active FATES PFT mapping.
 
-- [Batch01 site evidence and runbook](examples/Batch01_10/README.md)
+- [Batch01 site evidence and first IRIDIS6 read-only audit](examples/Batch01_10/README.md)
+- [Batch01 Stage01 ten-site source inventory script](examples/Batch01_10/scripts/01_audit_iridis_batch01_sources.py)
+- [Policy: never assign unknown forest-PFT remainder to GRA by default](docs/PFT_UNKNOWN_RESIDUAL_POLICY.md)
 - [Batch01 10-site register and source URLs](data/batch01_10_sites.csv)
 - [Batch02 10-site reserve register](data/batch02_10_sites.csv)
 - [Master 22-candidate role ledger](data/22_site_cohort.csv)
+
+**Unclassified percentages are not automatically grass:** see the [mandatory residual-PFT policy](docs/PFT_UNKNOWN_RESIDUAL_POLICY.md). For example, BE-Vie's unresolved 20% is forest stand composition, and FR-Fon's <3% is tree basal area; neither is measured ground grass cover. A GRA fraction requires defensible grass-area observations and a checked HLM→FATES grass mapping.
 
 **Scientific disclaimer:** the original 38-site inventory is a *screening aid*, not a completed PFT area map. **No stand-species, tree-carbon-stock, basal-area or vegetated-cover percentage may be silently treated as CLM `PCT_NAT_PFT` ground area.** Even when a stand reports 100% spruce or beech, that does **not** by itself justify a 100% natural-landunit fraction for the tower footprint. Batch01 numeric grouping remains on **`EVIDENCE_ONLY_HOLD_SURFACE`** until each site's scientific provenance and surface mapping are accepted.
 
