@@ -312,11 +312,66 @@ exec '{sys.executable}' '{Path(__file__).resolve()}' tick
     if WATCH.exists() and WATCH.read_text()!=script:die('Existing watchdog differs')
     WATCH.write_text(script);WATCH.chmod(0o700)
 
+
+def audit_ad200():
+    """Read-only inspection for partially prepared AD200; never submits a job."""
+    stage='AD200'
+    print('=== NL-Loo AD200 READ-ONLY AUDIT ===',flush=True)
+    print('Case:',CASE[stage], 'exists:',CASE[stage].is_dir(),flush=True)
+    print('Run:',RUN[stage], 'exists:',RUN[stage].is_dir(),flush=True)
+    print('Archive:',ARCH[stage], 'exists:',ARCH[stage].is_dir(),flush=True)
+    print('Controller:',STATE,flush=True)
+    if STATE.is_file():
+        d=load()
+        print('armed:',d.get('armed'),'AD200_first:',d.get('actions',{}).get('AD200_first'),
+              'error:',d.get('error'),flush=True)
+    print('Slurm jobs:',slurm(stage),flush=True)
+    if not CASE[stage].is_dir():
+        print('AD200 case absent; no further case diagnostics')
+        return
+    for k in ('RUN_TYPE','RUN_STARTDATE','RUN_REFCASE','RUN_REFDATE','GET_REFCASE',
+              'CLM_ACCELERATED_SPINUP','CONTINUE_RUN','RESUBMIT','STOP_N',
+              'RUNDIR','DOUT_S_ROOT','EXEROOT'):
+        try:print('XML',k,':',xq(stage,k),flush=True)
+        except Exception as e:print('XML ERROR',k,':',e,flush=True)
+    for f in (CASE[stage]/'CaseDocs/lnd_in',CASE[stage]/'user_nl_clm',
+              CASE[stage]/'CaseStatus'):
+        print('---',f,'exists=',f.is_file(),flush=True)
+        if not f.is_file():continue
+        lines=f.read_text(errors='replace').splitlines()
+        for i,line in enumerate(lines,1):
+            if re.search(r'(?i)spinup_state|finidat|use_fates|case\\.submit|case\\.run|archive',line):
+                print(f'{i}: {line[:240]}',flush=True)
+    for f in (CTSM/'bld/namelist_files/namelist_defaults_ctsm.xml',
+              CTSM/'bld/namelist_files/namelist_defaults_clm.xml'):
+        if not f.is_file():continue
+        print('--- source defaults',f,flush=True)
+        for i,line in enumerate(f.read_text(errors='replace').splitlines(),1):
+            if 'spinup_state' in line:
+                print(f'{i}: {line[:240]}',flush=True)
+    stamp='2047-01-01-00000'
+    ref=ARCH['PRE50']/'rest'/stamp
+    print('PRE50 final restart dir:',ref,'exists:',ref.is_dir(),flush=True)
+    if ref.is_dir():
+        print('PRE50 checkpoint sample:',[p.name for p in sorted(ref.glob('*.clm2.r.*.nc'))[:3]],flush=True)
+        try:print('PRE50 spinup_state:',spinup_value('PRE50',2047),flush=True)
+        except Exception as e:print('PRE50 spinup_state inspect ERROR:',e,flush=True)
+    if RUN[stage].is_dir():
+        for p in sorted(RUN[stage].glob('rpointer.*')):
+            print('STAGED POINTER:',p.name,p.read_text(errors='replace').strip()[:240],flush=True)
+    print('AD200 submission marker exists:',
+          (CASE[stage]/'V3_first_submission_attempt.json').exists(),flush=True)
+    print('=== END READ-ONLY AUDIT. NO CASE CHANGES OR SUBMISSIONS ===',flush=True)
+
+
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('action',choices=['preflight','launch','tick','status','disarm','resume-ad200'])
+    ap.add_argument('action',choices=['preflight','launch','tick','status','disarm','resume-ad200','audit-ad200'])
     ap.add_argument('--confirm',default='')
     a=ap.parse_args()
+    if a.action=='audit-ad200':
+        audit_ad200()
+        return
     if a.action=='preflight':
         validate_base()
         for p in P:print(p,'exists=',CASE[p].exists(),'jobs=',slurm(p))
