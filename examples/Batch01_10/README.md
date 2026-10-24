@@ -232,6 +232,45 @@ python3 -B examples/Batch01_10/scripts/04_summarize_readonly_surface_gates.py \
 
 Review the full Stage04 table and flags before deciding whether to retain the old natural/crop landunit percentages, choose a different baseline case, use field-measured soil or a labelled grid fallback, or construct any new versioned FIXNC surface. **No AD400/Normal400 runs yet.**
 
+## Stage04 observed results and Stage05 original DATM/FATES input verification — 24 October 2026
+
+The operator ran Stage04 on the **10/10 NetCDF-readable** Stage03 surfaces without altering model inputs, and returned the following **source-host** (NOT observed footprint) percentages:
+
+| Site | Source NATVEG % | Source CROP % | First-layer grid Sand % | First-layer grid Clay % | Follow-up |
+| --- | ---: | ---: | ---: | ---: | --- |
+| CZ-BK1 | 75.31 | 24.69 | 43 | 11 | Review cropland in forest-point surface |
+| IT-Ren | 95.81 | 4.19 | 43 | 11 | Review small crop fraction |
+| RU-Fyo | 96.69 | 3.31 | 43 | 12 | Review small crop fraction |
+| CH-Dav | 96.38 | 3.62 | 43 | 18 | Review small crop fraction |
+| IT-Col | 72.30 | 27.70 | 40 | 20 | Also two original CIME cases |
+| FR-Fon | 49.20 | 50.80 | 41 | 17 | **Priority: biggest grid-crop discrepancy** |
+| FI-Sod | 99.82 | 0.18 | 54 | 6 | Near 100% source natural landunit, still nonzero crop |
+| FR-Pue | 69.29 | 30.71 | 53 | 16 | Also two original CIME cases |
+| DE-Hai | 61.88 | 38.12 | 43 | 11 | **Priority: large grid-crop discrepancy** |
+| BE-Vie | 78.89 | 21.11 | 44 | 20 | Verify footprint vs inherited grid |
+
+All ten original host `PCT_NAT_PFT` conditional sums are 100%, but this does **not** validate FATES prescribed biogeography or assign our candidate tree-PFT percentages to the surface. Source-grid top-layer sand/clay are **not** certified field observations; do not copy DE-Tha soil data into these stations. All sites had `NATVEG+CROP=100%` in printed Stage04 scalars; verify other landunits including multi-class `PCT_URBAN` from the full NetCDF metadata before any new landunit prescription. **Do not automatically overwrite CROP=0/NATVEG=100** purely because a flux tower is labelled forest.
+
+**Stage04 showed `DATM first/last/align=?/?/?` in all 12 original case records.** That means Stage02's shallow/text parser did not recover the actual stream calendar, not that the forcing is absent or invalid. Existing original cases have `CLM_ACCELERATED_SPINUP=off`, which is consistent with past normal spinups, **not** evidence that a new AD400 case is configured.
+
+**New Stage05** [05_trace_DATM_FATES_landunits_readonly.py](scripts/05_trace_DATM_FATES_landunits_readonly.py) reads Stage03's report, then existing case text/config files (`env_run.xml`, `CaseDocs/lnd_in`, `CaseDocs/datm_in`, `user_nl_datm_streams`, bounded `datm.streams.*`, etc.), and prints **DATM configuration hints, generated FATES flags/map, original case identities and source landunits**. Any date found is a *configuration hint* requiring validation against exact stream files and forcing years. It creates a **new HOME report only**; does not alter old CIME/DATM/surface files or Slurm jobs.
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment || exit 1
+git status --short
+git pull --ff-only origin main || exit 1
+SCRIPT=examples/Batch01_10/scripts/05_trace_DATM_FATES_landunits_readonly.py
+S3="$HOME/Batch01_10_stage03_surface_soil_20261024T094433Z/all_sites.json"
+test -f "$S3" || { echo "Stage03 report unavailable"; exit 1; }
+python3 -B "$SCRIPT" --self-test || exit 1
+set -o pipefail
+python3 -B "$SCRIPT" --stage03 "$S3" \
+  2>&1 | tee "$HOME/Batch01_10_stage05_latest.log"
+```
+
+**After Stage05:** 1) adjudicate IT-Col and FR-Pue's `S30EXCL` vs `S30SHARED` cases by checking exact stream inputs; 2) verify per-site forcing year ranges, NO_LEAP calendar, original hashes and FATES mapping; 3) decide forest-footprint/landunit assumptions and site-specific soil depth/texture or explicit grid fallback. Only then implement separate **versioned, unsubmitted** fixed-biogeography surface candidates. All ten remain **HOLD**.
+
 ## Readiness gates to work through, in order
 
 1. **Observed PFT provenance:** retrieve actual station/forest source, verify measurement year, survey method, spatial coverage, specific **denominator** and any species sum. Record the unknown share. A scientific proxy must be proposed and explicitly recorded before it can become a fixed PFT surface.
