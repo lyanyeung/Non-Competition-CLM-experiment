@@ -79,7 +79,8 @@
     "derived surface SHA256 and FATES fixed-biogeography/no-competition namelists verified",
     "existing v5 forcing status REVIEW (14 manual-review and 32 replacement events) interpreted",
     "independent PRE50 case build and forcing/physical input confirmed",
-    "old DE-Tha_FATES_SPINUP500 and all other site cases preserved"
+    "old DE-Tha_FATES_SPINUP500 and all other site cases preserved",
+    "review measured DE-Tha soil sand/silt/clay 17/71/12 versus inherited surface profiles using read-only 06 audit"
   ],
   "input_inventory_2026_10_24": {
     "status": "INPUTS_AUDITED_ORIGINAL_SURFACE_AND_FATES_MAP; SCIENTIFIC_SCENARIO_HOLD",
@@ -164,5 +165,26 @@
     "verification_scope": "05_build_forest_observed_surface.py verify confirmed NetCDF, JSON receipt, all 15 PCT_NAT_PFT entries, PCT_NATVEG100, PCT_CROP0, unchanged source surface SHA256, pinned FATES mapping. Model case and spinup not yet validated.",
     "scientific_status": "87/10/3 is fixed forest footprint proxy, 2% unspecified deciduous trees assigned to DBF as documented assumption"
   },
-  "scientific_sensitivity_exploration": "04_review_landunit_scenarios.py is archive/read-only and NOT in this experiment scope"
+  "scientific_sensitivity_exploration": "04_review_landunit_scenarios.py is archive/read-only and NOT in this experiment scope",
+  "site_soil_texture_validation": {
+    "status": "FIELD_REFERENCE_FOUND_GRID_SURFACE_LAYER_COMPARISON_NOT_YET_RUN",
+    "field_reference_site": "DE-Tha tower forest first mineral layer",
+    "field_reference_mass_pct": {
+      "sand": 17,
+      "silt": 71,
+      "clay": 12
+    },
+    "cited_profile_note": "Reported relatively stable to approximately 1.2m, but layer-resolved field data not supplied",
+    "citation_url": "https://www.researchgate.net/publication/241243196_Net_Ecosystem_Exchange_and_Net_Biome_Productivity_of_different_land_use_in_eastern_Germany",
+    "spatial_heterogeneity_reference": "https://onlinelibrary.wiley.com/doi/10.1002/jpln.202400073",
+    "surface_variables_to_compare": [
+      "PCT_SAND",
+      "PCT_CLAY",
+      "inferred silt 100-sand-clay"
+    ],
+    "original_surface_sha256": "7e4e4f8fc752d936f80e06a65db0f2163a3f74cdebff5d318973773450f5940d",
+    "derived_surface_sha256": "6d415b420ece0f18dca051c91849dcd5a3a5748779f9ee349c98e84e52e80600",
+    "next_read_only_script": "examples/DE-Tha/scripts/06_audit_soil_texture_vs_observations.py",
+    "scientific_rule": "Do not reinterpret field measurement as identical across all model depths or edit validated v1 surface"
+  }
 }
