@@ -2,7 +2,7 @@
 
 **Current protocol, 24 October 2026.** Ten forest EC towers; planned **AD400 → NORMAL400** spin-up, 800 model years each, **not started**. NL-Loo and DE-Tha are protected separate examples.
 
-> **OVERRIDING BATCH01 DECISION:** The inherited coarse-grid surface is **not** the scientific benchmark. Stop all scientific comparisons to its `PCT_NATVEG`, `PCT_CROP`, `PCT_NAT_PFT`, `PCT_SAND` and `PCT_CLAY`. Stage03/04 comparisons were completed once and are **removed from the active workflow**. Their old-grid values are not site observations and are not used to choose new vegetation/soil parameters. **Do not delete or modify any original NetCDF, CIME case, restart or older experiment.** An original NetCDF may be referenced only as a technical structural schema for building a separate versioned surface, not as evidence for its ecological parameter values.
+> **OVERRIDING BATCH01 DECISION:** The inherited coarse-grid surface is **not** the scientific benchmark for vegetation or station-measured soil. Never use source-grid `PCT_NATVEG`, `PCT_CROP` or `PCT_NAT_PFT` as a scientific prescription. Source soil `PCT_SAND` and `PCT_CLAY` are used **ONLY for RU-Fyo under the operator-approved, explicitly labelled technical exception**; all other site texture decisions require site-specific evidence. Stage03/04 comparisons were completed once and are **removed from the active workflow**. Their old-grid values are not site observations and are not used to choose new vegetation/soil parameters. **Do not delete or modify any original NetCDF, CIME case, restart or older experiment.** An original NetCDF may be used as the technical structural schema for building a separate versioned surface, **plus the explicitly selected RU-Fyo soil-only fallback**. It is not an observational reference for those soil values.
 
 ## 1. New model forest-point assumptions
 
@@ -23,9 +23,9 @@
 
 Proposed fractions: [machine-readable PFT scenarios](../../data/batch01_10_pft_scenarios.csv). Keep the [original numerical tree evidence](../../data/batch01_10_sites.csv) unchanged: literature denominators differ (species counts, carbon stocks, basal area or forest footprint). **No host-to-FATES PFT indices have yet been certified; do not assume broad ENF/DBF labels are exact model indices.**
 
-## 2. Soil: actual station measurements, NOT the inherited surface
+## 2. Soil: station literature/measurements, with RU-Fyo soil-only exception
 
-**Batch01-specific rule:** use in-situ soil particle-size measurements from the tower footprint or the same forest stand, with documented location, horizon, sampling/analysis, provenance and year. **No inherited CLM grid Sand/Clay fallback** and no guessed percentages from soil class labels. If station values are unavailable, hold that site's soil parameterization for further evidence collection. Unmeasured depths need clearly labelled interpolation/extrapolation choices and appropriate uncertainty: do not call these observed. Other soil quantities (organic matter, coarse fragments, bulk density, thermal/hydraulic properties) also need source-aware treatment.
+**Batch01-specific rule:** use in-situ soil particle-size measurements from the tower footprint or the same forest stand, with documented location, horizon, sampling/analysis, provenance and year. **No routine inherited CLM grid Sand/Clay fallback** and no guessed percentages from soil class labels. **The sole currently selected original-grid texture exception is RU-Fyo**, which lacks published mineral texture (peat site); use only source `PCT_SAND`/`PCT_CLAY` with clear non-observed provenance, and independently check peat thickness, organic layers and soil hydrology. If station values are unavailable, hold that site's soil parameterization for further evidence collection. Unmeasured depths need clearly labelled interpolation/extrapolation choices and appropriate uncertainty: do not call these observed. Other soil quantities (organic matter, coarse fragments, bulk density, thermal/hydraulic properties) also need source-aware treatment.
 
 **FI-Sod measured horizons now found** in the [FLUXNET FI-Sod site description](https://fluxnet.org/sites/siteinfo/FI-Sod):
 
@@ -37,7 +37,7 @@ Proposed fractions: [machine-readable PFT scenarios](../../data/batch01_10_pft_s
 
 These observed percentages include **stones**, unlike the fine-earth `PCT_SAND`/`PCT_CLAY` inputs. Process each horizon as `sand/(sand+silt+clay)*100`, `clay/(sand+silt+clay)*100` (same for silt), preserving stones and original values in evidence. Tiny non-100 totals reflect reporting precision. **No depth below 40 cm has been documented from this record**, and no full model soil profile has been approved yet.
 
-[Station soil evidence CSV](../../data/batch01_10_soil_site_observations.csv) contains FI-Sod's 3 published horizons and **9 other sites flagged NEED_SITE_OBSERVATION** (no invented values). [ICOS ETC Level-II site soil dataset gateway](https://traitementinfosol.pages-forge.inrae.fr/icos/index.html) is a potential source for the other ICOS towers; check whether the observations represent each target tower, review sample depths and respect site PI/data use conditions.
+[Station soil measured-horizon CSV](../../data/batch01_10_soil_site_observations.csv) retains FI-Sod's three explicitly depth-bounded records, while [site-published soil fractions](../../data/batch01_10_Flechard2020_TableS4_soil.csv) and [binding soil decisions](../../data/batch01_10_soil_input_decisions.csv) additionally specify CZ-BK1 and other station-level candidates; its **9 remaining placeholder rows reflect missing depth-bounded measurements, not that all nine lack literature soil values** (no invented values). [ICOS ETC Level-II site soil dataset gateway](https://traitementinfosol.pages-forge.inrae.fr/icos/index.html) is a potential source for the other ICOS towers; check whether the observations represent each target tower, review sample depths and respect site PI/data use conditions.
 
 Run the **evidence-only soil validator**:
 
@@ -54,12 +54,14 @@ It computes fine-earth percentages for *observed horizons only*, flags missing s
 | Stage01 | Completed | Original site-file inventory, historical provenance |
 | Stage02 | Completed | Original CIME/DATM cases: 12 candidates for 10 sites |
 | Stage03/04 | Completed historically; **retired** | Readable old NetCDF, grid-landunit/soil comparisons **not used further** |
-| **Stage05** | **Next** | Direct Stage02 → original CIME configuration, DATM streams, FATES settings (no surface comparison) |
-| **Stage06** | **Next, parallel** | Station-measured soil evidence only; explicitly mark missing data |
-| Stage07 surface builder | Not yet approved | Separate versioned stand-site forest surface after science/technical gates |
+| **Stage05** | Completed | Original CIME/DATM flags traced; old cases are not FIXNC |
+| **Stage06** | Completed | FI-Sod measured depth profiles; other sites' source literature in separate register |
+| Stage07 | Available | Read-only local site-soil discovery, optional | 
+| **Stage08** | **Next** | CZ-BK1 and RU-Fyo soil input preflight; schema and peat warnings only | 
+| Future separate surface builder | Not yet approved | Versioned FIXNC forest surface after FATES/DATM/soil-layer gates |
 | AD400 → Normal400 | Not started | 5-year first AD smoke, then verified continuation, then independent Normal branch |
 
-**Execute now on IRIDIS6** (the current Stage05 reads Stage02 **directly**, not Stage03/04):
+**Historical Stage05/Stage06 commands (already executed successfully; no need to repeat):**
 
 ~~~bash
 conda activate clm_fates_env
@@ -86,7 +88,7 @@ Stage05 writes **only** a new report under `~/Batch01_10_stage05_station_inputs_
 
 **Actual results:** [Stage05/06 status, soil source priorities and AD gate](docs/stage05_06_status_and_AD_gate_2026-10-24.md). Stage05 checked 12 reference cases for 10 sites: every old generated lnd_in has `use_fates_nocomp=.false.` and `use_fates_fixed_biogeog=.false.`; none is a ready-to-run new Batch01 FIXNC case. Old DATM XML lists 2018–2019 but contains conflicting effective stream-year hints; verify exact DATM source files/calendars. Stage06 confirms FI-Sod has **three measured soil horizons only**, and the other **nine** sites still lack registered site-specific numeric soil texture. **No AD400 or even AD5 smoke is yet authorized.**
 
-**Next active step** (not an old-surface comparison): run the new [Stage07 station soil metadata search](scripts/07_inventory_local_soil_evidence_readonly.py) on IRIDIS6 to inspect existing site BIF/ancillary/ZIP sources without extracting them. Then obtain missing site-specific measured soil, check soil layer and coarse-fragment handling, verify actual forcing and FATES parameter-map support, and build an isolated versioned site surface and new AD case. FI-Sod is the best first *preparation* candidate, not yet a launch-ready AD case.
+**Optional soil-document discovery:** [Stage07 station-soil metadata search](scripts/07_inventory_local_soil_evidence_readonly.py) can examine existing local BIF/ancillary/ZIP files, but CZ-BK1 already has a selected published candidate and RU-Fyo has an explicit soil-only fallback. **Stage08 below is the immediate next step**. Then obtain missing site-specific measured soil, check soil layer and coarse-fragment handling, verify actual forcing and FATES parameter-map support, and build an isolated versioned site surface and new AD case. FI-Sod is the best first *preparation* candidate, not yet a launch-ready AD case.
 
 ```bash
 conda activate clm_fates_env
@@ -105,7 +107,7 @@ python3 -B "$S7" 2>&1 | tee "$HOME/Batch01_10_stage07_soil_discovery.log"
 
 Important new results: CH-Dav 0–10 cm Sand/Silt/Clay 53/25/22; FR-Pue 0–10 cm 26/32/42, plus alternate site study 26/35/39 with 75% stones at 0–50 cm; DE-Hai 0–10 cm 4/49/48 (published rounding makes 101%); FR-Fon same tower top/bottom soil 41.9/38.8/19.3 and 35.2/32.0/32.8; BE-Vie 27/55/18, layer unspecified; IT-Col 30/40/about 30, with clay **inferred** by closure not independently reported. **IT-Ren** has an ICOS ETC station particle-size data export with numeric values not yet extracted. **CZ-BK1** still needs a tower-matched texture profile. **RU-Fyo** has ~50 cm peat and should not be forced into a fabricated mineral-soil texture.
 
-**Next scientific step:** verify the newly retrieved sampling scopes and actual CLM soil-layer mapping, obtain ICOS IT-Ren particle-size data, independently examine RU-Fyo peat representation and the FR-Pue stone volume before constructing any new single-site surface or AD5 test. Old source-grid Sand/Clay remains excluded as a scientific source. **No AD job authorized yet.**
+**Updated scientific work:** verify actual CLM soil-layer mapping, examine RU-Fyo peat representation and FR-Pue stone volume, and settle incompatible literature reports. **RU-Fyo alone retains original soil PCT_SAND/PCT_CLAY as an explicit modelling fallback; original-grid vegetation and all other station soil texture remain excluded.** **No AD job authorized yet.**
 
 **IT-Ren source-provenance correction, 24 October 2026:** A widely copied soil description, **Andosol (16% clay, 56% silt, 28% sand)**, belongs to **FR-Lqu Laqueuille grassland**, NOT IT-Ren. Authoritative station match: [ICOS FR-Lqu](https://meta.icos-cp.eu/resources/stations/ES_FR-Lqu). For **IT-Ren**, Flechard et al. (2020) [supplementary Table S4, PDF p. 9](https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-supplement.pdf) reports **Haplic Podzol; clay 11%, sand 55%, silt 34%**. This is a **published site-level soil texture candidate, sample-depth unspecified**, not a validated full CLM soil profile; ICOS 2020 measured soil-horizon CSV remains to be extracted. Do not use the FR-Lqu Andosol values for IT-Ren.
 
@@ -115,7 +117,35 @@ Important new results: CH-Dav 0–10 cm Sand/Silt/Clay 53/25/22; FR-Pue 0–10 c
 
 **Crucial correction:** Table S4 covers **9 of our 10** Batch01 sites; **CH-Dav is absent**. Among the nine, **RU-Fyo and FR-Fon have n.a. for all three texture fractions**. The most relevant values: **CZ-BK1 22/58/21** (Sand/Silt/Clay, published total **101%**), **IT-Ren 55/34/11**, **IT-Col 8/32/59** (total **99%**, conflicts with the separate Chiesi paper), **DE-Hai 4/56/40**, **FR-Pue 26/35/39**, **BE-Vie 27/55/18**, **FI-Sod 94/4/0** (total **98%**, less reliable than the recorded fine-earth horizon dataset).
 
-**Previous operator choices preserved:** CZ-BK1 and RU-Fyo have exceptional, explicitly selected old-surface **soil-only** fallbacks in [soil decisions CSV](../../data/batch01_10_soil_input_decisions.csv). **CZ-BK1 now has published station composition (22/58/21), so its fallback is scientifically worth reconsidering—but has not been silently changed.** RU-Fyo remains a peat-model caveat because Flechard provides no numeric mineral texture. No sourced land-cover fractions are reactivated, and no AD5 launch is approved based on these published whole-site soil parameters alone.
+**Latest operator decisions:** **CZ-BK1 is now explicitly assigned Flechard (2020) Table S4 Sand/Silt/Clay 22/58/21; the previous original-grid soil fallback is discontinued for CZ-BK1.** The 101% published total requires transparent normalization to 100% **when preparing the new surface**, and an explicitly labelled vertical-layer assumption because Table S4 does not resolve each CLM depth. **RU-Fyo alone retains the old-surface PCT_SAND/PCT_CLAY exception** in [soil decisions CSV](../../data/batch01_10_soil_input_decisions.csv). RU-Fyo remains a peat-model caveat because Flechard provides no numeric mineral texture. No sourced land-cover fractions are reactivated, and no AD5 launch is approved based on these published whole-site soil parameters alone.
+
+## Stage08 — CZ-BK1 published texture and RU-Fyo original-soil exception
+
+**Effective model soil decisions (operator, 24 October 2026):**
+
+| Site | Soil composition policy | Important limit |
+| --- | --- | --- |
+| **CZ-BK1** | Use **Flechard et al. (2020) Table S4**: **Sand 22%, Silt 58%, Clay 21%** | The **101%** published sum is retained in provenance. Candidate for CLM input after proportional normalization: **Sand 21.782178%, Silt 57.425743%, Clay 20.792079%**; this is a **modelling normalization, not an additional observation**. Published soil depth 0.55 m does not establish measured texture in every CLM layer. |
+| **RU-Fyo** | **Use original surface soil `PCT_SAND` and `PCT_CLAY` for the new model as an explicit fallback**, unchanged until the source-layer audit | No observed mineral texture in Flechard Table S4 (Peat). Original surface may lack appropriate peat/organic-layer representation; peat thickness/hydrology remain a **separate physical-model gate**. |
+
+**Important:** New Batch01 PFT fractions and forest idealization (`PCT_NATVEG=100%`, `PCT_CROP=0%`) remain independent of the old surface in both sites. All prior source CIME cases have fixed-biogeography/no-competition flags set to `.false.` and must never be recycled as launch-ready FIXNC cases. A fresh isolated case, verified actual DATM files and FATES mapping are still needed.
+
+**Next on IRIDIS6:** [Stage08 read-only two-site preflight script](scripts/08_preflight_CZ_BK1_RU_Fyo_soil_readonly.py) verifies both science decisions, previews the CZ rounding correction, reads old NetCDF schema, and reads **only RU-Fyo's** authorized original sand/clay profile values. **It does not create a new surface, CIME case or Slurm job.**
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment || exit 1
+git status --short
+git pull --ff-only origin main || exit 1
+S8=examples/Batch01_10/scripts/08_preflight_CZ_BK1_RU_Fyo_soil_readonly.py
+S5="$HOME/Batch01_10_stage05_station_inputs_20261024T100531Z/all_sites.json"
+test -f "$S5" || exit 1
+python3 -B "$S8" --self-test || exit 1
+set -o pipefail
+python3 -B "$S8" --stage05 "$S5" 2>&1 | tee "$HOME/Batch01_10_stage08_soil_preflight.log"
+```
+
+Stage08 resulting report is written only to `~/Batch01_10_stage08_soil_preflight_<UTCSTAMP>/all_sites.json`. After the preflight, resolve CZ-BK1 soil-layer vertical assumption, RU-Fyo peat/organic-soil compatibility and the actual FATES/DATM setup; only then construct new **versioned** surface candidates and run one-site AD5 smoke. The **AD400 multi-site production remains on HOLD**.
 
 ## 4. Gates before new versioned surfaces and spin-up
 
@@ -132,5 +162,5 @@ Important new results: CH-Dav 0–10 cm Sand/Silt/Clay 53/25/22; FR-Pue 0–10 c
 - [Seven-site PFT literature review](docs/seven_site_PFT_residual_followup_2026-10-24.md)
 - [Four-site forest inventory evidence](docs/four_site_forest_inventory_search_2026-10-24.md)
 - [Original ICOS PFT inventory](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/tree/main/examples/ICOS_sites/ICOS_PFT)
-- [General field-soil policy](../../docs/observed_soil_texture_policy.md), **overridden for Batch01 where it permits coarse-grid fallback**
+- [General field-soil policy](../../docs/observed_soil_texture_policy.md); Batch01 uses station evidence except explicitly RU-Fyo original-soil-only fallback
 - Historic [Stage01](scripts/01_audit_iridis_batch01_sources.py), [Stage02](scripts/02_trace_actual_case_inputs.py), [Stage03](scripts/03_audit_surface_soil_pft.py) and [Stage04](scripts/04_summarize_readonly_surface_gates.py) scripts are retained to reproduce prior audits but **are not part of the active site-first pipeline**.
