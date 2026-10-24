@@ -82,6 +82,23 @@ python3 -B examples/Batch01_10/scripts/06_audit_observed_soil_only.py \
 
 Stage05 writes **only** a new report under `~/Batch01_10_stage05_station_inputs_<UTCSTAMP>/all_sites.json`. It audits old CIME metadata for technical consistency (especially true DATM stream/calendar and FATES parameter-map evidence), not the old gridded vegetation or soil. **Years found in CIME config are candidates and must be verified against actual forcing files/NO_LEAP treatment.** IT-Col and FR-Pue have two original cases (`S30EXCL` vs `S30SHARED`); compare the actual DATM/CIME input configuration, not their source-surface values. FR-Fon, FI-Sod, IT-Col and FR-Pue's shallow folder scan missed some CSV/DATM paths — **not proof that forcing is absent**.
 
+## Stage05/06 completed — AD readiness decision (24 October 2026)
+
+**Actual results:** [Stage05/06 status, soil source priorities and AD gate](docs/stage05_06_status_and_AD_gate_2026-10-24.md). Stage05 checked 12 reference cases for 10 sites: every old generated lnd_in has `use_fates_nocomp=.false.` and `use_fates_fixed_biogeog=.false.`; none is a ready-to-run new Batch01 FIXNC case. Old DATM XML lists 2018–2019 but contains conflicting effective stream-year hints; verify exact DATM source files/calendars. Stage06 confirms FI-Sod has **three measured soil horizons only**, and the other **nine** sites still lack registered site-specific numeric soil texture. **No AD400 or even AD5 smoke is yet authorized.**
+
+**Next active step** (not an old-surface comparison): run the new [Stage07 station soil metadata search](scripts/07_inventory_local_soil_evidence_readonly.py) on IRIDIS6 to inspect existing site BIF/ancillary/ZIP sources without extracting them. Then obtain missing site-specific measured soil, check soil layer and coarse-fragment handling, verify actual forcing and FATES parameter-map support, and build an isolated versioned site surface and new AD case. FI-Sod is the best first *preparation* candidate, not yet a launch-ready AD case.
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment || exit 1
+git status --short
+git pull --ff-only origin main || exit 1
+S7=examples/Batch01_10/scripts/07_inventory_local_soil_evidence_readonly.py
+python3 -B "$S7" --self-test || exit 1
+set -o pipefail
+python3 -B "$S7" 2>&1 | tee "$HOME/Batch01_10_stage07_soil_discovery.log"
+```
+
 ## 4. Gates before new versioned surfaces and spin-up
 
 1. Verify original forcing streams, years, time conversion, QC, CO2 baseline, pinned executable and actual host↔FATES PFT map; **original cases are only technical provenance sources**.
