@@ -1,5 +1,12 @@
 # Fixed Biogeography & no competition FATES experiment
 
+## Separate AmeriFlux ten-site AD400 planning (24 October 2026)
+
+The user-confirmed AmeriFlux Batch01 **Stage80 forcing selection**, **Stage81 213 annual NetCDF files**, and **Stage82 213/213 SHA audit** are complete. The original NL-Loo case recovery directory is **NOT** a verified full DATM stream template (`DATM_MODE=1PT`, `stream_mode=NOT_IDENTIFIED`), and all ten Stage81 NetCDF files intentionally omit `ZBOT`. **These are not yet scientifically or technically connected to CIME/FATES**; no AD400 run should be submitted just from the NetCDF build result.
+
+[**AmeriFlux-specific ten-site AD400 → Normal400 preflight and runbook**](examples/AmeriFlux_Batch01_10/README.md) is separate from the European/ICOS `examples/Batch01_10` scripts. It explains the safe progression: Stage80/81/82 read-only provenance check → verify static/dynamic site TA_F sensor heights/ZBOT and DATM time/stream/domain → one new isolated FATES fixed-biogeography/no-competition case and AD5 smoke → guarded remaining AD395 → independent hybrid Normal5 → guarded Normal395. **Do not run existing Europe-specific Batch01 submission scripts for AmeriFlux stations**.
+
+
 **Research aim:** Evaluate forest- and ecosystem-carbon responses in FATES under **fixed biogeography** and **no inter-PFT competition**, using the best available EC-station vegetation evidence and transparently versioned site surface data.
 
 **Standard spin-up for all NEW sites: 400 years of accelerated decomposition (AD400), followed by 400 years of Normal decomposition (NORMAL400). Total: 800 model years per site.** This is an experimental design, **not** evidence of convergence or a chronological 800-year historical simulation.
