@@ -1,5 +1,11 @@
 # Standard FIXNC protocol: 400-year AD + 400-year Normal
 
+## Batch01 station-first override (24 October 2026)
+
+For **Batch01 only**, the operator has explicitly chosen an idealized forest-point target of `PCT_NATVEG=100%`, `PCT_CROP=0%` and operator-selected forest PFT compositions in [Batch01 README](../examples/Batch01_10/README.md). **Retire any gate comparing new forest landunits, tree PFTs or soil Sand/Clay to the old coarse gridded source surface**. The grid values are not accepted as station measurements. Require measured soil texture or keep the site on HOLD; no automatic gridded texture fallback. Compatibility checks for required NetCDF shape/variables, scientific scrutiny of other soil fields, actual forcing, FATES mapping and archived restart handoffs remain essential. No existing model files or jobs should be changed.
+
+
+
 **Project title:** Fixed Biogeography & no competition FATES experiment  
 **Decision date:** 24 October 2026  
 **New standardized design for the 20 previously unrun evidence sites:** `AD400 → NORMAL400`, 800 **model** years total.  
