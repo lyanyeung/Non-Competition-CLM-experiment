@@ -45,6 +45,7 @@ The two existing examples are **NL-Loo** and **DE-Tha**. The remaining 20 are se
 
 - [Batch01 site evidence and first IRIDIS6 read-only audit](examples/Batch01_10/README.md)
 - [Batch01 Stage01 ten-site source inventory script](examples/Batch01_10/scripts/01_audit_iridis_batch01_sources.py)
+- [Batch01 Stage02 actual CIME/DATM case-input tracer](examples/Batch01_10/scripts/02_trace_actual_case_inputs.py) — launched only after Stage01, original model files read-only
 - [Policy: never assign unknown forest-PFT remainder to GRA by default](docs/PFT_UNKNOWN_RESIDUAL_POLICY.md)
 - [Batch01 10-site register and source URLs](data/batch01_10_sites.csv)
 - [Batch02 10-site reserve register](data/batch02_10_sites.csv)
