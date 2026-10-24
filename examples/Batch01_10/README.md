@@ -1,292 +1,101 @@
-# Batch 01 — Ten quantitative-vegetation-evidence towers
+# Batch01_10 — Site-observed-first fixed-biogeography / no-competition FATES
 
-**Project:** Fixed Biogeography & no competition FATES experiment  
-**Planned spin-up:** **AD400 → NORMAL400**, 800 model years per tower; **NOT YET STARTED**.  
-**Exclusions:** NL-Loo and DE-Tha (protected prior examples).  
-**Data sources:** [original 38-site PFT inventory](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/tree/main/examples/ICOS_sites/ICOS_PFT), the project's [22-candidate cohort](../../data/22_site_cohort.csv), and [Batch01 tabular register](../../data/batch01_10_sites.csv).
+**Current protocol, 24 October 2026.** Ten forest EC towers; planned **AD400 → NORMAL400** spin-up, 800 model years each, **not started**. NL-Loo and DE-Tha are protected separate examples.
 
-## Why these ten?
+> **OVERRIDING BATCH01 DECISION:** The inherited coarse-grid surface is **not** the scientific benchmark. Stop all scientific comparisons to its `PCT_NATVEG`, `PCT_CROP`, `PCT_NAT_PFT`, `PCT_SAND` and `PCT_CLAY`. Stage03/04 comparisons were completed once and are **removed from the active workflow**. Their old-grid values are not site observations and are not used to choose new vegetation/soil parameters. **Do not delete or modify any original NetCDF, CIME case, restart or older experiment.** An original NetCDF may be referenced only as a technical structural schema for building a separate versioned surface, not as evidence for its ecological parameter values.
 
-Twenty **non-example** sites are listed in the 22-site quantitative-evidence cohort. These ten are prioritized because forest tree identities mostly map to ENF, DNF, DBF or EBF without forcing all remaining unknown vegetation into one class. Even so, most measured values are **species composition, tree-carbon shares or basal area**, NOT the EC-tower footprint's measured horizontal PFT area. **All ten surfaces remain on scientific HOLD.** We have **not** created numerical `PCT_NAT_PFT` prescriptions, set crop/natural landunit fractions, altered datasets or submitted jobs.
+## 1. New model forest-point assumptions
 
-| Rank | Station | Original batch | Original numeric evidence | Provisional functional grouping **of the reported metric only** | What must be decided before using it as a model-area surface? |
-| ---: | --- | --- | --- | --- | --- |
-| 1 | **CZ-BK1** | 8 | Picea abies 99%; Abies alba 1% | ENF 100% of investigated tree area | Clear local survey, but verify tower footprint/landunit areas and mapping |
-| 2 | **IT-Ren** | 8 | Picea abies ≈85%; Pinus cembra 12%; Larix decidua 3% | ENF ≈97%, **DNF 3%** of trees | Explicit larch DNF; verify survey denominator and exact values |
-| 3 | **RU-Fyo** | 6 | Picea abies 85%; Betula pendula 15% | ENF 85%; DBF 15% of reported stand metric | Original Table S2 metric unspecified, Russia site network/access licensing |
-| 4 | **CH-Dav** | 8 | Picea abies **over 99.5%** | ENF >99.5% of tree inventory | Do not falsely round inequality to exact 100% model area |
-| 5 | **IT-Col** | 13 | Fagus sylvatica 100% | DBF 100% of reported stand species | Tree monoculture is not full grid/footprint ground cover |
-| 6 | **FR-Fon** | 11 | Quercus petraea 79%; Carpinus betulus 18%; other <3% | DBF ≥97% **of tree basal area** | Basal area not horizontal area; older study has a different 75/20 report |
-| 7 | **FI-Sod** | 11 | Pinus sylvestris 95% | ENF 95% of stand metric | 5% not identified; original survey metric unspecified |
-| 8 | **FR-Pue** | 13 | Quercus ilex 95%; other data say >80% cover | EBF 95% of reported stand composition | Stand species vs cover differ; model EBF PFT support must be verified |
-| 9 | **DE-Hai** | 6 | Fagus 64%; Fraxinus 28%; Acer 7% | DBF 99% **of tree carbon stock** | Carbon shares are not land area; ~1% unclear |
-| 10 | **BE-Vie** | 8 | Fagus 43%; Pseudotsuga 37% | DBF 43%; ENF 37% of reported stand metric | **20% unresolved**, metric unspecified; no silent renormalization |
+**Explicit operator-approved idealization:** new Batch01 candidates target `PCT_NATVEG=100%` and `PCT_CROP=0%`, with other landunits set to zero as appropriate for a single idealized forest point and the pinned model's conventions. This is an *experimental assumption*, **not** a claim that all EC footprints have measured 100% forest ground cover. No source-grid fractions are carried over as scientific values.
 
-**Stand-specific source links** are in the exact [Batch01 CSV](../../data/batch01_10_sites.csv). The strongest primary site-description example is [ICOS CZ-BK1](https://meta.icos-cp.eu/resources/stations/ES_CZ-BK1): it reports a 99/1 split **within the investigated area**. The recurring 2020 stand-composition source is [Flechard et al. (2020) Table S2 supplement](https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-supplement.pdf); numerical claims listed in the inventory **must still be checked at the source table level**.
-
-## Batch organization and intended site examples
-
-Suggested per-site future structure (directories or scripts should be created **only when the site's evidence and original input file audit is accepted**):
-
-```text
-examples/Batch01_10/
-    README.md                       # this scientific cohort runbook
-    scripts/01_audit_iridis_batch01_sources.py  # existing-site READ ONLY inventory
-    scripts/02_trace_actual_case_inputs.py     # Stage02 generated effective CIME / DATM trace
-    scripts/03_audit_surface_soil_pft.py        # Stage03 read-only source-surface and soil review
-    scripts/04_summarize_readonly_surface_gates.py # Stage04 report summary; no new model writes
-data/
-    batch01_10_sites.csv            # source evidence, not approved surface fractions
-    batch01_10_pft_scenarios.csv     # operator-selected tree-PFT assumptions; HOLD
-examples/Batch01_10/<site>/
-    README.md                       # site evidence & model-input decisions
-    config/site_manifest.json       # per-site forcing years, CO2, case paths & SHA256
-    data/evidence.csv               # provenance and denominator
-    scripts/02_field_PFT_and_soil_science_review.py  # FUTURE, not built
-    scripts/02_build_site_surface_VERSIONED.py
-    scripts/03_AD400_smoke_and_resume.py
-    scripts/04_Normal400_branch_and_resume.py
-```
-
-**No site-specific script from DE-Tha is safe to run unchanged**: DE-Tha hard-codes `1996–2025`, v2 SHA256, its run/case dirs and absolute names. Batch01 must first enumerate each tower's own verified observational forcing, DATM streams, initial date, case baselines, surface dimensions, source soil and compatible FATES PFT mapping.
-
-## Start now on IRIDIS6 — Stage 01 ten-site inventory (model inputs read-only)
-
-**Do this first, without writing any new surface or submitting Slurm jobs.** The purpose is to recover exact 10-site input paths from the original FLUXNET 6/8/11/13 experiments instead of reusing DE-Tha paths or assuming new case states.
-
-Script: [01_audit_iridis_batch01_sources.py](scripts/01_audit_iridis_batch01_sources.py).
-
-```bash
-conda activate clm_fates_env
-cd ~/Non-Competition-CLM-experiment
-git status --short
-git pull --ff-only origin main
-
-python3 -m py_compile \
-  examples/Batch01_10/scripts/01_audit_iridis_batch01_sources.py
-
-python3 -B examples/Batch01_10/scripts/01_audit_iridis_batch01_sources.py \
-  --self-test
-
-set -o pipefail
-python3 -B examples/Batch01_10/scripts/01_audit_iridis_batch01_sources.py audit \
-  2>&1 | tee ~/Batch01_10_source_inventory_stage01.log
-```
-
-The script reads `data/batch01_10_sites.csv`, verifies exactly ten sites and excludes NL-Loo and DE-Tha; inspects shallow per-site surface/forcing trees, old CIME cases and `CaseDocs/lnd_in` (when present), candidate surface percentages and soil first texture layer, year ranges in `user_nl_datm_streams`, plus existing Slurm `#SBATCH` lines. It writes **only** a new timestamped `~/Batch01_10_source_inventory_<UTCSTAMP>/all_sites.json` and `summary.csv`, prints the exact output path, and does not create, edit, cancel or submit jobs. An inventory hit is a **candidate**: it does not certify forcing quality, soil field observations, tree PFT fraction validity, model readiness or scientific equilibrium.
-
-**Interpretation rules:**
-
-- `EXISTS=False` / zero counts mean the canonical location did not yield the input; source files may live at different paths. Do **not** recreate or overwrite missing inputs until the alternative location is identified.
-- `PCT_NAT_PFT` is a CLM surface input, and old-site PFT composition may include high crop fractions. Existing percentages do not prove the target tower's species ground area.
-- **Unknown vegetation share is never assigned to GRA by this script or by default.** See [residual PFT policy](../../docs/PFT_UNKNOWN_RESIDUAL_POLICY.md). In particular, BE-Vie's remaining 20% stand species or FR-Fon's remaining <3% *tree basal area* are NOT grassland.
-- Next stage: evidence-by-evidence decisions for the 10 sites, plus their site soil measurements and surface landunits, then **versioned** fixed-PFT surfaces and site-specific AD400 five-year smoke tests. Do not immediately launch 10×800 years.
-
-**Operator follow-up:** share the Stage01 summary table, and for any missing/mismatched source cases inspect the corresponding detail in `all_sites.json` so we can construct the exact per-site setup instead of guessing paths.
-
-## Stage01 IRIDIS6 observed result — 24 October 2026
-
-The operator completed the ten-site Stage01 inventory and reported **SELF-TEST PASS**, 10/10 site roots found, no model/source writes and no Slurm jobs submitted. Report files on IRIDIS6 are:
-
-- `/iridisfs/home/ly3n24/Batch01_10_source_inventory_20261024T090713Z/all_sites.json`
-- `/iridisfs/home/ly3n24/Batch01_10_source_inventory_20261024T090713Z/summary.csv`
-
-| Site | Existing cases | Candidate point surfaces | Scanned processed CSV count | Scanned DATM directories | Operational attention |
+| Site | ENF % | DNF % | DBF % | EBF % | Basis |
 | --- | ---: | ---: | ---: | ---: | --- |
-| CZ-BK1 | 1 | 1 | 6 | 1 | confirm surface and exact DATM stream |
-| IT-Ren | 1 | 1 | 6 | 1 | confirm surface and exact DATM stream |
-| RU-Fyo | 1 | 1 | 10 | 2 | resolve two alternative DATM locations |
-| CH-Dav | 1 | 1 | 6 | 1 | confirm surface and exact DATM stream |
-| IT-Col | 2 | 1 | 0 | 0 | **two existing cases; trace actual forcing from CIME** |
-| FR-Fon | 1 | 1 | 0 | 1 | DATM candidate directory exists; find actual forcing |
-| FI-Sod | 1 | 1 | 0 | 1 | DATM candidate directory exists; find actual forcing |
-| FR-Pue | 2 | 1 | 0 | 0 | **two existing cases; trace actual forcing from CIME** |
-| DE-Hai | 1 | 1 | 10 | 2 | resolve two alternative DATM locations |
-| BE-Vie | 1 | 1 | 6 | 1 | confirm surface and exact DATM stream |
+| CZ-BK1 | 100 | 0 | 0 | 0 | Spruce/fir stand |
+| IT-Ren | 97 | 3 | 0 | 0 | Evergreen conifers + larch |
+| RU-Fyo | 85 | 0 | 15 | 0 | Selected 85/15 (another survey gives 86/14) |
+| CH-Dav | 100 | 0 | 0 | 0 | Spruce >99.5%; labelled proxy |
+| IT-Col | 0 | 0 | 100 | 0 | Beech stand |
+| FR-Fon | 2 | 0 | 98 | 0 | Operator assumption: 2 ENF + 1 DBF from residual |
+| FI-Sod | 100 | 0 | 0 | 0 | Operator Scots pine forest proxy |
+| FR-Pue | 0 | 0 | 5 | 95 | Operator maps remaining 5% to DBF |
+| DE-Hai | 0 | 0 | 100 | 0 | All named sampled trees broadleaf deciduous |
+| BE-Vie | 64 | 0 | 36 | 0 | Operator assigns reported rounding residual to ENF |
 
-**Interpretation:** this scan only checks a few known folder naming conventions. `CSV=0` or `DATM=0` is **not** proof of missing forcing, and two cases do not mean two independent valid baseline datasets. No Batch01 site has passed scientific fixed-PFT area/soil-depth gates yet.
+Proposed fractions: [machine-readable PFT scenarios](../../data/batch01_10_pft_scenarios.csv). Keep the [original numerical tree evidence](../../data/batch01_10_sites.csv) unchanged: literature denominators differ (species counts, carbon stocks, basal area or forest footprint). **No host-to-FATES PFT indices have yet been certified; do not assume broad ENF/DBF labels are exact model indices.**
 
-### Stage02 — trace exact baseline CIME inputs before choosing any surface
+## 2. Soil: actual station measurements, NOT the inherited surface
 
-GitHub script: [02_trace_actual_case_inputs.py](scripts/02_trace_actual_case_inputs.py), **read-only for model inputs**, writes only a new HOME report.
+**Batch01-specific rule:** use in-situ soil particle-size measurements from the tower footprint or the same forest stand, with documented location, horizon, sampling/analysis, provenance and year. **No inherited CLM grid Sand/Clay fallback** and no guessed percentages from soil class labels. If station values are unavailable, hold that site's soil parameterization for further evidence collection. Unmeasured depths need clearly labelled interpolation/extrapolation choices and appropriate uncertainty: do not call these observed. Other soil quantities (organic matter, coarse fragments, bulk density, thermal/hydraulic properties) also need source-aware treatment.
 
-```bash
-conda activate clm_fates_env
-cd ~/Non-Competition-CLM-experiment
-git pull --ff-only origin main
+**FI-Sod measured horizons now found** in the [FLUXNET FI-Sod site description](https://fluxnet.org/sites/siteinfo/FI-Sod):
 
-INPUT=/iridisfs/home/ly3n24/Batch01_10_source_inventory_20261024T090713Z/all_sites.json
-SCRIPT=examples/Batch01_10/scripts/02_trace_actual_case_inputs.py
+| Depth | Sand % | Silt % | Clay % | Stones % |
+| --- | ---: | ---: | ---: | ---: |
+| 0–10 cm | 88.12 | 6.0 | 0.5 | 5.4 |
+| 10–20 cm | 93.5 | 4.1 | 0.3 | 2.1 |
+| 20–40 cm | 91.9 | 2.8 | 0.2 | 5.1 |
 
-python3 -m py_compile "$SCRIPT"
-python3 -B "$SCRIPT" --inventory "$INPUT" --self-test
+These observed percentages include **stones**, unlike the fine-earth `PCT_SAND`/`PCT_CLAY` inputs. Process each horizon as `sand/(sand+silt+clay)*100`, `clay/(sand+silt+clay)*100` (same for silt), preserving stones and original values in evidence. Tiny non-100 totals reflect reporting precision. **No depth below 40 cm has been documented from this record**, and no full model soil profile has been approved yet.
 
-set -o pipefail
-python3 -B "$SCRIPT" --inventory "$INPUT" \
-  2>&1 | tee ~/Batch01_10_stage02_case_trace.log
-```
+[Station soil evidence CSV](../../data/batch01_10_soil_site_observations.csv) contains FI-Sod's 3 published horizons and **9 other sites flagged NEED_SITE_OBSERVATION** (no invented values). [ICOS ETC Level-II site soil dataset gateway](https://traitementinfosol.pages-forge.inrae.fr/icos/index.html) is a potential source for the other ICOS towers; check whether the observations represent each target tower, review sample depths and respect site PI/data use conditions.
 
-Stage02 reads `CaseDocs/lnd_in`, `CaseDocs/datm_in`, actual DATM stream candidates, `user_nl_datm_streams`, candidate runtime stream files, original `fsurdat` checksums, CIME XML metadata and existing `#SBATCH` lines. It does **not** repair forcing, create PFT surfaces, alter old cases or submit jobs. A source inventory identifies paths but **does not validate tower field soil or EC footprint PFT fractions**.
+Run the **evidence-only soil validator**:
 
-After Stage02, adjudicate `IT-Col` and `FR-Pue` duplicate cases, determine the actual DATM streams for all ten, and review source-area denominators. Only then advance CZ-BK1, IT-Ren and IT-Col to an explicit site-specific FIXNC surface candidate. Unknown vegetation composition must **not** automatically become GRA.
+~~~bash
+python3 -B examples/Batch01_10/scripts/06_audit_observed_soil_only.py
+~~~
 
-**Other seven towers:** [Seven-site PFT residual follow-up (24 October 2026)](docs/seven_site_PFT_residual_followup_2026-10-24.md) adds primary/official evidence for RU-Fyo, CH-Dav, FR-Fon, FI-Sod, FR-Pue, DE-Hai and BE-Vie. Main findings: RU-Fyo wet spruce 86/14 versus older 85/15; DE-Hai small remainder belongs to DBF tree species; CH-Dav nearly all ENF trees; FR-Fon other <3% includes ENF pine; FR-Pue secondary 90/10 claim requires reconciliation; FI-Sod 5% trees still unclassified; BE-Vie remaining 20% has ENF and DBF species but no exact shares. **None authorizes automatic GRA or complete EC-footprint PFT-area allocations.**
+It computes fine-earth percentages for *observed horizons only*, flags missing stations, and never reads or writes a source surface.
 
-## Batch01 PFT closure checkpoint — 24 October 2026
+## 3. What is finished, and what to do next
 
-This checkpoint separates **forest-tree functional-type closure** from **approval of a CLM-FATES horizontal-area surface**. It summarises the 10-site register and the [seven-site evidence follow-up](docs/seven_site_PFT_residual_followup_2026-10-24.md). No species percentage in this table is automatically `PCT_NAT_PFT`.
+| Stage | Status | Role in CURRENT workflow |
+| --- | --- | --- |
+| Stage01 | Completed | Original site-file inventory, historical provenance |
+| Stage02 | Completed | Original CIME/DATM cases: 12 candidates for 10 sites |
+| Stage03/04 | Completed historically; **retired** | Readable old NetCDF, grid-landunit/soil comparisons **not used further** |
+| **Stage05** | **Next** | Direct Stage02 → original CIME configuration, DATM streams, FATES settings (no surface comparison) |
+| **Stage06** | **Next, parallel** | Station-measured soil evidence only; explicitly mark missing data |
+| Stage07 surface builder | Not yet approved | Separate versioned stand-site forest surface after science/technical gates |
+| AD400 → Normal400 | Not started | 5-year first AD smoke, then verified continuation, then independent Normal branch |
 
-| Evidence group | Sites | Reported forest-tree PFT information | Outstanding decision |
-| --- | --- | --- | --- |
-| Complete reported tree-type grouping (3) | CZ-BK1, IT-Ren, IT-Col | CZ-BK1 ENF 100% (99 spruce + 1 fir); IT-Ren ENF ~97% + DNF ~3%; IT-Col DBF 100% | Confirm denominators, footprint/landunits, soil and original case inputs |
-| Functionally near-resolved / conditional proxy (3) | RU-Fyo, DE-Hai, CH-Dav | RU-Fyo ENF/DBF 85/15 (alternate 86/14 with different birch species); DE-Hai named remaining tree species DBF, so DBF 100% **only as a conditional tree-group proxy**; CH-Dav ENF >99.5%, ENF 100% **only as a labelled proxy** | RU-Fyo reconcile source year and birch identity; DE-Hai verify ~1% residual is entirely DBF; CH-Dav retain <0.5% uncertainty |
-| Species groups found, residual percentages unresolved (3) | FR-Fon, FR-Pue, BE-Vie | FR-Fon DBF 97% of basal area with other <3% including ENF pine and deciduous species; FR-Pue EBF 95% stand composition vs unverified 90/10 EBF/DBF alternative; BE-Vie DBF 43% + ENF 37% + mixed woody residual 20% | Obtain comparable source-year, denominator-specific quantitative shares; BE-Vie 20% is highest-priority gap |
-| Residual trees not identified (1) | FI-Sod | ENF pine 95%, other 5% trees not confirmed; ground-layer lichen/moss/shrub percentages use a different denominator | Identify remaining tree species and fractions; never fill remainder with ground-layer percentages |
+**Execute now on IRIDIS6** (the current Stage05 reads Stage02 **directly**, not Stage03/04):
 
-**Historical literature note (before operator scenario decisions):** four sites originally lacked complete measured species shares (FR-Fon, FR-Pue, BE-Vie, FI-Sod). **As of 24 October 2026, operator-selected tree-PFT candidate mixtures now exist for all four**, including FI-Sod ENF100. This closes the *scenario selection* gap, NOT the unmeasured species evidence or approval of model surface area fractions. The other six are suitable for *drafting*, not approving, stand-tree PFT proposals. Neither the 3 complete reported groups nor the 3 conditional proxies prove EC-footprint area fractions.
-
-**Scientific release gate remains 0/10**: All sites retain `EVIDENCE_ONLY_HOLD_SURFACE` until source metric/footprint, natural-vs-crop landunits, PFT mapping, soil provenance, actual case inputs and versioned-surface QA are reviewed. There is no authority here to write production `PCT_NAT_PFT`, modify old cases, launch AD400/NORMAL400, or send unknown residual to GRA.
-
-
-**New forest inventory evidence (24 October 2026):** [Four-site inventory search](docs/four_site_forest_inventory_search_2026-10-24.md) identifies a **BE-Vie 70% cumulative EC-footprint species classification** (2018 drone mapping; published ESSD 2026): Norway spruce 38% ENF, silver fir 14% ENF, Douglas fir 9% ENF, Scots pine 2% ENF, European beech 36% DBF. **ENF 63% + DBF 36% = 99% reported**; residual 1% is not silently normalized. This supersedes the *unknown-20% issue for this footprint-specific evidence*, NOT the older stand-study denominator or the production-surface HOLD. FR-Fon and FR-Pue now have documented tree-inventory plot leads but not minority-species fractions; FI-Sod remains unidentified at 5%. In the **observational inventory** these uncertainties remain; subsequent operator decisions in the next section assign model-only candidate fractions, including FI-Sod ENF100. No inventory evidence has been changed.
-
-## Operator-selected candidate PFT scenarios — 24 October 2026
-
-**Decision type:** operator-specified, **assumption-based TREE-PFT mixture only**. These percentages are *not* newly observed forest inventory and are *not* approved `PCT_NAT_PFT` fractions or cell-area prescriptions. Do not change any production surface, CIME case or Slurm job from this documentation.
-
-| Site | ENF | DBF | EBF | Assumption/evidence |
-| --- | ---: | ---: | ---: | --- |
-| FR-Fon | **2%** | **98%** | 0% | Operator assigns 2% of the <3% miscellaneous basal-area share to ENF pine and 1% to DBF, added to published DBF 97%. Because original 'other' is **<3%**, the exact 2+1 partition is a convenient 100%-summing model approximation, NOT a measured or mathematically exact reconstruction. |
-| FR-Pue | 0% | **5%** | **95%** | Operator allocates all unclassified 5% tree composition to DBF; independent verification of this 5% is unavailable. Alternative published 90/10 from a different denominator should not be silently merged. |
-| BE-Vie | **64%** | **36%** | 0% | Operator allocates the 1 percentage point missing from ESSD 2026 rounded drone-classification figures (ENF reported 63%, DBF 36%, sum 99%) to ENF, conditional on a stable 70% cumulative EC footprint. **64% ENF is assumption, not directly measured.** Earlier stand 43/37/20 uses a different denominator. |
-| **FI-Sod — selected primary assumption** | **100%** | **0%** | **0%** | **Operator decision, 24 October 2026:** use an all-ENF tree-PFT candidate based on the ICOS Scots pine forest description. This explicitly allocates the 5% not identified in the original 95% stand composition to ENF **as a model assumption, not a measured inventory share**. The previously suggested ENF95/DBF5 sensitivity is **not selected or authorized as an active Batch01 scenario**. |
-
-**FI-Sod operator decision:** ENF100 is the sole selected **primary Batch01 tree-PFT scenario**; ENF95/DBF5 is not an active scenario. The original source record still says pine 95% and unknown 5%, and this difference must remain visible in provenance.
-
-FI-Sod renewed search: [ICOS tower](https://meta.icos-cp.eu/resources/stations/ES_FI-Sod) identifies Scots pine natural-regeneration forest; [FMI](https://en.ilmatieteenlaitos.fi/ghg-sodankylaicos) gives approximately 2,100 stems/ha and ~12 m height, **not** a species inventory; [Finnish NFI](https://www.silvafennica.fi/article/24045) provides only regional mixture evidence. None resolves the tower's tree-species 5%. Distinguish the Sodankylä forest EC tower from the neighboring Halssiaapa wetland tower.
-
-**Scientific gates:** precise inventory denominator, natural landunit area, soil texture and depth, compatible FATES PFT labels and actual model input QA are all still outstanding. **All ten final surfaces remain on HOLD.** For further baseline evidence see [four-site inventory follow-up](docs/four_site_forest_inventory_search_2026-10-24.md).
-
-## Stage03 — ten-site candidate PFT, source surface and soil audit (read only)
-
-**New since Stage02:** [selected ten-site model-tree PFT scenarios](../../data/batch01_10_pft_scenarios.csv) preserve all 10 operator-defined **ENF/DNF/DBF/EBF** candidates **separately** from [raw source evidence](../../data/batch01_10_sites.csv). FR-Fon 2 ENF/98 DBF; FR-Pue 95 EBF/5 DBF; BE-Vie 64 ENF/36 DBF; FI-Sod 100 ENF. Scenario percentages sum to 100 **among modelled tree functional groups**, NOT automatically within the whole footprint/grid cell or current CLM host NATVEG area. No FATES PFT index is assigned at this step.
-
-**Run on IRIDIS6; the Stage01 inventory has already been reported at** `/iridisfs/home/ly3n24/Batch01_10_source_inventory_20261024T090713Z/all_sites.json`. **First run Stage02** if its `case_trace.json` is not already available or current, then **Stage03**. These two scripts read existing source/CIME files and write reports to new timestamped HOME directories only. They never create production fsurdat, change Slurm jobs, or approve any case.
-
-```bash
+~~~bash
 conda activate clm_fates_env
 cd ~/Non-Competition-CLM-experiment || exit 1
 git status --short
 git pull --ff-only origin main || exit 1
 
-S1="$HOME/Batch01_10_source_inventory_20261024T090713Z/all_sites.json"
-S2="examples/Batch01_10/scripts/02_trace_actual_case_inputs.py"
-S3="examples/Batch01_10/scripts/03_audit_surface_soil_pft.py"
+S2="$HOME/Batch01_10_stage02_case_trace_20261024T094433Z/case_trace.json"
+SCRIPT=examples/Batch01_10/scripts/05_trace_DATM_FATES_readonly.py
+test -f "$S2" || { echo "Stage02 report missing"; exit 1; }
 
-test -f "$S1" || { echo "Stage01 report missing; stop safely"; exit 1; }
-python3 -B "$S2" --inventory "$S1" --self-test || exit 1
-python3 -B "$S3" --self-test || exit 1
-
-set -o pipefail
-python3 -B "$S2" --inventory "$S1" \
-  2>&1 | tee "$HOME/Batch01_10_stage02_latest.log" || exit 1
-
-TRACE=$(find "$HOME" -maxdepth 2 -type f -name case_trace.json \
-  -path "$HOME/Batch01_10_stage02_case_trace_*/case_trace.json" \
-  -printf '%T@ %p\n' | sort -rn | head -1 | cut -d' ' -f2-)
-test -n "$TRACE" && test -f "$TRACE" || exit 1
-echo "Stage02 trace: $TRACE"
-
-python3 -B "$S3" --case-trace "$TRACE" \
-  2>&1 | tee "$HOME/Batch01_10_stage03_latest.log"
-```
-
-**Read output:** `~/Batch01_10_stage03_surface_soil_<UTCSTAMP>/summary.csv` and `all_sites.json`. Stage03 reports **each** candidate existing fsurdat and exact case path; it flags duplicate baseline cases (notably IT-Col / FR-Pue), missing source surfaces, nonzero crops, non-100 natural landunits, suspicious conditional PFT sums and the first sand/clay grid-layer values. It makes **no case choice** and does **not** claim that source-grid soil is locally measured. A `READ_OK` only confirms NetCDF readability, not scientific adequacy. Review each site's actual forcing calendar and effective DATM stream from Stage02 rather than assuming that the Stage01 shallow folder scan found it.
-
-**Next decision after reviewing these reports:** choose one validated baseline case/forcing configuration per station, verify soil depth/provenance and natural-vs-crop landunit coverage, and validate exact FATES host-PFT indices (ENF, DNF, DBF, EBF are broad ecological groups). Only after explicit scientific review should we implement *new versioned* FIXNC fsurdat candidates and one-site AD400 five-year smoke tests. **All Batch01 sites remain HOLD for production and Slurm.**
-
-## Stage02–03 confirmed IRIDIS6 outcomes and Stage04 extraction — 24 October 2026
-
-**Observed operator results, not an inference about production readiness:** Stage02 self-test passed; Stage03 self-test passed; both main scripts completed without modifying original inputs or submitting Slurm jobs. Stage02 found one candidate baseline case per site **except IT-Col and FR-Pue (two each)**, giving **12 case records for ten sites**. Stage03 read **one candidate original fsurdat successfully per site (10/10)**, and all selected 10-site tree-PFT hypotheses passed the 100% sum validation. All ten remain **HOLD**. A readable NetCDF says nothing about scientific validity of surface PFT, soil provenance or the effective FATES fixed-biogeography mapping.
-
-Operator report references:
-- Stage02 `/home/ly3n24/Batch01_10_stage02_case_trace_20261024T094433Z/case_trace.json`
-- Stage03 `/iridisfs/home/ly3n24/Batch01_10_stage03_surface_soil_20261024T094433Z/all_sites.json`
-
-Stage02 displayed `CSV=0` for **IT-Col, FR-Fon, FI-Sod, FR-Pue** and `DATM=0` for **IT-Col, FR-Pue**, which are **limitations of the initial shallow inventory, not evidence of missing real forcing**. RU-Fyo and DE-Hai each listed two DATM directory candidates. Duplicate IT-Col/FR-Pue case names refer to `S30EXCL` and `S30SHARED`; do not select by suffix alone.
-
-**Next: Stage04 print-only review of existing reports** (no additional NetCDF reads and no output except stdout). The new [04_summarize_readonly_surface_gates.py](scripts/04_summarize_readonly_surface_gates.py) prints original source-host `PCT_NATVEG`, `PCT_CROP`, first-layer source-grid `PCT_SAND`/`PCT_CLAY`, existing conditional host-PFT sum, Stage03 issue flags and Stage02 case calendar excerpts. Source-soil first layer is **not** verified field soil. For missing fields or ambiguous shapes the display is `-`, not zero.
-
-```bash
-conda activate clm_fates_env
-cd ~/Non-Competition-CLM-experiment || exit 1
-git status --short
-git pull --ff-only origin main || exit 1
-STAGE03="$HOME/Batch01_10_stage03_surface_soil_20261024T094433Z/all_sites.json"
-test -f "$STAGE03" || exit 1
-set -o pipefail
-python3 -B examples/Batch01_10/scripts/04_summarize_readonly_surface_gates.py \
-  --stage03 "$STAGE03" \
-  2>&1 | tee "$HOME/Batch01_10_stage04_review.log"
-```
-
-Review the full Stage04 table and flags before deciding whether to retain the old natural/crop landunit percentages, choose a different baseline case, use field-measured soil or a labelled grid fallback, or construct any new versioned FIXNC surface. **No AD400/Normal400 runs yet.**
-
-## Stage04 observed results and Stage05 original DATM/FATES input verification — 24 October 2026
-
-The operator ran Stage04 on the **10/10 NetCDF-readable** Stage03 surfaces without altering model inputs, and returned the following **source-host** (NOT observed footprint) percentages:
-
-| Site | Source NATVEG % | Source CROP % | First-layer grid Sand % | First-layer grid Clay % | Follow-up |
-| --- | ---: | ---: | ---: | ---: | --- |
-| CZ-BK1 | 75.31 | 24.69 | 43 | 11 | Review cropland in forest-point surface |
-| IT-Ren | 95.81 | 4.19 | 43 | 11 | Review small crop fraction |
-| RU-Fyo | 96.69 | 3.31 | 43 | 12 | Review small crop fraction |
-| CH-Dav | 96.38 | 3.62 | 43 | 18 | Review small crop fraction |
-| IT-Col | 72.30 | 27.70 | 40 | 20 | Also two original CIME cases |
-| FR-Fon | 49.20 | 50.80 | 41 | 17 | **Priority: biggest grid-crop discrepancy** |
-| FI-Sod | 99.82 | 0.18 | 54 | 6 | Near 100% source natural landunit, still nonzero crop |
-| FR-Pue | 69.29 | 30.71 | 53 | 16 | Also two original CIME cases |
-| DE-Hai | 61.88 | 38.12 | 43 | 11 | **Priority: large grid-crop discrepancy** |
-| BE-Vie | 78.89 | 21.11 | 44 | 20 | Verify footprint vs inherited grid |
-
-All ten original host `PCT_NAT_PFT` conditional sums are 100%, but this does **not** validate FATES prescribed biogeography or assign our candidate tree-PFT percentages to the surface. Source-grid top-layer sand/clay are **not** certified field observations; do not copy DE-Tha soil data into these stations. All sites had `NATVEG+CROP=100%` in printed Stage04 scalars; verify other landunits including multi-class `PCT_URBAN` from the full NetCDF metadata before any new landunit prescription. **Do not automatically overwrite CROP=0/NATVEG=100** purely because a flux tower is labelled forest.
-
-**Stage04 showed `DATM first/last/align=?/?/?` in all 12 original case records.** That means Stage02's shallow/text parser did not recover the actual stream calendar, not that the forcing is absent or invalid. Existing original cases have `CLM_ACCELERATED_SPINUP=off`, which is consistent with past normal spinups, **not** evidence that a new AD400 case is configured.
-
-**New Stage05** [05_trace_DATM_FATES_landunits_readonly.py](scripts/05_trace_DATM_FATES_landunits_readonly.py) reads Stage03's report, then existing case text/config files (`env_run.xml`, `CaseDocs/lnd_in`, `CaseDocs/datm_in`, `user_nl_datm_streams`, bounded `datm.streams.*`, etc.), and prints **DATM configuration hints, generated FATES flags/map, original case identities and source landunits**. Any date found is a *configuration hint* requiring validation against exact stream files and forcing years. It creates a **new HOME report only**; does not alter old CIME/DATM/surface files or Slurm jobs.
-
-```bash
-conda activate clm_fates_env
-cd ~/Non-Competition-CLM-experiment || exit 1
-git status --short
-git pull --ff-only origin main || exit 1
-SCRIPT=examples/Batch01_10/scripts/05_trace_DATM_FATES_landunits_readonly.py
-S3="$HOME/Batch01_10_stage03_surface_soil_20261024T094433Z/all_sites.json"
-test -f "$S3" || { echo "Stage03 report unavailable"; exit 1; }
 python3 -B "$SCRIPT" --self-test || exit 1
 set -o pipefail
-python3 -B "$SCRIPT" --stage03 "$S3" \
+python3 -B "$SCRIPT" --stage02 "$S2" \
   2>&1 | tee "$HOME/Batch01_10_stage05_latest.log"
-```
 
-**After Stage05:** 1) adjudicate IT-Col and FR-Pue's `S30EXCL` vs `S30SHARED` cases by checking exact stream inputs; 2) verify per-site forcing year ranges, NO_LEAP calendar, original hashes and FATES mapping; 3) decide forest-footprint/landunit assumptions and site-specific soil depth/texture or explicit grid fallback. Only then implement separate **versioned, unsubmitted** fixed-biogeography surface candidates. All ten remain **HOLD**.
+python3 -B examples/Batch01_10/scripts/06_audit_observed_soil_only.py \
+  2>&1 | tee "$HOME/Batch01_10_stage06_soil_evidence.log"
+~~~
 
-## Readiness gates to work through, in order
+Stage05 writes **only** a new report under `~/Batch01_10_stage05_station_inputs_<UTCSTAMP>/all_sites.json`. It audits old CIME metadata for technical consistency (especially true DATM stream/calendar and FATES parameter-map evidence), not the old gridded vegetation or soil. **Years found in CIME config are candidates and must be verified against actual forcing files/NO_LEAP treatment.** IT-Col and FR-Pue have two original cases (`S30EXCL` vs `S30SHARED`); compare the actual DATM/CIME input configuration, not their source-surface values. FR-Fon, FI-Sod, IT-Col and FR-Pue's shallow folder scan missed some CSV/DATM paths — **not proof that forcing is absent**.
 
-1. **Observed PFT provenance:** retrieve actual station/forest source, verify measurement year, survey method, spatial coverage, specific **denominator** and any species sum. Record the unknown share. A scientific proxy must be proposed and explicitly recorded before it can become a fixed PFT surface.
-2. **Existing CLM-FATES evidence:** identify each site's already developed 6/8/11/13-site source forcing, stream calendars, original surface data and CIME case in [CLM-FATES-single-site-workflows](https://github.com/lyanyeung/CLM-FATES-single-site-workflows). Validate original file checksums and source data license; never modify old spinups or cases.
-3. **Observed soil texture first:** find reliable tower/stand sand, silt and clay data, document depth and particle convention. Build a **new versioned** surface from site evidence when available; otherwise use a labeled source-grid fallback. Do not infer sand/clay percentages from soil classification names alone.
-4. **Batch01 individual dry-run:** cross-check 100% landunit totals, `PCT_NAT_PFT`, dynamic FATES mapping, generated `lnd_in`, `spinup_state=2`, source hashes, executable and per-case Slurm single-core launch / real `#SBATCH` parameters.
-5. **AD400:** first cold-start 5-year AD smoke and **verified archive**, then 395 years in the **same AD case**, guarded. Use **one** source forcing cycle repeatedly.
-6. **NORMAL400:** wait for full AD400 restart, branch into a **separate** new hybrid normal case, 5-year smoke to verify `spinup_state=0`, then separate 395-year continuation. Do **not** transform an active AD resubmitting case in place.
-7. **Scientific convergence:** inspect soil C/N, FATES carbon pools/LAI, GPP/NEE and water balance over the final years; normal-pool equilibration is not proven by calendar length alone.
+## 4. Gates before new versioned surfaces and spin-up
 
-Protocol: [AD400 → NORMAL400](../../docs/AD400_NORMAL400_PROTOCOL.md). All Batch01 sites are currently **EVIDENCE_ONLY_HOLD_SURFACE**. No CIME or Slurm experiments have been generated for the new ten as part of this planning change.
+1. Verify original forcing streams, years, time conversion, QC, CO2 baseline, pinned executable and actual host↔FATES PFT map; **original cases are only technical provenance sources**.
+2. Complete station **soil measurements** for remaining sites and depth-aware mapping; no old grid Sand/Clay substitution. Require decisions on all other physically necessary soil/hydraulic/organic parameters before production.
+3. Create **new isolated surfaces** with the above experiment NATVEG/CROP assumption, chosen tree PFT fractions and proven site soil; validate numerical landunit/PFT sums, exact CTSM NetCDF schema, fixed-biogeography/no-competition flags and unchanged protected old inputs. Binary schema compatibility checks remain required even though old ecological values are discarded.
+4. Run a **single site's** 5-year AD400 test first: `CLM_ACCELERATED_SPINUP=on`, correct generated `spinup_state=2`, `STOP_N=5`, `RESUBMIT=0`. Verify run and archival restart success. Only then complete the remaining AD395.
+5. Start **a separate Normal400 case** from the verified AD400 restart, with normal state (`spinup_state=0`), 5-year smoke then Normal395, and convergence diagnostics. [Detailed spin-up protocol](../../docs/AD400_NORMAL400_PROTOCOL.md).
 
-## The separate ten-site Batch02 reserve
+**Current science release: HOLD (10/10).** The 10 PFT mixtures and forest idealization are **chosen**; station soil is only *partly measured* for FI-Sod; DATM and mapping are still being verified. No new Batch01 cases, fsurdat, forcing or Slurm jobs have been generated by these steps.
 
-[Batch02 CSV](../../data/batch02_10_sites.csv) contains **DK-Sor, FR-Hes, FR-FBn, BE-Bra, IT-Noe, CH-Fru, CH-Lae, ES-LJu, FI-Hyy, IT-MBo**. Several have conflicting temporal stand measurements, unresolved needleleaf mixtures or ground-cover/vegetated-cover denominators; they remain screened leads, not rejected sites. They are not Batch01 and should not be silently swapped into Batch01 without updating the two registers.
+## Supporting evidence and historical material
 
-## Preserving the two example histories
-
-**NL-Loo** has a historic PRE50/AD200 workflow. **DE-Tha** had a direct AD400 cold start: its first 5-year AD and a separate AD5→Normal5 mode-switch **already succeeded**, and its remaining 395 AD years had been **submitted**, but not confirmed finished at the time this register was created. Both example histories are deliberately retained rather than rewritten into the new 800-year standard.
+- [Seven-site PFT literature review](docs/seven_site_PFT_residual_followup_2026-10-24.md)
+- [Four-site forest inventory evidence](docs/four_site_forest_inventory_search_2026-10-24.md)
+- [Original ICOS PFT inventory](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/tree/main/examples/ICOS_sites/ICOS_PFT)
+- [General field-soil policy](../../docs/observed_soil_texture_policy.md), **overridden for Batch01 where it permits coarse-grid fallback**
+- Historic [Stage01](scripts/01_audit_iridis_batch01_sources.py), [Stage02](scripts/02_trace_actual_case_inputs.py), [Stage03](scripts/03_audit_surface_soil_pft.py) and [Stage04](scripts/04_summarize_readonly_surface_gates.py) scripts are retained to reproduce prior audits but **are not part of the active site-first pipeline**.
