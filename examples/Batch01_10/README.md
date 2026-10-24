@@ -1,5 +1,23 @@
 # Batch01_10 — Site-observed-first fixed-biogeography / no-competition FATES
 
+### 24 October 2026 HOTFIX — Stage11 plan CSV codec failure
+
+The **first Batch01_10 Stage11 `plan` run on IRIDIS6 failed before any model write** with `LookupError: unknown encoding: utf8-sig`. This was a Python encoding typo in our script, **not an invalid PFT/soil dataset or a DATM issue**. Fixed the actual CSV reader to `encoding="utf-8-sig"`. Added `self-test` that reads all ten PFT and soil-decision CSV rows, checks sums/selected profiles, and checks namelist-edit helpers. Aligned `xmlchange` with the prior successful DE-Tha implementation (one CIME key at a time), and added a generated RUNDIR/CaseDocs namelist equality check before declaring a case staged. These changes **do not** add forcing re-audits.
+
+**Retry from the fast, non-writing entry points first:**
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment || exit 1
+git status --short
+git pull --ff-only origin main || exit 1
+S11=examples/Batch01_10/scripts/11_batch10_AD400_oneclick.py
+python3 -B "$S11" self-test || exit 1
+python3 -B "$S11" plan || exit 1
+```
+
+Only **after both return normally**, proceed using the previously documented `surfaces` → `stage` → `submit-smoke` actions. The original failed `plan` submitted **no Slurm jobs and created no candidate NetCDF**. A successful local self-test validates configuration/CSV logic, not a full CIME run.
+
 ## CURRENT ONE-ENTRY TEN-SITE AD400 WORKFLOW — 24 October 2026
 
 **Supersedes the single-site CZ-BK1 Stage10 experimental audit.** User requires a **TEN-site simultaneous experiment**, reusing successful DE-Tha fixed-PFT FATES clone and AD5 smoke implementation. **Do not re-run Stage01–10, do not separately audit 22 CZ-BK1 annual forcing NetCDFs.** The Stage10 XML list parser failed because it assumed child `<file>` nodes; its failure is a script parsing error, not meteorological evidence. The existing DATM streams are inherited unchanged per site.
