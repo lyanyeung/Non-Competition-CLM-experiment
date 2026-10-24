@@ -87,6 +87,8 @@ python3 -B examples/DE-Tha/scripts/06_audit_soil_texture_vs_observations.py \
   2>&1 | tee ~/DE-Tha_soil_texture_reference_vs_surface.log
 ```
 
+**Read-only result received from IRIDIS6 (24 October 2026):** original and derived soil fields are **identical**, but original NetCDF layers 1–4 have **Sand 24 / Silt 51 / Clay 25%**, versus tower reference **17 / 71 / 12%**, a difference of **+7 / −20 / +13 percentage points**. Model clay increases to 31–36% in later layers, but the corresponding depths are **unknown in the current surface output**. Result: **substantial texture difference**; the historical site measurement is a comparison reference, not a spatially complete soil map. The primary source directly supports 17/71/12 at the forest station: Prescher et al. (2010), *Agricultural and Forest Meteorology* 150, 1016–1025, DOI [10.1016/j.agrformet.2010.03.008](https://doi.org/10.1016/j.agrformet.2010.03.008). **No NetCDF was edited.**
+
 The observed values are in **mass percentages of fine mineral particles**, not stone volume fraction. Differences of 5 or 10 percentage points are descriptive flags only, not a formal validation threshold. If a significant mismatch is found, stop before PRE50 to decide whether to keep the grid-derived soil texture as a separate assumption or build a **new versioned surface** after reviewing soil depth, rock fraction and EC footprint. **Do not overwrite the already validated v1 surface.**
 
 ## 4. Remaining model design: 50 → 200 AD → 300 normal
