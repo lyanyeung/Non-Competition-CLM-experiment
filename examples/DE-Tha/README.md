@@ -52,7 +52,13 @@ python3 -B examples/DE-Tha/scripts/05_build_forest_observed_surface.py write \
   --ack-forest ACCEPT_TOWER_FOREST_PROXY_NATVEG100_CROP0
 ```
 
-If successful this creates a *new* surface (never overwrites an existing one):
+After a successful single write, **do not rerun `write`**. Instead verify the saved NetCDF and SHA256 receipt without changing anything:
+
+```bash
+python3 -B examples/DE-Tha/scripts/05_build_forest_observed_surface.py verify
+```
+
+If successful the one-time write creates a *new* surface (never overwrites an existing one):
 
 ```text
 /iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/DE-Tha/surface/
