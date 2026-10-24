@@ -539,7 +539,11 @@ def dispatch(name,method):
 def all_stage(ack):
     if ack!=ACK_STAGE:
         fail("stage requires --confirm "+ACK_STAGE)
-    dispatch("stage",single_case)
+    # Pinned shared CLMBuildNamelist.pm has an old CN-only spinup_state guard.
+    # Never blindly retry its failing preview_namelists for FATES.
+    fail("HOLD: pinned CTSM requires proven private FATES AD namelist overlay. "
+         "Use 12_batch10_recover_FATES_AD_private_overlay.py recover; "
+         "keep all 10 existing surfaces and partial new cases.")
 
 
 def queued_case(site):
@@ -558,6 +562,10 @@ def all_submit(ack):
         obj=json.loads(state.read_text())
         if obj.get("phase")!="PREPARED_NOT_SUBMITTED":
             fail("Submission already attempted for "+site+"; no duplicate attempts")
+        # Only cases successfully recovered using the proven DE-Tha Stage12
+        # overlay may submit; generic old CTSM preview cannot do FATES AD.
+        if not obj.get("CIME_env_case_lock_restored") or not obj.get("private_overlay"):
+            fail("Missing private-overlay AD recovery receipt "+site)
         if not case_path(site).is_dir():
             fail("Case absent "+site)
         if digest(surface(site))!=obj["surface_sha256"]:
