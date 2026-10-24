@@ -1,5 +1,31 @@
 # Batch01_10 — Site-observed-first fixed-biogeography / no-competition FATES
 
+## 24 October 2026 — definitive BGC argument fix: `--bgc`, not `-bgc`
+
+**Direct operator comparison of actual CIME values (source of truth):**
+
+- Failed new CZ-BK1: `CLM_BLDNML_OPTS = -bgc fates` — **INVALID single hyphen**; builder silently defaults to SP and rejects accelerated spinup state 2.
+- Proven working DE-Tha AD case: `CLM_BLDNML_OPTS = --bgc fates --no-megan --no-drydep --no-fire_emis` — **correct double hyphen**.
+- Both cases have `COMPSET = 2000_DATM%1PT_CLM60%FATES_SICE_SOCN_SROF_SGLC_SWAV_SESP` and `CLM_ACCELERATED_SPINUP = on`.
+
+The ten-site script is now corrected to set and require the **exact DE-Tha build options**, not merely look for substring `-bgc fates` (which is also contained in `--bgc fates`). Previous `-bgc fates` patches were *not* effective. All 10 independently generated site surfaces remain ready; existing new incomplete cases are resumed without deleting them or modifying any old experiments.
+
+**Now run ONLY stage, then 10×AD5 smoke if all ten stage successfully:**
+
+```bash
+set -euo pipefail
+cd ~/Non-Competition-CLM-experiment || exit 1
+git pull --ff-only origin main
+S11=examples/Batch01_10/scripts/11_batch10_AD400_oneclick.py
+python3 -B "$S11" stage --confirm CREATE_TEN_INDEPENDENT_BATCH01_AD400_CASES 2>&1 | tee "$HOME/Batch01_10_stage_correct_double_dash.log"
+python3 -B "$S11" submit-smoke --confirm SUBMIT_BATCH01_TEN_FIRST_FIVE_YEAR_AD_SMOKES 2>&1 | tee "$HOME/Batch01_10_submit.log"
+python3 -B "$S11" status
+```
+
+If any `stage` operation fails, `set -euo pipefail` prevents submission. **Do NOT rerun surfaces.** The FATES mode fix is in GitHub, but live CIME preview success on all ten sites is to be confirmed by the operator run.
+
+
+
 ## IMPORTANT HOLD: AD namelist `-bgc fates` not effective yet — 24 October 2026
 
 **Observed on IRIDIS6 after 10/10 new surface construction:** running Stage11 `stage` again after patch `24d735e` still fails in the first reported new cases at `CLMBuildNamelist::setup_cmdl_spinup()` with BGC mode **Satellite Phenology**, despite the Python script attempting `CLM_BLDNML_OPTS=-bgc fates`. Thus the claimed prior `-bgc fates` *fix is NOT verified and has not resolved the issue*. At least the new cases seen in the user log are partial clone directories, not ready AD cases. No `submit-smoke` should be run.
