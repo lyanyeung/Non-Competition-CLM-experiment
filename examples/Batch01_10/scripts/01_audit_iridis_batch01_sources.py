@@ -141,7 +141,7 @@ def case_summary(path:Path):
     return item
 
 def list_path(parent:Path,pattern:str,limit=70):
-    if not parent.is_dir():return []
+    if not parent.is_dir():return [],0
     xs=sorted(parent.glob(pattern),key=lambda p:p.name)
     return [{"name":p.name,"path":str(p),"bytes":p.stat().st_size if p.is_file() else None,
              "is_dir":p.is_dir()} for p in xs[:limit]],len(xs)
@@ -171,7 +171,6 @@ def audit_site(row,cases):
     subset=folder/"subset_data"
     paths=[]
     if subset.is_dir():
-        paths+=list(subset.glob("surfdata*.nc")) if False else []
         paths+=sorted(subset.glob("*.nc"))
     other=folder/"surface"
     if other.is_dir():paths+=sorted(other.glob("*.nc"))
