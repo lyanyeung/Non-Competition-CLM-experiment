@@ -42,6 +42,7 @@ examples/DE-Tha/
     01_audit_evidence.py             # READ ONLY; verify reported species composition
     02_inventory_iridis_inputs.py     # READ ONLY; find original DE-Tha files/cases
     03_audit_live_inputs.py           # READ ONLY; inspect actual surface/DATM/FATES mapping
+    04_review_landunit_scenarios.py   # READ ONLY; compare competing surface/landunit hypotheses
 ```
 
 ## 4. Run the first reproducible audit (IRIDIS6)
@@ -82,6 +83,36 @@ python3 -B examples/DE-Tha/scripts/03_audit_live_inputs.py \
 This reads those existing source files, checks every reported landunit category, the actual CLM natural PFT percentages and pinned ENF/DNF/DBF mapping, the 1996–2025 forcing CSV row count and sampled DATM time axes. It makes **no changes** and does **not** authorize a new surface or Slurm job. The source vegetation percentages remain hypotheses for model PFT area.
 
 Tharandt is managed: station information describes thinnings and species conversion, and long-run sources document wind and bark-beetle effects. Thus a 1996–2025 transient validation should not treat a single baseline composition as a measured constant through time. [ICOS Germany](https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1), [TU Dresden stand history](https://tu-dresden.de/bu/umwelt/hydro/ihm/meteorologie/forschung/mess-und-versuchsstationen/tharandt-ankerstation-oekomessfeld).
+
+### Live scientific input audit (24 October 2026): actual numbers
+
+The script 03 output has been inspected, without any new model inputs being written.
+
+- Original surface SHA256: `7e4e4f8fc752d936f80e06a65db0f2163a3f74cdebff5d318973773450f5940d`.
+- Whole grid: `PCT_NATVEG=62.6740617603%`, `PCT_CROP=37.3259382397%`; no lake/wetland/glacier/urban cover.
+- **Within natural landunit only**: `PCT_NAT_PFT[0]` bare 0.5962%, `[1]` ENF 31.8322%, `[7]` DBF 11.7861%, `[13]` cool C3 grass 55.7856%; `[3]` DNF **0%**. Sum 100%.
+- Pinned CTSM source and parameter JSON hashes match NL-Loo. Active map: CLM `natpft[1]` → `needleleaf_evergreen_extratrop_tree`; `[3]` → `needleleaf_colddecid_extratrop_tree`; `[7]` → `broadleaf_colddecid_extratrop_tree`.
+- Processed forcing: 1996–2025 inclusive, 525,600 half-hourly rows (17,520 each no-leap year). The 30 candidate DATM annual NetCDFs exist; **only sample years** had time metadata validated in script 03.
+- Original `DE-Tha_FATES_SPINUP500` case: `RUN_TYPE=startup`, `RUN_STARTDATE=1996-01-01`, `STOP_N=REST_N=5`, and **both** `use_fates_nocomp` and `use_fates_fixed_biogeog` are false. It is a **reference/control**, not the new experiment.
+
+**Scientific issue:** ICOS reports the forest in the tower-flux influence area as 87% evergreen conifer and 13% deciduous (10% larch, 1% birch, 2% other). [Official ICOS station](https://meta.icos-cp.eu/resources/stations/ES_DE-Tha); [ICOS Germany footprint/management notes](https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1). These data are closer to a forest-flux-footprint composition than grid-wide CLM land cover, but **are not proven to be 1-point natural-PFT grid areas**. The legacy surface's 37.33% cropland and 55.79% natural-PFT grass demonstrate a particularly important site-to-grid representativeness conflict.
+
+Run the new bounded **strictly read-only** scenario/QC decision audit:
+
+```bash
+python3 -B examples/DE-Tha/scripts/04_review_landunit_scenarios.py \
+  2>&1 | tee ~/DE-Tha_landunit_scenario_review.log
+```
+
+It prints three fundamentally different candidate representations, without rewriting any surface:
+
+| Scientific contrast | Landunit shares | Candidate PFT proportions (conditional on NATVEG) | Caution |
+| --- | --- | --- | --- |
+| Existing reference | NATVEG 62.674%, crop 37.326% | ENF 31.832%, DNF 0%, DBF 11.786%, grass 55.786%, bare 0.596% | Ordinary FATES control |
+| **Grid-conserving** tower-tree FIXNC proxy | NATVEG 62.674%, crop 37.326% | ENF 87%, DNF 10%, DBF 3% *if 2% assigned to DBF* | Preserves cropland; not a pure forest EC-footprint simulation |
+| **Tower-forest** FIXNC proxy | NATVEG 100%, crop 0% | ENF 87%, DNF 10%, DBF 3% *under same 2% hypothesis* | Changes the landunit and PFT composition simultaneously |
+
+The script **also** prints a sensitivity where the unknown 2% is allocated to DNF instead of DBF; neither assignment is an observation. A recommended controlled comparison additionally considers **FIXNC on the unchanged original surface** to help separate the no-competition effect from the PFT-map effect. Each proposed treatment requires a separate case with consistent model inputs; the scientific grouping is an experimental factor rather than the measured truth. **Do not launch or write a surface before approving which scientific contrast is intended.**
 
 To *view* (not approve) an explicit 2% allocation hypothesis:
 
