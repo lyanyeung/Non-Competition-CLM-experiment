@@ -41,6 +41,7 @@ examples/DE-Tha/
   scripts/
     01_audit_evidence.py             # READ ONLY; verify reported species composition
     02_inventory_iridis_inputs.py     # READ ONLY; find original DE-Tha files/cases
+    03_audit_live_inputs.py           # READ ONLY; inspect actual surface/DATM/FATES mapping
 ```
 
 ## 4. Run the first reproducible audit (IRIDIS6)
@@ -60,6 +61,27 @@ python3 -B examples/DE-Tha/scripts/02_inventory_iridis_inputs.py \
 ```
 
 The inventory searches only targeted site subdirectories, with bounded depth and file counts. Its output does not establish whether a forcing file is scientifically suitable. Inspect the output before any case creation.
+
+### Input inventory findings, 24 October 2026
+
+The IRIDIS6 read-only inventory located:
+
+- Original surface: `sites/MY_EC_SITE/DE-Tha/subset_data/surfdata_DE-Tha_hist_2000_16pfts_c261011.nc`.
+- Processed v5 forcing: `sites/MY_EC_SITE/DE-Tha/forcing/processed_v5/DE-Tha_CLM_forcing_1996_2025.csv`.
+- Thirty candidate yearly NetCDF files: `sites/MY_EC_SITE/DE-Tha/forcing/datm_v5_candidate_timevarying_zbot/DE-Tha_DATM_1996.nc` through `DE-Tha_DATM_2025.nc` (listed, not yet time-axis validated).
+- Legacy case: `cases/DE-Tha_FATES_SPINUP500`, using `use_fates_nocomp=.false.` and `use_fates_fixed_biogeog=.false.` — **not reusable as the new experiment without new isolated setup**.
+- Shared CTSM revision: `d5ea9d0136530370a62ef267ccfaff6f001ef914`; default FATES parameter JSON SHA256 `0819f8fddcb3566f6209f72bb1159a3161d03c8225a1464727b1d2b21aec6c04`.
+
+The inventory could not establish `PCT_NATVEG`, `PCT_CROP`, `PCT_NAT_PFT` or actual `fates_hlm_pft_map` values because it only listed paths; likewise forcing coverage from filenames is not time-axis QC. Run the **new, narrowly scoped 03 audit**:
+
+```bash
+python3 -B examples/DE-Tha/scripts/03_audit_live_inputs.py \
+  2>&1 | tee ~/DE-Tha_live_inputs_audit.log
+```
+
+This reads those existing source files, checks every reported landunit category, the actual CLM natural PFT percentages and pinned ENF/DNF/DBF mapping, the 1996–2025 forcing CSV row count and sampled DATM time axes. It makes **no changes** and does **not** authorize a new surface or Slurm job. The source vegetation percentages remain hypotheses for model PFT area.
+
+Tharandt is managed: station information describes thinnings and species conversion, and long-run sources document wind and bark-beetle effects. Thus a 1996–2025 transient validation should not treat a single baseline composition as a measured constant through time. [ICOS Germany](https://www.icos-infrastruktur.de/en/icos-d/components/ecosystem/study-sites/tharandt-c1), [TU Dresden stand history](https://tu-dresden.de/bu/umwelt/hydro/ihm/meteorologie/forschung/mess-und-versuchsstationen/tharandt-ankerstation-oekomessfeld).
 
 To *view* (not approve) an explicit 2% allocation hypothesis:
 
