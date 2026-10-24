@@ -1,0 +1,11 @@
+site,source,selected_depth_scope,original_sand_pct,original_silt_pct,original_clay_pct,ten_layer_texture_policy,caveat
+CZ-BK1,Flechard2020 Table S4,site aggregate; depth not stated,22,58,21,UNIFORM_10_MODEL_TEXTURE_LAYERS_PROXY,Published 101 total: normalized by sum; site soil depth 0.55m is not sample-depth interval
+IT-Ren,Flechard2020 Table S4,site aggregate; depth not stated,55,34,11,UNIFORM_10_MODEL_TEXTURE_LAYERS_PROXY,"Haplic Podzol, not Laqueuille Andosol"
+RU-Fyo,Original source fsurdat per operator,ten existing source texture layers,,,,KEEP_ORIGINAL_10_LAYERS,Peat organic physics not validated; NOT observations
+CH-Dav,Meredith2018 Table3,0-10cm mineral soil,53,25,22,UNIFORM_10_MODEL_TEXTURE_LAYERS_PROXY,Single mineral horizon extended to input soil layers
+IT-Col,Flechard2020 Table S4,site aggregate; depth not stated,8,32,59,UNIFORM_10_MODEL_TEXTURE_LAYERS_PROXY,Conflicts with Chiesi2018 alternative; original sum99 normalized
+FR-Fon,Barbeau/FR-Fon site soil study,upper mineral horizon; exact bounds unclear,41.9,38.8,19.3,UNIFORM_10_MODEL_TEXTURE_LAYERS_PROXY,Upper soil chosen instead of deeper clay loam
+FI-Sod,FLUXNET site description,0-10cm with stones,88.12,6,0.5,UNIFORM_10_MODEL_TEXTURE_LAYERS_PROXY,"Fine-earth normalized by sand+silt+clay, excluding observed stones5.4%"
+FR-Pue,Meredith2018 Table3,0-10cm,26,32,42,UNIFORM_10_MODEL_TEXTURE_LAYERS_PROXY,"Very high stone volume, model coarse fragments not thereby validated"
+DE-Hai,Meredith2018 Table3,0-10cm,4,49,48,UNIFORM_10_MODEL_TEXTURE_LAYERS_PROXY,Whole integer percentages add to101; normalized
+BE-Vie,Buysse2013 Table1,site mineral soil aggregate; depth not stated,27,55,18,UNIFORM_10_MODEL_TEXTURE_LAYERS_PROXY,Tower stand site value; sampling interval not specified
