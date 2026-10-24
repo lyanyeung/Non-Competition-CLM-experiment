@@ -31,19 +31,54 @@ Suggested per-site future structure (directories or scripts should be created **
 ```text
 examples/Batch01_10/
     README.md                       # this scientific cohort runbook
+    scripts/01_audit_iridis_batch01_sources.py  # existing-site READ ONLY inventory
 data/
     batch01_10_sites.csv            # source evidence, not approved surface fractions
 examples/Batch01_10/<site>/
     README.md                       # site evidence & model-input decisions
     config/site_manifest.json       # per-site forcing years, CO2, case paths & SHA256
     data/evidence.csv               # provenance and denominator
-    scripts/01_read_only_source_audit.py
+    scripts/02_field_PFT_and_soil_science_review.py  # FUTURE, not built
     scripts/02_build_site_surface_VERSIONED.py
     scripts/03_AD400_smoke_and_resume.py
     scripts/04_Normal400_branch_and_resume.py
 ```
 
 **No site-specific script from DE-Tha is safe to run unchanged**: DE-Tha hard-codes `1996–2025`, v2 SHA256, its run/case dirs and absolute names. Batch01 must first enumerate each tower's own verified observational forcing, DATM streams, initial date, case baselines, surface dimensions, source soil and compatible FATES PFT mapping.
+
+## Start now on IRIDIS6 — Stage 01 ten-site inventory (model inputs read-only)
+
+**Do this first, without writing any new surface or submitting Slurm jobs.** The purpose is to recover exact 10-site input paths from the original FLUXNET 6/8/11/13 experiments instead of reusing DE-Tha paths or assuming new case states.
+
+Script: [01_audit_iridis_batch01_sources.py](scripts/01_audit_iridis_batch01_sources.py).
+
+```bash
+conda activate clm_fates_env
+cd ~/Non-Competition-CLM-experiment
+git status --short
+git pull --ff-only origin main
+
+python3 -m py_compile \
+  examples/Batch01_10/scripts/01_audit_iridis_batch01_sources.py
+
+python3 -B examples/Batch01_10/scripts/01_audit_iridis_batch01_sources.py \
+  --self-test
+
+set -o pipefail
+python3 -B examples/Batch01_10/scripts/01_audit_iridis_batch01_sources.py audit \
+  2>&1 | tee ~/Batch01_10_source_inventory_stage01.log
+```
+
+The script reads `data/batch01_10_sites.csv`, verifies exactly ten sites and excludes NL-Loo and DE-Tha; inspects shallow per-site surface/forcing trees, old CIME cases and `CaseDocs/lnd_in` (when present), candidate surface percentages and soil first texture layer, year ranges in `user_nl_datm_streams`, plus existing Slurm `#SBATCH` lines. It writes **only** a new timestamped `~/Batch01_10_source_inventory_<UTCSTAMP>/all_sites.json` and `summary.csv`, prints the exact output path, and does not create, edit, cancel or submit jobs. An inventory hit is a **candidate**: it does not certify forcing quality, soil field observations, tree PFT fraction validity, model readiness or scientific equilibrium.
+
+**Interpretation rules:**
+
+- `EXISTS=False` / zero counts mean the canonical location did not yield the input; source files may live at different paths. Do **not** recreate or overwrite missing inputs until the alternative location is identified.
+- `PCT_NAT_PFT` is a CLM surface input, and old-site PFT composition may include high crop fractions. Existing percentages do not prove the target tower's species ground area.
+- **Unknown vegetation share is never assigned to GRA by this script or by default.** See [residual PFT policy](../../docs/PFT_UNKNOWN_RESIDUAL_POLICY.md). In particular, BE-Vie's remaining 20% stand species or FR-Fon's remaining <3% *tree basal area* are NOT grassland.
+- Next stage: evidence-by-evidence decisions for the 10 sites, plus their site soil measurements and surface landunits, then **versioned** fixed-PFT surfaces and site-specific AD400 five-year smoke tests. Do not immediately launch 10×800 years.
+
+**Operator follow-up:** share the Stage01 summary table, and for any missing/mismatched source cases inspect the corresponding detail in `all_sites.json` so we can construct the exact per-site setup instead of guessing paths.
 
 ## Readiness gates to work through, in order
 
