@@ -1,5 +1,14 @@
 # Batch01: targeted nine-site soil texture literature search (24 Oct 2026)
 
+## UPDATE — verified Flechard et al. 2020 Supplement Table S4 (24 October 2026)
+
+The earlier section below called CZ-BK1 unresolved and IT-Ren awaiting quantitative extraction; that is superseded **for site-level published reference fractions**, not for depth-resolved lab measurements. We visually verified [Flechard 2020 Table S4](../references/Flechard_2020_Biogeosciences_Part1.md): **CZ-BK1 Sand22/Silt58/Clay21 (sum 101% from publication), IT-Ren Sand55/Silt34/Clay11, RU-Fyo Peat and Sand/Silt/Clay n.a.** The same source provides IT-Col 8/32/59 (sum 99%) which disagrees with the separate Chiesi (2018) estimate. Source table contains nine of ten Batch01 sites, excluding CH-Dav. The [machine-readable ten-site extract](../../../data/batch01_10_Flechard2020_TableS4_soil.csv) preserves all printed data, n.a. and rounding differences.
+
+User-selected CZ-BK1/RU-Fyo original-surface **soil-only** exceptions remain the recorded operator choices until explicitly changed. Published site-level percentages should not be called a complete observed vertical model profile.
+
+---
+
+
 **Station-observed-first. No inherited source-grid sand/clay used. No new surface or AD job generated.** This is a bibliography-and-candidates report, not an approved per-layer CLM soil profile. See [12-row machine-readable literature candidate table](../../../data/batch01_10_soil_literature_candidates.csv) and [original registered site soil profiles](../../../data/batch01_10_soil_site_observations.csv).
 
 ## Research results
