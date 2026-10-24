@@ -1,5 +1,33 @@
 # Batch01_10 — Site-observed-first fixed-biogeography / no-competition FATES
 
+## ROOT CAUSE RESOLVED IN CODE: FATES AD private namelist overlay (24 October 2026)
+
+The earlier Stage11 `stage` attempts all failed before generating CIME namelists despite switching from `-bgc fates` to `--bgc fates`. The **actual old pinned CTSM Perl source** (Git blob `698f2396aba8e11cbbbdd58c74ad221e6b7e7038`, version `d5ea9d0136530370a62ef267ccfaff6f001ef914`) checks `use_cn` **only** in `CLMBuildNamelist.pm::setup_cmdl_spinup`. FATES uses `use_cn=.false.`, so the old code rejects `spinup_state=2` and prints its **hardcoded/misleading** Satellite Phenology error **even if the case really specifies FATES BGC**. Single/double-hyphen was NOT the underlying root cause. This was already explained and solved in the [DE-Tha Stage12 successful recovery](../DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py), but was omitted during adaptation. Shared CTSM must remain unmodified.
+
+**The correct ten-site recovery is now implemented** as [12_batch10_recover_FATES_AD_private_overlay.py](scripts/12_batch10_recover_FATES_AD_private_overlay.py), reusing the *same two exact targeted source transformations* as DE-Tha Stage12: (1) allow FATES or CN to use accelerated spinup_state, (2) keep CN-only `reseed_dead_plants` from being applied to FATES. It creates ONE private CTSM `bld` overlay shared by all ten *new cases*, temporarily redirects each new case for namelist generation, verifies generated `CaseDocs/lnd_in` and RUNDIR `lnd_in`, and restores its exact locked `env_case.xml` before recording `PREPARED_NOT_SUBMITTED`. The validated **10/10 new surfaces** are retained; do not rerun `surfaces`. This step does NOT submit Slurm. Subsequent Stage11 `submit-smoke` explicitly requires the private-overlay recovery receipt and uses `case.submit --skip-preview-namelist`, preserving the verified AD namelist. The old Stage11 `stage` command is now blocked to prevent repeated failed attempts.
+
+**Run from IRIDIS6** (ten cases at once; zero per-year forcing audits):
+
+```bash
+conda activate clm_fates_env
+bash <<'BASH'
+set -euo pipefail
+cd ~/Non-Competition-CLM-experiment
+git pull --ff-only origin main
+S12=examples/Batch01_10/scripts/12_batch10_recover_FATES_AD_private_overlay.py
+S11=examples/Batch01_10/scripts/11_batch10_AD400_oneclick.py
+python3 -B "$S12" self-test
+python3 -B "$S12" recover --confirm RECOVER_BATCH01_TEN_FATES_AD_CASES_NO_SLURM 2>&1 | tee "$HOME/Batch01_10_private_overlay_recovery.log"
+# This line is reached only if ALL ten recoveries returned normally.
+python3 -B "$S11" submit-smoke --confirm SUBMIT_BATCH01_TEN_FIRST_FIVE_YEAR_AD_SMOKES 2>&1 | tee "$HOME/Batch01_10_submit.log"
+python3 -B "$S11" status
+BASH
+```
+
+If any per-site recovery is interrupted, do NOT rerun recover automatically: its per-site attempt ledger records the ambiguous state. Inspect only that isolated new case. Existing old sites / original surface NetCDFs / executables / shared CTSM are never edited. Ten sites first run 5 years each; no automated AD395 or Normal400 continuation.
+
+
+
 ## 24 October 2026 — definitive BGC argument fix: `--bgc`, not `-bgc`
 
 **Direct operator comparison of actual CIME values (source of truth):**
