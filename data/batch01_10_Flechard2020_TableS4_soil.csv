@@ -1,4 +1,4 @@
-site,flechar_pft_short_name,present_in_table_s4,soil_depth_m_NOT_texture_sample_interval,terrain_slope_deg,soil_texture_label,FAO_soil_class,sand_pct_reported,silt_pct_reported,clay_pct_reported,reported_percent_sum,data_status,scope_warning
+site,flechard_pft_short_name,present_in_table_s4,soil_depth_m_NOT_texture_sample_interval,terrain_slope_deg,soil_texture_label,FAO_soil_class,sand_pct_reported,silt_pct_reported,clay_pct_reported,reported_percent_sum,data_status,scope_warning
 CZ-BK1,EN1,YES,0.55,15.0,Loamy sand,Ferric Podzol,22,58,21,101,INTEGER_ROUNDING_SUM_101,published site aggregate; not depth-resolved texture
 IT-Ren,EN5,YES,0.5,11.0,Loamy sand,Haplic Podzol,55,34,11,100,PUBLISHED_SITE_AGGREGATE,published site aggregate; not depth-resolved texture
 RU-Fyo,EN6,YES,0.3,1.0,Peat,Umbric Albeluvisol,,,,,TEXTURE_NOT_REPORTED_PEAT,paper leaves mineral sand/silt/clay as n.a.; model peat separately
