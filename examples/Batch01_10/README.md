@@ -170,9 +170,9 @@ FI-Sod renewed search: [ICOS tower](https://meta.icos-cp.eu/resources/stations/E
 
 **New since Stage02:** [selected ten-site model-tree PFT scenarios](../../data/batch01_10_pft_scenarios.csv) preserve all 10 operator-defined **ENF/DNF/DBF/EBF** candidates **separately** from [raw source evidence](../../data/batch01_10_sites.csv). FR-Fon 2 ENF/98 DBF; FR-Pue 95 EBF/5 DBF; BE-Vie 64 ENF/36 DBF; FI-Sod 100 ENF. Scenario percentages sum to 100 **among modelled tree functional groups**, NOT automatically within the whole footprint/grid cell or current CLM host NATVEG area. No FATES PFT index is assigned at this step.
 
-**Run on IRIDIS6; the Stage01 inventory has already been reported at** \`/iridisfs/home/ly3n24/Batch01_10_source_inventory_20261024T090713Z/all_sites.json\`. **First run Stage02** if its \`case_trace.json\` is not already available or current, then **Stage03**. These two scripts read existing source/CIME files and write reports to new timestamped HOME directories only. They never create production fsurdat, change Slurm jobs, or approve any case.
+**Run on IRIDIS6; the Stage01 inventory has already been reported at** `/iridisfs/home/ly3n24/Batch01_10_source_inventory_20261024T090713Z/all_sites.json`. **First run Stage02** if its `case_trace.json` is not already available or current, then **Stage03**. These two scripts read existing source/CIME files and write reports to new timestamped HOME directories only. They never create production fsurdat, change Slurm jobs, or approve any case.
 
-\`\`\`bash
+```bash
 conda activate clm_fates_env
 cd ~/Non-Competition-CLM-experiment || exit 1
 git status --short
@@ -198,9 +198,9 @@ echo "Stage02 trace: $TRACE"
 
 python3 -B "$S3" --case-trace "$TRACE" \
   2>&1 | tee "$HOME/Batch01_10_stage03_latest.log"
-\`\`\`
+```
 
-**Read output:** \`~/Batch01_10_stage03_surface_soil_<UTCSTAMP>/summary.csv\` and \`all_sites.json\`. Stage03 reports **each** candidate existing fsurdat and exact case path; it flags duplicate baseline cases (notably IT-Col / FR-Pue), missing source surfaces, nonzero crops, non-100 natural landunits, suspicious conditional PFT sums and the first sand/clay grid-layer values. It makes **no case choice** and does **not** claim that source-grid soil is locally measured. A \`READ_OK\` only confirms NetCDF readability, not scientific adequacy. Review each site's actual forcing calendar and effective DATM stream from Stage02 rather than assuming that the Stage01 shallow folder scan found it.
+**Read output:** `~/Batch01_10_stage03_surface_soil_<UTCSTAMP>/summary.csv` and `all_sites.json`. Stage03 reports **each** candidate existing fsurdat and exact case path; it flags duplicate baseline cases (notably IT-Col / FR-Pue), missing source surfaces, nonzero crops, non-100 natural landunits, suspicious conditional PFT sums and the first sand/clay grid-layer values. It makes **no case choice** and does **not** claim that source-grid soil is locally measured. A `READ_OK` only confirms NetCDF readability, not scientific adequacy. Review each site's actual forcing calendar and effective DATM stream from Stage02 rather than assuming that the Stage01 shallow folder scan found it.
 
 **Next decision after reviewing these reports:** choose one validated baseline case/forcing configuration per station, verify soil depth/provenance and natural-vs-crop landunit coverage, and validate exact FATES host-PFT indices (ENF, DNF, DBF, EBF are broad ecological groups). Only after explicit scientific review should we implement *new versioned* FIXNC fsurdat candidates and one-site AD400 five-year smoke tests. **All Batch01 sites remain HOLD for production and Slurm.**
 
