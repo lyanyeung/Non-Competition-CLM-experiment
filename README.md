@@ -62,7 +62,7 @@ The inspector reads real `NL-Loo_FATES_SPINUP500` metadata, the active surface a
 
 The [examples/ index](examples/README.md) provides reproducible site folders with observation provenance, transparent PFT grouping, explicit unresolved coverage, a read-only scientific audit and phase-specific readiness gates.
 
-- [DE-Tha — Tharandt](examples/DE-Tha/README.md): **direct AD400 cold start only**, 1996→2396, no PRE50; FIXNC ENF 87%, DNF 10%, DBF 3%, NATVEG 100%, site-soil 17/71/12. The independent [Stage10 smoke](examples/DE-Tha/scripts/10_DE_Tha_direct_AD400.py) and [Stage11 verified continuation](examples/DE-Tha/scripts/11_DE_Tha_AD400_continue_after_smoke.py) are staged in GitHub; **not yet executed on IRIDIS6**. Existing regular DE-Tha simulations are untouched.
+- [DE-Tha — Tharandt](examples/DE-Tha/README.md): **direct AD400 cold start**, 1996→2396, no PRE50; FIXNC ENF87/DNF10/DBF3, NATVEG100, field-reference sand17/silt71/clay12. Stage12 FATES AD private-overlay repair and Stage10 independent namelist validation have **passed on IRIDIS6**. First-5y AD model+archive remain **unverified**: [Stage13](examples/DE-Tha/scripts/13_check_AD5_jobs_and_restart.py) inspects exact DE-Tha job IDs and 2001 component restart. A **new independent AD→Normal experiment** is available in [Stage14](examples/DE-Tha/scripts/14_AD_to_Normal_independent_branch.py) for technical AD5→Normal5 testing and eventual AD400→Normal5 testing. No Normal conversion case or Slurm jobs created by GitHub updates; existing site simulations untouched.
 - NL-Loo: the proven PRE50 / AD200 operational history currently resides in `scripts/09`–`scripts/15`, with NL-Loo-specific paths and Slurm job IDs. These are not portable one-click scripts for other towers.
 
 ## Batch strategy
