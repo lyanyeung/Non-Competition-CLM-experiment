@@ -2,6 +2,36 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
+## Stage15 actual IT-Noe Slurm 4733521 and ES-LJu Stage16 manual time-of-rain audit (25 October 2026)
+
+**ACTUAL OPERATOR RESULT (Slurm, not model completion):** IT-Noe FIXNC BARE34 / shrub66 research-trial AD400 submitted successfully through Stage15. One-time run Job **4733521**, archive Job **4733522**. The operator's CIME result shows **`skip_preview_persisted True`**, `STACK (307200000,-1)`, `Check case OK`, `STOP_N=5, RESUBMIT=79`, with 80 automatic 5-year segments for requested 400 years (2004→2404). In observed snapshot `run.IT-N...` **PD(Priority)** and archive **PD(Dependency)**. This only establishes **job submission**; zero completed years and no verified restart as of snapshot. **Never repeat Stage15 `--start`**; it has a one-time submitted-attempt ledger. IT-Noe 22-year QC-v3 source and Juniperus-to-broadleaf-shrub FATES science limitations remain recorded independently.
+
+**Now prioritise manual review of ES-LJu, not an AD400 submission:** actual Stage14 on 21 PROVISIONAL 2004–2024 original-selected annual DATM files measured:
+- Annual rain wholly concentrated in the **23:00–23:59 model DATM hour** for **2005, 2006, 2007, 2008** (up to several hundred mm in this one hour); cannot interpret as realistic half-hour rainfall storm forcing without original source accumulation/time base. Examine *23:00 vs 23:30* and daily totals, not just output aggregate.
+- 2023 neighbouring DATM half-hours `HH=13953` and `13954` on model NOLEAP **Oct 18, 16:30 and 17:00**: **4.040°C→17.823°C** (13.783°C rise in 30min). An earlier raw FLUXNET2023 severe near-−40°C TA_F block had a paired-ERA temperature/VPD repair trial; those are separate sources and this smaller jump is not automatically approved.
+- Across 21 years: **460** approximate RH (computed from input TBOT/QBOT/PSRF) <5%, **6** 30-min TBOT jumps >12°C, **9** intense rain half-hours >40mm. All 21 years `INVALID_PHYSICAL=0` under coarse numeric bounds, which does not address rainfall provenance.
+- **Important:** earlier 13-site Stage28 documented rain at 23:00 and explicitly forbade redistribution without source-time/accumulation metadata. Do **NOT** retime, smooth or substitute values automatically; preserve original QC and source.
+
+**[NEW Stage16 ES-LJu source-aware manual meteorology review tool](scripts/16_ES_LJu_manual_meteorology_review_readonly.py)** generates only a **new versioned independent review directory** containing:
+- `01` annual actual DATM rainfall by hour, 23:00/23:30 split, RH, jumps and extreme counts;
+- `02` every day 2005–2008: daily original DATM precipitation vs 23h and outside 23h;
+- `03` **all wet halfhours 2005–2008** with noleap DATM timestamp and neighbour context;
+- `04` all >40mm/30min extreme precip events (not data edits);
+- `05` every >12°C/30min change's +/-6-hour temperature/humidity context, including the 2023 anomaly;
+- `06–07` all RH<5 half-hour records and contiguous low-humidity episodes;
+- `08` numerical equality and independent SHA provenance of **the Stage28 selected meteorology CSV** vs each active 21 DATM annual NetCDF (Stage29b pipeline); if this passes, rain clustering arose **at or before Stage28 selection** rather than in DATM conversion, not necessarily in original tower observations.
+- Optional `--raw-fluxmet /path/to/EXTRACTED_FLUXMET_HH.csv`: independently summarises the **original** `P_F`, P_F_QC source-time hourly rain distribution by year into `09`. Original FLUXNET timestamps need timezone and interval verification before joining to UTC/no-leap DATM events. NO original dataset is committed to GitHub.
+
+Command skeleton:
+```bash
+python3 -B ~/Batch02_10_stage16.py --self-test
+python3 -B ~/Batch02_10_stage16.py --check
+python3 -B ~/Batch02_10_stage16.py --report --out /iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/Batch02_10/stage16_ES_LJu_manual_review_v1
+```
+The strict read-only `--check` produces concise annual/year-priority summaries but no files; `--report` only creates a fresh directory and CSV/JSON/README, never changes source forcing, Stage13 CIME, Slurm or other case. If output path exists, it fails closed; **do not delete an old result to rerun**. A successful report does not scientifically release ES-LJu and will explicitly say `MODEL_SUBMISSION_APPROVAL=NO`. Await actual operator-generated review tables and source metadata before deciding physically meaningful precipitation redistribution or eligible AD400.
+
+---
+
 ## Stage14 actual 43y forcing screen; Stage15 conditional direct exploratory AD400 (25 Oct 2026)
 
 **Actual user-provided Stage14 output (`Batch02_Stage14_DATM_QC.log`):**
