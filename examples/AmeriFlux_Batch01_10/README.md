@@ -12,6 +12,26 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage05 scientific/CIME input PASS; Stage06 isolated forest-proxy point surface ready (25 October 2026)
+
+**Actual user-confirmed Stage05 read-only PASS**:
+- Detached CA-TP4 Stage04 22/22 year NetCDF SHA, sampled +15-min midpoint and provisional 28 m `ZBOT`, actual CDEPS `<file><stream_info>` 2002–2023 `cycle+linear`, eight met field mappings and 22 candidate file paths all PASS. No model jobs and no existing CIME case altered.
+- Original CA-TP4 point surface pinned SHA256 `ceaf4ebed72fd5e43e34838f2a360d6524752a631bc925f087af8b7612847748`, landunits **43.154% NATVEG / 56.846% CROP** (LAKE/WETLAND zero). Original gridded CLM natural PFT vector contains mainly C3 grass and broadleaf deciduous tree fractions; these are **grid** fractions, not stand composition.
+- Original soil `PCT_SAND` 10 layers **39–43%**, `PCT_CLAY` 10 layers **15–25%**, both **grid-derived**, not site measurements. Published tower **PFT2 93% (white pine 82% + fir 11%), PFT6 7% deciduous broadleaf** is **stand species composition, not observed ground-area cover**. No CA-TP4 independent CIME case exists yet.
+- CH-Dav AD technical reference `FATES=.true.`, `use_fates_sp=.false.`, `fixed_biogeog=.true.`, `nocomp=.true.`, land `spinup_state=2`; source 1PT NO_LEAP 48 steps/day and reference stop/rest 5, resubmit 0, **not site-specific inputs**.
+
+**Next:** [Stage06 independent CA-TP4 idealized forest-point surface generator](scripts/06_CA_TP4_build_idealized_forest_surface.py). It first checks the exact input SHA and versioned research stand evidence, verifies the effective local FATES `fates_hlm_pft_map` and then (only on an explicitly acknowledged `--build` to a new directory) writes a **separate, non-production candidate** surface with landunit NATVEG=100%, CROP=0% and model **ENF=93%, DBF=7%**. The HLM CLM natural PFT indices are 1 ENF, 7 DBF, checked against actual FATES PFT slots 2 and 6. **This is a named idealized stand proxy, not observed whole-grid or EC footprint ground fractions**; otherwise the measured 93:7 stand ratio has a different denominator. For this **technical AD5-only pilot**, keep all source soil fields, including the original 10 texture layers, unchanged as `GRID_SOIL_TEXTURE_FALLBACK_NOT_OBSERVED`. The Stage06 tool verifies every unrelated surface variable remains identical to the original and never edits/recreates old surfaces, CIME cases, DATM, restarts or Slurm jobs. Before scientific analyses, independently obtain/approve observed soil, plant cover, height and disturbance/stand age evidence; surface production alone is NOT permission to submit an AD5 case.
+
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/06_CA_TP4_build_idealized_forest_surface.py --self-test
+python3 -B examples/AmeriFlux_Batch01_10/scripts/06_CA_TP4_build_idealized_forest_surface.py --check
+# After the check PASSES, create a NEW versioned technical surface; this is an explicit scientific proxy selection.
+python3 -B examples/AmeriFlux_Batch01_10/scripts/06_CA_TP4_build_idealized_forest_surface.py --build \
+  --ack-idealized-forest-grid-soil --outdir /absolute/new/nonexistent/output/folder
+```
+
+**After Stage06 succeeds:** Build a separate *new* CIME AD5 startup case referencing the Stage04 22-year meteorological pilot and Stage06 distinct surface. Clone only appropriate case-wide machine/binary configuration; never inherit CH-Dav site surface, station years, stream datafiles or site-local clocks. Make `case.setup`, the private FATES AD build-namelist overlay/`preview_namelists`, and validate final generated `CaseDocs/datm.streams.xml` and `CaseDocs/lnd_in` before a **single AD5** submission. Check the original FLUXNET local-standard clock policy against the actual coupler clock; a +15-min midpoint alone does not certify correct solar alignment.
+
 ## Stage04 pilot build confirmed SUCCESS; Stage05 pilot-case input gate (25 October 2026)
 
 **Operator-confirmed Stage04 isolated build SUCCESS:** All **22/22** CA-TP4 annual `.nc` files (2002–2023) were independently generated with verified half-hour FLUXNET `TIMESTAMP_START+15min` midpoint coordinates and **ZBOT=28m** labeled **provisional technical proxy only**. An independently checksummed *DETACHED*, unactivated `<file><stream_info>` CDEPS XML candidate and source-provenance `manifest.json` were written to:
