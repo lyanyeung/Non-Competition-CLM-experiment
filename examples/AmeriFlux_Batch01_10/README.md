@@ -12,6 +12,32 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Lane A four-site batch UTC technical forcing prepared for operator trial (25 October 2026)
+
+**Actual IRIDIS6 Stage13 nine-site matrix user-confirmed PASS**. All nine source Stage81 annual NC have contiguous years and source BIF UTC offset, original point-surface geolocation BIF_GRID_GEO=OK, 0 new CIME cases, and are backed by ten-site Stage82 213-year SHA inventory. Exact nine-site classification remains 4 static BASE height candidates, 3 event-varying heights, 2 unresolved multi-level sites. This is not 9 approved sensor crosswalks.
+
+**[Stage14 Lane A one-shot, four-site UTC/ZBOT TECHNICAL NetCDF candidate builder](scripts/14_laneA_four_static_UTC_DATM_proxies.py)**. Avoid 4 repeats of all 12 CA-TP4 stages and do not redo Stage80 ERA5/RH corrections. Read the exact old Stage31 BASE height policies, Stage81 per-site annual source paths, Stage82 original SHA receipt, raw AmeriFlux BIF UTC offsets and point-surface coordinates. Four candidates with proposed technical `ZBOT` height:
+
+| Site | Local forcing years | BIF UTC offset | BASE ZBOT proxy | 22-year CA-TP4 parameters forbidden |
+|---|---|---|---|---|
+| BR-Ma2 | 1999–2016 (18) | UTC−4 | 51.1 m STATIC | must use -4 and site-specific year cycle |
+| CA-Ca3 | 2001–2024 (24) | UTC−8 | 12.0 m STATIC | must use -8 and site-specific year cycle |
+| CA-LP1 | 2007–2024 (18) | UTC−8 | 26.0 m STATIC | must use -8 and site-specific year cycle |
+| US-Bar | 2004–2023 (20) | UTC−5 | 23.8 m STATIC | must use its own 20-year cycle and mixed-forest PFT |
+
+**Stage14**, only on explicit `--build-preview --outdir NEW --ack-four-static-sensor-proxies`, copies all **80 annual source NC into a separate output**. It treats original Stage81 `time=local interval start` as a **technical timestamp assumption** (only the original CA-TP4 pilot had independent raw FLUXNET local-start timestamp checks); assigns +15-min midpoint, shifts all **nine** source met fields by exactly the individual BIF local→UTC offset across every annual wrap, sets site-specific explicit static ZBOT as **unverified TA_F sensor crosswalk**, creates a detached `CLM_USRDAT.UNSET` CDEPS stream with `cycle/linear` and `offset=0`, validates all source input annual SHA, every new field/annual mapping against both previous and current local year, and checks UTC astronomical night FSDS sanity in the first/mid/last years for each site. Source NC and Stage12 CA-TP4 case remain unchanged. **No surface/PFT/model case/restart/Slurm is produced.**
+
+**Critical unresolved before model deployment:** Original `TA_F` vs actual sensor height crosswalk for all 4; local-start versus local-end native timestamps for these 4 (the Stage81 label still says unverified, even though it uses 00:00 time); stand PFT design requires **site-specific** local point surface and FATES HLM map, not CA-TP4 ENF93/DBF7. BR-Ma2 tropical EBF 100 model-assumed tree; CA-Ca3 conifer FATES2-only; CA-LP1 conifer FATES2-only with beetle disturbance; US-Bar PFT6≈83%, PFT2≥14%, leftover ≈3% unresolved — no silent percentages normalization. Preserve site soil as documented fallback if no independent observed profiles. US-Aud, a C4 grass+barren site, remains separately designed; CA-Cbo/CA-Man remain held.
+
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/14_laneA_four_static_UTC_DATM_proxies.py --self-test
+python3 -B examples/AmeriFlux_Batch01_10/scripts/14_laneA_four_static_UTC_DATM_proxies.py --check
+# On PASS only; materialises all 80 independent NC without touching CIME:
+python3 -B examples/AmeriFlux_Batch01_10/scripts/14_laneA_four_static_UTC_DATM_proxies.py --build-preview --ack-four-static-sensor-proxies --outdir ABSOLUTE_NEW_DIR
+```
+
+The next shared batch function after a successful Stage14 should generate each site's independent justified PFT/landunit/soil PROXY surfaces then provision separate AD5 cases, still gated for a short run before AD395 + Normal400. **DO NOT copy the CA-TP4 2002 CO2 372.58 ppm to a 1999/2001/2007/2004 start as if it were automatically site-specific**; choose and cite CO2 reference years in a common experimental baseline policy. The CA-TP4 2002 pilot itself has only `preview_namelists` passed and has not submitted AD5.
+
 ## Remaining 9 AmeriFlux sites: batch rollout after CA-TP4 (25 October 2026)
 
 **Confirmed from operator-provided Stage12 SUCCESS:** CA-TP4 `/iridisfs/scratch/ly3n24/CLM_FATES/cases/CA-TP4_AMF_FIXNC_AD400_UTC_V2_AD5` was independently cloned and its actual CIME FATES/CDEPS namelists previewed, with exact Stage11 22-year UTC forcing, local Stage06 forest stand proxy, NOAA 2002 **fixed CO2 372.58 ppm**, `spinup_state=2`, `STOP_N=REST_N=5`, `RESUBMIT=0`. The previous CA-TP4 Stage08 LST-labeled case was kept unchanged. **No AD5/AD400 or Normal400 jobs have been submitted**.
