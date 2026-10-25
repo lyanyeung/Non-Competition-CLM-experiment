@@ -2,9 +2,30 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
-**Stage04 runtime result reported by operator:** all four independent AD5 cases are prepared, actual previews passed, and `AD5_PREPARE_SUMMARY prepared=4 failed=[]`. No Batch02 model job had been submitted in that output. **Next:** [Stage05 guarded first-five-year submission](docs/stage05_four_AD5_prepared_and_initial_submission_20261025.md), with real job-ID receipts and duplicate/uncertain-attempt protection. AD395 and Normal400 remain later phases. Six other site choices remain open.
+**Latest operator result:** four AD5 cases were prepared and submitted successfully, but all four run jobs subsequently reported `FAILED/1:0`; their four archive jobs remain pending. Submission is not model success. **Current next step:** [Stage06 exact-job read-only failure diagnosis](docs/stage06_four_AD5_failed_readonly_diagnosis_20261025.md). Root cause is not established from exit codes alone. Do not repeat initial submission or continue AD395 before diagnosis and recovery. Six other site choices remain open.
 
-## Current next step: Stage05 first AD5 submission
+## Current next step: Stage06 failed-run diagnosis
+
+The failed run jobs are FI-Hyy4728102, FR-Hes4728104, CH-Fru4728106 and IT-MBo4728108. The paired archive jobs4728103/05/07/09 are pending. Run the standalone read-only diagnostic:
+
+```bash
+(
+  set -euo pipefail
+  SCRIPT="$HOME/Batch02_10_stage06.py"
+
+  curl -fLsS --retry 3 \
+    "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/9aa24d9cb33bd21bb8e2a515c45e10f32c103174/examples/Batch02_10/scripts/06_diagnose_four_failed_AD5_readonly.py" \
+    -o "$SCRIPT"
+
+  echo "2a46fdeb0f8ea830fa8aeaf4f0c1690ada72aca6c0514f598f839f484d84b3c1  $SCRIPT" | sha256sum -c -
+  python3 -B "$SCRIPT" self-test
+  python3 -B "$SCRIPT" diagnose
+)
+```
+
+Paste the printed per-site `FILE` error contexts; fuller logs are retained at the printed `REPORT_TEXT` and `REPORT_JSON` paths. No jobs or cases are modified. [Failure record and diagnostic scope](docs/stage06_four_AD5_failed_readonly_diagnosis_20261025.md).
+
+## Stage05: completed submission, followed by failed model runs (historical command)
 
 Four actual case previews passed. Submit only the first five AD years for FI-Hyy, FR-Hes, CH-Fru and IT-MBo:
 
