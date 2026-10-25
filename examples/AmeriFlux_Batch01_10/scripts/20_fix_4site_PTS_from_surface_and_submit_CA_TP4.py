@@ -207,10 +207,21 @@ def validate(site,data,receipt=None):
   if field(text,k)!=v:abort(site+": generated land FATES flag "+k+" changed")
  if field(text,"finidat") not in (None,""):
   abort(site+": new AD5 should be cold start")
- if digest(land)!=data["original_lnd_sha256"]:
-  abort(site+": new generated lnd_in differs from proven original (PTS affects only coupler)")
- if digest(met)!=data["original_datm_sha256"]:
-  abort(site+": new generated DATM stream differs from proven original")
+ # The new CASE identity can legitimately alter cosmetic lnd_in fields.
+ # Preserve substantive land science, forcing and ancillary streams instead
+ # of requiring exact byte equality to the old case's entire generated file.
+ oldland=(data["original_case"]/"CaseDocs/lnd_in").read_text(encoding="utf8")
+ for k in ("fates_paramfile","hist_fincl1","use_crop","co2_ppmv",
+           "fates_spitfire_mode","use_fates","use_fates_sp",
+           "use_fates_fixed_biogeog","use_fates_nocomp","spinup_state","fsurdat"):
+  if field(text,k)!=field(oldland,k):
+   abort(site+": cloned generated land science changed "+k)
+ def semantic(e):
+  return (e.tag,tuple(sorted(e.attrib.items())),(e.text or "").strip(),
+          tuple(semantic(k) for k in e))
+ if semantic(ET.parse(met).getroot())!=semantic(
+         ET.parse(data["original_case"]/"CaseDocs/datm.streams.xml").getroot()):
+  abort(site+": generated DATM stream semantics differ from proven source case")
  files=stream(case,site,first,last)
  if files!=data["files"]:abort(site+": new CDEPS points at different forcing data")
  checks={}
@@ -328,6 +339,15 @@ def one_submit():
  validate(site,data)
  stamp=D/"CA-TP4_PTS_V3_AD5_SUBMISSION_ATTEMPT.json"
  if stamp.exists():abort("CA-TP4 Stage20 submit already attempted, DO NOT RETRY")
+ # Do not start the new STARTUP if someone manually submitted or wrote restart.
+ if any(rundir.glob("rpointer*")) or any(rundir.glob("*.r.*.nc")):
+  abort("New CA-TP4 run directory contains restart artifacts; refuse duplicate startup")
+ cs=case/"CaseStatus"
+ if cs.is_file():
+  case_status=cs.read_text(encoding="utf8",errors="replace")
+  if any(item in case_status for item in (
+          "case.submit starting", "model execution starting", "case.run starting")):
+   abort("Corrected case has prior CIME submission/start record; do not duplicate")
  from subprocess import run
  cli=run([str(case/"case.submit"),"--help"],cwd=case,capture_output=True,
          text=True,check=False,timeout=75)
