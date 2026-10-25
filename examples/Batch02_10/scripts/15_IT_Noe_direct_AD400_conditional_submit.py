@@ -9,7 +9,7 @@ scientifically approved. This is an explicitly labelled trial.
 No original source CIME case, FATES parameters, forcing, surface,
 restart, or other site's jobs are modified.
 """
-import argparse,hashlib,json,os,re,resource,socket,subprocess
+import argparse,configparser,hashlib,json,os,re,resource,socket,subprocess
 from pathlib import Path
 from datetime import datetime,timezone
 
@@ -124,11 +124,23 @@ def start():
  runid=re.findall(r"Submitted job case\.run with id (\d+)",p.stdout)
  archid=re.findall(r"Submitted job case\.st_archive with id (\d+)",p.stdout)
  if len(runid)!=1 or len(archid)!=1:err("Job IDs uncertain; no retry")
- record.update({"phase":"SUBMITTED_MODEL_NOT_YET_VERIFIED","run_job":runid[0],
+ opts=C/".submit_options"
+ persisted=False
+ if opts.is_file():
+  ini=configparser.RawConfigParser()
+  ini.read(opts)
+  persisted=ini.has_section("SubmitOptions") and ini.getboolean(
+       "SubmitOptions","skip_pnl",fallback=False)
+ record.update({"phase":"SUBMITTED_MODEL_NOT_YET_VERIFIED" if persisted else
+                "SUBMITTED_SKIP_PREVIEW_PERSISTENCE_UNVERIFIED",
+                "skip_preview_persisted":persisted,"run_job":runid[0],
                 "archive_job":archid[0]})
  STAMP.write_text(json.dumps(record,indent=2)+"\n")
  print("DIRECT IT-Noe AD400 SUBMITTED run",runid[0],"archive",archid[0],
-       "80 x 5yr segments, currently no completed years proved")
+       "80 x 5yr segments, currently no completed years proved",
+       "skip_preview_persisted",persisted)
+ if not persisted:
+  print("WARNING: CIME .submit_options skip_pnl not true: inspect before any automatic resubmission. DO NOT RETRY SUBMIT")
 def main():
  p=argparse.ArgumentParser()
  g=p.add_mutually_exclusive_group(required=True)
