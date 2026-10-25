@@ -19,6 +19,7 @@ No numerical flag is automatically adjudicated or repaired.
 """
 from __future__ import annotations
 import argparse,csv,hashlib,json,re,xml.etree.ElementTree as ET
+import calendar
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 import numpy as np
@@ -46,7 +47,13 @@ def save_csv(p,rows,columns):
   out.writeheader()
   for row in rows:out.writerow(row)
 def date_at(y,i):
- return (datetime(y,1,1)+timedelta(minutes=30*int(i))).strftime("%Y-%m-%d %H:%M")
+ # The NetCDF axis uses a *365_day/noleap* calendar; Python datetime is
+ # Gregorian. Explicitly skip Gregorian February 29 in leap years so that
+ # every March-Dec 2004/2008/2012/... slot has the correct model date.
+ t=datetime(y,1,1)+timedelta(minutes=30*int(i))
+ if calendar.isleap(y) and int(i)>=59*48:
+  t+=timedelta(days=1)
+ return t.strftime("%Y-%m-%d %H:%M")
 def rh(T,Q,P):
  # Approximate TBOT/QBOT/PSRF RH using liquid water over entire year.
  # NOT model-computed 2m RH; a 0–5% result is a review flag only.
@@ -262,6 +269,8 @@ def main():
  if a.self_test:
   assert date_at(2023,13953)=="2023-10-18 16:30"
   assert date_at(2005,46)=="2005-01-01 23:00"
+  assert date_at(2008,59*48)=="2008-03-01 00:00"
+  assert date_at(2008,58*48)=="2008-02-28 00:00"
   assert sum(range(21))==210
   print("STAGE16 SELF-TEST PASS: noleap DATM slots, flagged 2023 date, all output isolated")
   return
