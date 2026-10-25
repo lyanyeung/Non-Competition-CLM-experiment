@@ -12,6 +12,18 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage20 real corrected CA-TP4 AD5 submitted: 4732088 run / 4732089 archive (25 October 2026)
+
+**Actual user-provided CIME output:** `Check case OK`; `case.submit --skip-preview-namelist` successfully submitted the **corrected** `CA-TP4_AMF_FIXNC_AD400_UTC_V3_PTS_AD5` case, **run Slurm job 4732088**, dependent **short-term archive job 4732089**. This is distinct from the retired, failed original `4728206/4728207` pair. The successful one-time submission guard was passed, including exact original `fsurdat` `PTS_LAT=42.7102` / `PTS_LON=279.6426`, exact effective CaseDocs and RUNDIR `scol_lat/scol_lon`, and original forcing years and CO2.
+
+**No verified model progress or restart supplied yet.** Do not mark as 5yr AD5 success, submit again, extend AD395, or automatically start BR-Ma2/CA-Ca3/CA-LP1. Check actual job and log outputs:
+```bash
+sacct -j 4732088,4732089 --format=JobID,JobName%48,State,Elapsed,ExitCode,MaxRSS
+tail -40 /iridisfs/scratch/ly3n24/CLM_FATES/cases/CA-TP4_AMF_FIXNC_AD400_UTC_V3_PTS_AD5/CaseStatus
+```
+
+**Independent parallel task:** user asked to address the six remaining unassigned **ICOS** PFT entries in the separately maintained 38-station evidence register, not the six outstanding *AmeriFlux* Batch01 stations. This is now recorded in [`../ICOS_Unassigned_6/README.md`](../ICOS_Unassigned_6/README.md): four C3 grass model candidates, ES-Agu bare+grass+shrub conditional proposal, and GL-ZaH Arctic shrub site-only private FATES map candidate. No ICOS six-site case or Slurm model job has been created.
+
 ## Stage20 operator-verified four corrected cases PASS (25 October 2026)
 
 **Actual IRIDIS6 operator log confirms all four Stage20 corrected case previews were CREATED and separately `--verify` validated (4/4 PASS, no Slurm jobs):**
