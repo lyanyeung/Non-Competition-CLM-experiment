@@ -12,6 +12,27 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage20 operator-verified four corrected cases PASS (25 October 2026)
+
+**Actual IRIDIS6 operator log confirms all four Stage20 corrected case previews were CREATED and separately `--verify` validated (4/4 PASS, no Slurm jobs):**
+- `CA-TP4_AMF_FIXNC_AD400_UTC_V3_PTS_AD5`: `PTS_LAT=42.7102`, `PTS_LON=279.6426`, 22 annual UTC met files, CO2 372.58 ppm.
+- `BR-Ma2_AMF_FIXNC_AD400_UTC_V2_PTS_AD5`: `PTS_LAT=-2.6091`, `PTS_LON=299.7907`, 18 annual UTC met files, CO2 367.79 ppm.
+- `CA-Ca3_AMF_FIXNC_AD400_UTC_V2_PTS_AD5`: `PTS_LAT=49.5346`, `PTS_LON=235.0996`, 24 annual UTC met files, CO2 370.57 ppm.
+- `CA-LP1_AMF_FIXNC_AD400_UTC_V2_PTS_AD5`: `PTS_LAT=55.1119`, `PTS_LON=237.1586`, 18 annual UTC met files, CO2 382.90 ppm.
+
+Each site's PTS values are read directly from the original site-specific `fsurdat` `LATIXY/LONGXY`, matching its forcing. **Actual `CaseDocs/nuopc.runconfig` AND effective `RUNDIR/nuopc.runconfig` `scol_lat/scol_lon` independently matched the original site surface for all four.** CIME env-case locks were restored and the existing FATES accelerator/fixed-biogeography/no-competition input was preserved through private-AD namelist preview. No updated original case/forcing/surface, no model recompilation, no new Slurm jobs. This resolves the specific previously established **CH-Dav PTS geometry mismatch** at input/configuration level; model success still awaits a real run.
+
+The user has already performed:
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/20_fix_4site_PTS_from_surface_and_submit_CA_TP4.py --stage --site all --confirm FIX_FOUR_AMERIFLUX_PTS_FROM_SURFACE_PREVIEW_NO_SLURM
+python3 -B examples/AmeriFlux_Batch01_10/scripts/20_fix_4site_PTS_from_surface_and_submit_CA_TP4.py --verify
+```
+**Do not repeat `--stage`** (the new case and one-time attempt receipts already exist). The next step is an **opt-in single real AD5 smoke submission of only the corrected CA-TP4**:
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/20_fix_4site_PTS_from_surface_and_submit_CA_TP4.py --submit-ca-tp4 --confirm SUBMIT_FIXED_CA_TP4_ONE_AD5_SKIP_PREVIEW
+```
+This will invoke `case.submit --skip-preview-namelist` exactly once with a new independent one-time job-attempt ledger. Submission has **NOT YET been reported** in operator's Stage20 pasted output. It does not touch BR-Ma2, CA-Ca3, CA-LP1 and cannot be taken as a verified AD5 completion; after submission, inspect Slurm job ID, actual logs, 2007 restart and archiving before the remaining AD395/Normal400.
+ 
 ## Stage19 conclusive CIME point mismatch; Stage20 new four-case PTS repair (25 October 2026)
 
 **Operator directly confirmed actual CIME + runtime NUOPC** from failed CA-TP4 and original CH-Dav case: both carry `PTS_LAT=46.81533` `PTS_LON=9.85591` with `PTS_DOMAINFILE=UNSET`; effective `run/nuopc.runconfig` and `CaseDocs/nuopc.runconfig` each carry `scol_lat=46.81533, scol_lon=9.85591, single_column_lnd_domainfile=UNSET`. But CA-TP4 source surface is **`LATIXY=42.7102, LONGXY=279.6426`** and UTC forcing matches exactly. The model `lnd.log.4728206.261025-091434` shows actual error **`rmaxlon=269.786690000000`, `rmaxlat=4.10513000000000` degrees**, abort `surfrdMod.F90:122` threshold 0.001°. **CA-TP4 source case still inherits CH-Dav point coordinates**; no remaining doubt about root cause. Dataset auxiliary variable `lat/lon` (grid center metadata) does NOT substitute for the actual `LATIXY/LONGXY` site point variables.
