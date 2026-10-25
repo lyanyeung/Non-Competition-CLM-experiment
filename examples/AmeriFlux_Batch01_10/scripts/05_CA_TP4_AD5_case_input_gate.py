@@ -26,8 +26,8 @@ KNOWN_MET={"PRECTmms":"Faxa_precn","FSDS":"Faxa_swdn",
            "QBOT":"Sa_shum","PSRF":"Sa_pbot","FLDS":"Faxa_lwdn"}
 REFERENCE=BASE/"cases/CH-Dav_B01_FIXNC_AD400"
 SITE_ROOT=BASE/"sites/MY_EC_SITE"/SITE
-OTHER=Path.home()/"CLM-FATES-single-site-workflows"
-META=OTHER/"examples/AmeriFlux_sites/metadata/Batch01_EC_FATES_PFT_experiment_candidates_v4_20261023.tsv"
+META=Path(__file__).resolve().with_name("Batch01_EC_FATES_PFT_experiment_candidates_v4_20261023.tsv")
+META_BLOB_SHA1="266a1bb8f56a3ca99eef317a20dc913f3b5cf9a4"
 FILES_TO_EXAMINE=("env_run.xml","env_case.xml","CaseDocs/datm_in",
                   "CaseDocs/datm.streams.xml","CaseDocs/lnd_in")
 CIME_VARS={"COMPSET","DATM_MODE","CALENDAR","ATM_NCPL","DATM_YR_START",
@@ -170,7 +170,11 @@ def inspect_surface():
  return r
 
 def evidence():
- if not META.is_file():raise RuntimeError("GitHub tower PFT evidence file missing: "+str(META))
+ if not META.is_file():raise RuntimeError("Download pinned v4 PFT evidence next to Stage05 script before running: "+str(META))
+ raw=META.read_bytes()
+ blob=b"blob "+str(len(raw)).encode()+b"\0"+raw
+ if hashlib.sha1(blob).hexdigest()!=META_BLOB_SHA1:
+  raise RuntimeError("Unverified/v4 tower PFT evidence blob: refuse unpinned station percentages")
  with META.open(encoding="utf-8-sig",newline="") as f:
   rows=[r for r in csv.DictReader(f,delimiter="\t") if r.get("site")==SITE]
  if len(rows)!=1:raise RuntimeError("CA-TP4 tower evidence ambiguous")
