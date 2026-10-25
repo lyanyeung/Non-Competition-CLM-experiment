@@ -12,6 +12,24 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage18 root cause localized to surfrdMod line 122: land-domain vs surface point coordinate mismatch (25 October 2026)
+
+**Actual operator-provided authoritative Slurm and model log**:
+- `4728206` `FAILED 1:0` after **00:00:06**; `4728206.0` `cesm.exe` `FAILED 1:0` after **00:00:04**, max RSS **14972K**. `4728207` short-term archive `PENDING` (unsatisfied run dependency). No restart pointers/files.
+- Startup abort `ERROR in surfrdMod.F90 at line 122`; backtrace `surfrdmod_mp_chec 122` → `surfrdmod_mp_surf 270` → `clm_initializemod 258` → NUOPC. `srun` cancellation after this abort is downstream, **NOT evidence of memory exhaustion or a dust/Prigent ESMF mesh SIGSEGV**.
+
+**Source-level pin/verification**: [ESCOMP/CTSM at d5ea9d0, src/main/surfrdMod.F90](https://github.com/ESCOMP/CTSM/blob/d5ea9d0/src/main/surfrdMod.F90#L108-L124). Lines **120–122** compute surface coordinate-vs-`ldomain%lonc/latc` differences and `endrun` whenever either absolute longitude (360° wrap handled) or latitude mismatch exceeds **0.001°**. Thus the *failed check* is specifically surface-vs-land-domain geometry. Exact actual runtime domain coordinates/differences were not printed in the supplied `cesm.log` (the error statement is emitted to `iulog`, often in `lnd.log`); do NOT invent actual mismatch degrees until the runtime domain/mesh input is inspected.
+
+**Why user-referenced original working [Batch01](../Batch01_10/README.md) and Claude-reproduced [Batch03](../Batch03_10/README.md) matter**: their Stage11 case builders clone **each tower's own preexisting, working FATES case** and derive `fsurdat` from the original tower-specific `CaseDocs/lnd_in`. They retain a congruent per-site inherited 1PT atmospheric/land grid. By contrast, the AmeriFlux CA-TP4 Stage08 CIME case **cloned a CH-Dav Batch01 case** and reused a GF-Guy *compiled executable*, while substituting a CA-TP4 point surface and climate years. Its Stage07 documentation explicitly warned `CIME GRID/DOMAIN GATE` and marked `grid_domain_site_geometry_approved=False`; Stage08/12/17 checked *surface-vs-forcing* coordinates but **never verified the effective coupler land-domain-vs-surface**. This is the now identified missing pre-submit gate. It is not fixed by altering PFT percentages, soil, forcing UTC, CO2 or Slurm memory.
+
+**NEW one-pass read-only [Stage19 CA-TP4 surfrd122 domain/mesh source comparison](scripts/19_CA_TP4_surfrd122_geometry_readonly.py)**:
+1. Print the actual local pinned source `surfrdMod.F90` lines 119–123.
+2. Show effective original CH-Dav and failed CA-TP4 CIME mesh/domain XML settings, actual surface NetCDF 1PT coordinates, independent CA-TP4 Stage11 UTC forcing coordinate match and CH-Dav source surface coordinate differences.
+3. Search all available land/CIME logs and CDEPS/CIME runtime files for actual mesh/domain location; read only a tiny slice of candidate domain file coordinate variables.
+4. Never creates/modifies files or submits Slurm. May leave exact land-domain coordinate unresolved if CIME's active mesh location does not appear in the inspected files; use `lnd.log` or a more targeted actual component trace in that case.
+
+**Recovery policy**: Freeze failed `CA-TP4_AMF_FIXNC_AD400_UTC_V2_AD5` and its Stage18 single-submit ledger and `4728206/4728207`; preserve all Stage11 UTC data and Stage06 model-stand surface. After exact domain mismatch confirmed, create a **new, distinct versioned corrected CA-TP4 point domain/mesh/case** using the established tower-specific template conventions, scientifically correct 42.7102N/-80.3574E land/forcing coordinates, with explicit CIME coupler/domain preflight `<0.001°` before new 5-year smoke. Do not change old ldomain checks or fudge surface coordinates to match CH-Dav. The Batch03 stack-limit workaround is a separate issue for Prigent dust ESMF SIGSEGV and **does not explain this surfrd check**. Only when a corrected 5yr smoke is run successfully and checkpoint validated should AD395/Normal400 resume.
+
 ## Stage18 CA-TP4 model started then failed after ~4 seconds — diagnosis required (25 October 2026)
 
 **Operator-provided actual CIME `CaseStatus`** (no root cause established yet):
