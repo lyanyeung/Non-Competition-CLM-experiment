@@ -12,6 +12,22 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage18 CA-TP4 AD5 actually submitted — job 4728206 (25 October 2026)
+
+**Operator-confirmed 2026-10-25 09:13:14 IRIDIS6 CIME output:**
+`case.submit success case.run:4728206, case.st_archive:4728207`.
+Actual `squeue -u ly3n24` at submission: **4728206 `run.CA-T...` PD (Priority)**, **4728207 `st_archive` PD (Dependency)**. This is **successful submission only**; job 4728206 has **NOT started at the observed queue snapshot**, and neither Slurm run completion, actual CIME/FATES model success nor restart availability is yet established. The unrelated older `DependencyNeverSatisfied` st_archive entries in the queue are other jobs and not proof of a CA-TP4 failure.
+
+**Scope is 2002-01-01 startup to target 2007-01-01** (NO_LEAP; `STOP_OPTION=nyears`, `STOP_N=5`, `REST_N=5`, `RESUBMIT=0`), fixed biogeography + no competition FATES accelerated decomposition (`spinup_state=2`), fixed background CO2 372.58 ppm, exact 22-year Stage11 UTC meteorology. This is a **5-year AD smoke within planned AD400**; remaining AD395 and independent Normal400 have **NOT started**. The other three Stage16 Lane A cases BR-Ma2, CA-Ca3, CA-LP1 remain at preview stage only.
+
+**Observe only (never resubmit while uncertain):**
+```bash
+squeue -j 4728206,4728207 -o "%.12i %.45j %.4t %.12M %R"
+sacct -j 4728206,4728207 --format=JobID,JobName%45,State,Elapsed,ExitCode,MaxRSS
+tail -40 /iridisfs/scratch/ly3n24/CLM_FATES/cases/CA-TP4_AMF_FIXNC_AD400_UTC_V2_AD5/CaseStatus
+```
+After model and archive finish, independently verify **log termination**, elapsed simulation dates, output NetCDF, CIME restart, FATES state and CDEPS coupler clock/geography; do not infer an acceptable long FATES spin-up from `COMPLETED` alone. Avoid any second Stage18 submit; its one-time attempt ledger exists on IRIDIS6. Check job 4728207 archive dependency normally changes from PD only after 4728206 completes.
+
 ## Stage17 corrected four cases PASS; Stage18 single CA-TP4 AD5 smoke (25 October 2026)
 
 **User-confirmed actual corrected Stage17 IRIDIS6 RUN PASS 4/4**, all actual CIME cases remained unsubmitted:
