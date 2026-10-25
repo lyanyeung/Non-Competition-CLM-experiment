@@ -1,5 +1,7 @@
 # Stage05: four real AD5 previews passed; submit first five years only
 
+**Later operator result:** all four submissions succeeded with run/archive pairs4728102/03,4728104/05,4728106/07,4728108/09. Subsequent accounting reported all four runs FAILED/1:0 and all four archives PENDING. [Proceed to Stage06 diagnosis](stage06_four_AD5_failed_readonly_diagnosis_20261025.md); do not repeat submission. Pending-execution language below records the earlier state.
+
 ## Operator Stage04 result, 25 October 2026
 
 The operator supplied `/home/ly3n24/Batch02_10_stage04.lo9bISc0/stage04_prepare.log` output. All five downloaded dependencies passed SHA256, nine XML regression tests passed, all four input preflights passed, and actual CIME previews completed:
