@@ -266,6 +266,8 @@ def continue_one(site,data):
     shell([case/"xmlchange","RESUBMIT=78"],cwd=case)
     if B.xmlquery(case,"CONTINUE_RUN").lower()!="true" or B.xmlquery(case,"RESUBMIT")!="78":
         stop(site+": CIME continuation setting not applied")
+    obj["stack_limit_at_submit"]=B.stack_guard()
+    ledger.write_text(json.dumps(obj,indent=2)+"\n")
     print(site,"SUBMIT 395-year AD continuation",yr,"->",yr+395,flush=True)
     out=shell([case/"case.submit","--skip-preview-namelist"],cwd=case,timeout=360)
     matchrun=re.search(r"Submitted job case\.run with id (\d+)",out)
@@ -299,7 +301,8 @@ def main():
         return
     if args.confirm!=ACK:
         stop("Explicit confirmation required: --confirm "+ACK)
-    approved=audit_batch()  # Strict all-ten preflight before any write.
+    B.stack_guard()  # refuse before any write if this shell's stack is too small
+    approved=audit_batch()  # Strict preflight of every listed site before any write.
     problems=[]
     for site in SITES:
         try:

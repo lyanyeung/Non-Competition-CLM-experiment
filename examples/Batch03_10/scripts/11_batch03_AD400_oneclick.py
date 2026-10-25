@@ -33,6 +33,17 @@ Actions (--sites limits surfaces/submit-smoke/status/retire-legacy to a subset):
   status          summarize case paths and scheduler jobs (read only)
   retire-legacy   scancel the superseded legacy case jobs of VARIANT sites and
                   mark its ledger RETIRED (case/run/surface files kept)
+  resubmit-failed-smoke
+                  for listed sites whose recorded AD5 run is sacct FAILED with no
+                  restart written: cancel the stuck archive, keep the failure in
+                  the ledger, and submit the same 5-year AD smoke once more
+
+Stack guard (25 Oct 2026): every submission refuses to run unless this shell's
+stack soft limit is >= MIN_STACK_KB. Slurm here has PropagateResourceLimits=ALL,
+so jobs inherit the submitting shell's limit; the Leung_2023 dust scheme reads
+the global 0.25-degree Prigent ESMF mesh, and ESMF builds a ~16.6 MB array on the
+stack while reading it. All Batch02/Batch03 AD5 runs submitted with a small
+stack segfaulted there ~10 s after start.
 
 Run 'surfaces' once, then Stage12 private-overlay recovery, then
 'submit-smoke'. Never overwrites an existing target and never submits a
@@ -111,6 +122,8 @@ HISTORY=("TOTSOMC","TOTSOMN","TLAI","FATES_GPP","FATES_NPP","TWS","H2OSNO")
 # names carry the tag). The plain <site>_B03_FIXNC_AD400 case is then LEGACY.
 VARIANTS={"IL-Yat":"BARE52"}
 ACK_RETIRE="RETIRE_BATCH03_LEGACY_VARIANT_CASES"
+ACK_RESUBMIT="RESUBMIT_BATCH03_FAILED_AD5_SMOKES_WITH_STACK_GUARD"
+MIN_STACK_KB=65536
 RUN_RE=re.compile(r"Submitted job case\.run with id (\d+)")
 ARCH_RE=re.compile(r"Submitted job case\.st_archive with id (\d+)")
 
@@ -548,6 +561,24 @@ def dispatch(name,method,sites=None):
         raise SystemExit(2)
 
 
+def stack_limit_kb():
+    import resource
+    soft,hard=resource.getrlimit(resource.RLIMIT_STACK)
+    conv=lambda v:"unlimited" if v==resource.RLIM_INFINITY else v//1024
+    return conv(soft),conv(hard)
+
+
+def stack_guard():
+    soft,hard=stack_limit_kb()
+    if soft!="unlimited" and soft<MIN_STACK_KB:
+        fail(f"Stack soft limit {soft} KB < {MIN_STACK_KB} KB in this shell. Jobs inherit it "
+             "(PropagateResourceLimits=ALL) and the Prigent dust ESMF mesh read will segfault. "
+             f"Run `ulimit -s unlimited` (hard limit here: {hard}) or `ulimit -s 300000`, "
+             "then rerun this command in the SAME shell.")
+    print("STACK GUARD PASS: soft =",soft,"KB, hard =",hard,"KB")
+    return {"soft_kb":soft,"hard_kb":hard}
+
+
 def parse_job_ids(out):
     r=RUN_RE.search(out)
     a=ARCH_RE.search(out)
@@ -595,6 +626,7 @@ def all_submit(ack,sites=None):
     for site in sites:
         if any(line.split(".",1)[-1]==case_name(site) for line in queue.splitlines()):
             fail("A matching job is already in queue; STOP "+site)
+    stack=stack_guard()
     print(len(sites),"SITE(S) STAGED. SUBMITTING EXACTLY ONE 5-YEAR AD SMOKE PER SITE:",",".join(sites))
     failed=[]
     for site in sites:
@@ -602,6 +634,7 @@ def all_submit(ack,sites=None):
         obj=records[site]
         obj["phase"]="SUBMISSION_ATTEMPTED_UNCERTAIN"
         obj["attempt_utc"]=datetime.now(timezone.utc).isoformat()
+        obj["stack_limit_at_submit"]=stack
         ledger.write_text(json.dumps(obj,indent=2)+"\n")
         try:
             out=cmd([case_path(site)/"case.submit","--skip-preview-namelist"],
@@ -646,6 +679,113 @@ def status(sites=None):
               f"PHASE={obj.get('phase','NOT_STAGED')} "
               f"AD5={obj.get('AD5_run_job','-')}/{obj.get('AD5_archive_job','-')} "
               f"QUEUE={'; '.join(jobs) or '-'}")
+
+
+def sacct_rows(ids):
+    out=cmd(["sacct","-X","-n","-P","-j",",".join(ids),
+             "--format=JobIDRaw,JobName%80,State,ExitCode,Elapsed,NodeList"],timeout=60)
+    rows={}
+    for ln in out.splitlines():
+        p=[x.strip() for x in ln.split("|")]
+        if len(p)>=4 and p[0] in ids:
+            rows[p[0]]=p
+    return rows
+
+
+def resubmit_failed(ack,sites):
+    if ack!=ACK_RESUBMIT:
+        fail("resubmit-failed-smoke requires --confirm "+ACK_RESUBMIT)
+    if not sites:
+        fail("resubmit-failed-smoke requires explicit --sites")
+    sites=pick_sites(sites)
+    stack=stack_guard()
+    import time
+    plan={}
+    # ---- read-only verification of every listed site first
+    for site in sites:
+        lp=ledger_path(site)
+        if not lp.is_file():
+            fail(site+": no ledger "+str(lp))
+        obj=json.loads(lp.read_text())
+        if obj.get("phase")!="FIRST_5Y_SUBMITTED":
+            fail(site+": ledger phase "+str(obj.get("phase"))+" is not FIRST_5Y_SUBMITTED; no automatic resubmit")
+        runid,archid=str(obj.get("AD5_run_job")),str(obj.get("AD5_archive_job"))
+        if not (runid.isdigit() and archid.isdigit()):
+            fail(site+": recorded AD5 job IDs missing")
+        rows=sacct_rows([runid,archid])
+        r=rows.get(runid)
+        if not r or r[1]!="run."+case_name(site) or r[2]!="FAILED":
+            fail(site+": recorded run "+runid+" is not sacct FAILED for this case: "+repr(r))
+        case=case_path(site)
+        for key,want in (("CONTINUE_RUN","false"),("RESUBMIT","0"),("STOP_N","5"),
+                         ("CLM_ACCELERATED_SPINUP","on")):
+            if xmlquery(case,key).lower()!=want:
+                fail(site+": CIME "+key+" changed; inspect before resubmitting")
+        if digest(surface(site))!=obj.get("surface_sha256"):
+            fail(site+": surface changed since recovery")
+        nml=(case/"CaseDocs/lnd_in").read_text()
+        for key,value in desired_namelist(site).items():
+            if key!="hist_fincl1" and nml_get(nml,key)!=value.strip("'\\\""):
+                fail(site+": generated namelist mismatch "+key)
+        run=run_path(site)
+        bad=[x.name for x in list(run.glob("*.r.*.nc"))+list(run.glob("rpointer.*"))] if run.is_dir() else []
+        if bad:
+            fail(site+": failed run left restart/pointer files "+repr(bad[:4])+"; inspect manually")
+        if archive_path(site).exists() and any(archive_path(site).rglob("*.r.*.nc")):
+            fail(site+": archive already holds restarts; inspect manually")
+        plan[site]=(obj,runid,archid,rows)
+    q=cmd(["squeue","-u",SLURM_USER,"-h","-o","%i|%j"],timeout=35)
+    queued={}
+    for ln in q.splitlines():
+        i,_,n=ln.partition("|")
+        queued.setdefault(n.split(".",1)[-1],[]).append((i,n))
+    for site in sites:
+        others=[x for x in queued.get(case_name(site),[]) if x[0]!=plan[site][2]]
+        if others:
+            fail(site+": unexpected queued jobs for this case "+repr(others))
+    print("RESUBMIT PREFLIGHT PASS for",",".join(sites))
+    # ---- per site: cancel stuck archive, record failure, submit once
+    failed=[]
+    for site in sites:
+        obj,runid,archid,rows=plan[site]
+        lp=ledger_path(site)
+        try:
+            if any(x[0]==archid for x in queued.get(case_name(site),[])):
+                cmd(["scancel",archid],timeout=60)
+                for _ in range(24):
+                    time.sleep(5)
+                    if archid not in cmd(["squeue","-u",SLURM_USER,"-h","-o","%i"],timeout=35).split():
+                        break
+                else:
+                    fail(site+": archive "+archid+" still queued after scancel")
+            hist=obj.setdefault("failed_AD5_attempts",[])
+            hist.append({"run_job":runid,"archive_job":archid,
+                         "sacct_run":rows.get(runid),"archive_cancelled":True,
+                         "stack_limit_at_submit":obj.get("stack_limit_at_submit","NOT_RECORDED"),
+                         "diagnosis":"startup SIGSEGV in ESMF mesh read for Prigent dust roughness stream "
+                                     "(PrigentRoughnessStreamType.F90:105); submitting shell stack limit suspected",
+                         "recorded_utc":datetime.now(timezone.utc).isoformat()})
+            obj["phase"]="SUBMISSION_ATTEMPTED_UNCERTAIN"
+            obj["attempt_utc"]=datetime.now(timezone.utc).isoformat()
+            obj["stack_limit_at_submit"]=stack
+            obj.pop("AD5_run_job",None); obj.pop("AD5_archive_job",None)
+            lp.write_text(json.dumps(obj,indent=2)+"\n")
+            out=cmd([case_path(site)/"case.submit","--skip-preview-namelist"],
+                    cwd=case_path(site),timeout=360)
+            runid2,archid2=parse_job_ids(out)
+            obj["phase"]="FIRST_5Y_SUBMITTED"
+            obj["cime_submit_output_tail"]=out[-850:]
+            obj["AD5_run_job"]=runid2; obj["AD5_archive_job"]=archid2
+            lp.write_text(json.dumps(obj,indent=2)+"\n")
+            print(site,"RESUBMITTED FIRST 5 AD YEARS run=",runid2,"archive=",archid2)
+            if not runid2 or not archid2:
+                print(site,"WARNING: job IDs not parsed; record them in the ledger by hand")
+        except Exception as err:
+            print(site,"RESUBMIT UNCERTAIN; inspect squeue/CaseStatus; DO NOT RETRY BLINDLY",str(err)[-800:])
+            failed.append(site)
+    print("RESUBMIT SUMMARY submitted=",len(sites)-len(failed),"uncertain=",failed)
+    if failed:
+        raise SystemExit(3)
 
 
 def retire_legacy(ack,sites=None):
@@ -731,6 +871,8 @@ def self_test():
     assert target_pft("IL-Yat")[0]==52 and target_pft("IL-Yat")[1]==48
     assert needs_bare("IL-Yat") and not any(needs_bare(x) for x in SITE_ORDER if x!="IL-Yat")
     assert pick_sites(["IL-Yat"])==["IL-Yat"] and len(pick_sites(None))==10
+    assert MIN_STACK_KB>=65536 and ACK_RESUBMIT!=ACK_SUBMIT
+    stack_limit_kb()
     sample=("Submitted job case.run with id 4800001\n"
             "Submitted job case.st_archive with id 4800002\n")
     assert parse_job_ids(sample)==("4800001","4800002")
@@ -742,7 +884,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__,
                                    formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("action",choices=("self-test","plan","surfaces","submit-smoke",
-                                          "status","retire-legacy"))
+                                          "status","retire-legacy","resubmit-failed-smoke"))
     parser.add_argument("--confirm",default="")
     parser.add_argument("--sites",nargs="+",default=None,
                         help="limit surfaces/submit-smoke/status/retire-legacy to these sites")
@@ -757,6 +899,8 @@ def main():
         all_submit(args.confirm,args.sites)
     elif args.action=="retire-legacy":
         retire_legacy(args.confirm,args.sites)
+    elif args.action=="resubmit-failed-smoke":
+        resubmit_failed(args.confirm,args.sites)
     else:
         status(args.sites)
 
