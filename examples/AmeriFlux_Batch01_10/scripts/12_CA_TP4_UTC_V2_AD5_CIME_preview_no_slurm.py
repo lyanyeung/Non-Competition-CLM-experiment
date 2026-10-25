@@ -197,9 +197,13 @@ def stream_actual(files):
   if mapped.get(k)!=v:fail("Incorrect CDEPS source-to-model map "+k)
  input_paths=[Path((f.text or "").strip()) for f in met.find("datafiles")]
  if input_paths!=files:fail("Generated new case does not use exact 22 Stage11 UTC NetCDF")
+ def semantic_xml(elem):
+  # Compare CDEPS stream settings, not insignificant generated XML whitespace.
+  text=(elem.text or "").strip()
+  attrs=tuple(sorted(elem.attrib.items()))
+  return (elem.tag,attrs,text,tuple(semantic_xml(child) for child in elem))
  for key in (set(actual)-{"CLM_USRDAT.UNSET"}):
-  a=originals[key];b=actual[key]
-  if ET.tostring(a)!=ET.tostring(b):
+  if semantic_xml(originals[key])!=semantic_xml(actual[key]):
    fail("Reference auxiliary forcing stream modified unexpectedly: "+key)
  print("UTC GENERATED DATM PASS: 22 Stage11 files, 8 maps, cycle/linear, offset 0, ancillary preserved")
  return len(input_paths)
