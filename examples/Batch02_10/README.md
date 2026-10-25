@@ -2,11 +2,21 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
-**Latest recovery reference:** the operator supplied Batch03's matched-source high-submitting-stack recovery and ten jobs RUNNING beyond the old startup failure on red6083. **Current next step:** [Stage09 applies that method to the four failed Batch02 AD5 cases](docs/stage09_Batch03_success_method_for_Batch02_20261025.md). It preserves scientific inputs/executable/MPI command, never lowers a high stack and records the actual submit-process limits. The old Stage08 wrapper/probe route is superseded. No Batch02 retry outcome is claimed; six other scientific input choices remain open.
+**Stage09 resubmission reported successful 4/4:** FI-Hyy4728292/93, FR-Hes4728294/95, CH-Fru4728296/97 and IT-MBo4728298/99 (run/archive). The actual submit process on login6001 had an unlimited stack. These receipts establish submission; new run completion and archived AD5 checkpoints still need verification. [New IDs, PFT/bare-ground review and source evidence](docs/stage09_resubmitted_PFT_bare_ground_review_20261025.md).
 
-## Current next step: Stage09 four-site recovery using Batch03's working method
+## Current next step: monitor AD5 and review area assumptions
 
-Use the actual successful Batch03 submission-stack method for FI-Hyy, FR-Hes, CH-Fru and IT-MBo:
+```bash
+python3 -B "$HOME/Batch02_10_stage09.py" status
+```
+
+The four candidate PFT allocations match the updated 38-site register and the operator-verified active parameter map. All four currently have **bare0**: this is an explicit dense-point assumption, not observed zero bare area. CH-Fru's up-to90% cover statement does not establish bare10. ES-LJu's measured non-vegetated49.1% must be retained in a future candidate; its rounded49/31/20 split and IT-Noe's34/66 midpoint are proposals with assumptions. The six other sites still have no automatic surface choice. Review acceptance of these area assumptions together with AD5 outputs and checkpoints before AD395.
+
+Do not rerun Stage09 resubmit or the superseded Stage08 route. Model inputs and active cases were not altered by this documentation review.
+
+## Stage09: completed four-site resubmission (historical command)
+
+The following is the completed submission command, retained for reproducibility:
 
 ```bash
 (
@@ -21,7 +31,7 @@ Use the actual successful Batch03 submission-stack method for FI-Hyy, FR-Hes, CH
 )
 ```
 
-Expected: `STAGE09 RESUBMIT SUMMARY submitted= 4 uncertain= []`. This validates all four failed cases, preserves inputs/executable/MPI command, raises only a low current submitting-process stack, cancels only their verified blocked old archives and submits only AD5 with RESUBMIT0. It does not run a probe or alter Batch03 jobs. Use `python3 -B "$HOME/Batch02_10_stage09.py" status` for the new IDs. [Source match, operator evidence and recovery record](docs/stage09_Batch03_success_method_for_Batch02_20261025.md).
+Reported result: `STAGE09 RESUBMIT SUMMARY submitted= 4 uncertain= []`. This validated all four failed cases, preserves inputs/executable/MPI command, raises only a low current submitting-process stack, cancels only their verified blocked old archives and submits only AD5 with RESUBMIT0. It does not run a probe or alter Batch03 jobs. Use `python3 -B "$HOME/Batch02_10_stage09.py" status` for the new IDs. [Source match, operator evidence and recovery record](docs/stage09_Batch03_success_method_for_Batch02_20261025.md).
 
 ## Stage08: superseded single-site wrapper proposal (do not run the command below)
 
