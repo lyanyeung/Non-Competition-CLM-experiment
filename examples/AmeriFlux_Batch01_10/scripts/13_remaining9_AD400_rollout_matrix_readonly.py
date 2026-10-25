@@ -116,9 +116,9 @@ def original_surface(site,bif_meta):
    fail(site+": invalid source host CLM natpft vector")
   if abs(float(sum(pf))-100)>0.5:
    fail(site+": grid CLM natural PFT does not sum to 100")
-  if abs(vals["LATIXY"]-bif_meta["LOCATION_LAT"])>0.1 or (
-    abs(((vals["LONGXY"]%360)-(bif_meta["LOCATION_LONG"]%360)+180)%360-180)>0.1):
-   fail(site+": original surface model location differs by >0.1deg from BIF")
+  lat_gap=abs(vals["LATIXY"]-bif_meta["LOCATION_LAT"])
+  lon_gap=abs(((vals["LONGXY"]%360)-(bif_meta["LOCATION_LONG"]%360)+180)%360-180)
+  vals["BIF_GRID_WITHIN_0p1_DEG"]=(lat_gap<=0.1 and lon_gap<=0.1)
  return vals
 
 def height_status(site,policy):
@@ -173,7 +173,7 @@ def main():
  pol,records=get_stage_data()
  pfts=get_pft()
  print("=== NINE-SITE AMERIFLUX AD400 ROLLOUT / REUSE EXISTING MET STAGE80-82 ===")
- print("SITE | YEARS | HH_NC | BIF_UTC_H | HEIGHT_STATUS | BASE_M | EVENTS | NAT/CROP_GRID_PCT | PFT_STAND_CANDIDATE | CIME_CASES")
+ print("SITE | YEARS | HH_NC | BIF_UTC_H | HEIGHT_STATUS | BASE_M | EVENTS | NAT/CROP_GRID_PCT | BIF_GRID_GEO | PFT_STAND_CANDIDATE | CIME_CASES")
  for site in SITES:
   b=bif(site)
   grid=original_surface(site,b)
@@ -184,6 +184,7 @@ def main():
   cases=other_case_status(site)
   print(f"{site} | {span} | {count} | {b['UTC_OFFSET']:+g} | {cat} | {z} | {events} | "
         f"{grid['PCT_NATVEG']:.2f}/{grid['PCT_CROP']:.2f} | "
+        f"{'OK' if grid['BIF_GRID_WITHIN_0p1_DEG'] else 'REVIEW_GRID_OFFSET'} | "
         f"{e['published_PFT_or_cover_percent']} | {cases}",flush=True)
  print("=== ACTION ORDER, USING ONE SHARED BATCH ENGINE; NO REPEATED QC ===")
  print("LANE A: BR-Ma2 CA-Ca3 CA-LP1 US-Bar — STATIC HEIGHT PROXY, technical pilot ONLY; original crosswalk TA_F unverified.")
