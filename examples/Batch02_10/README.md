@@ -27,6 +27,8 @@ Binding status: [Batch02 source evidence](../../data/batch02_10_sites.csv) and [
 
 The maintained downloader below fetches exactly three small files (the audit and its two CSVs), checks their embedded SHA256 values, and runs both self-test and inventory. It uses raw GitHub downloads; a cluster `git pull` is unnecessary.
 
+**25 October checksum fix:** the initial launcher hashed the local site CSV with CRLF line endings, while the published Git blob contains LF. Only that CSV checksum was wrong. The corrected launcher checks the actual published bytes (`28606b0a5899e1b4fc7a75a57cdfc927e3b21a93af7289f523d5983a32eb7841`) and pins its three dependencies to input revision `6a355eaf8c9f055eeacd8f9d110b54c71850492e`. The dependency revision is correct; the launcher itself must be downloaded from the newer fix commit or current `main`. A checksum failure occurs before any checkout input is installed or any audit/model action runs. Source data contents are unchanged.
+
 ```bash
 conda activate clm_fates_env
 curl -fLsS \

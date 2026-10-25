@@ -2,7 +2,8 @@
 # Download only the second European/ICOS batch source inventory. No model jobs.
 set -euo pipefail
 B02_REPO_DIR="${B02_REPO_DIR:-$HOME/Non-Competition-CLM-experiment}"
-B02_REF="${B02_REF:-main}"
+# Keep dependencies on the verified immutable input revision, independent of main.
+B02_REF="${B02_REF:-6a355eaf8c9f055eeacd8f9d110b54c71850492e}"
 if [[ ! "$B02_REF" =~ ^[A-Za-z0-9._-]+$ ]]; then
   echo "Invalid B02_REF; use a commit SHA, tag, or simple branch name." >&2
   exit 2
@@ -10,7 +11,7 @@ fi
 B02_TMP="$(mktemp -d)"
 trap 'rm -rf -- "$B02_TMP"' EXIT
 cat > "$B02_TMP/SHA256SUMS" <<'SHA'
-0e4e813e4d7f26d22df8d6ca64509dbda059e0f73b40a43eb0d5fe73d08160c9  data/batch02_10_sites.csv
+28606b0a5899e1b4fc7a75a57cdfc927e3b21a93af7289f523d5983a32eb7841  data/batch02_10_sites.csv
 3db4c4687204a30b6d6653ad4ac8b4f1f1f8e5e64f891889260c46ab838a7cdf  data/batch02_10_input_gates.csv
 41dcc83db8db7746b0b678a6216e5a95345db82e0de7737bd15d2155abbbac48  examples/Batch02_10/scripts/01_audit_batch02_inputs_readonly.py
 SHA
