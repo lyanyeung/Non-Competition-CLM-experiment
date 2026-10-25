@@ -56,6 +56,10 @@ def jsonload(p):
 
 def stage8():
  if not S8.is_file():fail("Stage08 script absent next to Stage12; fetch pinned file first")
+ data=S8.read_bytes()
+ blob=b"blob "+str(len(data)).encode()+b"\0"+data
+ if hashlib.sha1(blob).hexdigest()!="38cb1acbfd6502b3a9d49b5249bf7e9c006d1528":
+  fail("Existing Stage08 source script differs from successful pinned 38cb1ac reference; do not import")
  spec=importlib.util.spec_from_file_location("ca_tp4_verified_stage08",S8)
  if spec is None or spec.loader is None:fail("Cannot import Stage08 script")
  mod=importlib.util.module_from_spec(spec)
