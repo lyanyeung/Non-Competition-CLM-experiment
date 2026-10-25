@@ -12,6 +12,37 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage14 actual 80/80 UTC pilots PASS; Stage15 three-forest proxy surfaces (25 October 2026)
+
+**User-confirmed actual Stage14 on IRIDIS6: SUCCESS — four independent UTC+ZBOT pilot datasets** at:
+
+`/iridisfs/scratch/ly3n24/CLM_FATES/experiments/AmeriFlux_MultiSite_10/reports/stage14_LaneA_UTC_20261025T083517624796820Z/`
+
+- **BR-Ma2:** 1999–2016, 18 years, BIF UTC−4, provisional BASE ZBOT=51.1 m; sampled UTC FSDS astronomical-night 1999 **0.001%**, 2007 **0.018%**, 2016 **0.017%**.
+- **CA-Ca3:** 2001–2024, 24 years, BIF UTC−8, provisional BASE ZBOT=12m; UTC solar night 2001 **0.000%**, 2012 **0.304%**, 2024 **0.000%**.
+- **CA-LP1:** 2007–2024, 18 years, BIF UTC−8, provisional BASE ZBOT=26m; UTC solar night 2007 **0.445%**, 2015 **0.012%**, 2024 **0.011%**.
+- **US-Bar:** 2004–2023, 20 years, BIF UTC−5, provisional BASE ZBOT=23.8m; UTC solar night 2004 **0.101%**, 2013 **0.084%**, 2023 **0.556%**.
+
+**All 80/80 yearly UTC/ZBOT NetCDF generated, each source-year SHA and both cyclic-in/out variable slices verified**; `STAGE14 BATCH MANIFEST PASS`. Original 213 annual Stage81 NetCDF unchanged; no PFT surface, CIME case or Slurm created. Stage14 timestamps assume original Stage81 local interval-START for three non-CA-TP4 sites without having separately independently verified the raw native timestamp convention. Technical meteorological pilot only.
+
+**Next: [Stage15 three independent idealized Lane A forest surface pilots; US-Bar held](scripts/15_laneA_three_forest_surfaces_USBar_hold.py)**. Uses pinned original Stage81 surface SHA, pinned Stage14 four-site receipt, published observed/assumed PFT evidence, and **effective private FATES AD `fates_hlm_pft_map`** to conditionally create:
+
+| Site | Stand scientific basis | Explicit technical surface-only hypothesis | Note |
+|---|---|---|---|
+| BR-Ma2 | ORCHIDEE published PFT1=100% model assumption, not an independent K34 botanical area survey | 100% NATVEG, FATES PFT1 tropical evergreen broadleaf; verify its CLM host-index-4 map | Grid soil and unknown stand age remain inherited proxies |
+| CA-Ca3 | Douglas-fir 75%, cedar 21%, grand fir 4% as species of common functional group | 100% NATVEG, FATES PFT2 extratropical evergreen needleleaf; CLM host-index-1 candidate | Observed site tree composition **not observed whole grid ground-cover fraction** |
+| CA-LP1 | Lodgepole pine-dominated, data on three seedling/sapling conifers | 100% NATVEG, FATES PFT2 extratropical evergreen needleleaf; CLM host-index-1 candidate | Beetle mortality and actual cohort structure **not resolved by this surface** |
+| **US-Bar** | PFT6 83%, PFT2≥14%, ~3% unknown | **HOLD — NO SURFACE WRITTEN** | Never silently force the missing ~3% into ENF/DBF/grass/bare |
+
+The Stage15 script only builds three new NetCDF surfaces in a brand-new directory on explicitly acknowledged `--build-preview`, checks **every unrelated gridded soil/terrain variable byte-equivalent in logical array values**, and emits one site provenance file each plus a four-site receipt with US-Bar scientific HOLD. Stage15 does not modify Stage14 forcing, old CA-TP4 cases, source surfaces, FATES params or Slurm. Original gridded soil sand/clay remains inherited fallback; this is not an observation-based FATES biomass/stand age initialization. Later case preparation is a separate batch-gated operation.
+
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/15_laneA_three_forest_surfaces_USBar_hold.py --self-test
+python3 -B examples/AmeriFlux_Batch01_10/scripts/15_laneA_three_forest_surfaces_USBar_hold.py --check
+# Only after read-only checks and consent:
+python3 -B examples/AmeriFlux_Batch01_10/scripts/15_laneA_three_forest_surfaces_USBar_hold.py --build-preview --ack-idealized-three-forest-proxies --outdir NEW_DIR
+```
+
 ## Lane A four-site batch UTC technical forcing prepared for operator trial (25 October 2026)
 
 **Actual IRIDIS6 Stage13 nine-site matrix user-confirmed PASS**. All nine source Stage81 annual NC have contiguous years and source BIF UTC offset, original point-surface geolocation BIF_GRID_GEO=OK, 0 new CIME cases, and are backed by ten-site Stage82 213-year SHA inventory. Exact nine-site classification remains 4 static BASE height candidates, 3 event-varying heights, 2 unresolved multi-level sites. This is not 9 approved sensor crosswalks.
