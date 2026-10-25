@@ -21,9 +21,10 @@ YEAR=BASE/"experiments/AmeriFlux_MultiSite_10/reports/stage11_CA_TP4_DATM_UTC_20
 NC_KEYS=("LATIXY","LONGXY","yc","xc","lat","lon","grid_center_lat","grid_center_lon",
          "elementCenterLat","elementCenterLon")
 KEYS=("GRID","ATM_GRID","LND_GRID","MASK_GRID","DATM_MODE",
+      "PTS_LAT","PTS_LON","PTS_DOMAINFILE",
       "ATM_DOMAIN_FILE","ATM_DOMAIN_PATH","LND_DOMAIN_FILE","LND_DOMAIN_PATH",
       "ATM_MESH_FILE","LND_MESH_FILE","DIN_LOC_ROOT")
-TOPIC=re.compile(r"(?i)domain|mesh|grid|longitude|latitude|latc|lonc|lfsurdat|fsurdat")
+TOPIC=re.compile(r"(?i)domain|mesh|grid|longitude|latitude|latc|lonc|scol_lat|scol_lon|lfsurdat|fsurdat")
 ERR=re.compile(r"(?i)surfrd|lon/lat mismatch|domain.*(lon|lat)|surface.*(lon|lat)|error")
 NC_FINDER=re.compile(r"""(/[^\s"'<>(),;]+?\.(?:nc|nc4|cdf))(?=[\s"'<>(),;]|$)""",re.I)
 
@@ -80,6 +81,13 @@ def config(case,label):
  d=entries(case)
  for k in KEYS:
   if k in d:print(k,"=",d[k])
+ try:
+  lat=float(d["PTS_LAT"]);lon=float(d["PTS_LON"])
+  print(label,"EFFECTIVE PTS_LAT/LON =",lat,lon,
+        "DIFFERENCE vs CA-TP4 SURFACE 42.7102,279.6426:",
+        delta((lat,lon),(42.7102,279.6426)))
+ except (KeyError,TypeError,ValueError):
+  print(label,"EFFECTIVE PTS LAT/LON NOT EXPLICITLY AVAILABLE IN CASE XML")
  p=surface(case)
  return nc(label+" fsurdat",p),d
 
@@ -93,7 +101,11 @@ def logs():
   lines=p.read_text(errors="replace").splitlines()
   hits=[(i+1,x) for i,x in enumerate(lines) if ERR.search(x)]
   print("LOG",p,"LINES",len(lines),"ERROR HITS",len(hits))
-  for i,x in hits[-25:]:print(" ",i,x[:400])
+  for i,x in hits[-25:]:
+   print(" ",i,x[:400])
+   if "mismatch" in x.lower() and i<len(lines):
+    # Fortran list-directed rmaxlon,rmaxlat may print on following line.
+    print(" ",i+1,lines[i][:400])
 
 def scan():
  print("=== DOMAIN/MESH REFS FROM EFFECTIVE COUPLER INPUTS ===")
