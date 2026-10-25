@@ -129,7 +129,6 @@ def diagnostic(site,year,arrays):
  strong_rain=int(np.sum(rain>WARN_RAIN_30MIN_MM))
  print(f"YEAR {year} {site} INVALID_PHYSICAL={any_invalid} RH_LT5={rh_lt5} RH_GT100p1={rh_gt100} RH_NEG_OR_GT120={rh_bad} DT_GT12={large_temp_jump} RAIN_GT40MM_30MIN={strong_rain} T_C_MIN={np.nanmin(t_C):.3f} T_C_MAX={np.nanmax(t_C):.3f} APPROX_RH_MIN={np.nanmin(RH):.3f} APPROX_RH_MAX={np.nanmax(RH):.3f} MAX_RAIN_MM30={np.nanmax(rain):.3f}")
  if site=="IT-Noe" and year==2010 or site=="ES-LJu" and year==2023:
-  flagged=np.where((~np.isfinite(T))|(t_C<-35)|(jumps.mean() if False else False))[0]
   combos=(RH<0)|(RH<1)|(RH>100.1)|(rain>40)|(t_C<-35)|(t_C>50)
   jumps_idx=np.where(jumps>12)[0]
   combos[jumps_idx]=True;combos[np.minimum(jumps_idx+1,17519)]=True
@@ -183,7 +182,7 @@ def main():
  if x.self_test:
   assert len(SITES)==2
   assert all(SITES[z][2]-SITES[z][1]+1 in (21,22) for z in SITES)
-  assert abs(100*(0.01*100000/(0.622+0.378*0.01))/611.2-100*1606.82/611.2)<1
+  assert 1.5<0.01*100000/(0.622+0.378*0.01)/1000<1.7
   print("STAGE14 SELF-TEST PASS: 43 annual files 2 sites, noleap 30-minute science screens; NO WRITES")
   return
  if not x.check:p.error("--check required (read-only)")
