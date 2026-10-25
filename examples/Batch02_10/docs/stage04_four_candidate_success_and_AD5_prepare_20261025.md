@@ -1,5 +1,7 @@
 # Stage04: four Stage03 candidates created; prepare independent AD5 cases
 
+**Superseding runtime result:** the operator's later `Batch02_10_stage04.lo9bISc0` run prepared all four cases successfully (`prepared=4, failed=[]`), with five actual DATM streams per site and no model submission. [Continue at Stage05](stage05_four_AD5_prepared_and_initial_submission_20261025.md). Descriptions of pending preparation below record the earlier state.
+
 ## Stage04 first runtime attempt and parser correction
 
 The operator ran the launcher from `/home/ly3n24/Batch02_10_stage04.mQgqoVZO`. All four original dependencies and self-test passed, but FI-Hyy source preflight raised `Expected one existing tower DATM stream`. This exception occurred before `overlay_check(create=True)` or any `prepare_one` call: no new case, preparation-attempt marker or model job was created by that attempt. The four Stage03 candidate surfaces remain available.
