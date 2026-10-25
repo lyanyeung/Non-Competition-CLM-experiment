@@ -2,9 +2,28 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
-**Latest operator diagnosis:** all four first AD5 runs failed during ESMF mesh initialization with signal11 at `get_centerCoords_from_ESMFMesh_file()`, local source line1028. AD state2 was printed correctly. All four archives are `DependencyNeverSatisfied`. **Current next step:** [Stage07 targeted mesh/source/stack inspection](docs/stage07_ESMF_mesh_SIGSEGV_targeted_inspection_20261025.md). The exact trigger remains unverified; no retry or AD395/Normal submission has been performed. Six other site choices remain open.
+**Latest evidence:** four initial AD5 tasks segfaulted at ESMF mesh offset-array initialization. Stage07 found a declared dust mesh whose estimated offset array is15.8MiB, while the current login soft stack is8MiB; failed-task limits remain unmeasured. `OMP_STACKSIZE=64M` does not control the initial thread. **Current next step:** [Stage08 FI-Hyy-only task-side stack256 retry](docs/stage08_FI_Hyy_stack256_AD5_pilot_20261025.md), with limit logging and preserved inputs. Stack overflow remains a testable hypothesis. No retry result is claimed. Other three cases and six open scientific choices remain pending.
 
-## Current next step: Stage07 targeted ESMF mesh/stack inspection
+## Current next step: Stage08 FI-Hyy-only stack pilot
+
+This command verifies and cancels only FI-Hyy's blocked old archive4728103, adds a measured256MiB task-side stack wrapper to that independent case, and submits one new cold-start AD5. It preserves meshes, scientific inputs and the executable. Other three sites are untouched.
+
+```bash
+(
+  set -euo pipefail
+  SCRIPT="$HOME/Batch02_10_stage08.py"
+  curl -fLsS --retry 3 \
+    "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/02b39012e7b6f77f55bd51a4c87510b45f1febd1/examples/Batch02_10/scripts/08_retry_FI_Hyy_AD5_stack256_pilot.py" \
+    -o "$SCRIPT"
+  echo "72d955c9ca5c5682070e570ea546f9375f597c2c233311f29a6c51252e611d70  $SCRIPT" | sha256sum -c -
+  python3 -B "$SCRIPT" self-test
+  python3 -B "$SCRIPT" retry
+)
+```
+
+Then use `python3 -B "$HOME/Batch02_10_stage08.py" status` for this pilot's actual new IDs and task stack output. [Evidence, safeguards and expected result](docs/stage08_FI_Hyy_stack256_AD5_pilot_20261025.md). Do not repeat initial Stage05 submission or submit AD395.
+
+## Stage07: completed targeted inspection (historical command)
 
 The supplied Stage06 output localizes all four failures to ESMF mesh-center-coordinate reading. Inspect the actual mesh declarations/headers and stack context before changing a case or retrying:
 
