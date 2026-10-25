@@ -2,9 +2,55 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
+## Stage10 — AD5 to AD395 continuation (conditional on HPC audit)
+
+The exact Stage09 active run/archive IDs are FI-Hyy `4728292/4728293`,
+FR-Hes `4728294/4728295`, CH-Fru `4728296/4728297`, and
+IT-MBo `4728298/4728299`. **Submission is not evidence of completion.**
+The operator must first verify Slurm run + archive success, archived CLM/DATM/CPL
+restarts at the site's Y+5 checkpoint, and CLM `spinup_state=2`.
+
+The new [Stage10 controller](scripts/10_continue_four_verified_AD395.py)
+is adapted from the proven Batch01 Stage13 method. It checks Stage09 receipts,
+the exact eight jobs, the archived checkpoint and pointers, FIXNC namelists,
+and duplicate-submission protection. Its `audit` action is read-only.
+It operates only on the four independent Batch02 cases; the six other sites
+are not touched. Do not change candidate PFT allocations without starting
+a separate versioned experiment.
+
+```bash
+conda activate clm_fates_env
+SCRIPT="$HOME/Batch02_10_stage10.py"
+curl -fLsS --retry 3 \
+  "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/367a3131e1dc87c25fa933458faf51905a0351c2/examples/Batch02_10/scripts/10_continue_four_verified_AD395.py" \
+  -o "$SCRIPT" || exit 1
+python3 -B -m py_compile "$SCRIPT" || exit 1
+python3 -B "$SCRIPT" audit
+```
+
+**Only if the audit says `BATCH02 AUDIT PASS: 4/4`,** and the
+operator accepts the documented candidate surface assumptions, run the
+one-time submission (never repeat after an uncertain result):
+
+```bash
+python3 -B "$HOME/Batch02_10_stage10.py" continue-395 \
+  --confirm CONTINUE_BATCH02_FOUR_VERIFIED_AD5_BY_395_YEARS
+```
+
+The CIME handoff preserves stage09 input/compiled executable, stages the
+three matching Y+5 restarts, sets `CONTINUE_RUN=TRUE` and `RESUBMIT=78`,
+and submits **79 five-year AD segments**, 395 years total. It retains
+a per-site submission ledger/attempt and does not submit Normal400.
+Expected AD400 endpoint years: FI-Hyy 2397, FR-Hes 2397,
+CH-Fru 2405, IT-MBo 2403.
+
+Stage10 code is published and reviewed, but it has **not** been run on IRIDIS
+from this chat. If `audit` blocks, inspect the exact failure before trying
+to continue; do not bypass a missing restart or failed archive.
+
 **Stage09 resubmission reported successful 4/4:** FI-Hyy4728292/93, FR-Hes4728294/95, CH-Fru4728296/97 and IT-MBo4728298/99 (run/archive). The actual submit process on login6001 had an unlimited stack. These receipts establish submission; new run completion and archived AD5 checkpoints still need verification. [New IDs, PFT/bare-ground review and source evidence](docs/stage09_resubmitted_PFT_bare_ground_review_20261025.md).
 
-## Current next step: monitor AD5 and review area assumptions
+## Stage09 status: monitor AD5 and review area assumptions
 
 ```bash
 python3 -B "$HOME/Batch02_10_stage09.py" status
