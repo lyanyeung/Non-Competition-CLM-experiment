@@ -12,6 +12,26 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Remaining 9 AmeriFlux sites: batch rollout after CA-TP4 (25 October 2026)
+
+**Confirmed from operator-provided Stage12 SUCCESS:** CA-TP4 `/iridisfs/scratch/ly3n24/CLM_FATES/cases/CA-TP4_AMF_FIXNC_AD400_UTC_V2_AD5` was independently cloned and its actual CIME FATES/CDEPS namelists previewed, with exact Stage11 22-year UTC forcing, local Stage06 forest stand proxy, NOAA 2002 **fixed CO2 372.58 ppm**, `spinup_state=2`, `STOP_N=REST_N=5`, `RESUBMIT=0`. The previous CA-TP4 Stage08 LST-labeled case was kept unchanged. **No AD5/AD400 or Normal400 jobs have been submitted**.
+
+**The other NINE AmeriFlux Batch01 sites have NOT been initialized as AD5 cases**. All ten stations' Stage80 original QC, Stage81 annual NetCDF (**213 total**) and Stage82 integrity audit are already complete. Reuse those results. Do **NOT** duplicate Stage80 QC, rerun the CA-TP4 12 stage scripts nine times, or assume all nine sites are CA-TP4 forest/sensor/UTC variants.
+
+**[One-pass nine-site rollout inventory](scripts/13_remaining9_AD400_rollout_matrix_readonly.py)**, `--self-test` and `--check`, reads only the pinned Stage31 height candidate policy, Stage81/Stage82 213-NC receipts, original each-site BIF `UTC_OFFSET` and coordinate, individual point-surface landunit percentages and the pinned [published FATES PFT candidates](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/649eb960475ff77944e42c559ff1ebbe6d2f1004/examples/AmeriFlux_sites/metadata/Batch01_EC_FATES_PFT_experiment_candidates_v4_20261023.tsv). It prints one **nine-row readiness matrix**, and is strictly READ-ONLY; no new forcing/NC/surface/case/reports or Slurm jobs.
+
+The original Stage31 provisional BASE air-temperature height classifications (sensor crosswalk with FLUXNET `TA_F` remains **UNVERIFIED**):
+
+| Lane | Sites | Existing height policy | Next action |
+|---|---|---|---|
+| A, four static-height technical pilot candidates | BR-Ma2 (51.1m), CA-Ca3 (12m), CA-LP1 (26m), US-Bar (23.8m) | STATIC BASE candidate; not `TA_F` verified | Site-specific BIF UTC/year shift and stand/landunit/soil *explicit model hypothesis*, then batch separate AD5 case preview |
+| B, three height-sensitive pilots | CA-TP1 (4m baseline, 3 events), CA-TP3 (16m baseline, 1 event), US-Aud (1.25m baseline, 1 event) | DYNAMIC events / uncertain halfhour periods | Decide time-varying source height from original dated evidence; US-Aud is C4 grass + bare ground, **not forest** |
+| C, two blocked height-source mappings | CA-Cbo, CA-Man | BASE multi-level ambient temperature; no scientifically chosen `TA_F` source | Resolve which actual TA measurement layer or use an explicitly justified/independently supported experiment height; do not fabricate ZBOT |
+
+The published PFT ratios in the pinned site evidence differ materially: BR-Ma2 tropical evergreen broadleaf, CA-Ca3/CA-LP1 conifer, US-Bar mixed deciduous/conifer, CA-Cbo mixed, CA-Man spruce with unknown ~1%, CA-TP1 plantation, CA-TP3 white pine/oak, US-Aud grass/bare. These are **stand/model-candidate composition, not observed land-cover fractions**. There is **no** scientifically valid 100% NATVEG/ENF93/DBF7 template for all nine.
+
+**Rollout plan:** use *one common nine-site engine* after the one-pass matrix, grouping four static-height experimental assumptions first while investigating the other five in parallel. For every station use its actual BIF UTC offset and original Stage81 year range (not blindly `UTC−5` / `2002−2023`), site-specific point-surface and FATES PFT mapping, explicit baseline constant CO2 policy, isolated `AD5` `RESUBMIT=0` first. Do not make 400+400 year jobs until short pilot and restart archive checks.
+
 ## Stage11 actual UTC forcing PASS; Stage12 independent AD5 preview (25 October 2026)
 
 **Operator-confirmed actual IRIDIS6 Stage11 success:** NEW 22/22 *separate* CA-TP4 2002–2023 annual NetCDF written at
