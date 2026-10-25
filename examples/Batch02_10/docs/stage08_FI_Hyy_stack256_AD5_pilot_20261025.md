@@ -1,5 +1,7 @@
 # Stage08: FI-Hyy-only AD5 retry with a measured task-side 256 MiB stack
 
+**Superseded proposal — do not execute this old retry command.** The operator supplied a matched-source Batch03 recovery that successfully started all ten jobs beyond the old SIGSEGV point using a high submitting-process stack and the original MPI command. [Stage09 adopts that method for Batch02](stage09_Batch03_success_method_for_Batch02_20261025.md), preserves high/unlimited limits and requires no new probe. The fixed256MiB wrapper below remains historical code, not the current workflow. If a Stage08 attempt already exists, Stage09 stops for inspection.
+
 ## Stage07 evidence received
 
 Operator attachment `Pasted text(20261025-090232).txt` reports:
