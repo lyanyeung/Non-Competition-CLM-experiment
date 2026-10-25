@@ -278,7 +278,7 @@ def config(site,z):
   stop(site+" actual CIME submit lacks mandatory skip-preview flag")
  if any(rundir.glob("rpointer*")) or any(rundir.glob("*.r.*.nc")):
   stop(site+" new AD5 startup unexpectedly contains restarts")
- return {"site":site,"case":str(case),"point":z["point"],
+ return {"site":site,"case":str(case),"point":list(z["point"]),
          "met_years":[ss["first"],ss["last"]],"provisional_years":ss["provisional_years"],
          "selected_2000_CO2_PPMV":z["co2"],
          "scientific_release":False,"case_prepared_not_submitted":True}
@@ -349,7 +349,8 @@ def main():
  if a.self_test:
   assert len(SITES)==2 and set(SITES)=={"IT-Noe","ES-LJu"}
   assert distance((42.7102,-80.3574),(42.7102,279.6426))<1e-8
-  print("STAGE13 SELF-TEST PASS two exact sites, PTS longitude wrapping; NO WRITES")
+  assert json.loads(json.dumps({"point":list((40.606176,8.151694))})) == {"point":[40.606176,8.151694]}
+  print("STAGE13 SELF-TEST PASS: exact sites, longitude wrap and stable JSON-list PTS receipts; NO WRITES")
   return
  if a.prepare and a.confirm!=ACK:ap.error("--prepare requires --confirm "+ACK)
  if not a.prepare and a.confirm:ap.error("No confirmation option for read-only modes")
@@ -361,7 +362,8 @@ def main():
    if record.get("phase")!="PREVIEW_VERIFIED_NOT_SUBMITTED":
     stop(site+" new preview was not successfully completed")
    verified=config(site,z)
-   if verified!=record.get("verified"):stop(site+" verified source state changed")
+   if verified!=record.get("verified"):
+    stop(site+" verified source state changed; expected/actual: "+repr(record.get("verified"))+" / "+repr(verified))
   print("STAGE13 VERIFIED TWO BARE/SHRUB AD5 CASES 2/2; NO SLURM")
   return
  samples={site:preflight(site) for site in SITES}
