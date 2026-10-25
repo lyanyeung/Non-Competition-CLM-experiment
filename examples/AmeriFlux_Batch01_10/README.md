@@ -12,6 +12,27 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage16 actual three AD5 preview success; Stage17 CIME runtime-gate (25 October 2026)
+
+**Actual operator-provided three Stage16 case previews confirmed SUCCESS**:
+- `BR-Ma2_AMF_FIXNC_AD400_UTC_AD5`: 18 annual UTC years, FATES PFT1, provisional ZBOT 51.1 m, 1999 fixed NOAA global CO2 367.79 ppm.
+- `CA-Ca3_AMF_FIXNC_AD400_UTC_AD5`: 24 annual UTC years, FATES PFT2, provisional ZBOT 12 m, 2001 fixed NOAA global CO2 370.57 ppm.
+- `CA-LP1_AMF_FIXNC_AD400_UTC_AD5`: 18 annual UTC years, FATES PFT2, provisional ZBOT 26 m, 2007 fixed NOAA global CO2 382.90 ppm.
+- Existing `CA-TP4_AMF_FIXNC_AD400_UTC_V2_AD5`: 22 annual UTC years, forest PFT2/PFT6 idealized 93:7; provisional ZBOT 28 m; 2002 fixed NOAA global CO2 372.58 ppm.
+
+Every Stage16 case executed `preview_namelists` against the verified FATES private AD override, then explicitly restored `env_case.xml` lock. Actual `lnd_in` had `use_fates_fixed_biogeog=.true.`, `use_fates_nocomp=.true.`, `spinup_state=2`, cold start, `CLM_ACCELERATED_SPINUP=on`, `STOP_N=REST_N=5`, `RESUBMIT=0`, and the station-local surface. Every DATM stream contains only its site-specific UTC forcing, valid year cycling, eight met variables, and original ancillary streams. **No model job has been submitted.**
+
+**HIGH PRIORITY before first run:** CIME documentation states that ordinary `./case.submit` regenerates namelists and checks input data (CIME [running a case](https://esmci.github.io/cime/versions/cesm2.2/html/users_guide/running-a-case.html)). The AD correction was activated **temporarily via a private FATES build-namelist overlay for preview**, then the case source lock was restored to the **unpatched** CTSM root; an ordinary submit can overwrite the successfully generated accelerated-decomposition FATES namelist or fail in buildnml. CIME supports `--skip-preview-namelist` for submission [case.submit help](https://esmci.github.io/cime/versions/cesm2.2/html/Tools_user/case.submit.html), but we must check both the **installed** submit/run help and *actual run-directory lnd_in* before using that mode; there may also be machine-specific input staging requirements.
+
+**[Stage17 four-case READ-ONLY CIME actual-run namelist + skip-preview gate](scripts/17_four_AD5_runtime_submission_gate_readonly.py)** performs *one* shared audit of the 4 existing case receipts, current CaseDocs SHA, model `RUNDIR/lnd_in` SHA equality, `case.submit --help` and `case.run --help`, configured 5yr AD cold start and independent CIME run folders, source year/CO2, and actual effective 1PT met stream path list. **It has no submit command and does not reprocess climate data.**
+
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/17_four_AD5_runtime_submission_gate_readonly.py --self-test
+python3 -B examples/AmeriFlux_Batch01_10/scripts/17_four_AD5_runtime_submission_gate_readonly.py --check
+```
+
+**If Stage17 passes**: independently review installed CIME skip-preview submit behavior, per-site point geometry and batch resources, then submit **a single CA-TP4 5yr AD technical smoke**, ideally by supported `./case.submit --skip-preview-namelist` after source/run staging is verified. Monitor Slurm run + archive jobs and check model log, restart triplet, expected time/cycle before touching AD395/Normal400 or launching remaining 3 pilots. The current original 28m/stand composition/grid soil assumptions have not become field observations simply because namelist checks passed.
+
 ## Stage15 actual three independent surfaces PASS; Stage16 AD5 case previews (25 October 2026)
 
 **User-confirmed Stage15 IRIDIS6 SUCCESS:** Three independent pilot source surfaces, all NetCDF variables except deliberate stand/landunit changes bit-identical in array contents to existing point grids. Output:
