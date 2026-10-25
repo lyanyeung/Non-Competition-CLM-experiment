@@ -9,7 +9,7 @@ incompatible lnd_in. We verify that this local CIME version supports
 
 Checks live RUNDIR/lnd_in, generated CaseDocs hashes, 1PT 8-field CDEPS
 stream, years, CO2, executable, FATES spinup_state 2, locked env_case and
-case.submit / case.run help output. No meteorology QC, files written,
+case.submit --help and hidden .case.run batch-script existence. No meteorology QC, files written,
 model code changes, Slurm or submission.
 """
 from __future__ import annotations
@@ -56,6 +56,20 @@ def helpcheck(case,p):
  if y.returncode not in (0,1) or "--skip-preview-namelist" not in y.stdout+y.stderr:
   stop("Local "+p+" skip-preview option not verified. DO NOT SUBMIT.")
  print("SKIP-PREVIEW OPTION PASS",p)
+
+def job_script_check(case,site):
+ # CIME batch payload is a hidden shell file, NOT a public case.run CLI.
+ # NEVER invoke it as a command or with --help.
+ job=case/".case.run"
+ if not job.is_file():stop(site+": missing hidden CIME batch script "+str(job))
+ if job.stat().st_size<30:stop(site+": hidden CIME batch script unexpectedly empty")
+ print("CIME HIDDEN JOB SCRIPT PASS",site,str(job),"SHA256",sha(job))
+ # Show only scheduler resource directives; reading bytes is safe and
+ # does not execute or submit the job.
+ for row in job.read_text(encoding="utf-8",errors="replace").splitlines():
+  if row.lstrip().startswith(("#SBATCH","#PBS","#BSUB")):
+   print("  JOB DIRECTIVE",row.strip()[:180])
+ print("HIDDEN SCRIPT NOT EXECUTED; NO SLURM.")
 
 def check(site,spec):
  name,first,last,co2,ny,receiptfile=spec
@@ -137,7 +151,7 @@ def check(site,spec):
  print("RUNDIR DATM PRESENT:",(rundir/"datm_in").is_file(),
        "DATM STREAM XML PRESENT:",(rundir/"datm.streams.xml").is_file())
  helpcheck(case,"case.submit")
- helpcheck(case,"case.run")
+ job_script_check(case,site)
  print("PASS",site,"UTC MET YEARS",ny,"FIXED CO2",co2,
        "FATES FIXNC spinup_state2; executable/inputs/CIME lock preserved",flush=True)
  print("RELEASE STATUS: technical AD5-only candidate; actual coupler geometry and solar phase still require runtime observation")
@@ -146,7 +160,9 @@ def selftest():
  assert set(SPECS)=={"CA-TP4","BR-Ma2","CA-Ca3","CA-LP1"}
  assert sum(s[4] for s in SPECS.values())==82
  assert all(s[2]-s[1]+1==s[4] for s in SPECS.values())
- print("SELF-TEST PASS: four CIME AD5 cases, 82 existing UTC annual forcing files, no Slurm")
+ assert callable(job_script_check)
+ assert ".case.run" in job_script_check.__code__.co_consts
+ print("SELF-TEST PASS: 4 CIME AD5 cases, 82 UTC years, hidden .case.run (NOT case.run CLI), no Slurm")
 
 def main():
  p=argparse.ArgumentParser(description=__doc__)
