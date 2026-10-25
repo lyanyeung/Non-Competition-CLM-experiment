@@ -12,6 +12,29 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage17 corrected four cases PASS; Stage18 single CA-TP4 AD5 smoke (25 October 2026)
+
+**User-confirmed actual corrected Stage17 IRIDIS6 RUN PASS 4/4**, all actual CIME cases remained unsubmitted:
+- `CA-TP4_AMF_FIXNC_AD400_UTC_V2_AD5`: Stage12 pinned effective FATES `lnd_in` and CDEPS `datm.streams.xml` matches actual RUNDIR, verified 22 UTC files, fixed NOAA2002 372.58 ppm, 5-year accelerated FATES AD startup, `RESUBMIT=0`.
+- `BR-Ma2_AMF_FIXNC_AD400_UTC_AD5`: exact 18 UTC files, fixed 1999 background CO2 367.79 ppm, 51.1m provisional ZBOT, FATES PFT1 candidate.
+- `CA-Ca3_AMF_FIXNC_AD400_UTC_AD5`: exact 24 UTC files, fixed 2001 background CO2 370.57 ppm, 12m provisional ZBOT, FATES PFT2 candidate.
+- `CA-LP1_AMF_FIXNC_AD400_UTC_AD5`: exact 18 UTC files, fixed 2007 background CO2 382.90 ppm, 26m provisional ZBOT, FATES PFT2 candidate.
+
+For ALL 4 Stage17 checks: RUNDIR DATM + CDEPS effective streams exist; actual `case.submit --help` **supports `--skip-preview-namelist`**; hidden `.case.run` executable-job script exists, private AD namelist preview inputs/sha and CIME env_case lock all PASS. Slurm `#SBATCH` jobs each request 1 node, 1 task, 1 CPU, **8 GB RAM**, **1h walltime** on batch. Stage17 itself submits no Slurm. No site has run AD5 yet.
+
+**CIME semantics confirmed from official [case.submit docs](https://esmci.github.io/cime/versions/cesm2.2/html/Tools_user/case.submit.html) and [case_submit.py implementation](https://esmci.github.io/cime/versions/master/_modules/CIME/case/case_submit.html):** `--skip-preview-namelist` keeps the already reviewed private-FATES-patched namelist instead of regenerating it against original shared CTSM; the case still checks input availability and uses CIME job submission workflow, normally including dependent short-term archive when `DOUT_S=TRUE`.
+
+**Next: [Stage18 CA-TP4 ONE guarded AD5 technical smoke submission](scripts/18_CA_TP4_submit_one_AD5_skip_preview_guarded.py)**. It has `--self-test`, read-only `--check` and explicit *one-time* `--submit --confirm SUBMIT_ONE_CA_TP4_AD5_TECHNICAL_SMOKE_SKIP_PREVIEW`. It first checks exact Stage12 validated case/CaseDocs/RUNDIR SHA, UTC met stream 22 years + 8 fields + `offset=0`, FATES flags + coldstart + fixed CO2, CIME lock/build/5-yr flags, one independent `RUNDIR`, `DOUT_S=TRUE`, no existing restart pointers, and checks Slurm queue for an existing same case. Before calling `./case.submit --skip-preview-namelist` for **only CA-TP4**, it creates a non-overwritable `stage18_CA_TP4_ONE_AD5_SUBMISSION_ATTEMPT.json` ledger. This is an **opt-in REAL job submission** (unlike all earlier 1–17), with possibly a dependent archive job. On nonzero exit or lost connection ledger may remain `ATTEMPTED_UNCERTAIN`: **NEVER blindly rerun**, audit `squeue/sacct/CaseStatus` and original receipt first. A command returning zero is **NOT model success**; verify real Slurm run state, coupler/site coordinates/time, log diagnostics and 5-year FATES restart before extending AD395 or starting independent Normal400.
+
+Crucial distinction: **CIME coupling grid/solar-clock convention has not yet been validated by an actual model run**. The Stage18 five-year submission is a technical smoke to obtain such evidence, not an endorsement of FATES landunit/stand fractions, point soil, TA_F source sensor height or actual flux/biome realism. No other three Lane-A sites should submit until first smoke proven.
+
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/18_CA_TP4_submit_one_AD5_skip_preview_guarded.py --self-test
+python3 -B examples/AmeriFlux_Batch01_10/scripts/18_CA_TP4_submit_one_AD5_skip_preview_guarded.py --check
+# This is the only action that submits a real Slurm model job (CA-TP4 only):
+python3 -B examples/AmeriFlux_Batch01_10/scripts/18_CA_TP4_submit_one_AD5_skip_preview_guarded.py --submit --confirm SUBMIT_ONE_CA_TP4_AD5_TECHNICAL_SMOKE_SKIP_PREVIEW
+```
+
 ## Stage17 first run: false CLI name error fixed, no CIME or Slurm failure (25 October 2026)
 
 Actual user IRIDIS6 Stage17 source/syntax and pure self-test PASS. The first case `CA-TP4` passed generated/runtime `lnd_in` SHA, `RUNDIR/datm_in` exists and `RUNDIR/datm.streams.xml` exists. Its actual local `case.submit --help` **supports `--skip-preview-namelist`**. The original Stage17 script then incorrectly tried to locate **`case.run`** as a public CIME CLI and stopped. CIME instead generates a *hidden* **`.case.run`** batch payload. This is a **Stage17 audit script bug, not a failed model, failed Slurm or a missing new case**, and no case was submitted.
