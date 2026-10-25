@@ -130,9 +130,9 @@ def stream(case,site,point):
  if len(records)!=last-first+1:stop("Source year count inconsistent")
  provisional=0
  for year,file in zip(range(first,last+1),records):
-  if file.name not in (site+"_DATM_"+str(year)+".nc",
-                        site+"_DATM_"+str(year)+"_PROVISIONAL.nc"):
-   stop("Wrong original source forcing YEAR/NAME "+str(file))
+  if not file.name.startswith(site+"_DATM_") or not file.name.endswith(".nc") or \
+     not re.search(r"(?<!\\d)"+str(year)+r"(?!\\d)",file.stem):
+   stop("Wrong original source forcing SITE/YEAR/NAME "+str(file))
   if not file.is_file() or file.stat().st_size==0:stop("Missing original forcing "+str(file))
   if "PROVISIONAL" in file.name or "provisional" in str(file).lower():provisional+=1
  # Read only the first yearly NC header/co-location, if available.
@@ -271,8 +271,10 @@ def config(site,z):
   print("EFFECTIVE COUPLER PASS",site,p.parent.name,"surface vs scol",pt,flush=True)
  # The private overlay has been restored in CIME XML; any future submit must
  # use --skip-preview-namelist to retain these checked AD FATES flags.
- out=call([case/"case.submit","--help"],cwd=case,timeout=80)
- if "--skip-preview-namelist" not in out:
+ check_help=subprocess.run([str(case/"case.submit"),"--help"],cwd=case,
+                           capture_output=True,text=True,check=False,timeout=80)
+ if check_help.returncode not in (0,1) or \
+    "--skip-preview-namelist" not in (check_help.stdout+check_help.stderr):
   stop(site+" actual CIME submit lacks mandatory skip-preview flag")
  if any(rundir.glob("rpointer*")) or any(rundir.glob("*.r.*.nc")):
   stop(site+" new AD5 startup unexpectedly contains restarts")
