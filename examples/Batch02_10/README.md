@@ -2,9 +2,26 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
-**Implemented now:** source inventory, actual-input tracing, verified JSON parameter-map reader, and [four isolated surface-candidate builder](scripts/03_build_four_surface_candidates.py). The operator's mapping read passed for all ten references. FI-Hyy now has direct ICOS-target-stand basal-area evidence; FR-Hes/CH-Fru/IT-MBo have explicitly described model-point proxy candidates. **Not created/submitted yet:** the candidate NetCDFs on IRIDIS, new Batch02 AD cases, AD continuation or Normal submission scripts. Six other site choices remain open. The overall requested design remains AD400 → Normal400 for ten sites.
+**Stage03 runtime result reported by operator:** FI-Hyy, FR-Hes, CH-Fru and IT-MBo candidate NetCDFs created successfully (`4/4, failed=[]`). **Implemented next:** [Stage04 isolated AD5 preparer and exact run command](docs/stage04_four_candidate_success_and_AD5_prepare_20261025.md). It rechecks the actual receipts and inputs, clones four independent cold-start cases, and verifies generated AD/FATES namelists using the proven private overlay. Real Stage04 CIME execution is still pending. No new Batch02 model job has been submitted. The six other site choices and the ten-site AD400 → Normal400 experiment remain unfinished.
 
-## Stage03: resume here (checksum-pinned launcher)
+## Current next step: Stage04 AD5 preparation
+
+Stage03 is complete for four candidate scenarios. Prepare their independent AD5 cases:
+
+```bash
+conda activate clm_fates_env
+(
+  set -euo pipefail
+  curl -fLsS --retry 3 \
+    "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/a4c2f28c80cd1e2e334cc640fc6a0542d61c41cc/examples/Batch02_10/scripts/04_download_and_prepare_four_AD5.sh" \
+    -o "$HOME/Batch02_10_stage04.sh"
+  bash "$HOME/Batch02_10_stage04.sh" prepare
+)
+```
+
+Expected: `AD5_PREPARE_SUMMARY prepared= 4 failed= []`. This creates and previews the four new cases with `RESUBMIT=0`, and submits no jobs. Do not rerun preparation over existing or partial cases. [Runtime-result record, checks, model calendars and remaining work](docs/stage04_four_candidate_success_and_AD5_prepare_20261025.md).
+
+## Stage03: completed candidate construction (historical command)
 
 The parameter-map read is complete. The next executable step is to create the four independent surface **candidates**, using the existing Stage03 choices. This does not certify final scientific acceptance of these proxies or whole-batch readiness.
 
@@ -27,7 +44,7 @@ Launcher validation: shell syntax, end-to-end offline fixture download/checksum/
 
 ## Selected ten sites
 
-**Next: candidate surfaces, not another source audit.** [Current mapping, FI-Hyy calculation, soil choices and executable instructions](docs/stage03_mapping_PFT_soil_and_four_candidates_20261025.md) retain the successful operator mapping SHA, the 2015 ICOS-target-stand ENF94.7860481841/DBF5.2139518159 calculation, and the four explicit surface scenarios. Run `03_build_four_surface_candidates.py plan` to view assumptions or `build --sites FI-Hyy FR-Hes CH-Fru IT-MBo` to create separate candidate files and SHA receipts after downloading its candidate JSON. No old surface/case/forcing is changed and no model job is submitted. Candidate creation is not a claim that all ten science decisions or the AD400/Normal400 pipeline are complete.
+**Stage03 candidate construction succeeded 4/4.** The [mapping, PFT/soil choices and four candidate assumptions](docs/stage03_mapping_PFT_soil_and_four_candidates_20261025.md) remain applicable. Continue with Stage04 above; the other six have no automatic surface choice.
 
 **Stage02 JSON-reader correction — resolved:** the corrected `--parameters-only` run returned `MAPPING_READ PASS ISSUES 0` for the ten shared references. The active JSON SHA256 and exact 14-type map are retained in the new Stage03 record above. [The earlier parser bug and source snapshot](docs/stage02_JSON_parameter_reader_fix_20261025.md) remain as history. No Stage01/02 rerun is required; the following old command block is retained for reproducibility.
 
