@@ -2,6 +2,20 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
+## Stage13 operator-created IT-Noe and ES-LJu AD5 previews; JSON receipt verification fixed (25 October 2026)
+
+**User-supplied actual Stage13 IRIDIS6 logs:**
+- Source-pin, AST and pure self-test PASS. The existing private FATES AD build-namelist overlay PASS.
+- `--check`: **2/2 source preflight PASS**, no filesystem/model changes. IT-Noe initial cycle 2004, CDEPS 2004–2025, 0 provisional-named years; ES-LJu initial cycle 2004, CDEPS 2004–2024, all **21 PROVISIONAL**-named years. CO2 fixed **376.95 ppm** at both sites. IT-Noe still has branch meteorology/Juniperus shrub proxy science HOLD; ES-LJu has provisional-year, 19.8% unclassified vegetation and shrub-trait science HOLD.
+- `--prepare` **actually succeeded for BOTH new independent AD5 CIME cases**, **without submitting any Slurm**:
+  - `IT-Noe_B02_FIXNC_AD400_BARE34_SHRUB66_AD5`: `CaseDocs` AND `RUNDIR` effective coupler `scol_lat/scol_lon=(40.606176,8.151694)`, same as Stage12 surface. `STAGE13 CASE PREVIEW PASS IT-Noe NO SLURM`.
+  - `ES-LJu_B02_FIXNC_AD400_BARE49_C3GRA31_SHRUB20_AD5`: `CaseDocs` AND `RUNDIR` coupler `(36.926594,357.247885)`, same as Stage12 surface. `STAGE13 CASE PREVIEW PASS ES-LJu NO SLURM`.
+  - `STAGE13 TWO BARE/SHRUB AD5 PREVIEWS CREATED`. Attempts stored as `PREVIEW_VERIFIED_NOT_SUBMITTED`.
+- Immediate original `--verify` had a **FALSE POSITIVE** at `IT-Noe verified source state changed`. Diagnosis was purely **Python tuple-vs-list JSON representation**: `config()` returned Python tuple `point=z["point"]` while JSON persisted it as a list; `(lat,lon) != [lat,lon]` although physical values are identical. All actual effective CIME checks passed before false mismatch.
+- **Fixed script Git commit `b8a16bf40d57030d6f14e580af1aef777c3ebf85`** at [Stage13 code](scripts/13_prepare_IT_Noe_ES_LJu_AD5_preview_no_slurm.py) normalizes `config()` output to `"point":list(z["point"])`, adds JSON round-trip self-test and mismatch detail if other fields differ. **No model nor JSON attempt receipt must be edited**. Operator must replace local Stage13 script and run ONLY `--self-test` and `--verify`; no `--prepare` repeat (cases already exist), no model submission.
+- **Stage13 verified is a CIME/PTS technical preview only**, NOT a science QC release nor successful 5yr simulation. Following user approval, prepare a separate versioned submit gate only after checking IT-Noe corrected source branch and ES-LJu PROVISIONAL met integrity, site stand/shrub proxy assumptions. Batch02 four ongoing AD395 sites remain unchanged.
+
+---
 ## Stage12 operator-confirmed two bare/shrub surfaces built; Stage13 independent AD5 CIME preview
 
 **Actual operator-reported Stage11/Stage12 IRIDIS6 logs, 25 Oct 2026:**
