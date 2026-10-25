@@ -1,0 +1,11 @@
+site,ecosystem,known_functional_evidence,unresolved_PFT,soil_decision,readiness
+DK-Sor,FOREST,DBF80 and ENF+DNF20 of reported stand species,Split Picea ENF versus Larix DNF within the 20 percent; check denominator and survey footprint,OBSERVED_FIRST_ELSE_DOCUMENTED_GRID_FALLBACK,HOLD
+FR-Hes,FOREST,DBF at least about95 of 2020 basal area,Unclassified about5 percent and date/metric differ from older beech90 report,OBSERVED_FIRST_ELSE_DOCUMENTED_GRID_FALLBACK,HOLD
+FR-FBn,FOREST,ENF pine about75 of tree basal area,Remaining25 is not verified entirely EBF oak; basal area is not horizontal ground area,OBSERVED_FIRST_ELSE_DOCUMENTED_GRID_FALLBACK,HOLD
+BE-Bra,FOREST,ENF55 DBF23 of reported stand composition,Remaining22 has no verified PFT allocation; do not normalize 78 to100 or assign grass,OBSERVED_FIRST_ELSE_DOCUMENTED_GRID_FALLBACK,HOLD
+IT-Noe,SHRUBLAND,Juniperus53 Pistacia22 within already vegetated ground,Variable total vegetation cover and unclassified species; evergreen conifer SHRUB is not automatically needleleaf TREE; verify supported FATES mapping,OBSERVED_FIRST_ELSE_DOCUMENTED_GRID_FALLBACK,HOLD
+CH-Fru,GRASSLAND,Total mixed herbaceous ground cover up to90,Grass versus forb shares unresolved; do not assign all90 or all100 to C3 grass from station label,OBSERVED_FIRST_ELSE_DOCUMENTED_GRID_FALLBACK,HOLD
+CH-Lae,FOREST,DBF80 ENF12 from listed species canopy/stand covers,Remaining8 unresolved; alternative inventories have incompatible plot/date/metric,OBSERVED_FIRST_ELSE_DOCUMENTED_GRID_FALLBACK,HOLD
+ES-LJu,SHRUBLAND,Festuca grass19 Genista shrub12 other vegetation about19 nonvegetated about50,Other19 vegetated share and bare/rock/soil split unresolved; verify shrub support and actual active map,OBSERVED_FIRST_ELSE_DOCUMENTED_GRID_FALLBACK,HOLD
+FI-Hyy,FOREST,Pine dominated with spruce and birch present,Old60/25/15 is an unverified tower allocation; choose a dated local tower inventory instead of mixing regional plots,OBSERVED_FIRST_ELSE_DOCUMENTED_GRID_FALLBACK,HOLD
+IT-MBo,GRASSLAND,Festuca+Nardus38 Trifolium14.5 of herbaceous basal cover,Remaining47.5 unresolved; forb/legume versus grass representation and basal-cover denominator need explicit scenario,OBSERVED_FIRST_ELSE_DOCUMENTED_GRID_FALLBACK,HOLD
