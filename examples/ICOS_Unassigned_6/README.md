@@ -42,6 +42,19 @@ Following direct review of **official Swiss FluxNet, ICOS, FLUXNET, university a
 
 ---
 
+## Operator-selected FIXNC model proxy assignment for all six stations (25 October 2026)
+
+**User decision (25 Oct 2026):** keep the six PFT model candidate fractions listed in the current ICOS evidence register as the **selected FIXNC experimental proxy configuration** without revising their scientific evidence. This authorizes **PFT scenario selection**, not bypassing unresolved original forcing/surface inputs, measured-area evidence, local FATES parameter-mapping requirements, or automatic model submission. Original authoritative 38-station evidence remains unchanged. Current machine-readable frozen choice: **[`data/six_site_FIXNC_operator_selected_PFT_20261025.csv`](data/six_site_FIXNC_operator_selected_PFT_20261025.csv)**.
+
+- CH-Aws, DE-Gri, DE-RuR, IT-Tor: **`PCT_NAT_PFT[13]=100`**, clear model label **`C3_HERBACEOUS_COMMUNITY_PROXY`**. It represents grass+forb+legume functionality using the model's sole cool C3 grass PFT, not measured 100% grass species cover; CH-Aws original negative RH/template instability separately blocks a run.
+- ES-Agu: **`PCT_NAT_PFT[0]=49`, `[9]=22`, `[13]=29`**, explicit conditional `BARE_GRASS_SHRUB_GROUND_COVER_PROXY`. User accepts candidate despite still-unverified Macrochloa 57% coverage denominator; record competing alternate sensitivity.
+- GL-ZaH: **`PCT_NAT_PFT[0]=43`, `[9]=53`, `[11]=3`, `[12]=1`**, explicit `ARCTIC_HEATH_PRIVATE_FATES_MAPPING_PROXY`. Use **GL-only private JSON**, never default HLM9→temperate shrub or shared parameter modifications; patch host index9→Arctic evergreen shrub and index11→Arctic deciduous shrub before case preview.
+- All 15-element `PCT_NAT_PFT` totals sum to 100 *conditional on model NATVEG*. Do not auto-renormalize vegetated part or reinterpret species evidence as whole footprint.
+
+**Operational readiness remains distinct from choosing model PFT fractions:** first obtain site-specific template, correct `PTS_LAT/LON` matching `fsurdat LATIXY/LONGXY` and forcing, stable forcing quality, original source-year/CO2, soil proxy/source provenance, verified GL private parameter where needed, then 5-year technical smoke **before** AD395. No six-site model job was launched by recording this operator choice.
+
+---
+
 ## Exact GL-ZaH host / FATES map correction
 
 Shared FATES parameter JSON uses names in fixed order (14 FATES PFTs). For **GL-ZaH only**, private JSON should set:
