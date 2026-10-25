@@ -1,0 +1,1565 @@
+{
+  "title": "Batch02 operator Stage02 source snapshot; no new model inputs",
+  "operator_console_sha256": "06be4417e0436ecb2d9bc1c625167e938095caa2e1cd82fd43c09b9e15c5adc6",
+  "source_report_sha256": "17b7808a3a3042a4ab90159f12e38488050eb63e2c1925575ebb1cbc6f7ee4af",
+  "evidence_scope": "transcribed operator console; source arrays and references only; no remote model-file reads performed here",
+  "technical_issues_reported": 1,
+  "technical_issue_cause": "Stage02 script incorrectly attempted NetCDF Dataset on active fates_params_default.json",
+  "active_parameter_sha256": null,
+  "active_parameter_sha256_note": "not printed before parser failure; corrected reader checks the hash stored in the Stage01 JSON",
+  "scientific_readiness": "PFT/landunit/soil decisions unresolved; source grid fields are not tower observations",
+  "source_model_files_modified": false,
+  "new_model_jobs_submitted": false,
+  "sites": [
+    {
+      "site": "DK-Sor",
+      "configuration_reference": "DK-Sor_FATES_SPINUP500",
+      "start_date": "1996-01-01",
+      "co2_type": "constant",
+      "co2_ppm": 361.93,
+      "source_namelist_flags": {
+        "finidat": " ",
+        "spinup_state": "ABSENT",
+        "use_fates": ".true.",
+        "use_fates_fixed_biogeog": ".false.",
+        "use_fates_nocomp": ".false.",
+        "use_fates_sp": ".false."
+      },
+      "PCT_NATVEG": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          55.40218481947168
+        ]
+      },
+      "PCT_CROP": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          44.597815180528315
+        ]
+      },
+      "PCT_NAT_PFT": {
+        "dimensions": [
+          "natpft",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          15,
+          1,
+          1
+        ],
+        "values": [
+          1.2371067392675417,
+          15.5756082926674,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          9.739793067334388,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          73.44749190073067,
+          0.0
+        ]
+      },
+      "PCT_SAND": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          40.0,
+          40.0,
+          40.0,
+          40.0,
+          41.0,
+          42.0,
+          44.0,
+          44.0,
+          39.0,
+          39.0
+        ]
+      },
+      "PCT_CLAY": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          20.0,
+          20.0,
+          20.0,
+          20.0,
+          21.0,
+          21.0,
+          21.0,
+          20.0,
+          22.0,
+          22.0
+        ]
+      },
+      "ORGANIC": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          33.03629684448242,
+          33.03629684448242,
+          33.03629684448242,
+          33.03629684448242,
+          17.178205490112305,
+          10.995888710021973,
+          6.250344753265381,
+          5.52250862121582,
+          5.560510158538818,
+          5.560510158538818
+        ]
+      },
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/DK-Sor/subset_data/surfdata_DK-Sor_hist_2000_16pfts_c261011.nc",
+      "source_surface_sha256": "5bb62cd1c744a5607fda3db3aba08397d48140ece6cf7b45db6be1357a5bf09b",
+      "active_fates_parameter": "/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/cime/../src/fates/parameter_files/fates_params_default.json",
+      "recorded_forcing_folders": [
+        "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/DK-Sor/forcing/datm_v5_candidate_timevarying_zbot"
+      ],
+      "stream_year_first": [
+        1996
+      ],
+      "stream_year_last": [
+        2024
+      ],
+      "source_parameter_map_status": "PARSER_FAILED_JSON_OPENED_AS_NETCDF; NOT_A_MODEL_FAILURE"
+    },
+    {
+      "site": "FR-Hes",
+      "configuration_reference": "FR-Hes_FATES_SPINUP500",
+      "start_date": "1997-01-01",
+      "co2_type": "constant",
+      "co2_ppm": 363.04,
+      "source_namelist_flags": {
+        "finidat": " ",
+        "spinup_state": "ABSENT",
+        "use_fates": ".true.",
+        "use_fates_fixed_biogeog": ".false.",
+        "use_fates_nocomp": ".false.",
+        "use_fates_sp": ".false."
+      },
+      "PCT_NATVEG": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          72.68426933670344
+        ]
+      },
+      "PCT_CROP": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          27.315730663296563
+        ]
+      },
+      "PCT_NAT_PFT": {
+        "dimensions": [
+          "natpft",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          15,
+          1,
+          1
+        ],
+        "values": [
+          0.5014110672310674,
+          29.55743460459707,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          25.627106029044782,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          44.31404829912709,
+          0.0
+        ]
+      },
+      "PCT_SAND": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          44.0,
+          44.0,
+          44.0,
+          44.0,
+          43.0,
+          46.0,
+          46.0,
+          50.0,
+          48.0,
+          48.0
+        ]
+      },
+      "PCT_CLAY": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          20.0,
+          20.0,
+          20.0,
+          20.0,
+          21.0,
+          20.0,
+          20.0,
+          18.0,
+          18.0,
+          18.0
+        ]
+      },
+      "ORGANIC": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          47.295692443847656,
+          47.295692443847656,
+          47.295692443847656,
+          47.295692443847656,
+          22.59944725036621,
+          13.988192558288574,
+          7.620578765869141,
+          6.812719821929932,
+          6.45075798034668,
+          6.45075798034668
+        ]
+      },
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/FR-Hes/subset_data/surfdata_FR-Hes_hist_2000_16pfts_c261012.nc",
+      "source_surface_sha256": "45d3aa09eb1e4031745b1dc501a0681c373d8fd25bbc123ba2c683565f862bec",
+      "active_fates_parameter": "/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/cime/../src/fates/parameter_files/fates_params_default.json",
+      "recorded_forcing_folders": [
+        "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/FR-Hes/forcing/datm_v5_candidate_timevarying_zbot"
+      ],
+      "stream_year_first": [
+        1997
+      ],
+      "stream_year_last": [
+        2025
+      ],
+      "source_parameter_map_status": "PARSER_FAILED_JSON_OPENED_AS_NETCDF; NOT_A_MODEL_FAILURE"
+    },
+    {
+      "site": "FR-FBn",
+      "configuration_reference": "FR-FBn_FATES_SPINUP500",
+      "start_date": "2008-01-01",
+      "co2_type": "constant",
+      "co2_ppm": 385.02,
+      "source_namelist_flags": {
+        "finidat": " ",
+        "spinup_state": "ABSENT",
+        "use_fates": ".true.",
+        "use_fates_fixed_biogeog": ".false.",
+        "use_fates_nocomp": ".false.",
+        "use_fates_sp": ".false."
+      },
+      "PCT_NATVEG": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          80.15269451225059
+        ]
+      },
+      "PCT_CROP": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          19.847305487749413
+        ]
+      },
+      "PCT_NAT_PFT": {
+        "dimensions": [
+          "natpft",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          15,
+          1,
+          1
+        ],
+        "values": [
+          2.203506280308412,
+          52.697786171632764,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          8.402797442574578,
+          0.0,
+          0.0,
+          0.1880141131557439,
+          0.0,
+          0.0,
+          26.62180459950051,
+          9.88609139282799
+        ]
+      },
+      "PCT_SAND": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          48.0,
+          48.0,
+          48.0,
+          48.0,
+          55.0,
+          55.0,
+          55.0,
+          55.0,
+          55.0,
+          55.0
+        ]
+      },
+      "PCT_CLAY": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          23.0,
+          23.0,
+          23.0,
+          23.0,
+          19.0,
+          19.0,
+          19.0,
+          19.0,
+          19.0,
+          19.0
+        ]
+      },
+      "ORGANIC": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          73.3455810546875,
+          73.3455810546875,
+          73.3455810546875,
+          73.3455810546875,
+          36.86344909667969,
+          36.86344909667969,
+          36.86344909667969,
+          36.86344909667969,
+          36.86344909667969,
+          36.86344909667969
+        ]
+      },
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/FR-FBn/subset_data/surfdata_FR-FBn_hist_2000_16pfts_c261012.nc",
+      "source_surface_sha256": "86cd7c1fa00ccec7e89d5c20993af2768e16b261d638b7500cc318f9193dcabc",
+      "active_fates_parameter": "/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/cime/../src/fates/parameter_files/fates_params_default.json",
+      "recorded_forcing_folders": [
+        "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/FR-FBn/forcing/datm_v5_candidate_timevarying_zbot"
+      ],
+      "stream_year_first": [
+        2008
+      ],
+      "stream_year_last": [
+        2024
+      ],
+      "source_parameter_map_status": "PARSER_FAILED_JSON_OPENED_AS_NETCDF; NOT_A_MODEL_FAILURE"
+    },
+    {
+      "site": "BE-Bra",
+      "configuration_reference": "BE-Bra_FATES_SPINUP500_11P",
+      "start_date": "1996-01-01",
+      "co2_type": "constant",
+      "co2_ppm": 361.93,
+      "source_namelist_flags": {
+        "finidat": " ",
+        "spinup_state": "ABSENT",
+        "use_fates": ".true.",
+        "use_fates_fixed_biogeog": ".false.",
+        "use_fates_nocomp": ".false.",
+        "use_fates_sp": ".false."
+      },
+      "PCT_NATVEG": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          62.59470775644759
+        ]
+      },
+      "PCT_CROP": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          37.40529224355241
+        ]
+      },
+      "PCT_NAT_PFT": {
+        "dimensions": [
+          "natpft",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          15,
+          1,
+          1
+        ],
+        "values": [
+          1.5941743578656853,
+          15.170262340667486,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          9.482487693290526,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          73.7530756081763,
+          0.0
+        ]
+      },
+      "PCT_SAND": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          75.0,
+          75.0,
+          75.0,
+          75.0,
+          77.0,
+          77.0,
+          80.0,
+          79.0,
+          92.0,
+          92.0
+        ]
+      },
+      "PCT_CLAY": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          7.0,
+          7.0,
+          8.0,
+          3.0,
+          3.0
+        ]
+      },
+      "ORGANIC": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          58.56317901611328,
+          58.56317901611328,
+          58.56317901611328,
+          58.56317901611328,
+          28.794662475585938,
+          20.11475944519043,
+          13.122054100036621,
+          10.355152130126953,
+          4.090634346008301,
+          4.090634346008301
+        ]
+      },
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/BE-Bra/subset_data/surfdata_BE-Bra_hist_2000_16pfts_c261014.nc",
+      "source_surface_sha256": "bdbccee4a4b12e8eaf8e7567ff43207acf686a9bb8ef2acda98f1b5ff8fd8ecf",
+      "active_fates_parameter": "/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/cime/../src/fates/parameter_files/fates_params_default.json",
+      "recorded_forcing_folders": [
+        "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/BE-Bra/forcing/datm_11_provisional_dynamic_zbot_v1"
+      ],
+      "stream_year_first": [
+        1996
+      ],
+      "stream_year_last": [
+        2025
+      ],
+      "source_parameter_map_status": "PARSER_FAILED_JSON_OPENED_AS_NETCDF; NOT_A_MODEL_FAILURE"
+    },
+    {
+      "site": "IT-Noe",
+      "configuration_reference": "IT-Noe_ERA5_ABW_BRANCH2009",
+      "start_date": "2004-01-01",
+      "co2_type": "constant",
+      "co2_ppm": 376.95,
+      "source_namelist_flags": {
+        "finidat": "ABSENT",
+        "spinup_state": "ABSENT",
+        "use_fates": ".true.",
+        "use_fates_fixed_biogeog": ".false.",
+        "use_fates_nocomp": ".false.",
+        "use_fates_sp": ".false."
+      },
+      "PCT_NATVEG": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          69.46046965924637
+        ]
+      },
+      "PCT_CROP": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          30.53953034075363
+        ]
+      },
+      "PCT_NAT_PFT": {
+        "dimensions": [
+          "natpft",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          15,
+          1,
+          1
+        ],
+        "values": [
+          0.6811971838495607,
+          17.14548751497741,
+          0.0,
+          0.0,
+          0.0,
+          0.11380309102850791,
+          0.0,
+          8.268566694652527,
+          0.0,
+          0.12999309390921768,
+          0.0,
+          0.0,
+          0.0,
+          73.63516007156719,
+          0.025792350015589847
+        ]
+      },
+      "PCT_SAND": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          40.0,
+          40.0,
+          40.0,
+          40.0,
+          41.0,
+          42.0,
+          44.0,
+          44.0,
+          39.0,
+          39.0
+        ]
+      },
+      "PCT_CLAY": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          20.0,
+          20.0,
+          20.0,
+          20.0,
+          21.0,
+          21.0,
+          21.0,
+          20.0,
+          22.0,
+          22.0
+        ]
+      },
+      "ORGANIC": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          33.03629684448242,
+          33.03629684448242,
+          33.03629684448242,
+          33.03629684448242,
+          17.178205490112305,
+          10.995888710021973,
+          6.250344753265381,
+          5.52250862121582,
+          5.560510158538818,
+          5.560510158538818
+        ]
+      },
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/IT-Noe/subset_data/surfdata_IT-Noe_hist_2000_16pfts_c261014.nc",
+      "source_surface_sha256": "0d2346735710729457eb1e6d6784f631f494d03f61186fc53768749c49ba3bce",
+      "active_fates_parameter": "/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/cime/../src/fates/parameter_files/fates_params_default.json",
+      "recorded_forcing_folders": [
+        "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/IT-Noe/forcing/datm_11_IT-Noe_QC_v3_RHcap_20261021_230447"
+      ],
+      "stream_year_first": [
+        2004
+      ],
+      "stream_year_last": [
+        2025
+      ],
+      "source_parameter_map_status": "PARSER_FAILED_JSON_OPENED_AS_NETCDF; NOT_A_MODEL_FAILURE"
+    },
+    {
+      "site": "CH-Fru",
+      "configuration_reference": "CH-Fru_FATES_SPINUP500_11P",
+      "start_date": "2005-01-01",
+      "co2_type": "constant",
+      "co2_ppm": 378.98,
+      "source_namelist_flags": {
+        "finidat": " ",
+        "spinup_state": "ABSENT",
+        "use_fates": ".true.",
+        "use_fates_fixed_biogeog": ".false.",
+        "use_fates_nocomp": ".false.",
+        "use_fates_sp": ".false."
+      },
+      "PCT_NATVEG": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          96.05692555314255
+        ]
+      },
+      "PCT_CROP": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          3.9430744468574557
+        ]
+      },
+      "PCT_NAT_PFT": {
+        "dimensions": [
+          "natpft",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          15,
+          1,
+          1
+        ],
+        "values": [
+          6.658050943433315,
+          3.3000621895289055,
+          20.04921166360811,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          4.216948041499938,
+          10.377415507546528,
+          0.0,
+          0.01916934928475751,
+          0.5318553025325149,
+          44.697050155339916,
+          10.150236847226019,
+          0.0
+        ]
+      },
+      "PCT_SAND": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          37.0,
+          37.0,
+          37.0,
+          37.0,
+          38.0,
+          44.0,
+          51.0,
+          53.0,
+          53.0,
+          53.0
+        ]
+      },
+      "PCT_CLAY": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          11.0,
+          11.0,
+          11.0,
+          11.0,
+          13.0,
+          15.0,
+          17.0,
+          16.0,
+          16.0,
+          16.0
+        ]
+      },
+      "ORGANIC": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          46.763916015625,
+          46.763916015625,
+          46.763916015625,
+          46.763916015625,
+          12.578978538513184,
+          4.953853130340576,
+          2.770354986190796,
+          2.403613805770874,
+          1.9936553239822388,
+          1.9936553239822388
+        ]
+      },
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/CH-Fru/subset_data/surfdata_CH-Fru_hist_2000_16pfts_c261014.nc",
+      "source_surface_sha256": "10814bb7f6146166bbab70c12a07665ae6c95dc6401590a3fbbd0252daf52137",
+      "active_fates_parameter": "/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/cime/../src/fates/parameter_files/fates_params_default.json",
+      "recorded_forcing_folders": [
+        "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/CH-Fru/forcing/datm_11_provisional_dynamic_zbot_v1"
+      ],
+      "stream_year_first": [
+        2005
+      ],
+      "stream_year_last": [
+        2024
+      ],
+      "source_parameter_map_status": "PARSER_FAILED_JSON_OPENED_AS_NETCDF; NOT_A_MODEL_FAILURE"
+    },
+    {
+      "site": "CH-Lae",
+      "configuration_reference": "CH-Lae_FATES_SPINUP500_11P",
+      "start_date": "2004-01-01",
+      "co2_type": "constant",
+      "co2_ppm": 376.95,
+      "source_namelist_flags": {
+        "finidat": " ",
+        "spinup_state": "ABSENT",
+        "use_fates": ".true.",
+        "use_fates_fixed_biogeog": ".false.",
+        "use_fates_nocomp": ".false.",
+        "use_fates_sp": ".false."
+      },
+      "PCT_NATVEG": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          77.76560276278953
+        ]
+      },
+      "PCT_CROP": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          22.23439723721047
+        ]
+      },
+      "PCT_NAT_PFT": {
+        "dimensions": [
+          "natpft",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          15,
+          1,
+          1
+        ],
+        "values": [
+          0.2251023422594274,
+          17.722372490763693,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          28.95786823204402,
+          0.0,
+          0.0,
+          0.00461615219578569,
+          0.0,
+          0.0,
+          53.09004078273707,
+          0.0
+        ]
+      },
+      "PCT_SAND": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          40.0,
+          40.0,
+          40.0,
+          40.0,
+          43.0,
+          45.0,
+          49.0,
+          51.0,
+          54.0,
+          54.0
+        ]
+      },
+      "PCT_CLAY": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          14.0,
+          14.0,
+          14.0,
+          14.0,
+          14.0,
+          15.0,
+          15.0,
+          14.0,
+          13.0,
+          13.0
+        ]
+      },
+      "ORGANIC": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          46.75761795043945,
+          46.75761795043945,
+          46.75761795043945,
+          46.75761795043945,
+          16.464826583862305,
+          7.518758296966553,
+          5.037082672119141,
+          4.236006259918213,
+          2.603917121887207,
+          2.603917121887207
+        ]
+      },
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/CH-Lae/subset_data/surfdata_CH-Lae_hist_2000_16pfts_c261014.nc",
+      "source_surface_sha256": "4209e84980b2a63049e875cac5f8c2be7188e497cedadcd62995e1b21d81a09c",
+      "active_fates_parameter": "/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/cime/../src/fates/parameter_files/fates_params_default.json",
+      "recorded_forcing_folders": [
+        "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/CH-Lae/forcing/datm_11_provisional_dynamic_zbot_v1"
+      ],
+      "stream_year_first": [
+        2004
+      ],
+      "stream_year_last": [
+        2024
+      ],
+      "source_parameter_map_status": "PARSER_FAILED_JSON_OPENED_AS_NETCDF; NOT_A_MODEL_FAILURE"
+    },
+    {
+      "site": "ES-LJu",
+      "configuration_reference": "ES-LJu_FATES_SPINUP1000_S30SHARED",
+      "start_date": "2004-01-01",
+      "co2_type": "constant",
+      "co2_ppm": 376.95,
+      "source_namelist_flags": {
+        "finidat": " ",
+        "spinup_state": "ABSENT",
+        "use_fates": ".true.",
+        "use_fates_fixed_biogeog": ".false.",
+        "use_fates_nocomp": ".false.",
+        "use_fates_sp": ".false."
+      },
+      "PCT_NATVEG": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          71.46142100492905
+        ]
+      },
+      "PCT_CROP": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          28.53857899507095
+        ]
+      },
+      "PCT_NAT_PFT": {
+        "dimensions": [
+          "natpft",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          15,
+          1,
+          1
+        ],
+        "values": [
+          36.58856771334557,
+          3.394426160555872,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.2370374976946501,
+          0.0,
+          0.0,
+          24.84409357751771,
+          0.0,
+          0.0,
+          34.71960152176427,
+          0.2162735291219348
+        ]
+      },
+      "PCT_SAND": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          66.0,
+          66.0,
+          66.0,
+          66.0,
+          66.0,
+          64.0,
+          61.0,
+          58.0,
+          56.0,
+          56.0
+        ]
+      },
+      "PCT_CLAY": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          14.0,
+          14.0,
+          14.0,
+          14.0,
+          15.0,
+          16.0,
+          17.0,
+          19.0,
+          20.0,
+          20.0
+        ]
+      },
+      "ORGANIC": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          11.808001518249512,
+          11.808001518249512,
+          11.808001518249512,
+          11.808001518249512,
+          5.856717109680176,
+          4.704253673553467,
+          3.120455503463745,
+          2.571739673614502,
+          2.5593206882476807,
+          2.5593206882476807
+        ]
+      },
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/ES-LJu/subset_data/surfdata_ES-LJu_hist_2000_16pfts_c261005.nc",
+      "source_surface_sha256": "1410ccc0afa874978d5b9ae211aae55bb02f3263ebbb3e42c26d6ecbafa09e99",
+      "active_fates_parameter": "/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/cime/../src/fates/parameter_files/fates_params_default.json",
+      "recorded_forcing_folders": [
+        "/iridisfs/scratch/ly3n24/CLM_FATES/experiments/FLUXNET_13_ZBOT_DATM_20261018_054150_1008203/ES-LJu/datm_annual"
+      ],
+      "stream_year_first": [
+        2004
+      ],
+      "stream_year_last": [
+        2024
+      ],
+      "source_parameter_map_status": "PARSER_FAILED_JSON_OPENED_AS_NETCDF; NOT_A_MODEL_FAILURE"
+    },
+    {
+      "site": "FI-Hyy",
+      "configuration_reference": "FI-Hyy_FATES_SPINUP1000_S30SHARED",
+      "start_date": "1997-01-01",
+      "co2_type": "constant",
+      "co2_ppm": 363.04,
+      "source_namelist_flags": {
+        "finidat": " ",
+        "spinup_state": "ABSENT",
+        "use_fates": ".true.",
+        "use_fates_fixed_biogeog": ".false.",
+        "use_fates_nocomp": ".false.",
+        "use_fates_sp": ".false."
+      },
+      "PCT_NATVEG": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          89.0687143783798
+        ]
+      },
+      "PCT_CROP": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          10.9312856216202
+        ]
+      },
+      "PCT_NAT_PFT": {
+        "dimensions": [
+          "natpft",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          15,
+          1,
+          1
+        ],
+        "values": [
+          0.06531695691442271,
+          80.4264082163402,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          10.388503230932999,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          9.11977159581237,
+          0.0
+        ]
+      },
+      "PCT_SAND": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          54.0,
+          54.0,
+          54.0,
+          54.0,
+          58.0,
+          61.0,
+          65.0,
+          66.0,
+          68.0,
+          68.0
+        ]
+      },
+      "PCT_CLAY": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          6.0,
+          6.0,
+          6.0,
+          6.0,
+          5.0,
+          5.0,
+          6.0,
+          6.0,
+          6.0,
+          6.0
+        ]
+      },
+      "ORGANIC": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          115.57154083251953,
+          115.57154083251953,
+          115.57154083251953,
+          115.57154083251953,
+          39.25042724609375,
+          23.685102462768555,
+          4.518879413604736,
+          2.854741096496582,
+          2.3367414474487305,
+          2.3367414474487305
+        ]
+      },
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/FI-Hyy/subset_data/surfdata_FI-Hyy_hist_2000_16pfts_c260928.nc",
+      "source_surface_sha256": "e59fb4bf7922f4c2410c5cf61454ccf51112e0a4c076aed033c8c40dc95a16f8",
+      "active_fates_parameter": "/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/cime/../src/fates/parameter_files/fates_params_default.json",
+      "recorded_forcing_folders": [
+        "/iridisfs/scratch/ly3n24/CLM_FATES/experiments/FLUXNET_13_ZBOT_DATM_20261018_054150_1008203/FI-Hyy/datm_annual"
+      ],
+      "stream_year_first": [
+        1997
+      ],
+      "stream_year_last": [
+        2025
+      ],
+      "source_parameter_map_status": "PARSER_FAILED_JSON_OPENED_AS_NETCDF; NOT_A_MODEL_FAILURE"
+    },
+    {
+      "site": "IT-MBo",
+      "configuration_reference": "IT-MBo_FATES_SPINUP1000_S30SHARED",
+      "start_date": "2003-01-01",
+      "co2_type": "constant",
+      "co2_ppm": 375.14,
+      "source_namelist_flags": {
+        "finidat": " ",
+        "spinup_state": "ABSENT",
+        "use_fates": ".true.",
+        "use_fates_fixed_biogeog": ".false.",
+        "use_fates_nocomp": ".false.",
+        "use_fates_sp": ".false."
+      },
+      "PCT_NATVEG": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          66.43235127140056
+        ]
+      },
+      "PCT_CROP": {
+        "dimensions": [
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          1,
+          1
+        ],
+        "values": [
+          33.56764872859944
+        ]
+      },
+      "PCT_NAT_PFT": {
+        "dimensions": [
+          "natpft",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          15,
+          1,
+          1
+        ],
+        "values": [
+          2.962946519911816,
+          27.568327436622198,
+          10.120177344962896,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          11.849768841726169,
+          2.884199111631778,
+          0.0,
+          0.0,
+          0.00026171995633945066,
+          3.2296059230908134,
+          39.57235883211389,
+          1.8123542699840842
+        ]
+      },
+      "PCT_SAND": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          40.0,
+          40.0,
+          40.0,
+          40.0,
+          41.0,
+          42.0,
+          44.0,
+          44.0,
+          39.0,
+          39.0
+        ]
+      },
+      "PCT_CLAY": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          20.0,
+          20.0,
+          20.0,
+          20.0,
+          21.0,
+          21.0,
+          21.0,
+          20.0,
+          22.0,
+          22.0
+        ]
+      },
+      "ORGANIC": {
+        "dimensions": [
+          "nlevsoi",
+          "lsmlat",
+          "lsmlon"
+        ],
+        "shape": [
+          10,
+          1,
+          1
+        ],
+        "values": [
+          33.03629684448242,
+          33.03629684448242,
+          33.03629684448242,
+          33.03629684448242,
+          17.178205490112305,
+          10.995888710021973,
+          6.250344753265381,
+          5.52250862121582,
+          5.560510158538818,
+          5.560510158538818
+        ]
+      },
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/IT-MBo/subset_data/surfdata_IT-MBo_hist_2000_16pfts_c261014.nc",
+      "source_surface_sha256": "b0656dcb4d5ebad87a6727cd990c45e302edce762096939d5c7581bd5d627aca",
+      "active_fates_parameter": "/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/cime/../src/fates/parameter_files/fates_params_default.json",
+      "recorded_forcing_folders": [
+        "/iridisfs/scratch/ly3n24/CLM_FATES/experiments/FLUXNET_13_ZBOT_DATM_20261018_054150_1008203/IT-MBo/datm_annual"
+      ],
+      "stream_year_first": [
+        2003
+      ],
+      "stream_year_last": [
+        2025
+      ],
+      "source_parameter_map_status": "PARSER_FAILED_JSON_OPENED_AS_NETCDF; NOT_A_MODEL_FAILURE"
+    }
+  ]
+}

@@ -6,6 +6,8 @@
 
 ## Selected ten sites
 
+**Stage02 JSON-reader correction:** the operator output lists all ten source configurations, soil arrays and stream references, with one shared parameter-read failure. The active parameter file is **JSON**, which the first Stage02 implementation mistakenly opened as NetCDF. [The fix and retained source snapshot](docs/stage02_JSON_parameter_reader_fix_20261025.md) explain the result. Download the current Stage02 script, then use `--parameters-only` with the existing report to read the shared map once; there is no need to repeat the long inventory. This is a reader bug, not a CLM run failure. The corrected reader also stops labelling a failed shared mapping as a successful repeated mapping.
+
 **Stage01 execution reported successful on 25 October:** all ten site directories and active source-surface references were found; SHA checks and self-test passed. The printed `HOLD` labels concern unresolved scientific inputs, not an audit runtime error. See [the source-reference table, reported start/CO₂ values and PFT follow-up](docs/stage01_source_inventory_and_next_inputs_20261025.md). The next script summarizes the existing report; Stage01 does not need to be rerun.
 
 ```bash
