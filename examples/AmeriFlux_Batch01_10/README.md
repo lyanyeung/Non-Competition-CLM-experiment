@@ -12,6 +12,33 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage19 operator results: inspect inherited PTS_LAT / PTS_LON first (25 October 2026)
+
+**Operator-supplied 2026-10-25 09:36 actual Stage19 geometry output:** `STAGE19 SELF-TEST PASS`, no writes, failed `CA-TP4` point `fsurdat` `LATIXY=42.7102`, `LONGXY=279.6426`; Stage11 UTC forcing **LATIXY/LONGXY identical** (0.00000° discrepancy). However the source forest surface also retains **grid-coordinate variables** `lat=42.8795811518324`, `lon=280.0`, different from tower centre. The CH-Dav original-template `fsurdat` has `LATIXY=46.81533`, `LONGXY=9.85591` and its own `lat=46.6492146596858`, `lon=10.0`. CA-TP4 surface-vs-CH-Dav original centre delta **4.10513° latitude**, **90.21331° longitude**.
+
+**Actual CLM component log** `lnd.log.4728206.261025-091434` line 6511 identifies `check_domain_attributes surface lon_var=LONGXY lat_var=LATIXY`; line 6512 prints `ERROR: surface dataset vs. land domain lon/lat mismatch error`. The numeric `rmaxlon,rmaxlat` are likely emitted on an immediately following Fortran list-directed line, previously omitted by the Stage19 keyword filter. `nuopc.runconfig` effective `mesh_lnd=UNSET`, `single_column_lnd_domainfile=UNSET`, source `DATM_MODE=1PT`; global auxiliary DATM and dust mesh references are unrelated to determining the main **1pt** land domain. *Do not* infer a land-domain source from the different metadata variables `lat/lon` alone.
+
+**PINNED SOURCE PROOF FOUND after reading Stage19 results:** CTSM `d5ea9d0` [`src/cpl/nuopc/lnd_comp_nuopc.F90` lines 423–459 and 647–649](https://github.com/ESCOMP/CTSM/blob/d5ea9d0/src/cpl/nuopc/lnd_comp_nuopc.F90#L423-L459) reads `scol_lon/scol_lat` from CMEPS coupler `NUOPC_CompAttributeGet`, then initializes `ldomain%lonc/latc` through `lnd_set_decomp_and_domain_for_single_column`. Pinned [`src/cpl/share_esmf/lnd_set_decomp_and_domain.F90` lines 397–401](https://github.com/ESCOMP/CTSM/blob/d5ea9d0/src/cpl/share_esmf/lnd_set_decomp_and_domain.F90#L397-L401) assigns **`ldomain%lonc(1)=scol_lon`**, **`ldomain%latc(1)=scol_lat`** in 1pt mode. CMEPS [`cime_config/namelist_definition_drv.xml`](https://github.com/ESCOMP/CMEPS/blob/main/cime_config/namelist_definition_drv.xml) explicitly maps `scol_lon` ← CIME `PTS_LON` and `scol_lat` ← CIME `PTS_LAT`, and `single_column_lnd_domainfile` ← `PTS_DOMAINFILE`.
+
+**Likely actual error in our CIME case creation**: Stage08/12 copied **CH-Dav** case to CA-TP4 but `xml_settings()` does NOT update `PTS_LAT` or `PTS_LON`. Stage16 then cloned that CA-TP4 template for BR-Ma2/CA-Ca3/CA-LP1 and likewise did NOT update `PTS_LAT/LON`. Therefore **ALL FOUR independently previewed AmeriFlux cases require explicit CIME `PTS_LAT/LON` verification and likely new correctly located case clones**, even though all four pass original data and CaseDocs SHA gates. The 3 Stage16 cases are **HOLD — DO NOT SUBMIT** until their effective `scol_lat/scol_lon` agree with their actual original site `LATIXY/LONGXY` to **0.001°**. A successful preview is not sufficient.
+
+**Immediate single operator read-only command, no further meteorology QC:**
+```bash
+CA=/iridisfs/scratch/ly3n24/CLM_FATES/cases/CA-TP4_AMF_FIXNC_AD400_UTC_V2_AD5
+REF=/iridisfs/scratch/ly3n24/CLM_FATES/cases/CH-Dav_B01_FIXNC_AD400
+RUN=/scratch/ly3n24/CTSM_FATES_OUTPUTS/CA-TP4_AMF_FIXNC_AD400_UTC_V2_AD5/run
+for C in "$CA" "$REF"; do
+  echo "=== $C ==="
+  (cd "$C" && for KEY in PTS_LAT PTS_LON PTS_DOMAINFILE; do printf "%s = " "$KEY"; ./xmlquery "$KEY" --value; done)
+done
+grep -niE 'scol_lat|scol_lon|single_column_lnd_domainfile' "$RUN/nuopc.runconfig" "$CA/CaseDocs/nuopc.runconfig"
+sed -n '6505,6516p' "$RUN/lnd.log.4728206.261025-091434"
+```
+
+**Do not alter old `fsurdat` or `CaseDocs`/run inputs or resubmit job 4728206**; preserve Stage18 one-time receipt and failed case for provenance. Do not generate or guess a new mesh until exact `PTS`/effective coupler data are confirmed. If they inherited CH-Dav, create **new versioned CA-TP4 case** with correct `PTS_LAT=42.7102`, `PTS_LON=279.6426`, `PTS_DOMAINFILE` consistent with point mode, and add the same guard to the future 3 LaneA case clones before any pilot submission. Revalidate effective `nuopc.runconfig` and surface-point geometry at strict **0.001°** (not Stage13's loose 0.1° grid-vs-tower check).
+
+**Stage19 diagnostic script updated:** [`scripts/19_CA_TP4_surfrd122_geometry_readonly.py`](scripts/19_CA_TP4_surfrd122_geometry_readonly.py) prints actual PTS values, coupler `scol_lon/scol_lat`, and following line of land log after mismatch, still read-only.
+
 ## Stage18 root cause localized to surfrdMod line 122: land-domain vs surface point coordinate mismatch (25 October 2026)
 
 **Actual operator-provided authoritative Slurm and model log**:
