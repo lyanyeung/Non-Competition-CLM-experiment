@@ -1,5 +1,15 @@
 # Stage04: four Stage03 candidates created; prepare independent AD5 cases
 
+## Stage04 first runtime attempt and parser correction
+
+The operator ran the launcher from `/home/ly3n24/Batch02_10_stage04.mQgqoVZO`. All four original dependencies and self-test passed, but FI-Hyy source preflight raised `Expected one existing tower DATM stream`. This exception occurred before `overlay_check(create=True)` or any `prepare_one` call: no new case, preparation-attempt marker or model job was created by that attempt. The four Stage03 candidate surfaces remain available.
+
+The v1 parser assumed exactly one descendant `stream_info` with unqualified tags and expected every annual filename to end directly in `_<year>.nc`. The prior Stage02 source excerpt explicitly identifies the selected stream as `CLM_USRDAT.UNSET` and shows FI-Hyy/IT-MBo filenames ending `_<year>_PROVISIONAL.nc`. The reported error alone does not reveal the live XML node count or namespace; it is not a meteorological-data or model-run failure diagnosis.
+
+Stage04 v2 includes root/namespaced `stream_info` nodes and selects exactly one `CLM_USRDAT.UNSET`, allowing ancillary streams while preserving the entire XML signature for source/clone comparisons. It validates each chronological year, permits the documented provisional suffix for FI-Hyy/IT-MBo, and still rejects wrong sites, years, order, missing/empty files, wrong folders and ambiguous/missing named tower streams. It prints root tag, total stream count, selected name, file count and provisional-name count when a stream passes; unsupported selections print the observed stream names on failure. No forcing file is edited or renamed.
+
+Nine committed [XML regression tests](../tests/test_stage04_streams.py) cover those accepted/rejected fixtures. The full four-case mocked CIME preparation and failure-restoration checks also pass after the change. The updated launcher downloads five pinned files, verifies their hashes, runs the regression tests/self-test, then prepares the cases. Actual IRIDIS preparation is still pending; local fixtures are not a claim of a real CIME run.
+
 ## Operator result, 25 October 2026
 
 The operator supplied the successful Stage03 console output from `/home/ly3n24/Batch02_10_stage03.rQ6RzXYe/stage03_build.log`. Both downloaded inputs passed SHA256 checks and the builder reported:
@@ -37,13 +47,13 @@ conda activate clm_fates_env
 (
   set -euo pipefail
   curl -fLsS --retry 3 \
-    "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/a4c2f28c80cd1e2e334cc640fc6a0542d61c41cc/examples/Batch02_10/scripts/04_download_and_prepare_four_AD5.sh" \
+    "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/cc1fcfa3f4bb7544ad3d279f382ccf2a56e2750d/examples/Batch02_10/scripts/04_download_and_prepare_four_AD5.sh" \
     -o "$HOME/Batch02_10_stage04.sh"
   bash "$HOME/Batch02_10_stage04.sh" prepare
 )
 ```
 
-The launcher downloads all four code/data dependencies from one pinned revision and checks every SHA256. No cluster `git pull` or Stage01/02/03 rerun is needed.
+The launcher downloads all five code/data/test dependencies from one pinned revision and checks every SHA256. No cluster `git pull` or Stage01/02/03 rerun is needed.
 
 Expected success:
 
