@@ -12,6 +12,27 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage18 CA-TP4 model started then failed after ~4 seconds — diagnosis required (25 October 2026)
+
+**Operator-provided actual CIME `CaseStatus`** (no root cause established yet):
+- **09:13:14** `case.submit success case.run:4728206, case.st_archive:4728207`
+- **09:14:34** `case.run starting 4728206`
+- **09:14:35** `model execution starting 4728206`
+- **09:14:39** `model execution error`, `case.run error`
+- Failed launcher: `srun --mpi=pmix --ntasks=1 --cpus-per-task=1 --cpu-bind=cores /scratch/ly3n24/CTSM_FATES_OUTPUTS/GF-Guy_FATES_SURF2000_CO2405_1PT/bld/cesm.exe >> cesm.log.$LID 2>&1`
+- Root-cause log **NOT YET SEEN**: `/scratch/ly3n24/CTSM_FATES_OUTPUTS/CA-TP4_AMF_FIXNC_AD400_UTC_V2_AD5/run/cesm.log.4728206.261025-091434`.
+
+**Status is FAILED at model execution, not Slurm scheduling failure.** No evidence exists for advancing any model years or producing a 2007 AD5 restart. Do **NOT** resubmit Stage18 (`stage18_CA_TP4_ONE_AD5_SUBMISSION_ATTEMPT.json` is a one-shot non-overwritable receipt), do not modify original Stage11 UTC forcing, new surface or private model overlay before diagnosis. First read full final 150–200 lines of exact `cesm.log`, initial runtime lines, relevant `ERROR/FATAL/NetCDF/FATES` matches, Slurm job `sacct -j 4728206,4728207`, and Slurm `.out`/`.err` in the CIME case; archive dependency 4728207 may become `DependencyNeverSatisfied`. Determine if error is geometry, I/O, CDEPS date/calendar, FATES namelist, MPI or resources **based on actual model logs only**, not inference from generic `srun` wrapper error. Retain existing case for controlled recovery after diagnosing.
+
+```bash
+CASE=/iridisfs/scratch/ly3n24/CLM_FATES/cases/CA-TP4_AMF_FIXNC_AD400_UTC_V2_AD5
+RUN=/scratch/ly3n24/CTSM_FATES_OUTPUTS/CA-TP4_AMF_FIXNC_AD400_UTC_V2_AD5/run
+LOG="$RUN/cesm.log.4728206.261025-091434"
+test -f "$LOG" && { head -80 "$LOG"; tail -180 "$LOG"; grep -niE 'error|fatal|abort|stop|netcdf|fates|assert|nan|failed|not found|missing' "$LOG" | tail -80 || true; }
+sacct -j 4728206,4728207 --format=JobID,JobName%42,State,Elapsed,ExitCode,MaxRSS
+tail -40 "$CASE/CaseStatus"
+```
+
 ## Stage18 CA-TP4 AD5 actually submitted — job 4728206 (25 October 2026)
 
 **Operator-confirmed 2026-10-25 09:13:14 IRIDIS6 CIME output:**
