@@ -126,13 +126,15 @@ def stage28():
  print("STAGE28 selected MET provenance VERIFIED",p,"SHA",h)
  return {"path":str(p),"sha256":h,"table":df,"time":stamps}
 def original_raw(raw):
- if raw is None:return [],{}
+ if raw is None:return [],{},[],[]
  if not raw.is_file():stop("Optional supplied original FLUXMET HH CSV absent "+str(raw))
- df=pd.read_csv(raw,usecols=lambda k:k in (
-  "TIMESTAMP_START","TIMESTAMP_END","P_F","P_F_QC","P","P_QC"),low_memory=False)
+ selected={"TIMESTAMP_START","TIMESTAMP_END","P_F","P_F_QC","P","P_QC",
+           "TA_F","TA_F_QC","VPD_F","VPD_F_QC"}
+ df=pd.read_csv(raw,usecols=lambda k:k in selected,low_memory=False)
  if "TIMESTAMP_START" not in df.columns or not ("P_F" in df or "P" in df):
   stop("Raw source missing TIMESTAMP_START/P_F. No silent assumption about columns.")
  key="P_F" if "P_F" in df else "P"
+ qc="P_F_QC" if "P_F_QC" in df else "P_QC" if "P_QC" in df else None
  times=pd.to_datetime(df["TIMESTAMP_START"].astype(str),format="%Y%m%d%H%M",errors="coerce")
  if times.isna().any():stop("Raw source time parse failed")
  d=pd.DataFrame({"year":times.dt.year,"hour":times.dt.hour,
@@ -150,8 +152,24 @@ def original_raw(raw):
     "original_hour23_mm":round(float(hour23),4),
     "original_fraction_hour23":round(float(hour23/pos),6) if pos>0 else None,
     "original_negative_sentinel":int((group["P_original_mm"]<0).sum())})
+ focus=df.loc[times.dt.year.between(2005,2008) &
+              (pd.to_numeric(df[key],errors="coerce")>0)].copy()
+ focus.insert(0,"raw_source_time_not_DATM_clock",
+              times.loc[focus.index].dt.strftime("%Y-%m-%d %H:%M"))
+ rawfocus=focus[[x for x in ("raw_source_time_not_DATM_clock","TIMESTAMP_START",
+                            "TIMESTAMP_END",key,qc) if x and x in focus]].to_dict("records")
+ local_2023=(times>=pd.Timestamp("2023-10-16"))&(
+              times<pd.Timestamp("2023-10-21"))
+ near=df.loc[local_2023].copy()
+ near.insert(0,"raw_source_time_not_DATM_clock",
+             times.loc[near.index].dt.strftime("%Y-%m-%d %H:%M"))
+ raw2023=near[[x for x in ("raw_source_time_not_DATM_clock",
+                          "TIMESTAMP_START","TIMESTAMP_END",
+                          "TA_F","TA_F_QC","VPD_F","VPD_F_QC")
+                   if x in near]].to_dict("records")
  return review,{"raw_path":str(raw),"sha256":sha(raw),
-    "warning":"Original station-local timestamps NOT aligned to DATM model clock, compare year/hour distributions only; original P_F unit must be confirmed"}
+    "source_P_QC_column":qc,
+    "warning":"Original station-local timestamps NOT aligned to DATM model clock, compare year/hour distributions only; original P_F unit must be confirmed"},rawfocus,raw2023
 def scan(files,selected):
  all_years=[];rain_daily=[];wet_focus=[];rain_ext=[];temp_edges=[];humid=[];rh_spells=[];baseline=[]
  report20=[]
@@ -278,7 +296,7 @@ def main():
  if a.report and not a.out:ap.error("--report requires --out NEW unique path")
  files=actual_paths()
  selected=stage28()
- raw,rawinfo=original_raw(a.raw_fluxmet)
+ raw,rawinfo,rawfocus,raw2023=original_raw(a.raw_fluxmet)
  reports=scan(files,selected)
  print("ES-LJu ACTUAL ACTIVE MODEL DATM 2004-2024 REVIEW")
  for y in reports["year"]:
@@ -312,6 +330,10 @@ def main():
   save_csv(dest/name,rows,list(rows[0]))
  if raw:
   save_csv(dest/"09_original_FLUXMET_HH_annual_precip_by_source_clock.csv",raw,list(raw[0]))
+ if rawfocus:
+  save_csv(dest/"10_original_2005_2008_wet_P_F_original_QC.csv",rawfocus,list(rawfocus[0]))
+ if raw2023:
+  save_csv(dest/"11_original_2023_Oct16_20_TA_VPD_and_QC.csv",raw2023,list(raw2023[0]))
  model={
  "site":SITE,"status":"HUMAN_REVIEW_ONLY_SOURCE_QC_UNRESOLVED",
  "selected_stage13_case":str(CASE),
