@@ -2,6 +2,25 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
+## Operator-confirmed Stage10 AD395 four jobs submitted; Stage11/12 remaining Batch02 six preparation
+
+**ACTUAL IRIDIS6 operator output 25 October 2026:** Stage10 AD5 and archive/restart `BATCH02 AUDIT PASS 4/4` with `spinup_state=2`; four remaining AD395 continuations **submitted 4/4**, not yet model-completed. Run/archive Slurm IDs:
+- FI-Hyy **4732398 / 4732399**, from restart 2002, target 2397.
+- FR-Hes **4732400 / 4732401**, from restart 2002, target 2397.
+- CH-Fru **4732402 / 4732403**, from restart 2010, target 2405.
+- IT-MBo **4732404 / 4732405**, from restart 2008, target 2403.
+
+Observed `squeue` snapshot showed these four run jobs `PD (Priority)`, archives `PD (Dependency)`. Do **not** rerun Stage10 `continue-395`, do not call the four completed AD5s unfinished, and do not start Normal400 until the final AD400 checkpoint is actually verified.
+
+**Next six sites are the six within this SAME Batch02 cohort**, not the stand-alone not-assigned ICOS six: **DK-Sor, FR-FBn, BE-Bra, IT-Noe, CH-Lae, ES-LJu**. Their evidence from the current authoritative 38-site FIXNC PFT table has **four OPEN unresolved forest partitions** (DK-Sor, FR-FBn, BE-Bra, CH-Lae) and **two scientifically labelled proxy candidates** for bare/shrub vegetation (IT-Noe, ES-LJu). Never make unresolved forest residual grass or bare. See [Stage10 result and full six-site science/machine gates](docs/stage10_success_and_remaining6_stage11_stage12_20261025.md).
+
+**New scripts (no Slurm):**
+- [Stage11 six remaining sites input audit](scripts/11_audit_remaining_six_PFT_and_source_inputs_readonly.py): source-pinned official 38-site table, six original exact case names, site-surface PTS point coordinates (guard from AmeriFlux CA-TP4 failure), original landunits/soil/compiled FATES and data streams; strictly read-only.
+- [Stage12 two versioned bare/shrub model-candidate surface files](scripts/12_build_IT_Noe_ES_LJu_bare_shrub_candidates_only.py): `--plan` read-only then optional `--build --confirm CREATE_TWO_BATCH02_BARE_SHRUB_SURFACE_PROXIES`, **IT-Noe bare34/shrub66** and **ES-LJu bare49/C3-grass31/evergreen-shrub20**, preserve original soil texture and original inputs; no CIME cases, no model submission. Scientific percentage-denominator and shrub-trait caveats retained.
+
+Other four sites do not yet have an evidence-complete 15-PFT host vector and **must not** be copied into an unqualified surface builder. Preparation is independent from the running/pending four AD395 continuations.
+
+---
 ## Stage10 — AD5 to AD395 continuation (conditional on HPC audit)
 
 The exact Stage09 active run/archive IDs are FI-Hyy `4728292/4728293`,
