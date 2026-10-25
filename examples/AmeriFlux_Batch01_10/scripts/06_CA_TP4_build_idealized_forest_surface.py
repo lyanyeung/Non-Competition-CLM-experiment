@@ -103,12 +103,19 @@ def source_check():
   required=set(CHANGED)|{"PCT_SAND","PCT_CLAY"}
   if not required.issubset(ds.variables):fail("Original surface schema missing "+repr(required-set(ds.variables)))
   for name in ("PCT_NATVEG",*LAND_ZERO):
-   if ds.variables[name].size!=1:fail("Not a point landunit "+name)
+   size=ds.variables[name].size
+   if name=="PCT_URBAN":
+    if size<1:fail("Missing source urban density classes")
+   elif size!=1:fail("Not a point landunit "+name)
   for field in ("PCT_SAND","PCT_CLAY"):
    vals=np.ma.filled(ds.variables[field][:],np.nan).ravel()
    if vals.size!=10 or not np.isfinite(vals).all() or np.any(vals<0) or np.any(vals>100):
     fail("Invalid ten-layer source grid soil "+field)
-  old={k:float(np.asarray(ds.variables[k][:]).ravel()[0]) for k in ("PCT_NATVEG",*LAND_ZERO)}
+  old={}
+  for k in ("PCT_NATVEG",*LAND_ZERO):
+   data=np.ma.filled(ds.variables[k][:],np.nan).ravel()
+   if not np.isfinite(data).all():fail("Nonfinite source landunit "+k)
+   old[k]=float(data.sum()) if k=="PCT_URBAN" else float(data[0])
   oldpft=np.ma.filled(ds.variables["PCT_NAT_PFT"][:],np.nan).ravel()
   if oldpft.size!=15 or not np.isfinite(oldpft).all():
    fail("Original source natural PFT invalid")
@@ -140,10 +147,13 @@ def modify(dst):
   ds.ca_tp4_all_other_surface_variables="UNMODIFIED_ORIGINAL_POINT_SURFACE_VALUES_GRID_PROXIES"
 
 def array_identical(a,b):
- # compare masks and data, for original unchanged variables
- x=np.ma.asarray(a)
- y=np.ma.asarray(b)
- return np.array_equal(np.ma.getmaskarray(x),np.ma.getmaskarray(y)) and np.array_equal(np.ma.filled(x,0),np.ma.filled(y,0),equal_nan=True)
+ # Compare masks and data across both numeric and text NetCDF variables.
+ x=np.ma.asarray(a);y=np.ma.asarray(b)
+ if not np.array_equal(np.ma.getmaskarray(x),np.ma.getmaskarray(y)):
+  return False
+ if x.dtype.kind in ("f","c") and y.dtype.kind in ("f","c"):
+  return np.array_equal(np.ma.filled(x,0),np.ma.filled(y,0),equal_nan=True)
+ return np.array_equal(np.ma.filled(x),np.ma.filled(y))
 
 def verify(dest,source):
  with Dataset(source) as a,Dataset(dest) as b:
@@ -156,13 +166,13 @@ def verify(dest,source):
      fail("Unrelated grid soil, terrain or point-surface variable changed "+k)
   for k,v in (("PCT_NATVEG",100.0),*[(x,0.) for x in LAND_ZERO]):
    vals=np.ma.filled(b.variables[k][:],np.nan).ravel()
-   if len(vals)!=1 or not np.allclose(vals,v,rtol=0,atol=1e-5):
+   if not np.isfinite(vals).all() or (k!="PCT_URBAN" and len(vals)!=1) or not np.allclose(vals,v,rtol=0,atol=1e-5):
     fail("Pilot landunit incorrect "+k)
   arr=np.ma.filled(b.variables["PCT_NAT_PFT"][:],np.nan)
   wanted=vector(b)
   if not np.isfinite(arr).all() or not np.allclose(arr,wanted,atol=1e-5,rtol=0):
    fail("Pilot natural PFTs wrong")
-  total=sum(float(np.asarray(b.variables[k][:]).ravel()[0]) for k in ("PCT_NATVEG",*LAND_ZERO))
+  total=sum(float(np.ma.filled(b.variables[k][:],np.nan).sum()) for k in ("PCT_NATVEG",*LAND_ZERO))
   if abs(total-100)>1e-4:fail("Pilot landunit total!=100")
   for k in ("PCT_SAND","PCT_CLAY"):
    if not array_identical(a.variables[k][:],b.variables[k][:]):fail("Grid soil modified "+k)
