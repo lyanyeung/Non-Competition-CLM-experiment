@@ -2,9 +2,28 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
-**Latest evidence:** four initial AD5 tasks segfaulted at ESMF mesh offset-array initialization. Stage07 found a declared dust mesh whose estimated offset array is15.8MiB, while the current login soft stack is8MiB; failed-task limits remain unmeasured. `OMP_STACKSIZE=64M` does not control the initial thread. **Current next step:** [Stage08 FI-Hyy-only task-side stack256 retry](docs/stage08_FI_Hyy_stack256_AD5_pilot_20261025.md), with limit logging and preserved inputs. Stack overflow remains a testable hypothesis. No retry result is claimed. Other three cases and six open scientific choices remain pending.
+**Latest recovery reference:** the operator supplied Batch03's matched-source high-submitting-stack recovery and ten jobs RUNNING beyond the old startup failure on red6083. **Current next step:** [Stage09 applies that method to the four failed Batch02 AD5 cases](docs/stage09_Batch03_success_method_for_Batch02_20261025.md). It preserves scientific inputs/executable/MPI command, never lowers a high stack and records the actual submit-process limits. The old Stage08 wrapper/probe route is superseded. No Batch02 retry outcome is claimed; six other scientific input choices remain open.
 
-## Current next step: Stage08 FI-Hyy-only stack pilot
+## Current next step: Stage09 four-site recovery using Batch03's working method
+
+Use the actual successful Batch03 submission-stack method for FI-Hyy, FR-Hes, CH-Fru and IT-MBo:
+
+```bash
+(
+  set -euo pipefail
+  SCRIPT="$HOME/Batch02_10_stage09.py"
+  curl -fLsS --retry 3 \
+    "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/6ef949393e03e7c09b9be720d89094a268900de6/examples/Batch02_10/scripts/09_resubmit_four_AD5_with_Batch03_stack_guard.py" \
+    -o "$SCRIPT"
+  echo "d0730ccca1c7728f7b82285fe9da4f120b3dc06c189341f1f015b73151eac5fc  $SCRIPT" | sha256sum -c -
+  python3 -B "$SCRIPT" self-test
+  python3 -B "$SCRIPT" resubmit
+)
+```
+
+Expected: `STAGE09 RESUBMIT SUMMARY submitted= 4 uncertain= []`. This validates all four failed cases, preserves inputs/executable/MPI command, raises only a low current submitting-process stack, cancels only their verified blocked old archives and submits only AD5 with RESUBMIT0. It does not run a probe or alter Batch03 jobs. Use `python3 -B "$HOME/Batch02_10_stage09.py" status` for the new IDs. [Source match, operator evidence and recovery record](docs/stage09_Batch03_success_method_for_Batch02_20261025.md).
+
+## Stage08: superseded single-site wrapper proposal (do not run the command below)
 
 This command verifies and cancels only FI-Hyy's blocked old archive4728103, adds a measured256MiB task-side stack wrapper to that independent case, and submits one new cold-start AD5. It preserves meshes, scientific inputs and the executable. Other three sites are untouched.
 
