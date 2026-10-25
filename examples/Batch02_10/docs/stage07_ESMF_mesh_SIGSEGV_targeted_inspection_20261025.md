@@ -1,5 +1,7 @@
 # Stage07: common ESMF mesh-read segmentation fault; inspect mesh and stack
 
+**Later Stage07 output received:** mesh headers are readable; the declared dust grid has1,036,800elements and a15.8MiB offset-array estimate. Login soft stack is8MiB; actual failed-task limits remain unmeasured. [Stage08 defines a single FI-Hyy task-side stack256 retry](stage08_FI_Hyy_stack256_AD5_pilot_20261025.md). This is a controlled hypothesis test, not a completed repair.
+
 ## Evidence from the operator's Stage06 output
 
 The uploaded `Pasted text(20261025-085531).txt` reports four identical startup failure locations:
