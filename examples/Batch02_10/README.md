@@ -6,6 +6,21 @@
 
 ## Selected ten sites
 
+**Stage01 execution reported successful on 25 October:** all ten site directories and active source-surface references were found; SHA checks and self-test passed. The printed `HOLD` labels concern unresolved scientific inputs, not an audit runtime error. See [the source-reference table, reported start/CO₂ values and PFT follow-up](docs/stage01_source_inventory_and_next_inputs_20261025.md). The next script summarizes the existing report; Stage01 does not need to be rerun.
+
+```bash
+DIR="$HOME/Non-Competition-CLM-experiment/examples/Batch02_10/scripts"
+mkdir -p "$DIR"
+curl -fLsS \
+  https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/main/examples/Batch02_10/scripts/02_summarize_selected_inputs_readonly.py \
+  -o "$DIR/02_summarize_selected_inputs_readonly.py" || exit 1
+python3 -B "$DIR/02_summarize_selected_inputs_readonly.py" --self-test || exit 1
+set -o pipefail
+python3 -B "$DIR/02_summarize_selected_inputs_readonly.py" \
+  --inventory /iridisfs/home/ly3n24/Batch02_10_preflight_20261025T070625_933191Z/all_sites.json \
+  2>&1 | tee "$HOME/Batch02_10_selected_input_details.log"
+```
+
 | Site | Original group | Ecosystem | Input decision still needed |
 | --- | ---: | --- | --- |
 | DK-Sor | 6 | Deciduous forest | DBF80; split the combined ENF/DNF20 |
