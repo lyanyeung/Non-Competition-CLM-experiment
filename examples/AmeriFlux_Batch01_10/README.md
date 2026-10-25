@@ -12,6 +12,33 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage10 user-verified solar clock and Stage11 independent UTC forcing preview (25 October 2026)
+
+**Operator-confirmed Stage10 self-test + read-only audit PASS:** unchanged `CA-TP4_AMF_FIXNC_AD400_PILOT` 5-year FATES AD startup, CDEPS `offset=0`, constant `CCSM_CO2_PPMV=363.04` ppm (inherited 1997 NOAA global-mean reference, not purpose-selected for 2002). 2002 global NOAA annual mean **372.58 ppm** is a proposed fixed-spinup common reference, NOT yet applied to this case.
+
+**Solar evidence from the actual pinned CA-TP4 Stage04 FSDS data:**
+
+| Year | Real FSDS energy during astronomical night if labels are LST (UTC−5) | If mistakenly interpreted as UTC |
+|---|---:|---:|
+| 2002 | 0.212% | 29.099% |
+| 2010 | 0.000% | 29.157% |
+| 2019 | 0.028% | 29.091% |
+| **Three-year mean** | **0.080%** | **29.116%** |
+
+Thus measured source solar radiation **unambiguously follows local standard time (UTC−5)**. CTSM's documented astronomical zenith hour-angle uses the day fraction at **0Z 1 January** and longitude; the real compiled CIME coupler convention still merits review ([CTSM solar technical note](https://escomp.github.io/CTSM/release-clm5.0/tech_note/Surface_Albedos/CLM50_Tech_Note_Surface_Albedos.html)). [CDEPS stream docs](https://escomp.github.io/CDEPS/versions/master/html/streams.html) say a **positive offset advances** timestamps by that number of seconds; `+18000` is a potential direct UTC+5h solution, but with a whole-year cyclic dataset timestamps on Dec31 extend into the following year, and real CDEPS boundary treatment has NOT been validated. The incomplete site-geometry and model-solar-clock release gates remain.
+
+**Safer technical solution — [Stage11 UTC aligned CA-TP4 full-year NetCDF candidate](scripts/11_CA_TP4_build_UTC_aligned_DATM_candidate.py):** 
+- `--self-test` checks exact 10-half-hour/5h cyclic mapping across all 22 years; `--check` verifies 22 original Stage04 annual SHA files, new Stage08 non-submitted status/locked original effective inputs, local midpoint time geometry/variables and the candidate CDEPS stream.
+- Optional `--build-preview --outdir BRAND_NEW --ack-cyclic-utc-5-shift` writes **22 independent UTC-year NetCDF copies**. Each UTC year uses the previous LST-year's final 10 records for Jan 1 00:15–04:45 UTC and the present LST-year's first 17,510 records for Jan 1 05:15 through Dec31 23:45 UTC. The 2002 cyclic previous year is **2023** (the loop wraps 2023→2002), clearly identified as a **model cyclic-boundary assumption**, *not* a 2001 meteorological observation. ALL 10 time-dependent fields (TBOT, QBOT/SHUM/RH, PSRF, WIND, FSDS, FLDS, PRECTmms, ZBOT) get the *same* exact 10-slot permutation; midpoint `time` itself remains at 00:15/00:45/... in each UTC year.
+- Each copied NetCDF is checked against both immutable local-year source files for **all time-dependent values**; the new detached XML points at the 22 UTC copies and sets `cycle + linear`, `offset=0`. No change to the Stage08 active CIME case, original Stage04 pilot, Stage06 surface, and **no model/Slurm jobs**.
+- After Stage11 success, the separate **next step** is to create a **new V2 CIME AD5 case** with the UTC files, explicit 2002 baseline CO2 if selected, valid point geography, generated `preview_namelists` and only then an independent five-year smoke test. Do not mutate/re-run the existing Stage08 `--stage` case; it remains an immutable baseline.
+
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/11_CA_TP4_build_UTC_aligned_DATM_candidate.py --self-test
+python3 -B examples/AmeriFlux_Batch01_10/scripts/11_CA_TP4_build_UTC_aligned_DATM_candidate.py --check
+# Only after PASS and explicit consent: --build-preview --ack-cyclic-utc-5-shift --outdir BRAND_NEW
+```
+
 ## Stage09 actual read-only PASS; Stage10 solar-diurnal/CO2 review (25 October 2026)
 
 **Operator-confirmed Stage09 PASS:** `CA-TP4_AMF_FIXNC_AD400_PILOT` CIME XML: `DATM_MODE=1PT`, `GRID=a%CLM_USRDAT_l%CLM_USRDAT_oi%null...`, `NO_LEAP`, `ATM_NCPL=48`, `RUN_TYPE=startup`, `RUN_STARTDATE=2002-01-01`, `STOP_N=REST_N=5`, `RESUBMIT=0`, `CLM_ACCELERATED_SPINUP=on`, `DATM_YR_START=2002`, `DATM_YR_END=2023`, `DATM_YR_ALIGN=2002`. CIME `env_case.xml` lock restored; FATES `spinup_state=2`, `use_fates_fixed_biogeog=.true.`, `use_fates_nocomp=.true.`, `finidat` blank; generated CDEPS met stream `CLM_USRDAT.UNSET` maps 8 fields and exactly 22 CA-TP4 pilot NetCDF files 2002–2023 `cycle/linear` `offset=0`; **no CH-Dav met file references**. Four non-meteorology reference streams preserved. First/last CA-TP4 met & surface coordinates **42.7102 N, -80.3574 E** agree. The actual pinned CA-TP4 FLUXNET BIF `d2d7c4fca452031e5da584a8b504084c04757697e436627b0ed7e8fa52b10fa9` records `UTC_OFFSET=-5` (local STANDARD time without DST). The existing CIME point-grid NAME `CLM_USRDAT` and `LND_DOMAIN_FILE=UNSET` **do not independently verify the coupled model's actual solar-clock convention/point geometry**. No Slurm jobs submitted.
