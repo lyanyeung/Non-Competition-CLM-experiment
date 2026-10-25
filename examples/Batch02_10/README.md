@@ -2,6 +2,24 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
+## Stage12 operator-confirmed two bare/shrub surfaces built; Stage13 independent AD5 CIME preview
+
+**Actual operator-reported Stage11/Stage12 IRIDIS6 logs, 25 Oct 2026:**
+- Stage11 six-source `STAGE11 AUDIT COMPLETE 6/6; NO FILE WRITES OR SLURM`. Four forest species/residual partitions remain science OPEN (DK-Sor, FR-FBn, BE-Bra, CH-Lae).
+- Stage12 plan verified **IT-Noe original site point `(40.606176,8.151694)` and ES-LJu point `(36.926594,357.247885)`**, source CIME PTS/surface agreement, shared FATES host9 extra-tropical evergreen shrub and host13 cool C3 grass mapping, original grid-soil retention.
+- Stage12 generated **two NetCDF-only independent versioned candidate surface files**, and reported `STAGE12 TWO BATCH02 BARE/SHRUB SURFACE CANDIDATES CREATED, NO SLURM`:
+  - `IT-Noe` `stage12_remaining6_bare_shrub_candidates_v1/IT-Noe/surfdata_IT-Noe_B02_BARESHRUB_PFT_proxy_v1.nc` SHA256 **`9158bdc492bf09c530193eb2480eab0b72978194314a0c3ee59d1749fc82ed7a`**: `PCT_NAT_PFT[0]=34,[9]=66`; scientific case retains ERA5-ABW-2009 source provenance and evergreen *broadleaf* shrub proxy caveat for Juniperus.
+  - `ES-LJu` `stage12_remaining6_bare_shrub_candidates_v1/ES-LJu/surfdata_ES-LJu_B02_BARESHRUB_PFT_proxy_v1.nc` SHA256 **`d44083a1eef069f6c74d389667f8a82802a93c5085665c712245470221e18762`**: `PCT_NAT_PFT[0]=49,[13]=31,[9]=20`; source CDEPS annual forcing `2004–2024` is tagged `PROVISIONAL` and its 19.8% unclassified vegetation proxy remains an explicit assumption.
+- The source surface for ES-LJu is not a natural-land-only point (it reports NATVEG 71.461421%, CROP28.538579%). Stage12 *deliberately* produced NATVEG100/CROP0 as a documented **idealized EC-tower representation**; preserve the 49% bare INSIDE the conditional natural PFT fraction and do **not** claim this matches source gridded cropland landunit percentages.
+- **DO NOT rerun Stage12 `--build`**; its create-only candidates now exist. Neither old source case, original forcing data, old surfdata, nor existing Batch02 AD395 jobs were modified by Stage12.
+
+**NEW [Stage13](scripts/13_prepare_IT_Noe_ES_LJu_AD5_preview_no_slurm.py):** strictly separate AD5 CIME preparation using the *same-site* original case for each tower (`IT-Noe_ERA5_ABW_BRANCH2009`, `ES-LJu_FATES_SPINUP1000_S30SHARED`), no other-site case cloning. Its `--check` reads only the two Stage12 exact source SHA receipts, original CIME and site-specific DATM source years, original FATES parameter map SHA and private Batch02 AD FATES namelist overlay. `--prepare --confirm PREPARE_TWO_BATCH02_BARE_SHRUB_AD5_NO_SUBMISSION` creates two new independent CIME AD5 preview cases using `create_clone --keepexe`, 5yr `STOP_N=5, RESUBMIT=0, RUN_TYPE=startup, spinup_state=2`, `use_fates_fixed_biogeog=.true.`, `use_fates_nocomp=.true.`, original site met loop/CO2, and explicitly sets `PTS_LAT/LON` from the new surface. It tests actual `CaseDocs/nuopc.runconfig` **AND** `RUNDIR/nuopc.runconfig` `scol_lat/lon` against original station surface within 0.0001°, protects CIME env_case lock after private FATES AD preview, checks unchanged DATM source stream and original compiled binary. No `case.submit` call is made by `--prepare`; **no Slurm jobs**. `--verify` rechecks both new case directories READ-ONLY. One-shot prepare receipts refuse duplicates/partial retries.
+
+**New intended case names:** `IT-Noe_B02_FIXNC_AD400_BARE34_SHRUB66_AD5` and `ES-LJu_B02_FIXNC_AD400_BARE49_C3GRA31_SHRUB20_AD5`.
+
+**Crucial scientific release status**: preparing valid CIME namelists does **not** resolve IT-Noe repaired ERA5 branch meteorology/Juniperus conifer shrub mapping or ES-LJu provisional met provenance and mixed shrub phenology. Maintain the scientific HOLD before actual AD5 Slurm submission; only after those input uncertainties are explicitly assessed should these two 5yr cases be considered for real model runs. Four remaining forests still have residual PFT evidence OPEN; do not invent 100% vectors.
+
+---
 ## Operator-confirmed Stage10 AD395 four jobs submitted; Stage11/12 remaining Batch02 six preparation
 
 **ACTUAL IRIDIS6 operator output 25 October 2026:** Stage10 AD5 and archive/restart `BATCH02 AUDIT PASS 4/4` with `spinup_state=2`; four remaining AD395 continuations **submitted 4/4**, not yet model-completed. Run/archive Slurm IDs:
