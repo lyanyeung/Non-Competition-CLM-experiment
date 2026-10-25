@@ -12,6 +12,14 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage04 read-only check confirmed PASS (25 October 2026)
+
+**Operator-confirmed on IRIDIS6:** `04_build_CA_TP4_DATM_midpoint_ZBOT28_pilot.py --self-test` and `--check` **PASS**. All **385,440** CA-TP4 half-hour Stage80 forcing time stamps match exact raw FLUXNET `TIMESTAMP_START` rows 2002–2023; **240** leap-day observations from five leap years skipped for NOLEAP. All **22 annual Stage81 NetCDF** source dimensions and native time axes PASS and reference CH-Dav's effective NetCDF `ZBOT` dimensions match `(time,lat,lon)`. Actual main met CDEPS stream confirms `taxmode=cycle`, `tintalgo=linear`, `QBOT → Sa_shum`, `ZBOT → Sa_z`.
+
+**Next action, with operator choice:** Run `--build-preview --ack-provisional-height --outdir NEW_NONEXISTING_DIR` to create **22 independent** CA-TP4 year-file copies with `time=TIMESTAMP_START+15min` and `ZBOT=28m` from BASE `TA_PI_F_1_1_1` **ONLY AS PROVISIONAL TECHNICAL TEST ASSUMPTION**. The new detached CDEPS XML is a reference-case-derived **candidate, not activated**. This creates **no CIME case, model job, or modified original Stage81 files**. The existing observed-height `TA_F` crosswalk remains unverified. Do not call a successful DATM file build evidence of model correctness, actual local-standard-time alignment to coupled model clock, scientific suitability of 28m, or AD5/AD400 completion.
+
+Before AD5 submission, inspect new stream XML and site-specific surface/soil/PFT; verify actual case `preview_namelists` and correct `spinup_state=2` on private FATES AD build-namelist overlay, calendar `NO_LEAP` and site-specific 2002–2023 forcing cycle. Submit at most one independent AD5 test (`STOP_N=5`, `REST_N=5`, `RESUBMIT=0`) and verify archived CLM/CPL/DATM restarts before AD395.
+
 ## Stage03 user-confirmed successful — Stage04 isolated CA-TP4 DATM pilot next (24 October 2026)
 
 **Observed Stage03 results:**
