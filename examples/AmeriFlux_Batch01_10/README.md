@@ -12,6 +12,12 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage17 first run: false CLI name error fixed, no CIME or Slurm failure (25 October 2026)
+
+Actual user IRIDIS6 Stage17 source/syntax and pure self-test PASS. The first case `CA-TP4` passed generated/runtime `lnd_in` SHA, `RUNDIR/datm_in` exists and `RUNDIR/datm.streams.xml` exists. Its actual local `case.submit --help` **supports `--skip-preview-namelist`**. The original Stage17 script then incorrectly tried to locate **`case.run`** as a public CIME CLI and stopped. CIME instead generates a *hidden* **`.case.run`** batch payload. This is a **Stage17 audit script bug, not a failed model, failed Slurm or a missing new case**, and no case was submitted.
+
+**[Corrected Stage17 four-case read-only runtime gate](scripts/17_four_AD5_runtime_submission_gate_readonly.py)** now checks `case.submit --help` only; checks `.case.run` by file existence/SHA and prints scheduler directives without executing it or calling `--help` on a batch script. Retains all four generated CaseDocs/runtime LND/UTC/CIME/CO2 checks, **no file mutations, no submission**. Run `--self-test` and `--check` using the corrected pinned revision. If every case passes, proceed to a separately controlled single CA-TP4 AD5 smoke after examining job/resource and coupler-grid prerequisites; **do not use normal `./case.submit` without a safe namelist strategy**.
+
 ## Stage16 actual three AD5 preview success; Stage17 CIME runtime-gate (25 October 2026)
 
 **Actual operator-provided three Stage16 case previews confirmed SUCCESS**:
