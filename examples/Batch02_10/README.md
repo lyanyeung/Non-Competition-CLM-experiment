@@ -4,6 +4,27 @@
 
 **Implemented now:** source inventory, actual-input tracing, verified JSON parameter-map reader, and [four isolated surface-candidate builder](scripts/03_build_four_surface_candidates.py). The operator's mapping read passed for all ten references. FI-Hyy now has direct ICOS-target-stand basal-area evidence; FR-Hes/CH-Fru/IT-MBo have explicitly described model-point proxy candidates. **Not created/submitted yet:** the candidate NetCDFs on IRIDIS, new Batch02 AD cases, AD continuation or Normal submission scripts. Six other site choices remain open. The overall requested design remains AD400 → Normal400 for ten sites.
 
+## Stage03: resume here (checksum-pinned launcher)
+
+The parameter-map read is complete. The next executable step is to create the four independent surface **candidates**, using the existing Stage03 choices. This does not certify final scientific acceptance of these proxies or whole-batch readiness.
+
+```bash
+conda activate clm_fates_env
+(
+  set -euo pipefail
+  curl -fLsS --retry 3 \
+    "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/80430a9775c4efecfcc5fd66c433203a4eebc084/examples/Batch02_10/scripts/03_download_and_build_four_candidates.sh" \
+    -o "$HOME/Batch02_10_stage03.sh"
+  bash "$HOME/Batch02_10_stage03.sh" build
+)
+```
+
+The launcher downloads the Python builder and candidate JSON together into a new HOME working directory, verifies both published SHA256 values, and runs self-test before building FI-Hyy, FR-Hes, CH-Fru and IT-MBo. Use `plan` instead of `build` to print the four assumptions without creating model candidates. No Stage01/02 rerun or cluster `git pull` is required.
+
+Expected final result: `CANDIDATE_SUMMARY created_or_verified= 4 failed= []`. Matching candidate files and JSON receipts may be reused after verification; a conflicting existing file fails. Each surface remains under the independent Batch02 output root described in the [Stage03 record](docs/stage03_mapping_PFT_soil_and_four_candidates_20261025.md). This launcher performs no CIME or Slurm operations.
+
+Launcher validation: shell syntax, end-to-end offline fixture download/checksum/layout/plan, corrupted-download rejection before Python/build, and invalid-action rejection passed. The builder's self-test and plan passed. Actual IRIDIS NetCDF build output is still required before preparing AD5 cases.
+
 ## Selected ten sites
 
 **Next: candidate surfaces, not another source audit.** [Current mapping, FI-Hyy calculation, soil choices and executable instructions](docs/stage03_mapping_PFT_soil_and_four_candidates_20261025.md) retain the successful operator mapping SHA, the 2015 ICOS-target-stand ENF94.7860481841/DBF5.2139518159 calculation, and the four explicit surface scenarios. Run `03_build_four_surface_candidates.py plan` to view assumptions or `build --sites FI-Hyy FR-Hes CH-Fru IT-MBo` to create separate candidate files and SHA receipts after downloading its candidate JSON. No old surface/case/forcing is changed and no model job is submitted. Candidate creation is not a claim that all ten science decisions or the AD400/Normal400 pipeline are complete.
