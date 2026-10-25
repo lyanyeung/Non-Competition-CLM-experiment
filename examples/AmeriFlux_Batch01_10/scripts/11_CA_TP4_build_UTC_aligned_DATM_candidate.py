@@ -190,6 +190,35 @@ def output_nc(dest,orig,prev,names):
   if not equal(utc.variables["time"][:],now.variables["time"][:]):
    no("UTC midpoint time coordinate was accidentally changed")
 
+def solar_night_utc(path):
+ """Independent UTC solar sanity check on transformed FSDS; not CIME proof."""
+ import math
+ with Dataset(path) as nc:
+  t=np.asarray(nc.variables["time"][:],dtype=float)
+  sw=np.ma.filled(nc.variables["FSDS"][:,0,0][:],np.nan)
+  lat=float(np.asarray(nc.variables["LATIXY"][:]).ravel()[0])
+  lon=float(np.asarray(nc.variables["LONGXY"][:]).ravel()[0])
+  if lon>180:lon-=360
+  if not np.isfinite(sw).all() or np.sum(sw)<=0:
+   no("UTC preview FSDS invalid")
+  minute=(t%1)*1440.
+  doy=np.floor(t)+1.
+  gamma=2*np.pi/365*(doy-1+(minute/60.-12.)/24.)
+  eq=229.18*(0.000075+0.001868*np.cos(gamma)-0.032077*np.sin(gamma)
+        -0.014615*np.cos(2*gamma)-0.040849*np.sin(2*gamma))
+  decl=(0.006918-0.399912*np.cos(gamma)+0.070257*np.sin(gamma)
+        -0.006758*np.cos(2*gamma)+0.000907*np.sin(2*gamma)
+        -0.002697*np.cos(3*gamma)+0.00148*np.sin(3*gamma))
+  ha=np.deg2rad((((minute+eq+4*lon)%1440)/4)-180)
+  phi=math.radians(lat)
+  cosz=np.sin(phi)*np.sin(decl)+np.cos(phi)*np.cos(decl)*np.cos(ha)
+  night=cosz<math.sin(math.radians(-3))
+  frac=float(100*np.sum(sw[night])/np.sum(sw))
+  print("UTC FSDS ASTRONOMICAL NIGHT ENERGY:",path.stem,round(frac,4),"%")
+  if frac>5:
+   no("UTC solar phase failed strong 5% high-night-energy consistency gate")
+  return frac
+
 def create(out,files,names,manifest):
  out=out.expanduser().resolve()
  if out.exists() or out.is_symlink():
@@ -200,6 +229,8 @@ def create(out,files,names,manifest):
   src=files[y]
   target=out/"CA-TP4/yearly"/f"{y}.nc"
   output_nc(target,src,files[prior_year(y)],names)
+  if y in (2002,2010,2019):
+   solar_night_utc(target)
   saved.append(dict(year=y,path=str(target),sha256=sha(target),
                     stage04_source_sha256=sha(src),
                     previous_local_source_year=prior_year(y)))
