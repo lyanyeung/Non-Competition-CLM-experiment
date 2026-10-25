@@ -131,7 +131,7 @@ def stream(case,site,point):
  provisional=0
  for year,file in zip(range(first,last+1),records):
   if not file.name.startswith(site+"_DATM_") or not file.name.endswith(".nc") or \
-     not re.search(r"(?<!\\d)"+str(year)+r"(?!\\d)",file.stem):
+     not re.search(r"(?<!\d)"+str(year)+r"(?!\d)",file.stem):
    stop("Wrong original source forcing SITE/YEAR/NAME "+str(file))
   if not file.is_file() or file.stat().st_size==0:stop("Missing original forcing "+str(file))
   if "PROVISIONAL" in file.name or "provisional" in str(file).lower():provisional+=1
