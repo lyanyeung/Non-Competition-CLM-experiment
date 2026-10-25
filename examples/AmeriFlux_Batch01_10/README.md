@@ -12,6 +12,25 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage04 pilot build confirmed SUCCESS; Stage05 pilot-case input gate (25 October 2026)
+
+**Operator-confirmed Stage04 isolated build SUCCESS:** All **22/22** CA-TP4 annual `.nc` files (2002–2023) were independently generated with verified half-hour FLUXNET `TIMESTAMP_START+15min` midpoint coordinates and **ZBOT=28m** labeled **provisional technical proxy only**. An independently checksummed *DETACHED*, unactivated `<file><stream_info>` CDEPS XML candidate and source-provenance `manifest.json` were written to:
+
+`/iridisfs/scratch/ly3n24/CLM_FATES/experiments/AmeriFlux_MultiSite_10/reports/stage04_CA_TP4_DATM_PILOT_20261025T054800121260846_Z/`
+
+The user verified `PILOT MANIFEST PASS`, `model_case_created=False`, `Slurm_submitted=False`, and `modified_stage81_files=False`. **Original 213 annual Stage81 NetCDF and original cases unchanged.**
+
+**NEXT: [Stage05 CA-TP4 AD5 scientific/CIME input gate](scripts/05_CA_TP4_AD5_case_input_gate.py)**. It reads the exact successful detached Stage04 pilot, all 22 annual SHA files and midpoint/28m samples, the actual stream CDEPS main map, CA-TP4 original point-surface `PCT_NATVEG/PCT_CROP/PCT_NAT_PFT` and `PCT_SAND/PCT_CLAY` layer values, the exact **version-pinned** [AmeriFlux stand evidence](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/649eb960475ff77944e42c559ff1ebbe6d2f1004/examples/AmeriFlux_sites/metadata/Batch01_EC_FATES_PFT_experiment_candidates_v4_20261023.tsv) and the already-created CH-Dav fixed-biogeography/no-competition FATES AD reference-case flags. User must download the **pinned evidence TSV beside the Stage05 script**; Stage05 checks its Git blob SHA1 and rejects stale evidence.
+
+CA-TP4 published **PFT2=93% needleleaf evergreen (pine+fir), PFT6=7% deciduous broadleaf** reflect reported tree species mixture and **are NOT independently measured ground-area fractions**. Its original coarse-grid surface has significant crop and should not automatically be used for a tower forest point, or replaced by a made-up observed `NATVEG100`/PFT93:7 surface without an explicitly named forest-point proxy scenario. Stage05 is **read-only** and is a necessary checkpoint before any site-specific surface production, model clone, `preview_namelists` or AD5 job submission.
+
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/05_CA_TP4_AD5_case_input_gate.py --self-test
+python3 -B examples/AmeriFlux_Batch01_10/scripts/05_CA_TP4_AD5_case_input_gate.py --check
+```
+
+**Remaining release gates:** actual coupled-model solar clock/local standard time, scientifically defensible 28m `TA_F` source proxy, tower-specific landunit/PFT area scenario and soil treatment, case-native `datm.streams.xml` placement/`preview_namelists`, independent AD5 cold-start/numerical smoke and restart validation before any AD395/Normal stage.
+
 ## Stage04 read-only check confirmed PASS (25 October 2026)
 
 **Operator-confirmed on IRIDIS6:** `04_build_CA_TP4_DATM_midpoint_ZBOT28_pilot.py --self-test` and `--check` **PASS**. All **385,440** CA-TP4 half-hour Stage80 forcing time stamps match exact raw FLUXNET `TIMESTAMP_START` rows 2002–2023; **240** leap-day observations from five leap years skipped for NOLEAP. All **22 annual Stage81 NetCDF** source dimensions and native time axes PASS and reference CH-Dav's effective NetCDF `ZBOT` dimensions match `(time,lat,lon)`. Actual main met CDEPS stream confirms `taxmode=cycle`, `tintalgo=linear`, `QBOT → Sa_shum`, `ZBOT → Sa_z`.
