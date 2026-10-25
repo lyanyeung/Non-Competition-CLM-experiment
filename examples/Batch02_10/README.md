@@ -2,9 +2,28 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
-**Latest operator result:** four AD5 cases were prepared and submitted successfully, but all four run jobs subsequently reported `FAILED/1:0`; their four archive jobs remain pending. Submission is not model success. **Current next step:** [Stage06 exact-job read-only failure diagnosis](docs/stage06_four_AD5_failed_readonly_diagnosis_20261025.md). Root cause is not established from exit codes alone. Do not repeat initial submission or continue AD395 before diagnosis and recovery. Six other site choices remain open.
+**Latest operator diagnosis:** all four first AD5 runs failed during ESMF mesh initialization with signal11 at `get_centerCoords_from_ESMFMesh_file()`, local source line1028. AD state2 was printed correctly. All four archives are `DependencyNeverSatisfied`. **Current next step:** [Stage07 targeted mesh/source/stack inspection](docs/stage07_ESMF_mesh_SIGSEGV_targeted_inspection_20261025.md). The exact trigger remains unverified; no retry or AD395/Normal submission has been performed. Six other site choices remain open.
 
-## Current next step: Stage06 failed-run diagnosis
+## Current next step: Stage07 targeted ESMF mesh/stack inspection
+
+The supplied Stage06 output localizes all four failures to ESMF mesh-center-coordinate reading. Inspect the actual mesh declarations/headers and stack context before changing a case or retrying:
+
+```bash
+(
+  set -euo pipefail
+  SCRIPT="$HOME/Batch02_10_stage07.py"
+  curl -fLsS --retry 3 \
+    "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/6d9f9843d434f07b60538063c0750922eceb1410/examples/Batch02_10/scripts/07_inspect_ESMF_mesh_stack_readonly.py" \
+    -o "$SCRIPT"
+  echo "42fcd8447b71db484cd984848bf5b74f10c721af0fd45a9677f8f92542457028  $SCRIPT" | sha256sum -c -
+  python3 -B "$SCRIPT" self-test
+  python3 -B "$SCRIPT" inspect
+)
+```
+
+[Failure evidence, upstream source comparison and inspection limits](docs/stage07_ESMF_mesh_SIGSEGV_targeted_inspection_20261025.md). This writes only a new HOME report and performs no model or scheduler changes.
+
+## Stage06: completed general failure diagnosis (historical command)
 
 The failed run jobs are FI-Hyy4728102, FR-Hes4728104, CH-Fru4728106 and IT-MBo4728108. The paired archive jobs4728103/05/07/09 are pending. Run the standalone read-only diagnostic:
 
