@@ -12,6 +12,21 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage08 preview CONFIRMED PASS and new Stage09 read-only coupler/solar/CO2 review (25 October 2026)
+
+**Actual user-provided IRIDIS6 run success:** Stage08 `--stage --confirm CREATE_ISOLATED_CA_TP4_AD5_CASE_PREVIEW_NO_SLURM` created independent `/iridisfs/scratch/ly3n24/CLM_FATES/cases/CA-TP4_AMF_FIXNC_AD400_PILOT`. It verified exact source Stage04 (22 annual half-hour CA-TP4 met files, NOLEAP/midpoints, 28m experimental ZBOT), Stage06 separate idealized forest surface (NATVEG100,CROP0,ENF93,DBF7, grid soil) and Stage07 CIME detached plan. The proven PRIVATE CTSM FATES AD build-namelist overlay passed its pinned two-change integrity check; **CIME env_case.xml lock was restored** after preview. The actual *new* `CaseDocs/datm.streams.xml` contained **CA-TP4 2002–2023 22/22 yearly NetCDF, all eight exact met mappings, cycle + linear**; generated `CaseDocs/lnd_in` has **the CA-TP4 separate site-proxy surface, FATES fixed-biogeography/no-competition, `spinup_state=2`**. The operator's Stage08 log confirms **no Slurm jobs submitted**.
+
+**Caution:** The inherited available reference executable was built under a generic `CLM_USRDAT` point grid. Stage08 did not prove that **the coupler's actual point lat/lon/solar-clock origin equals CA-TP4**, nor that a site local-standard-time meteorological series should be treated as clock time in CIME. FLUXNET records are site **local standard time** (without DST) while model clocks / CDEPS stream `offset=0` may have distinct timing conventions. Do **not** arbitrarily add +5h to the CDEPS input axis until actual grid solar-clock/coupler convention, year boundary and cycle interpolation are inspected. The CA-TP4 source BIF `UTC_OFFSET` is the documentary input for this next gate. The reference case's inherited `CCSM_CO2_PPMV=363.04` also may reflect the CH-Dav/1997 baseline, not an independently reviewed 2002 CA-TP4 spinup fixed CO2. The 28m TA_F crosswalk, forest stand proportions and grid soil are clearly marked **technical assumptions only**.
+
+**Stage09 [read-only generated CIME/DATM/FATES/UTC and CO2 release audit](scripts/09_CA_TP4_AD5_readonly_coupling_clock_release_audit.py)** now checks Stage08's non-submitted `PREVIEW_VERIFIED_NOT_SUBMITTED` receipt, all original Stage04/06/07 manifests and actual generated CaseDocs SHA, verifies CIME 5yr AD setup, FATES land flags and actual site forcing series without lingering CH-Dav annual input, examines original BIF `UTC_OFFSET`, prints effective model CO2 setting and available point-domain values. **No CIME/Slurm/report files are written.** Stage09 reports STRUCTURAL PASS separately from SOLAR/CLOCK/CO2 scientific HOLD and is not authorization for AD5 until that review.
+
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/09_CA_TP4_AD5_readonly_coupling_clock_release_audit.py --self-test
+python3 -B examples/AmeriFlux_Batch01_10/scripts/09_CA_TP4_AD5_readonly_coupling_clock_release_audit.py --check
+```
+
+**Do not rerun Stage08 `--stage`**, since the independent case and non-overwritable attempt receipt already exist. AD5 remains **not submitted**, and no 395-year AD continuation or Normal400 has begun.
+
 ## Stage07 confirmed complete; Stage08 independent CIME AD5 preview (25 October 2026)
 
 **User-confirmed actual IRIDIS6 Stage07 detached plan SUCCESS**, at:
