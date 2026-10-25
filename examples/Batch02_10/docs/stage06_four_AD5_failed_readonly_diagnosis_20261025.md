@@ -1,5 +1,7 @@
 # Stage06: all four first AD5 runs failed; diagnose before recovery
 
+**Later operator diagnosis received:** all four cesm tasks segfault in ESMF mesh-center-coordinate initialization at `ESMCI_ESMFMesh_Util.C:1028`; four archives are DependencyNeverSatisfied. AD state2 is printed in land logs. [Stage07 inspects the actual meshes, local source and stack context](stage07_ESMF_mesh_SIGSEGV_targeted_inspection_20261025.md). The root trigger remains unverified; earlier requests for the general log output below are historical.
+
 ## Operator submission and scheduler result, 25 October 2026
 
 Stage05 submission completed with four actual run/archive job pairs and persisted skip-preview options. The subsequent operator status check reported:
