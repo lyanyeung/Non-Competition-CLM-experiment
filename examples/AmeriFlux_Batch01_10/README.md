@@ -12,6 +12,27 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage06 confirmed complete — Stage07 CIME compatibility/read-only case plan (25 October 2026)
+
+**Actual Stage06 IRIDIS6 execution SUCCESS:** versioned independent CA-TP4 `surfdata_CA-TP4_FIXNC_ENF93_DBF7_forestry_proxy_gridsoil_v1.nc` and `manifest.json` at:
+
+`/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/AmeriFlux_Batch01_10/CA-TP4/surface_stage06_20261025T064625818881201Z/`.
+
+**Verified by operator log:** source SHA256 and local FATES HLM map pass (`CLM NATPFT index 1 → FATES PFT2 needleleaf evergreen extratropical`, `CLM index 7 → FATES PFT6 deciduous broadleaf extratropical`); altered only NATVEG/CROP and CLM natural PFT shares, retaining all ten original gridded sand/clay layers and unrelated NetCDF variables exactly. Input grid NATVEG 43.15406% / CROP 56.84594% was transformed in a **separate scientific pilot surface** to NATVEG100/CROP0/ENF93/DBF7 by the user's explicit model-proxy opt-in. **93:7 is reported tree species mixture, NOT observed ground-area fractions, and original inherited soil is NOT observed site soil.** No previous model, forcing, case or Slurm job was modified or submitted.
+
+**Stage07 [one-site CIME compatibility and detached effective DATM stream override plan](scripts/07_CA_TP4_AD5_CIME_compatibility_plan.py)** follows Stage06. First run `--self-test`, `--check`, then optionally `--plan --outdir NEW_DIR` to create **standalone** `CA-TP4_user_nl_datm_streams.CANDIDATE_NOT_INSTALLED`, `CA-TP4_user_nl_clm_AD5.CANDIDATE_NOT_INSTALLED`, and `manifest.json` in that new reporting folder. It checks the exact two successful Stage04/06 manifests, 22 yearly NetCDF SHAs, candidate CDEPS stream year/cycle/8 variable mappings, **CA-TP4 forcing/surface coordinates**, already-built CH-Dav reference executable and CIME/XML/model AD flags, and rejects unsafely reused site datasets. Crucially, CDEPS `user_nl_datm_streams` uses overrides like `CLM_USRDAT.UNSET:year_first = 2002` and `CLM_USRDAT.UNSET:datafiles = <22 CA-TP4 files>`; the detached Stage04 `CaseDocs`-style XML **must not be manually copied into an active CaseDocs**. No CIME clone, land-model build, Slurm or source-file write is performed at Stage07; isolated new case / real CDEPS and grid/mesh preview will be the *next* step after its actual output is checked.
+
+For the planned AD5 pilot: `RUN_STARTDATE=2002-01-01`, `CALENDAR=NO_LEAP`, `ATM_NCPL=48`, `CLM_ACCELERATED_SPINUP=on`, `FATES spinup_state=2`, `STOP_N=REST_N=5`, `RESUBMIT=0`; 2002–2023 station forcing recycled via `taxmode=cycle`. **Do not copy European reference `DATM_YR_START`/`END`, reference `fsurdat`, grid/domain/mesh or forcing paths.** Even when a binary is reused, it is essential to verify actual new case grid/mesh and site latitude/longitude; the mere existence of a 1PT FATES executable does not certify correct CA-TP4 spatial setup or solar clock.
+
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/07_CA_TP4_AD5_CIME_compatibility_plan.py --self-test
+python3 -B examples/AmeriFlux_Batch01_10/scripts/07_CA_TP4_AD5_CIME_compatibility_plan.py --check
+# optional detached authoring/report, no CIME action:
+python3 -B examples/AmeriFlux_Batch01_10/scripts/07_CA_TP4_AD5_CIME_compatibility_plan.py --plan --outdir /brand/new/nonexistent/report/dir
+```
+
+**Next gate:** CIME point-grid/mesh and model-local timing. Only after that, create one independent CA-TP4 FATES AD5 cold-start case, inspect real `preview_namelists` via private FATES AD namelist overlay and actual generated `datm.streams.xml` and `lnd_in`, then optionally submit the first five-year smoke. AD395 and independent Normal400 remain deferred until verified 3-component AD5/AD400 restarts.
+
 ## Stage05 scientific/CIME input PASS; Stage06 isolated forest-proxy point surface ready (25 October 2026)
 
 **Actual user-confirmed Stage05 read-only PASS**:
