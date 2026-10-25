@@ -1,0 +1,111 @@
+{
+  "version": "batch02-four-surface-candidates-v1-20261025",
+  "sites": [
+    {
+      "site": "FI-Hyy",
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/FI-Hyy/subset_data/surfdata_FI-Hyy_hist_2000_16pfts_c260928.nc",
+      "source_surface_sha256": "e59fb4bf7922f4c2410c5cf61454ccf51112e0a4c076aed033c8c40dc95a16f8",
+      "host_natpft_percent": {
+        "2": 94.78604818410643,
+        "8": 5.213951815893564
+      },
+      "sand_silt_clay_percent": [
+        57,
+        38,
+        5
+      ],
+      "PFT_scenario": "2015 ICOS-target-stand tree basal area >5cm: pine23.1 + spruce3.26 + hardwood1.45 m2/ha; use as stand-PFT proxy, not measured ground area",
+      "soil_source_url": "https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-supplement.pdf",
+      "soil_source_note": "Flechard2020 Table S4 site texture; sample horizon unspecified",
+      "soil_vertical_policy": "One published representative station texture repeated across all ten model input texture layers; not ten measured horizons",
+      "landunit_assumption": "NATVEG100_CROP0_OTHER0_DENSE_STAND_OR_HERBACEOUS_POINT_PROXY",
+      "status": "CANDIDATE_ONLY_NO_CASE_NO_SUBMISSION"
+    },
+    {
+      "site": "FR-Hes",
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/FR-Hes/subset_data/surfdata_FR-Hes_hist_2000_16pfts_c261012.nc",
+      "source_surface_sha256": "45d3aa09eb1e4031745b1dc501a0681c373d8fd25bbc123ba2c683565f862bec",
+      "host_natpft_percent": {
+        "7": 100
+      },
+      "sand_silt_clay_percent": [
+        7,
+        64,
+        29
+      ],
+      "PFT_scenario": "Idealized DBF stand. Reported beech/oak/hornbeam are DBF; unclassified approximately5 percent assumed DBF for this candidate",
+      "soil_source_url": "https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-supplement.pdf",
+      "soil_source_note": "Flechard2020 Table S4 site texture; sample horizon unspecified",
+      "soil_vertical_policy": "One published representative station texture repeated across all ten model input texture layers; not ten measured horizons",
+      "landunit_assumption": "NATVEG100_CROP0_OTHER0_DENSE_STAND_OR_HERBACEOUS_POINT_PROXY",
+      "status": "CANDIDATE_ONLY_NO_CASE_NO_SUBMISSION"
+    },
+    {
+      "site": "CH-Fru",
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/CH-Fru/subset_data/surfdata_CH-Fru_hist_2000_16pfts_c261014.nc",
+      "source_surface_sha256": "10814bb7f6146166bbab70c12a07665ae6c95dc6401590a3fbbd0252daf52137",
+      "host_natpft_percent": {
+        "13": 100
+      },
+      "sand_silt_clay_percent": [
+        37,
+        56,
+        7
+      ],
+      "PFT_scenario": "Idealized dense C3 herbaceous point; C3 grass parameterization is a proxy for the entire grass/forb/legume community, not measured100 percent grass cover",
+      "soil_source_url": "https://hess.copernicus.org/articles/26/91/2022/",
+      "soil_source_note": "Riedl2022 section2.1 site texture; exact sampling interval unstated; alternative surveys differ",
+      "soil_vertical_policy": "One published representative station texture repeated across all ten model input texture layers; not ten measured horizons",
+      "landunit_assumption": "NATVEG100_CROP0_OTHER0_DENSE_STAND_OR_HERBACEOUS_POINT_PROXY",
+      "status": "CANDIDATE_ONLY_NO_CASE_NO_SUBMISSION"
+    },
+    {
+      "site": "IT-MBo",
+      "source_surface": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/IT-MBo/subset_data/surfdata_IT-MBo_hist_2000_16pfts_c261014.nc",
+      "source_surface_sha256": "b0656dcb4d5ebad87a6727cd990c45e302edce762096939d5c7581bd5d627aca",
+      "host_natpft_percent": {
+        "13": 100
+      },
+      "sand_silt_clay_percent": [
+        14,
+        76,
+        10
+      ],
+      "PFT_scenario": "Idealized dense C3 herbaceous point; C3 grass parameterization is a proxy for the entire grass/forb/legume community, not measured100 percent grass cover",
+      "soil_source_url": "https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-supplement.pdf",
+      "soil_source_note": "Flechard2020 Table S4 site texture; sample horizon unspecified",
+      "soil_vertical_policy": "One published representative station texture repeated across all ten model input texture layers; not ten measured horizons",
+      "landunit_assumption": "NATVEG100_CROP0_OTHER0_DENSE_STAND_OR_HERBACEOUS_POINT_PROXY",
+      "status": "CANDIDATE_ONLY_NO_CASE_NO_SUBMISSION"
+    }
+  ],
+  "active_parameter_path": "/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/src/fates/parameter_files/fates_params_default.json",
+  "active_parameter_sha256": "0819f8fddcb3566f6209f72bb1159a3161d03c8225a1464727b1d2b21aec6c04",
+  "other_six_sites": "DK-Sor FR-FBn BE-Bra IT-Noe CH-Lae ES-LJu have no automatic candidate in this file",
+  "FATES_expected_for_host_index": {
+    "2": "needleleaf_evergreen_extratrop_tree",
+    "8": "broadleaf_colddecid_extratrop_tree",
+    "7": "broadleaf_colddecid_extratrop_tree",
+    "13": "cool_c3_grass"
+  },
+  "PFT_source_for_FI_Hyy": {
+    "url": "https://zenodo.org/records/5909681",
+    "file": "Hyytiala stand characteristics.xlsx",
+    "file_md5": "5fad5b5de566907b8005b956156aa87d",
+    "worksheet": "Stand_ICOS",
+    "year": 2015,
+    "cells": [
+      "H8",
+      "H16",
+      "H24"
+    ],
+    "values_m2_per_ha": [
+      23.1,
+      3.26,
+      1.45
+    ],
+    "n_line_plots": 62,
+    "dbh_filter": ">5cm",
+    "treeless_fraction": "excluded in original target-stand summary"
+  }
+}
