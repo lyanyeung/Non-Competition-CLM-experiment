@@ -6,6 +6,8 @@
 
 ## Current next step: Stage04 AD5 preparation
 
+**25 October parser correction:** the first prepare attempt stopped in FI-Hyy source-stream preflight before any case or attempt marker was created. Use the updated pinned command below. Stage04 v2 selects the named tower stream across XML namespaces/root layouts and ancillary streams, accepts the documented FI-Hyy/IT-MBo `_PROVISIONAL.nc` filenames, and retains strict years/order/folder/existence checks plus full source-versus-clone XML comparison. Five downloaded dependencies and nine regression tests are verified by the launcher. Existing Stage03 surfaces need no rebuilding.
+
 Stage03 is complete for four candidate scenarios. Prepare their independent AD5 cases:
 
 ```bash
@@ -13,7 +15,7 @@ conda activate clm_fates_env
 (
   set -euo pipefail
   curl -fLsS --retry 3 \
-    "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/a4c2f28c80cd1e2e334cc640fc6a0542d61c41cc/examples/Batch02_10/scripts/04_download_and_prepare_four_AD5.sh" \
+    "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/cc1fcfa3f4bb7544ad3d279f382ccf2a56e2750d/examples/Batch02_10/scripts/04_download_and_prepare_four_AD5.sh" \
     -o "$HOME/Batch02_10_stage04.sh"
   bash "$HOME/Batch02_10_stage04.sh" prepare
 )
