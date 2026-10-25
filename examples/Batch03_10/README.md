@@ -4,6 +4,8 @@
 
 **Status (25 October 2026, IRIDIS6):** all 10 surfaces built (`SURFACES SUMMARY success= 10 issues= 0`), all 10 cases recovered to `PREPARED_NOT_SUBMITTED` with generated `spinup_state=2`, fixed-biogeography and no-competition namelists, and the ten AD5 smokes submitted.
 
+**⚠️ AD5 runs not successful (25 October 2026, diagnosis pending).** All ten first AD5 run jobs (4728068–4728086, even IDs) left the queue while their `st_archive` jobs (4728069–4728087) show `DependencyNeverSatisfied`; the retired IL-Yat ENF100 run 4728072 is `FAILED 1:0`, and the IL-Yat BARE52 replacement (run 4728152, archive 4728153) failed the same way. The same day, all four Batch02 AD5 runs failed ~10 s after start with an ESMF mesh SIGSEGV in `get_centerCoords_from_ESMFMesh_file()` (`ESMCI_ESMFMesh_Util.C:1028`) — see [Batch02 Stage06/07](../Batch02_10/docs/stage07_ESMF_mesh_SIGSEGV_targeted_inspection_20261025.md). Batch03 is expected to share that cause but this is **not yet confirmed from Batch03 logs**. Do not rerun `submit-smoke` (ledgers refuse) and do not run Stage13; the pending archives are harmless and can be cancelled after diagnosis.
+
 **IL-Yat revision (same day):** the first IL-Yat case used ENF 100 from species composition only, ignoring Yatir's ~48% crown cover and ~37% rock outcrop. Its AD5 is cancelled and retired; IL-Yat now runs as **`IL-Yat_B03_FIXNC_BARE52_AD400` with HLM bare ground 52% / ENF 48%**. Evidence and reasoning: [IL-Yat bare-ground literature review](docs/IL_Yat_bare_ground_PFT_literature_20261025.md). The other nine sites are unchanged.
 
 ## How the ten were chosen
