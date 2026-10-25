@@ -2,9 +2,26 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
-**Stage03 runtime result reported by operator:** FI-Hyy, FR-Hes, CH-Fru and IT-MBo candidate NetCDFs created successfully (`4/4, failed=[]`). **Implemented next:** [Stage04 isolated AD5 preparer and exact run command](docs/stage04_four_candidate_success_and_AD5_prepare_20261025.md). It rechecks the actual receipts and inputs, clones four independent cold-start cases, and verifies generated AD/FATES namelists using the proven private overlay. Real Stage04 CIME execution is still pending. No new Batch02 model job has been submitted. The six other site choices and the ten-site AD400 → Normal400 experiment remain unfinished.
+**Stage04 runtime result reported by operator:** all four independent AD5 cases are prepared, actual previews passed, and `AD5_PREPARE_SUMMARY prepared=4 failed=[]`. No Batch02 model job had been submitted in that output. **Next:** [Stage05 guarded first-five-year submission](docs/stage05_four_AD5_prepared_and_initial_submission_20261025.md), with real job-ID receipts and duplicate/uncertain-attempt protection. AD395 and Normal400 remain later phases. Six other site choices remain open.
 
-## Current next step: Stage04 AD5 preparation
+## Current next step: Stage05 first AD5 submission
+
+Four actual case previews passed. Submit only the first five AD years for FI-Hyy, FR-Hes, CH-Fru and IT-MBo:
+
+```bash
+conda activate clm_fates_env
+(
+  set -euo pipefail
+  curl -fLsS --retry 3 \
+    "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/a325fea1b6d32b7b5f6dfba3f85c082260337913/examples/Batch02_10/scripts/05_download_and_submit_four_AD5.sh" \
+    -o "$HOME/Batch02_10_stage05.sh"
+  bash "$HOME/Batch02_10_stage05.sh" submit
+)
+```
+
+Expected: `AD5_SUBMIT_SUMMARY submitted= 4 failed= []`, with two actual job IDs per site. Stage05 rechecks current prepared-case inputs, retains `RESUBMIT=0` and persists skip-preview options. Do not rerun submission after an uncertain result. Use `bash "$HOME/Batch02_10_stage05.sh" status` to inspect retained IDs and Slurm status. [Runtime result and full Stage05 record](docs/stage05_four_AD5_prepared_and_initial_submission_20261025.md).
+
+## Stage04: completed AD5 case preparation (historical command)
 
 **25 October parser correction:** the first prepare attempt stopped in FI-Hyy source-stream preflight before any case or attempt marker was created. Use the updated pinned command below. Stage04 v2 selects the named tower stream across XML namespaces/root layouts and ancillary streams, accepts the documented FI-Hyy/IT-MBo `_PROVISIONAL.nc` filenames, and retains strict years/order/folder/existence checks plus full source-versus-clone XML comparison. Five downloaded dependencies and nine regression tests are verified by the launcher. Existing Stage03 surfaces need no rebuilding.
 
