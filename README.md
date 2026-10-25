@@ -16,6 +16,7 @@ The user-confirmed AmeriFlux Batch01 **Stage80 forcing selection**, **Stage81 21
 - **Protected examples (2):** **NL-Loo** and **DE-Tha**, with their existing operational histories retained unchanged. DE-Tha direct AD first five years 1996→2001 and independent AD5→Normal5 test 2001→2006 both succeeded technically; the AD395 continuation 2001→2396 was **submitted** (initial run 4713885 and archive 4713886), not proven finished at this documentation update. NL-Loo's previous PRE50/AD200 model is a **legacy exception**, not the new standard.
 - **Batch 01 (10 sites):** [implemented ten-site Batch01 example](examples/Batch01_10/README.md). **All 10 independent FIXNC surfaces were created**; the operator reports the private-overlay FATES AD case recovery resolved. AD5 run/archive completion must be independently verified from Slurm and three-component restarts.
 - **Batch 02 (10 sites):** [second-cohort example and runnable input inventory](examples/Batch02_10/README.md), initialized 25 October 2026 for the requested **AD400 → Normal400** workflow. Current implemented step is a read-only actual-input trace; site surfaces and submission scripts await actual source-path/PFT/soil decisions. The newer reviewed evidence corrects the old FI-Hyy 60/25/15 lead; no unresolved remainder is silently assigned.
+- **Batch 03 (10 sites):** [third-cohort example](examples/Batch03_10/README.md), created 25 October 2026 from the 16 remaining sites of the 38-site inventory: IT-Lav, FI-Let, IL-Yat, DE-Obe, CZ-Stn, DE-Lnf, DE-Hzd, GF-Guy, AT-Neu, CH-Cha. Same operation as Batch01 (FIXNC surfaces → private-overlay FATES AD recovery → AD5 smoke → AD395), with named PFT proxies and documented soil fallbacks. Not yet run on IRIDIS6.
 
 ## Standard run design: AD400 → NORMAL400
 
@@ -57,6 +58,8 @@ The two existing examples are **NL-Loo** and **DE-Tha**. The remaining 20 are se
 - [Batch01 10-site register and source URLs](data/batch01_10_sites.csv)
 - [Batch02 ten-site example, download commands and AD400 → Normal400 runbook](examples/Batch02_10/README.md)
 - [Batch02 10-site evidence register](data/batch02_10_sites.csv) and [unresolved input gates](data/batch02_10_input_gates.csv)
+- [Batch03 ten-site example, selection rationale and IRIDIS run commands](examples/Batch03_10/README.md)
+- [Batch03 site register](data/batch03_10_sites.csv), [PFT scenarios](data/batch03_10_pft_scenarios.csv) and [soil decisions](data/batch03_10_soil_input_decisions.csv)
 - [Master 22-candidate role ledger](data/22_site_cohort.csv) (historical screening statuses; per-batch examples carry current operational status)
 
 **Unclassified percentages are not automatically grass:** see the [mandatory residual-PFT policy](docs/PFT_UNKNOWN_RESIDUAL_POLICY.md). For example, BE-Vie's unresolved 20% is forest stand composition, and FR-Fon's <3% is tree basal area; neither is measured ground grass cover. A GRA fraction requires defensible grass-area observations and a checked HLM→FATES grass mapping.
