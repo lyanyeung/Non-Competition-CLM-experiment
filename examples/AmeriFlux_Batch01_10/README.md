@@ -12,6 +12,40 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage15 actual three independent surfaces PASS; Stage16 AD5 case previews (25 October 2026)
+
+**User-confirmed Stage15 IRIDIS6 SUCCESS:** Three independent pilot source surfaces, all NetCDF variables except deliberate stand/landunit changes bit-identical in array contents to existing point grids. Output:
+
+`/iridisfs/scratch/ly3n24/CLM_FATES/experiments/AmeriFlux_MultiSite_10/reports/stage15_LaneA_SURF_20261025T084151593400561Z/`
+
+| Site | Verified effective FATES HLM mapping, technical stand proxy | Source NAT/CROP | Original gridded PCT_SAND / PCT_CLAY | Stage15 |
+|---|---|---|---|---|
+| BR-Ma2 | CLM host idx4 → FATES PFT1 tropical evergreen broadleaf, 100% experimental NATVEG | 100.000 / 0.000 | sand 40–53% / clay 35–49% | PASS |
+| CA-Ca3 | CLM host idx1 → FATES PFT2 extratropical evergreen needleleaf, 100% NATVEG | 98.804 / 1.196 | sand 67–80% / clay 5–7% | PASS |
+| CA-LP1 | CLM host idx1 → FATES PFT2 extratropical evergreen needleleaf, 100% NATVEG | 98.380 / 1.620 | sand 53% / clay 16% | PASS |
+| US-Bar | FATES PFT6 83%, PFT2 ≥14%, residual ≈3% unresolved | not altered | no copy | HOLD, no surface |
+
+The generated three site forests are **IDEALIZED technical landunit/PFT hypotheses, not EC footprint area measurements, stand age/biomass initialization or observed station soil**. The original gridded texture remains a known fallback. No CIME case or Slurm jobs were created by Stage15. Four-site Stage14 UTC forcing remains independently preserved.
+
+**Next: [Stage16 one shared Lane A three-site FATES AD5 case creator and namelist preview](scripts/16_laneA_three_AD5_CIME_preview_no_slurm.py)**. It imports *only the exact pinned successful Stage08 FATES private AD helper*, clones the unchanged **CA-TP4 UTC-V2 Stage12 FATES CIME case** as a generic machine executable template, substitutes each of the **60 total annual site-specific Stage14 UTC files**, the exact Stage15 site surface, and year-specific `CLM_USRDAT.UNSET` cycle/linear, offset0, noleap and 48 time steps/day. Stops at **5 accelerated decomposition FATES years** (`spinup_state=2`, `STOP_N=5`, `REST_N=5`, `RESUBMIT=0`) with fixed biogeog, nocomp and independent run/archive paths. It uses published NOAA GML 2026-10 global-background CO2 for *each site's first forcing year*, not a copied CA-TP4 CO2:
+
+| Site | First forcing year | NOAA GLOBAL annual fixed CO2 (ppm) | 5yr preflight interval |
+|---|---:|---:|---|
+| BR-Ma2 | 1999 | 367.79 | 1999–2004 |
+| CA-Ca3 | 2001 | 370.57 | 2001–2006 |
+| CA-LP1 | 2007 | 382.90 | 2007–2012 |
+
+Source: [NOAA GML global annual CO2](https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv), revision 2026-10. These are **global**, not tower-measured and not a common fixed-CO2 experiment. This model baseline policy must remain the same when comparing alternative ensembles.
+
+Safety: `--self-test` and `--check` do not write any files. `--stage --site ONE --confirm CREATE_ONE_LANEA_AD5_CASE_PREVIEW_NO_SLURM` is a **single new case preview only**, with a separate one-time attempt receipt, no Slurm or actual model execution, and guaranteed CIME environment lock restoration validation. A failed stage leaves an unrepeatable attempt stamp and possibly partial case; diagnose/repair manually, do not rerun the same stage. Successful stage checks 8 DATM source mappings, exact annual UTC files, 4 unchanged ancillary CDEPS streams, effective FATES `lnd_in` and absence of restart, local site `fsurdat`, fixed CO2 and all CIME run settings. US-Bar is excluded. The user should run one `--check` then individually process BR-Ma2, CA-Ca3, CA-LP1. Actual Slurm AD5 smoke and coupler geometry are subsequent work, and AD395 + Normal400 still have **NOT** started.
+
+```bash
+python3 -B examples/AmeriFlux_Batch01_10/scripts/16_laneA_three_AD5_CIME_preview_no_slurm.py --self-test
+python3 -B examples/AmeriFlux_Batch01_10/scripts/16_laneA_three_AD5_CIME_preview_no_slurm.py --check
+# Only after successful check and explicit operator opt-in, stage one site at a time:
+python3 -B examples/AmeriFlux_Batch01_10/scripts/16_laneA_three_AD5_CIME_preview_no_slurm.py --stage --site BR-Ma2 --confirm CREATE_ONE_LANEA_AD5_CASE_PREVIEW_NO_SLURM
+```
+
 ## Stage14 actual 80/80 UTC pilots PASS; Stage15 three-forest proxy surfaces (25 October 2026)
 
 **User-confirmed actual Stage14 on IRIDIS6: SUCCESS — four independent UTC+ZBOT pilot datasets** at:
