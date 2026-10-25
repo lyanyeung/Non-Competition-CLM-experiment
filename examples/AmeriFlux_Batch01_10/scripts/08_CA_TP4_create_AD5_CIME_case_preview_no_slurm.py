@@ -238,16 +238,23 @@ def build_stream_user(text,files):
  "datafiles":",".join(str(p) for p in files)}
  prefix="CLM_USRDAT.UNSET:"
  # Leave original datavars unchanged; verified against effective reference.
- for name in (*changes,"datavars"):
+ for name in (*[k for k in changes if k!="offset"],"datavars"):
   if len(got.get(prefix+name,[]))!=1:
    stop("Expected one known 1PT override in template user_nl_datm_streams: "+name)
+ # Offset is sometimes omitted from user overrides but is present
+ # as offset=0 in the effective CDEPS XML. Add an explicit override.
+ if len(got.get(prefix+"offset",[]))>1:
+  stop("Duplicate 1PT offset override")
  result=text
  substitutions=[]
  for key,value in changes.items():
+  if key=="offset" and not got.get(prefix+key):continue
   lo,hi,_=got[prefix+key][0]
   substitutions.append((lo,hi,prefix+key+" = "+value+"\n"))
  for lo,hi,replacement in sorted(substitutions,reverse=True):
   result=result[:lo]+replacement+result[hi:]
+ if not got.get(prefix+"offset"):
+  result=result.rstrip()+"\n"+prefix+"offset = 0\n"
  if "CH-Dav_DATM_" in result:
   stop("Unremoved original station CH-Dav annual input in DATM user file")
  revised=stream_assignments(result)
@@ -335,8 +342,8 @@ def generated_land_check():
                   ("spinup_state","2"),("use_cn",".false.")):
   value=nml(raw,key)
   if value!=want:stop("Generated FATES lnd_in mismatch "+key+"="+str(value))
- if nml(raw,"finidat") is not None or nml(raw,"reseed_dead_plants") is not None:
-  stop("AD coldstart lnd_in contains finidat or CN-only reseed_dead_plants")
+ if nml(raw,"finidat") not in (None,"") or nml(raw,"reseed_dead_plants") is not None:
+  stop("AD coldstart lnd_in contains nonempty finidat or CN-only reseed_dead_plants")
  print("GENERATED FATES LAND PASS: correct CA-TP4 surface, fixed PFT/nocomp, AD spinup_state=2")
 
 def lock_bytes():
@@ -383,7 +390,6 @@ def stage(exe,files,source,loc):
  snapshot=lock_bytes()
  if Path(xmlq(CASE,"COMP_ROOT_DIR_LND")).resolve()!=CTSM.resolve():
   stop("New CIME case current COMP_ROOT_DIR_LND does not resolve to shared CTSM")
- preview_failure=None
  try:
   xmlchange(CASE,"COMP_ROOT_DIR_LND",OVERLAY)
   cli([CASE/"preview_namelists"],cwd=CASE,timeout=600)
@@ -438,6 +444,10 @@ def selftest():
  v=build_stream_user(a,f)
  assert "CA-TP4/2002.nc" in v and "old.nc" not in v
  assert "preso3.clim_2000:taxmode = cycle" in v
+ sample_without_offset=a.replace("CLM_USRDAT.UNSET:offset = 0\n","")
+ without=build_stream_user(sample_without_offset,f)
+ assert "CLM_USRDAT.UNSET:offset = 0" in without
+ assert "preso3.clim_2000:taxmode = cycle" in without
  assert len(METFIELDS)==8 and len(HISTORY)==7
  assert nml("fsurdat = '/tmp/site.nc'\n","fsurdat")=="/tmp/site.nc"
  print("SELF-TEST PASS: new site-only CIME user_nl_DATM stream overrides with ancillary preservation, 22-year and FATES AD gates")
@@ -463,6 +473,16 @@ def main():
  print("STAGE08 CASE:",CASE)
  if opts.check:
   no_existing()
+  src_user=(SOURCE/"user_nl_datm_streams").read_text(encoding="utf-8")
+  prepared=build_stream_user(src_user,files)
+  keys=stream_assignments(src_user)
+  print("CDEPS ACTUAL SOURCE OVERRIDES:",
+        sorted(k for k in keys if k.startswith("CLM_USRDAT.UNSET:")))
+  print("CA-TP4 MET OVERRIDES PRECHECK PASS:",
+        len(files),"annual files, zero CH-Dav met inputs, ancillary streams retained")
+  print("CDEPS ORIGINAL OFFSET OVERRIDE PRESENT:",
+        "CLM_USRDAT.UNSET:offset" in keys)
+  print("CDEPS CA-TP4 OVERRIDE CHAR COUNT:",len(prepared))
   print("STAGE08 READ-ONLY CHECK PASS. No case or Slurm changes.")
   return
  stage(exe,files,plan,loc)
