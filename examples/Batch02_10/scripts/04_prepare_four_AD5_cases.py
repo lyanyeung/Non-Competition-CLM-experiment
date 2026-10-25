@@ -37,7 +37,7 @@ NEW = "if ( &value_is_true($nl_flags->{'use_cn'}) || &value_is_true($nl_flags->{
 RESEED = 'if ( $nl_flags->{$var} ne "off" ) {'
 RESEED_NEW = 'if ( $nl_flags->{$var} ne "off" && &value_is_true($nl_flags->{\'use_cn\'}) ) {'
 HISTORY = ("TOTSOMC", "TOTSOMN", "TLAI", "FATES_GPP", "FATES_NPP", "TWS", "H2OSNO")
-VERSION = "batch02-four-AD5-prepare-v1-20261025"
+VERSION = "batch02-four-AD5-prepare-v2-20261025-stream-layout-fix"
 
 
 def fail(message):
@@ -125,28 +125,55 @@ def xml_signature(element):
             tuple(xml_signature(c) for c in element))
 
 
+def local_tag(element):
+    return element.tag.rsplit("}", 1)[-1]
+
+
+def direct_child(element, tag):
+    matches = [c for c in element if local_tag(c) == tag]
+    if len(matches) != 1:
+        fail("Expected one " + tag + " in selected tower stream; found " + str(len(matches)))
+    return matches[0]
+
+
 def stream_check(path, source):
     root = ET.parse(path).getroot()
-    streams = root.findall(".//stream_info")
-    if len(streams) != 1:
-        fail("Expected one existing tower DATM stream: " + str(path))
-    st = streams[0]
+    # Include root and namespaced nodes, and distinguish the tower stream from
+    # ancillary aerosol/etc streams. The Stage02 source excerpt names this stream.
+    streams = [e for e in root.iter() if local_tag(e) == "stream_info"]
+    selected = [e for e in streams if e.get("name") == "CLM_USRDAT.UNSET"]
+    if len(selected) != 1:
+        fail("Expected exactly one selected CLM_USRDAT.UNSET tower stream: " + str(path)
+             + "; root=" + root.tag + "; stream_names=" + repr([e.get("name") for e in streams])
+             + "; matches=" + str(len(selected)))
+    st = selected[0]
     first, last = source["stream_year_first"], source["stream_year_last"]
     if len(first) != 1 or len(last) != 1:
         fail("Ambiguous source stream years")
     for key, expected in (("year_first", first[0]), ("year_last", last[0]), ("year_align", first[0])):
-        if st.findtext(key, "").strip() != str(expected):
+        if (direct_child(st, key).text or "").strip() != str(expected):
             fail("Stream year mismatch: " + key + " " + str(path))
-    files = [Path((v.text or "").strip()) for v in st.findall("./datafiles/file")]
+    datafiles = direct_child(st, "datafiles")
+    if any(local_tag(v) != "file" for v in datafiles):
+        fail("Unexpected selected datafiles structure: " + str(path))
+    files = [Path((v.text or "").strip()) for v in datafiles]
     if len(files) != last[0] - first[0] + 1:
         fail("Unexpected annual file count: " + str(path))
     allowed = [Path(p).resolve() for p in source["recorded_forcing_folders"]]
-    expected_names = {source["site"] + "_DATM_" + str(y) + ".nc" for y in range(first[0], last[0] + 1)}
-    if {p.name for p in files} != expected_names:
-        fail("Annual file names differ from selected site/year stream")
+    # S30 source files for these two sites carry a documented PROVISIONAL label.
+    # Match each ordered year, retain the suffix and compare the FULL XML below;
+    # never rename files, infer a new forcing release, or silently reorder years.
+    suffix = r"(?:_PROVISIONAL)?" if source["site"] in ("FI-Hyy", "IT-MBo") else ""
+    for p, year in zip(files, range(first[0], last[0] + 1)):
+        if not re.fullmatch(re.escape(source["site"]) + r"_DATM_" + str(year) + suffix + r"\.nc", p.name):
+            fail("Annual filename/order differs from selected site/year: " + str(p))
     for p in files:
         if not p.is_absolute() or p.parent.resolve() not in allowed or not p.is_file() or p.stat().st_size == 0:
             fail("Selected forcing file missing/changed folder: " + str(p))
+    print(source["site"], "DATM_STREAM_PASS", "root=" + root.tag,
+          "total_streams=" + str(len(streams)), "selected=" + st.get("name"),
+          "years=" + str(first[0]) + "-" + str(last[0]), "files=" + str(len(files)),
+          "provisional_names=" + str(sum(p.name.endswith("_PROVISIONAL.nc") for p in files)), flush=True)
     # Existence/stream references only. Do not rescan annual meteorology values.
     return xml_signature(root)
 
