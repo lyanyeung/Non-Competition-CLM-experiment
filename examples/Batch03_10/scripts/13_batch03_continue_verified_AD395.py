@@ -5,7 +5,7 @@ AUDIT: READ ONLY. Verifies exact initial run/archive sacct COMPLETED/0:0,
 three archived CLM/DATM/CPL restarts, land spinup_state=2, original AD
 namelist, CIME continue/resubmit settings, and preserved --skip-preview-namelist.
 
-CONTINUE-395: ONLY after 10/10 pass audit; for each isolated new case, set
+CONTINUE-395: ONLY after every listed site (--sites, default all ten) passes audit; for each case, set
 CONTINUE_RUN=TRUE and RESUBMIT=78 (79 x 5yr segments including first continuation
 segment), stage restart + rpointer, submit ONCE with skip-preview-namelist.
 Each site's ledger is marked ATTEMPTED before any handoff/write to fail closed
@@ -73,8 +73,10 @@ def load_state(site):
         stop(site+": model surface has changed")
     return obj
 
+SITES=list(B.SITE_ORDER)  # replaced by --sites in main()
+
 def accounting():
-    ids=[x for site in B.SITE_ORDER for x in job_ids(site)]
+    ids=[x for site in SITES for x in job_ids(site)]
     rows=shell(["sacct","-X","-j",",".join(ids),"-n","-P",
                 "--format=JobIDRaw,JobName%128,State,ExitCode"],timeout=60)
     got={}
@@ -82,7 +84,7 @@ def accounting():
         parts=[p.strip() for p in line.split("|")]
         if len(parts)>=4 and parts[0] in ids:
             got[parts[0]]=tuple(parts[1:4])
-    for site in B.SITE_ORDER:
+    for site in SITES:
         runid,archid=job_ids(site)
         for number,jobname in ((runid,"run."+B.case_name(site)),
                                (archid,"st_archive."+B.case_name(site))):
@@ -94,8 +96,8 @@ def accounting():
 
 def active_jobs():
     out=shell(["squeue","-u",B.SLURM_USER,"-h","-o","%j"],timeout=45)
-    targets={"run."+B.case_name(s) for s in B.SITE_ORDER}
-    targets.update({"st_archive."+B.case_name(s) for s in B.SITE_ORDER})
+    targets={"run."+B.case_name(s) for s in SITES}
+    targets.update({"st_archive."+B.case_name(s) for s in SITES})
     active=set(out.splitlines()) & targets
     if active:
         stop("Some Batch03 model/archive jobs remain in queue: "+repr(sorted(active)))
@@ -193,7 +195,7 @@ def audit_one(site):
     if not cp.has_section("SubmitOptions") or not cp.getboolean(
             "SubmitOptions","skip_pnl",fallback=False):
         stop(site+": --skip-preview-namelist not persisted in CIME submit options")
-    if (B.OUT_BASE/site/"AD395_restart_handoff").exists():
+    if B.handoff_path(site).exists():
         stop(site+": AD395 handoff already exists; duplicate/recovery not automatic")
     files,yr=archives(site)
     for ptr,comp in POINTERS:
@@ -206,18 +208,19 @@ def audit_batch():
     accounting()
     active_jobs()
     approved={}
-    for site in B.SITE_ORDER:
+    for site in SITES:
         approved[site]=audit_one(site)
-    print("BATCH03 AUDIT PASS: 10/10 AD5 run+archive Slurm success,"
-          " 10/10 complete AD-state three-component restarts."
-          " All eligible for 395-year continuation.",flush=True)
+    n=len(SITES)
+    print(f"BATCH03 AUDIT PASS: {n}/{n} AD5 run+archive Slurm success,"
+          f" {n}/{n} complete AD-state three-component restarts."
+          " All eligible for 395-year continuation:",",".join(SITES),flush=True)
     return approved
 
 def handoff(site,files,yr):
     rundir=B.run_path(site)
     if not rundir.is_dir():
         stop(site+": RUN folder absent")
-    hand=B.OUT_BASE/site/"AD395_restart_handoff"
+    hand=B.handoff_path(site)
     hand.mkdir(parents=True,exist_ok=False)
     data={"site":site,"checkpoint_year":yr,"files":{}}
     # Backup all existing pointer values BEFORE writing new pointers.
@@ -280,7 +283,11 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("action",choices=("self-test","audit","continue-395"))
     p.add_argument("--confirm",default="")
+    p.add_argument("--sites",nargs="+",default=None,
+                   help="audit/continue only these sites (default: all ten)")
     args=p.parse_args()
+    global SITES
+    SITES=B.pick_sites(args.sites)
     if args.action=="self-test":
         assert len(B.SITE_ORDER)==10 and B.SITE_TAG=="B03"
         assert ACK.startswith("CONTINUE_BATCH03")
@@ -294,17 +301,17 @@ def main():
         stop("Explicit confirmation required: --confirm "+ACK)
     approved=audit_batch()  # Strict all-ten preflight before any write.
     problems=[]
-    for site in B.SITE_ORDER:
+    for site in SITES:
         try:
             continue_one(site,approved[site])
         except Exception as exc:
             problems.append(site)
             print("HOLD",site,str(exc)[-950:],"DO NOT RETRY THIS SITE",flush=True)
-    print("BATCH03 AD395 submit summary:",len(B.SITE_ORDER)-len(problems),"/10",flush=True)
+    print("BATCH03 AD395 submit summary:",len(SITES)-len(problems),"/",len(SITES),flush=True)
     if problems:
         stop("Some AD395 submissions are uncertain: "+",".join(problems)+
              "; inspect each site's ledger/Slurm; never rerun bulk continuation")
-    print("TEN AD395 continuations submitted. This is NOT confirmation they finished.")
+    print(len(SITES),"AD395 continuation(s) submitted. This is NOT confirmation they finished.")
 
 if __name__=="__main__":
     main()

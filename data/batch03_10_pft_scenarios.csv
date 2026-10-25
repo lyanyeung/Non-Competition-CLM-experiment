@@ -1,11 +1,11 @@
-site,ENF,DNF,DBF,EBF,EBF_TROP,C3_GRASS,scenario_status,scenario_basis
-IT-Lav,85,0,15,0,0,0,CANDIDATE_HOLD_SURFACE,Tower stand Abies alba 70 + Picea abies 15 = ENF 85; Fagus 15 = DBF; no residual
-FI-Let,80,0,20,0,0,0,CANDIDATE_HOLD_SURFACE,Pre-harvest basal area pine 60 + spruce 20 = ENF 80; birch 20 = DBF; post-harvest ENF53/DBF47 is a recorded sensitivity
-IL-Yat,100,0,0,0,0,0,CANDIDATE_HOLD_SURFACE,Proxy ENF 100 from Aleppo pine >90 percent of trees; ~50 percent crown cover not represented
-DE-Obe,100,0,0,0,0,0,CANDIDATE_HOLD_SURFACE,Proxy ENF 100 from Picea abies dominated stand (qualitative)
-CZ-Stn,0,0,100,0,0,0,CANDIDATE_HOLD_SURFACE,Proxy DBF 100 from Fagus sylvatica monoculture (qualitative)
-DE-Lnf,0,0,100,0,0,0,CANDIDATE_HOLD_SURFACE,Proxy DBF 100 from pure beech stand with occasional DBF oak/maple
-DE-Hzd,0,0,100,0,0,0,CANDIDATE_HOLD_SURFACE,Proxy DBF 100 from planted oak on 2007 windthrow; mature-stand proxy
-GF-Guy,0,0,0,0,100,0,CANDIDATE_HOLD_SURFACE,Proxy tropical EBF 100 (HLM 4) for undisturbed evergreen rainforest
-AT-Neu,0,0,0,0,0,100,CANDIDATE_HOLD_SURFACE,Herbaceous proxy cool C3 grass 100 (HLM 13); graminoid 35 forb 42 other 23 of phytomass; forbs assigned by assumption
-CH-Cha,0,0,0,0,0,100,CANDIDATE_HOLD_SURFACE,Herbaceous proxy cool C3 grass 100 (HLM 13); ryegrass/clover sward; clover assigned by assumption
+site,BARE,ENF,DNF,DBF,EBF,EBF_TROP,C3_GRASS,scenario_status,scenario_basis
+IT-Lav,0,85,0,15,0,0,0,CANDIDATE_HOLD_SURFACE,Tower stand Abies alba 70 + Picea abies 15 = ENF 85; Fagus 15 = DBF; no residual
+FI-Let,0,80,0,20,0,0,0,CANDIDATE_HOLD_SURFACE,Pre-harvest basal area pine 60 + spruce 20 = ENF 80; birch 20 = DBF; post-harvest ENF53/DBF47 is a recorded sensitivity
+IL-Yat,52,48,0,0,0,0,0,CANDIDATE_BARE52_REPLACES_ENF100,Measured mean crown cover 48% from crown widths in 72 plots (Sprintsin et al.; FVC 0.40-0.70) -> ENF 48 (Aleppo pine >90% of trees); non-canopy 52% (incl. 36.8% rock outcrop; minor understory/biocrust; no grass cover data) -> HLM bare; superseded ENF100 case retired
+DE-Obe,0,100,0,0,0,0,0,CANDIDATE_HOLD_SURFACE,Proxy ENF 100 from Picea abies dominated stand (qualitative)
+CZ-Stn,0,0,0,100,0,0,0,CANDIDATE_HOLD_SURFACE,Proxy DBF 100 from Fagus sylvatica monoculture (qualitative)
+DE-Lnf,0,0,0,100,0,0,0,CANDIDATE_HOLD_SURFACE,Proxy DBF 100 from pure beech stand with occasional DBF oak/maple
+DE-Hzd,0,0,0,100,0,0,0,CANDIDATE_HOLD_SURFACE,Proxy DBF 100 from planted oak on 2007 windthrow; mature-stand proxy
+GF-Guy,0,0,0,0,0,100,0,CANDIDATE_HOLD_SURFACE,Proxy tropical EBF 100 (HLM 4) for undisturbed evergreen rainforest
+AT-Neu,0,0,0,0,0,0,100,CANDIDATE_HOLD_SURFACE,Herbaceous proxy cool C3 grass 100 (HLM 13); graminoid 35 forb 42 other 23 of phytomass; forbs assigned by assumption
+CH-Cha,0,0,0,0,0,0,100,CANDIDATE_HOLD_SURFACE,Herbaceous proxy cool C3 grass 100 (HLM 13); ryegrass/clover sward; clover assigned by assumption

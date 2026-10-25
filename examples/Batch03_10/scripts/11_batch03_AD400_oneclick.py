@@ -19,12 +19,20 @@ third ICOS/European cohort. Differences from Batch01, all deliberate:
 - submit-smoke parses and stores the run/st_archive Slurm job IDs in each
   site ledger, so Stage13 never needs hard-coded job IDs.
 
-Actions:
+- 25 Oct 2026 revision: bare ground (HLM natpft 0) is supported, and a site
+  may run as a named VARIANT case. IL-Yat now runs as
+  IL-Yat_B03_FIXNC_BARE52_AD400 (bare 52 / ENF 48, from 48% measured crown
+  cover). The first IL-Yat_B03_FIXNC_AD400 (ENF 100) AD5 is cancelled and
+  retired by `retire-legacy`; its files are kept, never reused.
+
+Actions (--sites limits surfaces/submit-smoke/status/retire-legacy to a subset):
   self-test       parse CSVs and helpers; no HPC access, no writes
   plan            show choices and discovered inputs; never writes
-  surfaces        create 10 versioned independent site surface NetCDFs
-  submit-smoke    submit 10 x FIRST FIVE YEARS ONLY, then STOP
-  status          summarize 10 case paths and scheduler jobs (read only)
+  surfaces        create versioned independent site surface NetCDFs
+  submit-smoke    submit FIRST FIVE YEARS ONLY per listed site, then STOP
+  status          summarize case paths and scheduler jobs (read only)
+  retire-legacy   scancel the superseded legacy case jobs of VARIANT sites and
+                  mark its ledger RETIRED (case/run/surface files kept)
 
 Run 'surfaces' once, then Stage12 private-overlay recovery, then
 'submit-smoke'. Never overwrites an existing target and never submits a
@@ -79,9 +87,10 @@ OLD_CASES={
  "AT-Neu":"AT-Neu_FATES_SPINUP500_11P",
  "CH-Cha":"CH-Cha_FATES_SPINUP500_11P",
 }
-# HLM natpft indices (index0 bare): 1 NET temperate, 3 NDT boreal,
+# HLM natpft indices: 0 bare ground, 1 NET temperate, 3 NDT boreal,
 # 4 BET tropical, 5 BET temperate, 7 BDT temperate, 13 C3 non-arctic grass.
-PFT_IDX={"ENF":1,"DNF":3,"EBF_TROP":4,"EBF":5,"DBF":7,"C3_GRASS":13}
+PFT_IDX={"BARE":0,"ENF":1,"DNF":3,"EBF_TROP":4,"EBF":5,"DBF":7,"C3_GRASS":13}
+NONVEG=("BARE",)  # HLM-only class; not in fates_hlm_pft_map
 PFT_EXPECT={
  "ENF":"needleleaf_evergreen_extratrop_tree",
  "DNF":"needleleaf_colddecid_extratrop_tree",
@@ -98,6 +107,10 @@ LAND_OTHER=("PCT_LAKE","PCT_WETLAND","PCT_GLACIER","PCT_URBAN")
 BGC_OPTS="--bgc fates --no-megan --no-drydep --no-fire_emis"
 ACK_SUBMIT="SUBMIT_BATCH03_TEN_FIRST_FIVE_YEAR_AD_SMOKES"
 HISTORY=("TOTSOMC","TOTSOMN","TLAI","FATES_GPP","FATES_NPP","TWS","H2OSNO")
+# Sites whose active Batch03 case is a named variant (case/surface/ledger
+# names carry the tag). The plain <site>_B03_FIXNC_AD400 case is then LEGACY.
+VARIANTS={"IL-Yat":"BARE52"}
+ACK_RETIRE="RETIRE_BATCH03_LEGACY_VARIANT_CASES"
 RUN_RE=re.compile(r"Submitted job case\.run with id (\d+)")
 ARCH_RE=re.compile(r"Submitted job case\.st_archive with id (\d+)")
 
@@ -119,8 +132,21 @@ def digest(path):
     return h.hexdigest()
 
 
+def tag(site):
+    v=VARIANTS.get(site)
+    return f"{SITE_TAG}_FIXNC_{v}_AD400" if v else f"{SITE_TAG}_FIXNC_AD400"
+
+
 def case_name(site):
+    return f"{site}_{tag(site)}"
+
+
+def legacy_case_name(site):
     return f"{site}_{SITE_TAG}_FIXNC_AD400"
+
+
+def legacy_ledger_path(site):
+    return OUT_BASE/site/"AD400_case_state.json"
 
 
 def case_path(site):
@@ -132,7 +158,7 @@ def template_case(site):
 
 
 def surface(site):
-    return OUT_BASE/site/"surface"/f"surfdata_{site}_{SITE_TAG}_FIXNC_AD400_v1.nc"
+    return OUT_BASE/site/"surface"/f"surfdata_{site}_{tag(site)}_v1.nc"
 
 
 def receipt(site):
@@ -148,7 +174,19 @@ def archive_path(site):
 
 
 def ledger_path(site):
-    return OUT_BASE/site/"AD400_case_state.json"
+    v=VARIANTS.get(site)
+    return OUT_BASE/site/(f"AD400_{v}_case_state.json" if v else "AD400_case_state.json")
+
+
+def attempt_path(site):
+    v=VARIANTS.get(site)
+    return OUT_BASE/site/(f"private_overlay_AD_recovery_attempt_{v}.json" if v
+                          else "private_overlay_AD_recovery_attempt.json")
+
+
+def handoff_path(site):
+    v=VARIANTS.get(site)
+    return OUT_BASE/site/(f"AD395_restart_handoff_{v}" if v else "AD395_restart_handoff")
 
 
 def cmd(argv,cwd=None,timeout=300):
@@ -192,7 +230,7 @@ def original(site):
     src=Path(value)
     if not src.name.startswith(f"surfdata_{site}_") or src.suffix!=".nc":
         fail(site+": template fsurdat is not a site point surface: "+value)
-    if "_B0" in src.name or "FIXNC" in src.name:
+    if "_B0" in src.name or "FIXNC" in src.name or "BARE" in src.name:
         fail(site+": template already points to a FIXNC surface; refuse: "+value)
     return src
 
@@ -201,7 +239,7 @@ def mix(site):
     vals=read_csv(PFT_CSV).get(site)
     if vals is None:
         fail("Missing station PFT "+site)
-    shares={k:float(vals[k]) for k in PFT_IDX}
+    shares={k:float(vals.get(k) or 0) for k in PFT_IDX}
     if abs(sum(shares.values())-100)>1e-6 or any(v<0 for v in shares.values()):
         fail("Invalid PFT composition "+site)
     return shares
@@ -239,6 +277,8 @@ def fates_map():
         fail("FATES HLM mapping too short")
     table={}
     for cls,idx in PFT_IDX.items():
+        if cls in NONVEG:
+            continue
         row=m[idx-1]
         table[cls]=[str(names[int(i)]).strip() for i in np.flatnonzero(row>0)]
     return table
@@ -246,9 +286,45 @@ def fates_map():
 
 def expected_map(site,table):
     for cls,value in mix(site).items():
+        if cls in NONVEG:
+            continue
         if value and table[cls]!=[PFT_EXPECT[cls]]:
             fail(f"{site} incompatible host-FATES mapping {cls}: {table[cls]}")
     return True
+
+
+def needs_bare(site):
+    return any(mix(site)[c]>0 for c in NONVEG)
+
+
+def fates_bareground_evidence():
+    """Read-only source check that the pinned FATES/CTSM pass HLM natpft 0
+    (bare ground) to FATES as a nocomp bare-ground patch. Returns dict."""
+    fates=CTSM/"src/fates"
+    iface=CTSM/"src/utils/clmfates_interfaceMod.F90"
+    hits={"nocomp_bareground":[],"pft_areafrac_in_interface":False}
+    for f in sorted(fates.rglob("*.F90")) if fates.is_dir() else []:
+        try:
+            txt=f.read_text(errors="replace")
+        except OSError:
+            continue
+        if re.search(r"nocomp_bareground",txt,re.I):
+            hits["nocomp_bareground"].append(str(f.relative_to(fates)))
+    if iface.is_file():
+        hits["pft_areafrac_in_interface"]=bool(
+            re.search(r"pft_areafrac|baregroundfrac",iface.read_text(errors="replace"),re.I))
+    hits["supported"]=bool(hits["nocomp_bareground"]) and hits["pft_areafrac_in_interface"]
+    return hits
+
+
+def require_bareground(site):
+    if not needs_bare(site):
+        return None
+    ev=fates_bareground_evidence()
+    if not ev["supported"]:
+        fail(site+": bare-ground fraction requested but pinned FATES/CTSM source shows no "
+             "nocomp bare-ground support (nocomp_bareground + pft_areafrac): "+json.dumps(ev))
+    return ev
 
 
 def target_pft(site):
@@ -307,10 +383,15 @@ def plan():
             src,schema=None,"HOLD("+str(exc)[-120:]+")"
         choice=soil_choice(site)
         used={k:v for k,v in mix(site).items() if v}
-        print(f"{site:7} PFT={used} soil={choice['mode']}"
+        bare=""
+        if needs_bare(site):
+            ev=fates_bareground_evidence()
+            bare=(" FATES_BAREGROUND="+("SUPPORTED" if ev["supported"] else "NOT_FOUND_HOLD")
+                  +" files="+",".join(ev["nocomp_bareground"][:3]))
+        print(f"{site:7} case={case_name(site)} PFT={used} soil={choice['mode']}"
               f" sand={choice.get('sand','GRID')} clay={choice.get('clay','GRID')}"
               f" template={'OK' if c.is_dir() else 'MISSING'}"
-              f" fsurdat={src} schema={schema}")
+              f" fsurdat={src} schema={schema}{bare}")
     print("No forcing file rechecks. First AD segment 5 years only.")
     print("No CIME/NetCDF/Slurm writes in 'plan'.")
 
@@ -333,6 +414,7 @@ def one_surface(site):
         fail("Original schema not present or is a symlink "+str(src))
     table=fates_map()
     expected_map(site,table)
+    bare_evidence=require_bareground(site)
     choice=soil_choice(site)
     dst.parent.mkdir(parents=True,exist_ok=True)
     fd,temp=tempfile.mkstemp(prefix="."+site+"-",suffix=".nc",dir=dst.parent)
@@ -373,10 +455,13 @@ def one_surface(site):
             "source_discovered_from":str(template_case(site)/"CaseDocs/lnd_in"),
             "surface":str(dst),"surface_sha256":digest(tmp),
             "case_template":OLD_CASES[site],
+            "case":case_name(site),
             "site_pft_pct":{k:v for k,v in mix(site).items() if v},
+            "fates_bareground_source_check":bare_evidence,
             "soil_selection":choice,
-            "point_assumption":{"PCT_NATVEG":100,"PCT_CROP":0},
-            "fates_hlm_map":{cl:table[cl] for cl in PFT_IDX},
+            "point_assumption":{"PCT_NATVEG":100,"PCT_CROP":0,
+                                "bare_ground_in_PCT_NAT_PFT_index0":mix(site)["BARE"]},
+            "fates_hlm_map":{cl:table[cl] for cl in PFT_IDX if cl in table},
             "unchanged_fields":"Inherited as binary surface schema; not site-observed evidence",
             "source_files_modified":False,"CIME_cases_created":False,
             "Slurm_submitted":False,
@@ -437,15 +522,25 @@ def desired_namelist(site):
     }
 
 
-def dispatch(name,method):
+def pick_sites(sites):
+    if not sites:
+        return list(SITE_ORDER)
+    bad=[x for x in sites if x not in SITE_ORDER]
+    if bad:
+        fail("Unknown Batch03 site(s): "+",".join(bad))
+    return [x for x in SITE_ORDER if x in sites]
+
+
+def dispatch(name,method,sites=None):
+    sites=pick_sites(sites)
     problems=[]
-    for site in SITE_ORDER:
+    for site in sites:
         try:
             method(site)
         except Exception as exc:
             print(site,"ERROR",str(exc)[-900:],flush=True)
             problems.append((site,str(exc)[-400:]))
-    print(name.upper(),"SUMMARY success=",len(SITE_ORDER)-len(problems),
+    print(name.upper(),"SUMMARY success=",len(sites)-len(problems),
           "issues=",len(problems))
     if problems:
         for s,detail in problems:
@@ -459,11 +554,12 @@ def parse_job_ids(out):
     return (r.group(1) if r else None),(a.group(1) if a else None)
 
 
-def all_submit(ack):
+def all_submit(ack,sites=None):
     if ack!=ACK_SUBMIT:
         fail("submit-smoke requires --confirm "+ACK_SUBMIT)
+    sites=pick_sites(sites)
     records={}
-    for site in SITE_ORDER:
+    for site in sites:
         state=ledger_path(site)
         if not state.is_file():
             fail("Do not submit incomplete batch: ledger missing "+site)
@@ -496,12 +592,12 @@ def all_submit(ack):
                 fail("AD5 generated namelist mismatch "+site+" "+key)
         records[site]=obj
     queue=cmd(["squeue","-u",SLURM_USER,"-h","-o","%j"],timeout=35)
-    for site in SITE_ORDER:
-        if any(case_name(site) in line for line in queue.splitlines()):
+    for site in sites:
+        if any(line.split(".",1)[-1]==case_name(site) for line in queue.splitlines()):
             fail("A matching job is already in queue; STOP "+site)
-    print("ALL TEN STAGED. SUBMITTING EXACTLY ONE 5-YEAR AD SMOKE PER SITE.")
+    print(len(sites),"SITE(S) STAGED. SUBMITTING EXACTLY ONE 5-YEAR AD SMOKE PER SITE:",",".join(sites))
     failed=[]
-    for site in SITE_ORDER:
+    for site in sites:
         ledger=ledger_path(site)
         obj=records[site]
         obj["phase"]="SUBMISSION_ATTEMPTED_UNCERTAIN"
@@ -522,27 +618,84 @@ def all_submit(ack):
         except Exception as err:
             print(site,"SUBMISSION UNCERTAIN; inspect squeue and CaseStatus",str(err)[-800:])
             failed.append(site)
-    print("SUBMISSION SUMMARY submitted=",len(SITE_ORDER)-len(failed),
+    print("SUBMISSION SUMMARY submitted=",len(sites)-len(failed),
           "uncertain=",failed)
     if failed:
         raise SystemExit(3)
-    print("10 x AD5 only. AD395 NOT AUTO-SUBMITTED. Check run+archive success.")
+    print("AD5 only. AD395 NOT AUTO-SUBMITTED. Check run+archive success.")
 
 
-def status():
+def status(sites=None):
     try:
         queue=cmd(["squeue","-u",SLURM_USER,"-h","-o","%j|%T|%i"],timeout=35)
     except Exception as exc:
         queue="scheduler unavailable "+str(exc)
-    for site in SITE_ORDER:
+    def jobs_for(name):
+        return [ln for ln in queue.splitlines() if ln.split("|",1)[0].split(".",1)[-1]==name]
+    for site in pick_sites(sites):
+        if site in VARIANTS:
+            lp=legacy_ledger_path(site)
+            lo=json.loads(lp.read_text()) if lp.is_file() else {}
+            print(f"{site:7} LEGACY {legacy_case_name(site)} PHASE={lo.get('phase','NONE')} "
+                  f"QUEUE={'; '.join(jobs_for(legacy_case_name(site))) or '-'}")
         state=ledger_path(site)
         obj=json.loads(state.read_text()) if state.is_file() else {}
-        jobs=[ln for ln in queue.splitlines() if case_name(site) in ln]
-        print(f"{site:7} SURF={surface(site).exists()} "
+        jobs=jobs_for(case_name(site))
+        print(f"{site:7} {case_name(site)} SURF={surface(site).exists()} "
               f"CASE={case_path(site).is_dir()} "
               f"PHASE={obj.get('phase','NOT_STAGED')} "
               f"AD5={obj.get('AD5_run_job','-')}/{obj.get('AD5_archive_job','-')} "
               f"QUEUE={'; '.join(jobs) or '-'}")
+
+
+def retire_legacy(ack,sites=None):
+    """Cancel jobs of the superseded plain case of each VARIANT site; keep files."""
+    if ack!=ACK_RETIRE:
+        fail("retire-legacy requires --confirm "+ACK_RETIRE)
+    import time
+    for site in [x for x in pick_sites(sites) if x in VARIANTS]:
+        name=legacy_case_name(site)
+        lp=legacy_ledger_path(site)
+        if not lp.is_file():
+            fail(site+": no legacy ledger "+str(lp)+"; nothing to retire safely")
+        obj=json.loads(lp.read_text())
+        if str(obj.get("phase","")).startswith("RETIRED"):
+            print(site,"LEGACY ALREADY RETIRED:",obj["phase"]); continue
+        if obj.get("case")!=str(BASE/"cases"/name):
+            fail(site+": legacy ledger case mismatch "+str(obj.get("case")))
+        q=cmd(["squeue","-u",SLURM_USER,"-h","-o","%i|%j|%T"],timeout=35)
+        mine=[ln.split("|") for ln in q.splitlines()
+              if len(ln.split("|"))==3 and ln.split("|")[1] in ("run."+name,"st_archive."+name)]
+        known={str(obj.get("AD5_run_job")),str(obj.get("AD5_archive_job"))}
+        ids=[r[0] for r in mine]
+        print(site,"legacy jobs in queue:",mine or "none","ledger IDs:",sorted(known))
+        obj["phase"]="RETIRE_ATTEMPTED_UNCERTAIN"
+        obj["retire_started_utc"]=datetime.now(timezone.utc).isoformat()
+        lp.write_text(json.dumps(obj,indent=2)+"\n")
+        if ids:
+            cmd(["scancel",*ids],timeout=60)
+            for _ in range(24):
+                time.sleep(5)
+                q=cmd(["squeue","-u",SLURM_USER,"-h","-o","%i"],timeout=35).split()
+                if not set(ids)&set(q):
+                    break
+            else:
+                fail(site+": legacy jobs still in queue after scancel: "+",".join(ids))
+        try:
+            acct=cmd(["sacct","-X","-n","-P","-j",",".join(sorted(known|set(ids)-{"None"})),
+                      "--format=JobIDRaw,JobName%80,State,ExitCode"],timeout=60)
+        except Exception as exc:
+            acct="sacct unavailable: "+str(exc)[-200:]
+        obj["phase"]="RETIRED_CANCELLED_REPLACED_BY_"+VARIANTS[site]
+        obj["replacement_case"]=str(case_path(site))
+        obj["cancelled_job_ids"]=ids
+        obj["sacct_after_retire"]=acct[-1500:]
+        obj["retired_utc"]=datetime.now(timezone.utc).isoformat()
+        obj["note"]=("ENF100 full-canopy case superseded by measured 48% crown cover; "
+                     "case/run/surface files retained for provenance; never continue this case")
+        lp.write_text(json.dumps(obj,indent=2)+"\n")
+        print(site,"LEGACY",name,"RETIRED; cancelled:",ids or "none (no queued jobs)")
+        print(acct.strip())
 
 
 def self_test():
@@ -566,9 +719,18 @@ def self_test():
         for name in ("use_fates","use_fates_sp","use_fates_nocomp",
                      "use_fates_fixed_biogeog","spinup_state"):
             assert name in desired_namelist(site), (site,name)
-        assert case_name(site).endswith("_B03_FIXNC_AD400")
+        assert case_name(site).endswith("_AD400") and "_B03_FIXNC_" in case_name(site)
     assert nml_get("use_fates_nocomp = .true.\n","use_fates_nocomp")==".true."
     assert nml_set("use_fates = .false.\n","use_fates",".true.").strip()=="use_fates = .true."
+    assert case_name("IL-Yat")=="IL-Yat_B03_FIXNC_BARE52_AD400"
+    assert legacy_case_name("IL-Yat")=="IL-Yat_B03_FIXNC_AD400"
+    assert ledger_path("IL-Yat")!=legacy_ledger_path("IL-Yat")
+    assert ledger_path("IT-Lav")==legacy_ledger_path("IT-Lav")
+    assert attempt_path("IL-Yat").name.endswith("_BARE52.json")
+    assert mix("IL-Yat")["BARE"]==52 and mix("IL-Yat")["ENF"]==48
+    assert target_pft("IL-Yat")[0]==52 and target_pft("IL-Yat")[1]==48
+    assert needs_bare("IL-Yat") and not any(needs_bare(x) for x in SITE_ORDER if x!="IL-Yat")
+    assert pick_sites(["IL-Yat"])==["IL-Yat"] and len(pick_sites(None))==10
     sample=("Submitted job case.run with id 4800001\n"
             "Submitted job case.st_archive with id 4800002\n")
     assert parse_job_ids(sample)==("4800001","4800002")
@@ -579,19 +741,24 @@ def self_test():
 def main():
     parser=argparse.ArgumentParser(description=__doc__,
                                    formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("action",choices=("self-test","plan","surfaces","submit-smoke","status"))
+    parser.add_argument("action",choices=("self-test","plan","surfaces","submit-smoke",
+                                          "status","retire-legacy"))
     parser.add_argument("--confirm",default="")
+    parser.add_argument("--sites",nargs="+",default=None,
+                        help="limit surfaces/submit-smoke/status/retire-legacy to these sites")
     args=parser.parse_args()
     if args.action=="self-test":
         self_test()
     elif args.action=="plan":
         plan()
     elif args.action=="surfaces":
-        dispatch("surfaces",one_surface)
+        dispatch("surfaces",one_surface,args.sites)
     elif args.action=="submit-smoke":
-        all_submit(args.confirm)
+        all_submit(args.confirm,args.sites)
+    elif args.action=="retire-legacy":
+        retire_legacy(args.confirm,args.sites)
     else:
-        status()
+        status(args.sites)
 
 
 if __name__=="__main__":

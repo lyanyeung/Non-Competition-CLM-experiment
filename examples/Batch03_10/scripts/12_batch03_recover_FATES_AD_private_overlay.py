@@ -26,6 +26,13 @@ Commands:
   python3 -B .../12_batch03_recover_FATES_AD_private_overlay.py self-test
   python3 -B .../12_batch03_recover_FATES_AD_private_overlay.py recover \
     --confirm RECOVER_BATCH03_TEN_FATES_AD_CASES_NO_SLURM
+  python3 -B .../12_batch03_recover_FATES_AD_private_overlay.py recover-sites \
+    --sites IL-Yat --confirm RECOVER_BATCH03_SITES_REUSE_OVERLAY_NO_SLURM
+
+`recover` builds the one Batch03 overlay and all ten cases (done 25 Oct 2026).
+`recover-sites` is for a later replacement/variant case (e.g. IL-Yat BARE52): it
+REUSES the existing Batch03 overlay only after re-deriving the patch from the
+pinned shared source and checking the overlay file is byte-identical.
 """
 from __future__ import annotations
 import argparse
@@ -53,6 +60,7 @@ OVERLAY=B.OUT_BASE/"_private_ctsm_FATES_AD400_namelist_overlay"
 PATCHED=OVERLAY/"bld/CLMBuildNamelist.pm"
 PROVEN=B.REPO/"examples/DE-Tha/scripts/12_DE_Tha_AD400_recover_failed_preview.py"
 ACK="RECOVER_BATCH03_TEN_FATES_AD_CASES_NO_SLURM"
+ACK_SITES="RECOVER_BATCH03_SITES_REUSE_OVERLAY_NO_SLURM"
 
 OLD="if ( &value_is_true($nl_flags->{'use_cn'}) ) {"
 NEW="if ( &value_is_true($nl_flags->{'use_cn'}) || &value_is_true($nl_flags->{'use_fates'}) ) {"
@@ -205,7 +213,7 @@ def repair_one(site):
     B.validate_surface(site,surface)
     old,exe=B.old_executable(site)
     case=B.case_path(site)
-    attempt=B.OUT_BASE/site/"private_overlay_AD_recovery_attempt.json"
+    attempt=B.attempt_path(site)
     if attempt.exists() or attempt.is_symlink():
         fail("Previous recovery attempt exists. Do NOT retry blindly: "+str(attempt))
     if case.exists() or case.is_symlink():
@@ -274,6 +282,25 @@ def repair_one(site):
     },indent=2)+"\n")
     print(site,"PRIVATE FATES AD RECOVERY PASS | ready 5-year AD smoke, NO JOBS",flush=True)
 
+def verify_existing_overlay(patch):
+    if not OVERLAY.is_dir() or OVERLAY.is_symlink():
+        fail("Batch03 overlay missing; run full `recover` first: "+str(OVERLAY))
+    if not PATCHED.is_file() or PATCHED.is_symlink():
+        fail("Overlay patched CLMBuildNamelist.pm missing: "+str(PATCHED))
+    if PATCHED.read_text(encoding="utf8")!=patch:
+        fail("Existing overlay patch differs from the pinned two-line patch; STOP")
+    for name in ("build-namelist",):
+        if not (OVERLAY/"bld"/name).is_file():
+            fail("Overlay bld/"+name+" missing")
+    for p in B.CTSM.iterdir():
+        if p.name in (".git","bld"):
+            continue
+        link=OVERLAY/p.name
+        if not link.is_symlink() or link.resolve()!=p.resolve():
+            fail("Overlay entry does not link to shared CTSM: "+str(link))
+    print("EXISTING BATCH03 OVERLAY VERIFIED:",OVERLAY)
+
+
 def self_test():
     proven_reference_check()
     assert OLD!=NEW and OLD_RESEED!=NEW_RESEED
@@ -282,16 +309,41 @@ def self_test():
     assert len(B.SITE_ORDER)==10
     assert B.case_name("IT-Lav")=="IT-Lav_B03_FIXNC_AD400"
     assert OVERLAY.parent==B.OUT_BASE and "Batch03_10" in str(OVERLAY)
+    assert B.attempt_path("IL-Yat")!=B.attempt_path("IT-Lav")
+    assert ACK_SITES!=ACK
     print("BATCH03 PRIVATE FATES AD OVERLAY SELF-TEST PASS (no HPC filesystem writes)")
     print("Exact proven DE-Tha Stage12 guard and reseed changes reused.")
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument("action",choices=("self-test","recover"))
+    p.add_argument("action",choices=("self-test","recover","recover-sites"))
     p.add_argument("--confirm",default="")
+    p.add_argument("--sites",nargs="+",default=None)
     args=p.parse_args()
     if args.action=="self-test":
         self_test()
+        return
+    if args.action=="recover-sites":
+        if args.confirm!=ACK_SITES:
+            fail("recover-sites requires --confirm "+ACK_SITES)
+        if not args.sites:
+            fail("recover-sites requires --sites")
+        sites=B.pick_sites(args.sites)
+        proven_reference_check()
+        verify_existing_overlay(create_patch())
+        problems=[]
+        for site in sites:
+            try:
+                repair_one(site)
+            except Exception as exc:
+                print(site,"RECOVERY HOLD:",str(exc)[-1500:],flush=True)
+                problems.append(site)
+        print("BATCH03 PRIVATE FATES AD RECOVERY (sites)",len(sites)-len(problems),
+              "/",len(sites),"successful; NO Slurm jobs submitted",flush=True)
+        if problems:
+            print("HOLD:",",".join(problems),"Do NOT run submit-smoke for these")
+            raise SystemExit(2)
+        print("READY: Stage11 submit-smoke --sites",*sites)
         return
     if args.confirm!=ACK:
         fail("Recovery requires --confirm "+ACK)
