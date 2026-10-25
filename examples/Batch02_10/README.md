@@ -2,6 +2,32 @@
 
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
+## Stage13 runtime-config verification PASS 2/2; Stage14 active DATM numeric/source review (25 October 2026)
+
+**Latest actual operator-supplied IRIDIS6 Stage13 results:**
+```text
+SOURCE PASS | SYNTAX PASS
+STAGE13 SELF-TEST PASS: exact sites, longitude wrap and stable JSON-list PTS receipts; NO WRITES
+FATES BATCH02 AD PRIVATE NAMELIST OVERLAY PASS
+EFFECTIVE COUPLER PASS IT-Noe CaseDocs surface vs scol (40.606176, 8.151694)
+EFFECTIVE COUPLER PASS IT-Noe run surface vs scol (40.606176, 8.151694)
+EFFECTIVE COUPLER PASS ES-LJu CaseDocs surface vs scol (36.926594, 357.247885)
+EFFECTIVE COUPLER PASS ES-LJu run surface vs scol (36.926594, 357.247885)
+STAGE13 VERIFIED TWO BARE/SHRUB AD5 CASES 2/2; NO SLURM
+```
+The original tuple-vs-list comparison error has been fixed, and *both independently cloned AD5 startup cases* are now technically verified. No Stage13 rerun/preparation, deletions or new surface edits. **No Slurm jobs yet.**
+
+**Stage14 [read-only selected 43-year DATM climate QC](scripts/14_readonly_active_IT_Noe_ES_LJu_43year_DATM_science_QC.py)** now independently checks effective `CaseDocs` and `RUNDIR` `datm.streams.xml` and EXACT 22+21 selected annual NetCDF inputs (rather than selecting arbitrary newest trials). It asserts all files exist, 17,520 noleap half-hour records each, proper year/file identity, meteorological 1PT variables, monotonic 1800s time axis, basic physical bounds; calculates diagnostic approximate RH (QBOT/TBOT/PSRF), half-hour temperature-jump counts and strong rainfall >40 mm/30min. Prints detailed scientific-review indices for the **IT-Noe 2010** and **ES-LJu 2023** years, and ES-LJu apparent 23:00 precipitation concentration. These are screens, not automatic corrections, not observed 2-m RH computed by CLM, and not scientific approval.
+
+**Provenance science gates remain open even if Stage14 numeric QC is clean:**
+- [IT-Noe historical RH-abort and QC v2/v3 investigation](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/diagnostics/spinup_failures/IT-Noe/README.md): original CLM diagnosed negative 2-m RH; 208 review episodes in 2004–2025; separately versioned QC v3 candidate `datm_11_IT-Noe_QC_v3_RHcap_20261021_230447` numerically validated as research trial but unapproved. Current Stage13 `IT-Noe_ERA5_ABW_BRANCH2009` DATM files may still reference an older source. *Do not infer v3 use from case label or v3 availability*. FATES host9 is a broadleaf evergreen extratropical shrub proxy for local Juniperus conifer shrub, not confirmed trait equivalence.
+- [ES-LJu 13-site forcing method and risks](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/FLUXNET_MultiSite_13/docs/MET_STAGE20_28_METHOD_AND_OPEN_ISSUES.md): all **21 actual source annual NetCDF names are PROVISIONAL** (reported Stage13). The 2023 anomalous TA/VPD record/paired-repair lineage and precipitation clustering at 23:00 have outstanding source-time/accumulation interpretation. The retained 20% evergreen shrub is an explicit proxy for an unclassified vegetation remainder.
+- Science and technical gates are separate. Stage14 reports `MODEL_SUBMISSION_APPROVAL=NO` by design, even if basic meteorological units/ranges pass. After review, create a distinct, explicit operator-authorized AD5 one-time submission gate, using CIME `case.submit --skip-preview-namelist`. Do not silently bypass science holds or submit either of the two Stage13 cases now.
+
+Run on IRIDIS: download exact [Stage14 script](scripts/14_readonly_active_IT_Noe_ES_LJu_43year_DATM_science_QC.py) via commit-pinned `raw.githubusercontent.com`, then `python3 -B Stage14.py --self-test` and `python3 -B Stage14.py --check`. Pure read-only; user can capture results with `tee`. Does not run, cancel or resubmit other existing Batch02 AD395 tasks.
+
+---
+
 ## Stage13 operator-created IT-Noe and ES-LJu AD5 previews; JSON receipt verification fixed (25 October 2026)
 
 **User-supplied actual Stage13 IRIDIS6 logs:**
