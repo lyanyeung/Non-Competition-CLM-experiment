@@ -12,6 +12,24 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage07 confirmed complete; Stage08 independent CIME AD5 preview (25 October 2026)
+
+**User-confirmed actual IRIDIS6 Stage07 detached plan SUCCESS**, at:
+
+`/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/AmeriFlux_Batch01_10/CA-TP4/stage07_case_plan_20261025T065233585375346Z/`.
+
+It independently checked the **CA-TP4 Stage04 forcing and Stage06 surface point coordinates `42.7102 N, 279.6426 E`**, CDEPS actual field mapping of all eight required meteorological fields and chronological 2002–2023 annual files, 1PT NO_LEAP 48/day, available CH-Dav FIXNC AD reference `cesm.exe` (`/scratch/ly3n24/CTSM_FATES_OUTPUTS/GF-Guy_FATES_SURF2000_CO2405_1PT/bld/cesm.exe`) and site-specific new `cases/CA-TP4_AMF_FIXNC_AD400_PILOT` / RUN / ARCH paths **all unoccupied**. This plan was detached only: **no active case/Slurm**.
+
+**Stage08 [guarded isolated AD5 CIME clone + actual generated namelist preview, NO SUBMISSION](scripts/08_CA_TP4_create_AD5_CIME_case_preview_no_slurm.py)** now supports:
+
+- `--self-test`: code syntax/stream transformations only
+- `--check`: READ ONLY validate all exact Stage04/06/07 manifests, 22 year-file SHA, the existing compiled reference executable, FATES AD private overlay (two pinned bug guards), and actual original `user_nl_datm_streams`. It prints available original stream override keys and tests the CA-TP4-only substitution, including optional user-level `offset=0`.
+- `--stage --confirm CREATE_ISOLATED_CA_TP4_AD5_CASE_PREVIEW_NO_SLURM`: create **exactly one new** independent cold-start case via `create_clone --keepexe`, replace **only** `CLM_USRDAT.UNSET` meteorological CDEPS overrides (retaining global aerosol/N deposition/ozone/topography streams), install site-only Stage06 forest-proxy `fsurdat`, explicitly set FATES `fixed_biogeog+nocomp`, `spinup_state=2`, AD decomposer ON, `RUN_STARTDATE=2002-01-01`, `DATM_YR_START=2002`, `DATM_YR_END=2023`, `DATM_YR_ALIGN=2002`, `STOP_N=5`, `REST_N=5`, `RESUBMIT=0`. It previews using the **existing proven FATES private AD overlay only on the new case** and must restore locked `env_case.xml`; then it checks actual **generated** `CaseDocs/lnd_in` and `CaseDocs/datm.streams.xml` for exact site-specific inputs and SHA-receipts. **No scheduler calls**.
+- A **non-overwritable attempt state** is created *before* making a case. **DO NOT rerun `--stage` on failure**; inspect partial case and the attempt ledger first.
+- The successful `PREVIEW_VERIFIED_NOT_SUBMITTED` receipt has `ready_to_submit_AD5=False` because site clock/solar geometry, actual domain coupling, scientifically unverified `TA_F→28m` sensor mapping, CO2 baseline and idealized 93:7/grid-soil hypotheses still require review. Preview success **does not authorize 5yr Slurm submission**. Only then can we audit the new case and decide whether to run **ONE** 5-year technical smoke. 400yr AD/Normal jobs stay deferred.
+
+**Important engineering note:** The original `CH-Dav_B01_FIXNC_AD400` is a generic `CLM_USRDAT` 1PT grid with `CLM_USRDAT_NAME=UNSET`. Reusing its compiled executable does **not** prove CA-TP4 geographic/solar geometry. Do not transplant CH-Dav `fsurdat`, input-year range, `CCSM_CO2_PPMV=363.04`, lat/lon or station forcing to CA-TP4; Stage08 reports inherited CO2 as an **unreviewed science blocker** rather than silently claiming it matches CA-TP4 year 2002. Both the FATES height 28m and grid-soil fallback remain *clearly labeled technical assumptions*.
+
 ## Stage06 confirmed complete — Stage07 CIME compatibility/read-only case plan (25 October 2026)
 
 **Actual Stage06 IRIDIS6 execution SUCCESS:** versioned independent CA-TP4 `surfdata_CA-TP4_FIXNC_ENF93_DBF7_forestry_proxy_gridsoil_v1.nc` and `manifest.json` at:
