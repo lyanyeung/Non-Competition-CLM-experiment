@@ -1,5 +1,19 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## New ES-LJu Stage24 to AD400 runbook (26 October 2026)
+
+**Newer than the historical October 25 ES-LJu HOLD narrative below.** Operator-approved meteorological candidate was produced successfully in Stage24, and the operator explicitly authorized **retaining** the original 2013-12-25 QC0 tower extreme rain despite disagreement in ERA5 magnitude/timing; the old SCIENCE_HOLD label for that specific rain event is therefore superseded as an operator decision, not independently ERA-validated. The operator also approved the 2016-12-06 44.724 mm daily total redistribution according to same-day ERA5, retention of 28 low-rain ERA-zero days (25.140 mm total), and extended 2006/2019/2023 temperature repairs. Stage24 remains an **isolated CSV**, not a currently selected DATM stream. Very low RH below 5% is not automatically a bad observation: 293 of 412 residual RH-low records had original TA/VPD both QC0, and remaining QC/physics should be explicitly examined before publication-grade signoff.
+
+**Actual IRIDIS operator Stage23/24 logs (26 October):** 3 new temperature boundary scopes (27+9+8=44 half-hours) BOUNDED, 0 unresolved; Stage24 CSV provenance and daily rainfall mass conservation PASS (2016 tower daily 44.724 -> 44.724 mm, companion ERA5 daily 1.730 mm); **28 low-rain days preserved**; no active CIME, DATM or Slurm modifications.
+
+**New mandatory staged path for direct ES-LJu AD400, no AD5 smoke:**
+1. [Stage25](scripts/25_ES_LJu_Stage24_to_new_21year_DATM_readonly_audit_and_build.py): `--self-test`, `--audit` then one-time `--build --out NEW_UNIQUE_DIR --confirm BUILD_ES_LJU_STAGE24_DATM_21Y`. Creates **21 isolated SHA-checked annual NOLEAP 1PT NetCDF**, replacing exactly `TBOT`, `QBOT` and `PRECTmms`, preserving source `ZBOT` and all other variables. Original source NetCDF is verified and not changed.
+2. [Stage26](scripts/26_ES_LJu_new_Stage24_DATM_AD400_prepare_audit_submit.py): `--self-test`, `--prepare --datm-dir STAGE25_DIR --confirm PREPARE_ES_LJU_STAGE24_INDEPENDENT_AD400_NO_SUBMIT`, `--audit --datm-dir STAGE25_DIR`, then `--start --datm-dir STAGE25_DIR --confirm SUBMIT_ES_LJU_STAGE24_DIRECT_AD400_ONCE`. This clones a **new independent case** named `ES-LJu_B02_FIXNC_AD400_BARE49_C3GRA31_SHRUB20_MET24` using the already-verified Stage13 idealized PFT surface and original executable; 80×5-year AD segments; skip-preview namelists; preserves all other jobs. Preparation/submit is one-time receipt protected. **Scripts were published but IRIDIS Stage25/26 execution is not yet evidenced.** If any audit/preparation fails, stop rather than submit with old forcing.
+
+**Batch02 10-site status based on most recent confirmed operator history, not live telemetry:** FI-Hyy, FR-Hes, CH-Fru, IT-MBo each AD5 COMPLETE and AD395 previously SUBMITTED (job IDs 4732398/400/402/404, archive companions); IT-Noe exploratory direct AD400 SUBMITTED run job 4733521, archive 4733522 (no finished 400-year restart evidence); ES-LJu Stage24 CSV COMPLETE and new Stage25/26 NetCDF/model **not yet run**; DK-Sor, FR-FBn, BE-Bra, CH-Lae blocked by unresolved observational PFT partition. **Do not double-submit ongoing jobs, do not claim full AD400 completion until final coordinated restart is verified.**
+
+---
+
 **Updated 25 October 2026.** The operator requested the next ten sites after the previous Batch01 run. This example activates the ten sites already reserved in the repository; it does not reuse or change any Batch01 case. These are European/ICOS-linked tower sites; the exact network membership is preserved in the [site register](../../data/batch02_10_sites.csv), rather than claiming that every site has identical ICOS status.
 
 ## Stage15 actual IT-Noe Slurm 4733521 and ES-LJu Stage16 manual time-of-rain audit (25 October 2026)
