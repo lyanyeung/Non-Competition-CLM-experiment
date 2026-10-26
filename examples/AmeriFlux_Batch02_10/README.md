@@ -13,6 +13,28 @@ The independent [original AmeriFlux Batch02 source workflow](https://github.com/
 - 2020→2005 repeated forcing seam (|ΔTBOT| 3.877K, |ΔPSRF| 259Pa, |ΔWIND| 4.617m/s) intentionally **left unedited** by user's decision to run once-through historical forcing; actual DATM runtime date boundary requires checking from logs.
 - **Remaining nine sites have not supplied verified case/Slurm/completion receipts.** Do NOT label all ten simulated, ready for spinup, or successful. US-Ho1 retains 2000-12-27 original QC0/QC1/QC2 extreme temperature jump HOLD (08:00−15.7°C QC0, 08:30−15.1°C QC0, 09:00−15.4°C QC1, 09:30+3.346°C QC2); original sensor heights and local-UTC assumptions require per-site review. US-BZS/US-Ho1 missing official TA/WS time-dated height histories, other sites have gaps.
 
+## Stage06 — ten FIXNC AD400 cases, direct 80 × 5 years (26 October 2026)
+
+**Operator status 17:21 UK:** Stage05 built all 10 independent FIXNC surfaces (PFT and L1–L10 soil); US-BZS is now SoilGrids T3 40.0/8.9. No CIME case existed yet. Operator decision: **AD400 runs directly (one case.submit, `STOP_N=5`, `RESUBMIT=79`), with no AD5 smoke.**
+
+[Stage06 controller](scripts/06_direct_AD400_ten_site_cases_and_submit.py) does everything that was still missing. It replaces the receipt-gated Stage03 submit path for this cohort and keeps the same stack guard (≥ 64 MiB soft stack, child inheritance, Slurm `PropagateResourceLimits` must cover STACK).
+
+| Input | Source used |
+| --- | --- |
+| Surface | Stage02/05 `surfdata_<SITE>_FIXNC_PFT_soil10_stage02_v1.nc`. The sha256 must match its receipt, `PCT_NAT_PFT` must equal the register and NATVEG must be 100. The soil `ORGANIC` field keeps its gridded source values. |
+| Forcing | Stage95 215 annual NOLEAP NC. They are moved from local standard time to UTC by −UTC_OFFSET, as in AmeriFlux Batch01 Stage14. The first records of each UTC year come from the end of the previous forcing year, cyclically; for the first year that is the last year, which is what the spin-up cycle sees. Labels become interval midpoints and a static ZBOT is added. Values are not changed (checked on read-back). |
+| UTC offset | BIF (Stage97/98): CMW/GLE −7, EML/ICh/ICt −9, Ha1/Ho2/Ho3 −5. **US-BZS −9 and US-Ho1 −5 are proxies** (standard time zone; no BIF value). |
+| ZBOT | Earliest dated BIF TA_F height from the Stage98 evidence. **Proxies: US-BZS 6.1 m** (instruments ~20 ft on the ~30 ft tower, UAF *Aurora* 2022) and **US-Ho1 29 m** (Hollinger et al. 2004, flux height). `--zbot SITE=M` overrides. |
+| CO₂ | NOAA GML global annual mean for the first forcing year (as Batch01), downloaded once to `Stage06_direct_AD400/co2_annmean_gl.csv` or supplied with `--co2-csv`. |
+| Case | `create_clone --keepexe` from `CA-Ca3_AMF_FIXNC_AD400_UTC_V2_PTS_AD5` (AD400 audited PASS). PTS_LAT/LON come from the surface, previewed with the proven private FATES AD overlay; the `env_case.xml` lock must be restored. History fields are the template's (no `GPP`/`NPP`, which broke ICOS Batch02). |
+| FATES | DEFAULT14 sites pin the template's effective `fates_paramfile`. **US-BZS, US-EML, US-ICh and US-ICt** get a private copy (`fates_params_ARCTIC_PURE_stage06_v1.nc`). Only `fates_hlm_pft_map` rows host 9 → evergreen arctic shrub and host 11 → deciduous arctic shrub change, and the copy is checked against DEFAULT14 first. |
+
+Case names are `<SITE>_AMF_B02_FIXNC_AD400_DIRECT`. Ledgers are kept in `Stage06_direct_AD400/`, with phases `PREPARE_ATTEMPTED_UNCERTAIN` → `CASE_VERIFIED_NOT_SUBMITTED` → `SUBMIT_ATTEMPTED_UNCERTAIN` → `AD400_SUBMITTED`. A failed prepare is never retried in place. `quarantine-failed-prepare` moves the partial case aside (it refuses if Slurm knows the case); the forcing and ARCTIC parameter file are reused if they still verify.
+
+Actions: `self-test`, `check` (read only), `prepare --confirm PREPARE_AMF_B02_TEN_DIRECT_AD400_CASES_NO_SLURM`, `submit --confirm SUBMIT_AMF_B02_DIRECT_AD400_80x5_ONCE`, `status`, `audit-first5` (Y+5 restart, `spinup_state=2`), `audit-ad400` (80+80 jobs, Y+400). A mock end-to-end test passed. It covered all ten sites, an hourly site, a simulated preview failure with quarantine and reuse, ARCTIC_PURE parameters, duplicate prepare/submit refusal, and the AD400 audit.
+
+Open science notes (not blockers by operator decision): US-Ho1's 2000-12-27 QC1/QC2 temperature transition is kept as in Stage95, and the static ZBOT ignores sensor-height changes. The four Arctic sites use mineral-soil `ORGANIC` from the gridded source.
+
 ## The authoritative 50-site PFT and soil inputs are in the OTHER repository
 
 The files **exist now** and have been matched to all ten AmeriFlux Batch02 IDs. Source repository: `lyanyeung/CLM-FATES-single-site-workflows`, Git commit `0bef7854a916daee34948f5b4efc54ad6089482d` (specific retrieved source objects SHA-verified below).

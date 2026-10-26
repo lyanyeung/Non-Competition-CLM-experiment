@@ -14,8 +14,9 @@ This snapshot comes from operator IRIDIS6 output. Submitted means CIME returned 
 | Cohort | AD400 | NORMAL400 |
 | --- | --- | --- |
 | **ICOS Batch01** (10) | 10/10 archived to Y+400 | **10/10 archived to Y+800**, nothing queued; `audit-normal400` not yet run |
-| **ICOS Batch02** (10) | **4/10 audited PASS** (FI-Hyy, FR-Hes, CH-Fru, IT-MBo); IT-Noe GPP/NPP history-fix AD400 running; ES-LJu, DK-Sor, FR-FBn, BE-Bra, CH-Lae Stage43 history-fix cases prepared and verified, one-shot `--start` (80×5) given to operator | **4/4 Normal5 PASS, Normal395 submitted** 17:12: FI-Hyy 4740959/60, FR-Hes 4740961/62, CH-Fru 4740963/64, IT-MBo 4740965/66 |
+| **ICOS Batch02** (10) | **4/10 audited PASS** (FI-Hyy, FR-Hes, CH-Fru, IT-MBo); IT-Noe GPP/NPP history-fix AD400 running; ES-LJu 4740990, DK-Sor 4740992, FR-FBn 4740994, BE-Bra 4740996, CH-Lae 4740998 Stage43 history-fix AD400 **submitted** 80×5 (17:20) | **4/4 Normal5 PASS, Normal395 submitted** 17:12: FI-Hyy 4740959/60, FR-Hes 4740961/62, CH-Fru 4740963/64, IT-MBo 4740965/66 |
 | **ICOS Batch03** (10) | 10/10 | **6/10 audited PASS** (IL-Yat, DE-Obe, CZ-Stn, DE-Lnf, AT-Neu, CH-Cha); IT-Lav, FI-Let, DE-Hzd, GF-Guy still running |
+| **AmeriFlux Batch02** (10) | 10 FIXNC surfaces built (Stage05); Stage06 direct AD400 (80×5, no AD5) controller ready — prepare + submit pending on IRIDIS | Not started |
 | **AmeriFlux Batch01** (10) | **CA-Ca3, CA-LP1 audited PASS**; CA-TP4, BR-Ma2 AD395 running; 6 not started (US-Bar needs surface; CA-TP1/TP3/US-Aud dynamic ZBOT; CA-Cbo/CA-Man multi-level TA) | CA-Ca3, CA-LP1 Normal cases re-staged (VALIDATE PASS). By operator decision they go **directly to Normal400 (80×5, no Normal5 smoke)** via Stage21 `submit-normal400-direct` |
 
 All 25 staged Normal cases were checked read-only: each Normal `fates_paramfile` has the same content as its AD source (sha256 `0819f8fddcb3…`). The paths differ only between the private overlay and the shared CTSM copy.
