@@ -11,6 +11,8 @@
 
 **Authoritative full-cohort PFT register**: [ICOS_PFT/FINAL_38_SITE_FIXNC_PFT_20261025.csv](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/FINAL_38_SITE_FIXNC_PFT_20261025.csv). Use its recorded Batch02 inputs and explicit model-proxy labels for the six sites with selected model compositions; preserve their IN USE versus PROPOSED distinction. Its other Batch02 forest sites are still explicitly **OPEN**: DK-Sor (DBF80 / ENF+DNF20 unsplit), FR-FBn (ENF75 / EBF up to25 unverified), BE-Bra (ENF55 / DBF23 / unclassified22), CH-Lae (DBF80 / ENF12 / unclassified8). This register is comprehensive as a **scientific evidence catalogue**, not as four closed 100%-PFT numeric input vectors. Any provisional allocation of the unknown shares must be labelled a sensitivity *scenario* and must never be presented as an observed measurement. Do not silently inject unresolved entries into a 100%-sum land-surface file.
 
+To avoid repeating the literature search, [11 explicitly provisional PFT closure/sensitivity vectors](data/four_open_PFT_exploratory_closure_sensitivity_20261026.csv) are published for these four sites. These vectors have exactly 100% NATPFT arithmetic and identify their unknown-share assumptions, **but are NOT observation-verified or automatically approved for model submission**. Use the original table as observed evidence and these clearly labelled alternative inputs only for exploratory sensitivity case construction.
+
 ---
 
 
