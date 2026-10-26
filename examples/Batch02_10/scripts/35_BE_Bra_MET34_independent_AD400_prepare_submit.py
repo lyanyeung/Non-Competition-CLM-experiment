@@ -58,7 +58,10 @@ def load_manifest(folder):
  mp=folder/"manifest.json"
  ensure(mp.is_file(),"Stage34 selected 30-year manifest absent")
  m=json.loads(mp.read_text())
- ensure(m.get("site")=="BE-Bra" and m.get("years")==[1996,2025]
+ ensure(folder.name=="stage34_BE_Bra_curated_MET_QC_v2" and
+        m.get("version")=="BE-Bra-1996-1999-2005-2021-curated-QC-v2-20261026",
+        "Only new Stage34 v2 verified model inputs permitted")
+  ensure(m.get("site")=="BE-Bra" and m.get("years")==[1996,2025]
         and m.get("record_count_per_year")==17520 and
         m.get("source_case")==SOURCE.name and
         m.get("source_stream_sha256")==SOURCE_STREAM_SHA,
@@ -72,7 +75,18 @@ def load_manifest(folder):
         and m.get("CIME_case_modified") is False
         and m.get("Slurm_submitted") is False,
         "Stage34 science patch and original-protection guards changed")
- records=m.get("selected_30_annual_DATM",[])
+ changes=m.get("modified_years",{})
+ ensure(set(map(str,changes))=={"1996","1999","2005","2021"},
+        "Stage34 four changed years missing or unexpected")
+ for y,items in changes.items():
+  require_counts={
+    "1996":(2,12),"1999":(0,13),
+    "2005":(1,1),"2021":(1,1)}
+  tb,qb=require_counts[str(y)]
+  ensure(len(items.get("changes",{}).get("TBOT",{}))==tb and
+         len(items.get("changes",{}).get("QBOT",{}))==qb,
+         "Stage34 unexpected year-specific authorised TBOT/QBOT changes: "+str(y))
+  records=m.get("selected_30_annual_DATM",[])
  ensure(len(records)==30 and len({x.get("path") for x in records})==30,
         "Stage34 expected 30 unique yearly file paths")
  out=[]
@@ -87,6 +101,9 @@ def load_manifest(folder):
    ensure(p.is_relative_to(folder.resolve()) and
           p.name==f"BE-Bra_DATM_{y}_STAGE34_CURATED_EXPLORATORY.nc",
           "Stage34 edited year is not in selected isolated output")
+  else:
+   ensure("datm_11_provisional_dynamic_zbot_v1" in p.parts,
+          "Unmodified annual DATM not from original source selected version "+str(y))
   out.append(p)
  return m,out
 
