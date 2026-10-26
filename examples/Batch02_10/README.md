@@ -1,5 +1,12 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## IT-Noe AD400 failed run 4733521: Stage38 actual Slurm/model-log forensics (26 Oct)
+
+Operator confirms CH-Lae Stage37 AD400 is running successfully, following successful BE-Bra Stage35 submission. The remaining Batch02 site **IT-Noe** previously had CIME/Slurm first-run job `4733521` **FAILED ExitCode 1:0** in ≈19 seconds, and companion archive `4733522` **DependencyNeverSatisfied**. **Neither the short elapsed time nor its historical negative-2m-RH aborts identify this particular failure cause.** The Stage14 actual QC-v3 22-year selected CDEPS DATM numeric screen passed broad bounds but cannot exclude CLM HumanIndexMod diagnosed-RH errors; PFT broadleaf-shrub approximation also remains a scientific caveat. A new original-case re-submit via Stage15 is forbidden: a one-shot `stage15_IT_NoE_direct_AD400/submission_attempt.json` ledger exists.
+
+[Stage38 read-only full failure forensics](scripts/38_IT_Noe_4733521_failure_forensics_readonly.py) collects `sacct` job/step state and exit codes/MaxRSS/Reason, `scontrol show job` if retained, actual `sacct` stdout/stderr paths, the original CIME CaseStatus, XML run settings, effective FATES namelist, recent case/rundir logs, error excerpts (fatal, RH, HumanIndex, ESMF, netCDF, segmentation, OOM, stack, MPI) and any restart history. No CIME model edits, no Slurm actions and no writes. Run `python3 -B Stage38.py --self-test` then `python3 -B Stage38.py --diagnose 2>&1 | tee ~/IT_NoE_Stage38_failure_diagnostics.log`. Review actual traceback before preparing a new independently guarded retry case or deciding a model/meteorology fix. Never assume failed 19-second job completed a 5-year chunk.
+
+---
 ## CH-Lae Stage33 human review → Stage36 constrained Met candidate → Stage37 independent AD400 (26 October)
 
 Operator confirms **BE-Bra Stage35 submitted successfully** (Job ID not yet supplied). DK-Sor and FR-FBn Stage31 AD400 likewise already submitted; do NOT resubmit any of them. **CH-Lae Stage32** actual 2004–2024: 21 provisional-name input files, no invalid physics, zero RH<5, negative VPD or >12°C half-hour changes, but **7 instances >8°C**. Subsequent full Stage33 context shows **three isolated T anomalies** (one with T-only change and two with paired Q) warranting local numerical sensitivity candidates:
