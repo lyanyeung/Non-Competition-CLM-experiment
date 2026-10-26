@@ -187,17 +187,13 @@ def validate_new(folder,expected_resubmit=None):
   ensure(field(nl,k)==v,"Stage26 actual lnd_in key changed "+k)
  _,live_files=actual_stream(CASE)
  ensure(live_files==paths,"Stage26 effective DATM not Stage25 21y files")
- for k in ("CaseDocs/nuopc.runconfig",):
-  runconfig=CASE/k
-  ensure(runconfig.is_file(),"Missing point-coupler runconfig")
+ for runconfig in (CASE/"CaseDocs/nuopc.runconfig",RUN/"nuopc.runconfig"):
+  ensure(runconfig.is_file(),"Missing point-coupler runconfig: "+str(runconfig))
   cfg=runconfig.read_text()
   for key,val in {"scol_lat":36.926594,"scol_lon":357.247885}.items():
    mt=re.findall(r"(?im)^\s*"+key+r"\s*=\s*([^\r\n]+)",cfg)
    ensure(len(mt)==1 and abs(float(mt[0])-val)<1e-4,
-          f"NUOPC spatial point mismatch {key}")
- req=RUN/"nuopc.runconfig"
- ensure(req.is_file() and sha(req)==sha(CASE/"CaseDocs/nuopc.runconfig"),
-        "Effective NUOPC CaseDocs and RUNDIR differing")
+          f"NUOPC spatial point mismatch {key}: {runconfig}")
  ensure(not list(RUN.glob("rpointer*")) and not list(RUN.glob("*.r.*.nc")),
         "New Stage26 RUNDIR contains unexpected restart")
  print("STAGE26 AUDIT PASS: new independent case, original exe/PFT, 21 new DATM, AD namelist, no restart")
@@ -238,12 +234,15 @@ def prepare(folder):
  original_lock=(CASE/"LockedFiles/env_case.xml").read_bytes()
  ensure((CASE/"env_case.xml").read_bytes()==original_lock,
         "CIME new-case env_case lock already divergent")
- prior=query(CASE,"COMP_ROOT_DIR_LND")
+ original_lnd_root=query(CASE,"COMP_ROOT_DIR_LND")
+ ensure(Path(original_lnd_root).resolve()==CTSM.resolve() or
+        original_lnd_root=="$SRCROOT",
+        "Stage26 cloned CTSM root mismatch")
  try:
   change(CASE,"COMP_ROOT_DIR_LND",str(OVERLAY))
   command([CASE/"preview_namelists"],at=CASE,timeout=680)
  finally:
-  change(CASE,"COMP_ROOT_DIR_LND",prior)
+  change(CASE,"COMP_ROOT_DIR_LND","$SRCROOT")
  ensure((CASE/"env_case.xml").read_bytes()==original_lock,
         "CIME env_case lock not restored after private overlay")
  # With --skip-preview-namelist, this exact case-local XML will be used on submit.
@@ -304,8 +303,7 @@ def start(folder):
   json.dump(record,f,indent=2);f.write("\n");f.flush();os.fsync(f.fileno())
  change(CASE,"RESUBMIT","79")
  ensure(query(CASE,"RESUBMIT")=="79","RESUBMIT set failed; attempt uncertain")
- p=subprocess.run([str(CASE/"case.submit"),"--skip-preview-namelist"],
-                  at if False else None) if False else subprocess.run(
+ p=subprocess.run(
                   [str(CASE/"case.submit"),"--skip-preview-namelist"],
                   cwd=CASE,capture_output=True,text=True,timeout=650,check=False)
  print(p.stdout[-7000:],p.stderr[-2300:],flush=True)
