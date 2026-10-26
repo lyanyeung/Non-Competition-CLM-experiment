@@ -16,6 +16,11 @@ All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height 
 
 **CA-TP4 AD5 succeeded** (operator CaseStatus): `model execution success`, `case.run success 4732088`, `st_archive success 4732089`; archived restart `2007-01-01-00000`. The PTS correction worked, and the run passed the Leung_2023 Prigent dust ESMF mesh read (`use_prigent_roughness = .true.`).
 
+**Operator log 26 Oct 2026 ~03:50 UTC:**
+- **CA-TP4 AD395 is running**, ledger `AD395_SUBMITTED`. The first continuation segment was 4734365/4734366, submitted 03:07. Four 5-year segments have completed `0:0`, and the latest restart is `2027-01-01-00000`; 4734553 was running with `RESUBMIT=74`. The final AD restart will be 2402. A later `continue-ad395` HOLD ("AD jobs still queued") was the guard correctly refusing a duplicate. Do not resubmit.
+- **BR-Ma2, CA-Ca3 and CA-LP1 AD5 passed the audit** with `spinup_state=2` and the recommended PFT gate. Final AD5 restarts: BR-Ma2 2004, CA-Ca3 2006, CA-LP1 2012. `continue-ad395 --sites BR-Ma2 CA-Ca3 CA-LP1` was run, and AD395 handoff folders exist for all three. Job IDs are in each site's `Stage21_AD400_NORMAL400/<site>_AD400_state.json`.
+- Next: `audit-ad400` once each chain finishes, then `stage-normal`.
+
 **PFT inputs for all ten sites now follow** [RECOMMENDED_50_SITE_CLM_FATES_INPUT_PFT_20261026.csv](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/Ameriflux_Site/Ameriflux_PFT/RECOMMENDED_50_SITE_CLM_FATES_INPUT_PFT_20261026.csv), copied for Batch01 to [data/amf_batch01_recommended_pft_20261026.csv](../../data/amf_batch01_recommended_pft_20261026.csv). These are model hypotheses, not observations.
 
 | Site | Recommended (FATES) | Host `PCT_NAT_PFT` | FIXNC state |
