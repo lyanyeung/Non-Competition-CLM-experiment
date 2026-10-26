@@ -7,6 +7,19 @@ The user-confirmed AmeriFlux Batch01 **Stage80 forcing selection**, **Stage81 21
 [**AmeriFlux-specific ten-site AD400 → Normal400 preflight and runbook**](examples/AmeriFlux_Batch01_10/README.md) is separate from the European/ICOS `examples/Batch01_10` scripts. It explains the safe progression: Stage80/81/82 read-only provenance check → verify static/dynamic site TA_F sensor heights/ZBOT and DATM time/stream/domain → one new isolated FATES fixed-biogeography/no-competition case and AD5 smoke → guarded remaining AD395 → independent hybrid Normal5 → guarded Normal395. **Do not run existing Europe-specific Batch01 submission scripts for AmeriFlux stations**.
 
 
+## Operator status snapshot — 26 October 2026, 13:09 UK
+
+This snapshot comes from the archive restart listing and squeue. Except for the Batch03 Normal400 audit, the AD and Normal results are not yet audited.
+
+| Cohort | AD400 | NORMAL400 |
+| --- | --- | --- |
+| **ICOS Batch01** (10) | 10/10 archived to Y+400 | **10/10 archived to Y+800**, nothing queued; `audit-normal400` not yet run |
+| **ICOS Batch02** (10) | **4/10 complete** (FI-Hyy 2397, FR-Hes 2397, CH-Fru 2405, IT-MBo 2403); IT-Noe GPP/NPP history-fix AD400 running (2039); BE-Bra, CH-Lae, DK-Sor, ES-LJu, FR-FBn have no B02 archive | **Not started**; next step is Stage27 `audit-ad400` → `stage-normal` for the 4 complete sites |
+| **ICOS Batch03** (10) | 10/10 | **6/10 audited PASS** (IL-Yat, DE-Obe, CZ-Stn, DE-Lnf, AT-Neu, CH-Cha); IT-Lav 2703, DE-Hzd 2710, FI-Let 2705, GF-Guy 2674 running |
+| **AmeriFlux Batch01** (10) | 4 running AD395 (CA-LP1 2397, CA-Ca3 2376, CA-TP4 2287, BR-Ma2 2219); 6 not started (US-Bar needs surface; CA-TP1/TP3/US-Aud dynamic ZBOT; CA-Cbo/CA-Man multi-level TA) | Not started |
+
+Seven `st_archive` jobs are stuck with `DependencyNeverSatisfied`: 4734857, 4734697, 4734488, 4734486, 4734426, 4733522 and 4728207. Their run jobs failed or were cancelled. Identify them with `sacct` before cancelling.
+
 **Research aim:** Evaluate forest- and ecosystem-carbon responses in FATES under **fixed biogeography** and **no inter-PFT competition**, using the best available EC-station vegetation evidence and transparently versioned site surface data.
 
 **Standard spin-up for all NEW sites: 400 years of accelerated decomposition (AD400), followed by 400 years of Normal decomposition (NORMAL400). Total: 800 model years per site.** This is an experimental design, **not** evidence of convergence or a chronological 800-year historical simulation.
