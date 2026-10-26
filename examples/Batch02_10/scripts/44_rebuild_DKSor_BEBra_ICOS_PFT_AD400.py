@@ -155,7 +155,7 @@ def year_stats(path, varnames):
             bad = ~np.isfinite(a) | (np.abs(a) > 1e20)
             st[f'{v}_bad'] = int(bad.sum())
             ok = a[~bad]
-            st[f'{v}_mean'] = round(float(ok.mean()), 4) if ok.size else None
+            st[f'{v}_mean'] = float(ok.mean()) if ok.size else None
             if ok.size > 2: st[f'{v}_maxrun_const'] = int(max_run(ok))
         st['missing_vars'] = miss
     return st
@@ -210,16 +210,18 @@ def candidate_forcing_dirs(site):
     return out
 
 
-def old_dirs(site):
-    """Every Batch02 case/run/archive folder of this site except the new Stage44 one."""
+def old_dirs(site, keep_template=False):
+    """Every Batch02 case/run/archive folder of this site except the new Stage44 one
+    (and, before the new case is verified, except the Stage43 template case folder)."""
     keep = SITES[site]['new']
+    tpl_case = BASE / 'cases' / SITES[site]['template']
     names = sorted({p.name for p in (BASE / 'cases').glob(f'{site}_B02_*') if p.name != keep} |
                    {p.name for p in OUTPUT.glob(f'{site}_B02_*') if p.name != keep} |
                    {p.name for p in (OUTPUT / 'archive').glob(f'{site}_B02_*') if p.name != keep})
     dirs = []
     for n in names:
         for p in (BASE / 'cases' / n, OUTPUT / n, OUTPUT / 'archive' / n):
-            if p.exists() and not p.is_symlink(): dirs.append(p)
+            if p.exists() and not p.is_symlink() and not (keep_template and p == tpl_case): dirs.append(p)
     return names, dirs
 
 
@@ -281,14 +283,14 @@ def inventory(sites):
             print(f'  stream years {y0}-{y1} files={len(files)} datavars={dv}')
             dirs = sorted({str(f.parent) for f in files})
             print('  stream folder(s):', ' | '.join(dirs))
-            print(f'  {"year":6} {"records":>7} {"bad":>5} {"TBOT":>8} {"FSDS":>8} {"PRECT":>10} {"maxconstTBOT":>12} file')
+            print(f'  {"year":6} {"records":>7} {"bad":>5} {"TBOT":>8} {"FSDS":>8} {"P_mm/yr":>10} {"maxconstTBOT":>12} file')
             for f in files:
                 try:
                     s = year_stats(f, dv)
                     bad = sum(v for k, v in s.items() if k.endswith('_bad'))
                     ys = YEAR_RE.findall(f.name)
-                    print(f"  {ys[0] if ys else '?':6} {s['records']:>7} {bad:>5} {s.get('TBOT_mean')!s:>8} {s.get('FSDS_mean')!s:>8} "
-                          f"{s.get('PRECTmms_mean')!s:>10} {s.get('TBOT_maxrun_const')!s:>12} {f.name}"
+                    print(f"  {ys[0] if ys else '?':6} {s['records']:>7} {bad:>5} {s.get('TBOT_mean') or 0:>8.2f} {s.get('FSDS_mean') or 0:>8.2f} "
+                          f"{(s.get('PRECTmms_mean') or 0)*86400*365:>10.0f} {s.get('TBOT_maxrun_const')!s:>12} {f.name}"
                           + (f"  MISSING {s['missing_vars']}" if s['missing_vars'] else ''))
                 except Exception as e:
                     print('  ERROR', f, e)
@@ -299,7 +301,7 @@ def inventory(sites):
         if raw.is_dir():
             print('  raw forcing folder', raw, ':', ', '.join(sorted(x.name for x in raw.iterdir())[:12]))
         names, dirs = old_dirs(site)
-        print(f'  purge-old would DELETE {len(dirs)} folders ({len(names)} old B02 cases):')
+        print(f'  purge-old DELETES {len(dirs)} folders ({len(names)} old B02 cases); the template case folder only after prepare:')
         for d in dirs: print(f'    {du(d):>7}  {d}')
         q = queued_for(names + [SITES[site]['new']])
         print('  queued jobs for these names:', q or 'none')
@@ -336,10 +338,15 @@ def prepare_one(site, args):
     settings = {'RUNDIR': p['run'], 'DOUT_S_ROOT': p['arch'], 'RUN_TYPE': 'startup', 'CONTINUE_RUN': 'FALSE',
                 'STOP_OPTION': 'nyears', 'STOP_N': '5', 'REST_OPTION': 'nyears', 'REST_N': '5', 'RESUBMIT': '0',
                 'RESUBMIT_SETS_CONTINUE_RUN': 'TRUE', 'CLM_ACCELERATED_SPINUP': 'on', 'CLM_FORCE_COLDSTART': 'on', 'DOUT_S': 'TRUE'}
+    # DATM_YR_* must describe the forcing actually streamed. The Stage43 templates inherited
+    # 2018-2019 from the old reference cases while their effective stream XML cycles the full record.
+    sy0, sy1 = (start, start + len(newfiles) - 1) if newfiles else (y0, y1)
+    settings.update({'DATM_YR_START': sy0, 'DATM_YR_END': sy1, 'DATM_YR_ALIGN': sy0})
     if newfiles:
-        settings.update({'RUN_STARTDATE': f'{start:04d}-01-01', 'DATM_YR_START': start, 'DATM_YR_END': start + len(newfiles) - 1,
-                         'DATM_YR_ALIGN': start})
+        settings['RUN_STARTDATE'] = f'{start:04d}-01-01'
         if co2 is not None: settings['CCSM_CO2_PPMV'] = f'{co2:.2f}'
+    else:
+        need(int(query(tpl, 'RUN_STARTDATE')[:4]) == y0, f'{site}: template RUN_STARTDATE year != stream year_first {y0}')
     for k, v in settings.items(): change(new, k, v)
     if not (new / '.case.run').is_file(): call([new / 'case.setup'], cwd=new, timeout=400)
     u = new / 'user_nl_clm'; t = nml_set(u.read_text(), 'fsurdat', f"'{surf}'"); u.write_text(t)
@@ -412,8 +419,11 @@ def validate(site, surf, newfiles, co2):
 
 def purge_one(site):
     p = P(site); o = load(p['ledger'])
-    need(o.get('phase') in ('CASE_VERIFIED_NOT_SUBMITTED', 'AD400_SUBMITTED'), f'{site}: new case not verified ({o.get("phase")}); refuse to delete the template')
-    names, dirs = old_dirs(site)
+    verified = o.get('phase') in ('CASE_VERIFIED_NOT_SUBMITTED', 'SUBMIT_ATTEMPTED_UNCERTAIN', 'AD400_SUBMITTED')
+    need(not o or verified, f'{site}: Stage44 prepare is uncertain ({o.get("phase")}); resolve it before deleting anything')
+    names, dirs = old_dirs(site, keep_template=not verified)
+    if not verified:
+        print(f'  {site}: keeping template case {p["tpl"]} until the new case is verified (rerun purge-old afterwards)')
     need(SITES[site]['new'] not in names, 'new case in delete list')
     q = queued_for(names)
     need(not q, f'{site}: queued jobs for old cases: {q}')
@@ -425,7 +435,8 @@ def purge_one(site):
         print(f'  deleting {size:>7} {d}', flush=True)
         shutil.rmtree(d)
         deleted.append({'path': str(d), 'size': size})
-    save(rec, {'site': site, 'deleted_cases': names, 'deleted': deleted, 'utc': utc()})
+    old = load(rec).get('rounds', [])
+    save(rec, {'site': site, 'rounds': old + [{'deleted_cases': names, 'deleted': deleted, 'template_kept': not verified, 'utc': utc()}]})
     print(f'{site} PURGE DONE {len(deleted)} folders; receipt {rec}')
 
 

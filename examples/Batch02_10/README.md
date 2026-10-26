@@ -16,6 +16,12 @@
 3. **`purge-old`** deletes every `<SITE>_B02_*` case, run and archive folder except the new one. It is allowed only after the new case is verified, and it refuses if any of those jobs is queued. A receipt is written.
 4. **`submit`** applies the stack guard and makes one `case.submit --skip-preview-namelist` with `RESUBMIT=79` (80 × 5 years). `audit-first5` checks the first 5-year restart.
 
+**Operator inventory 19:07 UK:**
+- **DK-Sor forcing is complete:** 1996–2024, 29 annual files of 17520 records each, no missing or fill values (`datm_v5_candidate_timevarying_zbot`). BE-Bra has 1996–2025, 30 files, with the four Stage34-curated years.
+- **Stale year range:** both Stage43 cases still had `DATM_YR_START/END/ALIGN = 2018/2019/2018`, inherited from the old reference cases. Their effective stream XML nevertheless cycled the full record. Stage44 sets `DATM_YR_*` from the streamed years.
+- **Jobs still alive after the cancel:** CIME had already resubmitted, leaving BE-Bra run 4741199 running and archives 4741201, 4741147, 4734697 and 4734486 pending. They must be cancelled before any purge.
+- **Purge runs in two rounds:** before prepare, `purge-old` deletes all old outputs and old cases but keeps the Stage43 template case folder. It deletes that folder too once the new case is verified.
+
 A mock test passed. It covered a broken-forcing HOLD, the CO₂ gate, purge-before-prepare refusal, queued-job refusal, duplicate prepare/submit refusal, surface PFT for both sites and the forcing swap.
 
 ## Normal400 for the four AD400-complete sites — Normal395 submitted (26 October 2026, 17:12 UK)
