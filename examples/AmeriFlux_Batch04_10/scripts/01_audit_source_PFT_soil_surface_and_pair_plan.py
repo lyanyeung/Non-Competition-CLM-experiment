@@ -207,6 +207,16 @@ def plan(results,shas):
               "active_DATM":None,"active_surface":None,"active_FATES_param":None,
               "actual_CIME_case_exists":False,"AD5_completed":False,
               "spinup_authorized":False,
+              "submission_resource_guards":{
+                 "min_soft_stack_KiB":65536,
+                 "preferred_soft_stack_KiB":300000,
+                 "accept_higher_or_unlimited_without_decrease":True,
+                 "Slurm_PropagateResourceLimits_must_include":"ALL_OR_STACK",
+                 "guard_import":"scripts/b04_stack_guard.py",
+                 "guard_before_each_CIME_case_submit":True,
+                 "check_every_phase":["AD5","AD395","NORMAL5","NORMAL395"],
+                 "attempt_before_submit_ledger_mandatory":True,
+                 "current_model_submission_allowed":False},
               "HOLD":["ZBOT","DATM_UTC_TIME_CENTER",
                       "MODEL_SURFACE_RECOMMENDED_PFT_SITE_SPECIFIC",
                       "SOIL_CLM10_AND_ORGANIC","FATES_MAPPING",
@@ -221,7 +231,16 @@ def plan(results,shas):
             "sites":results,"experiments":rows,
             "fates_ad_spinup_state":2,
             "fates_normal_spinup_state":"REMOVE_AD_ACCELERATION_PARAMETER",
-            "paired_model_runs_not_submitted":True}
+            "paired_model_runs_not_submitted":True,
+            "stack_policy": {
+              "Source":"AmeriFlux Batch01 Stage21 65536KiB gate",
+              "minimum_soft_KiB":65536,
+              "prefer_soft_KiB":300000,
+              "never_reduce_high_or_unlimited":True,
+              "verify_Slurm_PropagateResourceLimits":"STACK_OR_ALL",
+              "enforce_for_AD5_AD395_Normal5_Normal395":True,
+              "live_cases_exist":False,
+              "model_jobs_submitted":False}}
 def main():
     ap=argparse.ArgumentParser()
     group=ap.add_mutually_exclusive_group(required=True)
