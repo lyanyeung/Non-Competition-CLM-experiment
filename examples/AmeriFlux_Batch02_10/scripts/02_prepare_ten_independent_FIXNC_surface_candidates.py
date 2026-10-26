@@ -123,10 +123,40 @@ def profile(path,reg):
     return bysite
 
 def original(site):
+    """Select real original point surface, not an arbitrary new FIXNC output.
+
+    Prefer the same batch02 primary single-point surfdata folder that worked
+    for GLE Stage103. If that does not exist, use the original independent
+    Stage04 soil collector's *explicit selected source surface* receipt.
+    Never silently select the first of multiple unrelated source surfaces.
+    """
     d=SURF_SOURCE/site/"subset_data_batch02_surf2000"
     files=sorted(x for x in d.glob("surfdata*.nc") if x.is_file() and not x.is_symlink())
-    if len(files)!=1:fail(site+" original single point surface not unique: "+str(d)+" N="+str(len(files)))
-    return files[0]
+    if len(files)==1:return files[0]
+    if len(files)>1:fail(site+" multiple primary Batch02 source surface files "+str(d))
+    summary=(Path.home()/"CLM_FATES_SOIL/AmeriFlux_Batch02_10_20261026_Stage04/10_RECOMMENDED_SITE_SUMMARY.csv")
+    if summary.is_file():
+        match=[row for row in readcsv(summary) if row.get("site")==site]
+        if len(match)==1:
+            ref=match[0].get("reference_surface","")
+            if ref:
+                path=Path(ref.rsplit(":",1)[-1])
+                if (path.is_absolute() and path.is_file() and not path.is_symlink()
+                    and path.name.startswith("surfdata") and path.suffix==".nc"
+                    and (site in path.parts or any(
+                        p.startswith(site+"_") for p in path.parts))):
+                    print("AMF_B02_SURFACE_ORIGINAL_STAGE04_SELECTED",
+                        site,str(path),flush=True)
+                    return path
+    # If Stage04 did not record a resolvable source, require uniqueness of
+    # all relevant site surfaces; never choose among conflicting versions.
+    found=sorted(p for p in (SURF_SOURCE/site).rglob("surfdata*.nc")
+             if p.is_file() and not p.is_symlink()
+             and not any(t in p.parts for t in ("forcing","raw","packages")))
+    if len(found)==1:return found[0]
+    fail(site+" source site surface absent/ambiguous: primary "+str(d)+
+         "; Stage04 selected source unavailable; alternatives "+
+         str([str(p) for p in found[:8]]))
 
 def candidate(site):
     return OUT/site/"surface"/f"surfdata_{site}_FIXNC_PFT_soil10_stage02_v1.nc"
