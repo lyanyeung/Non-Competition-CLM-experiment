@@ -140,20 +140,22 @@ The user explicitly requests the same stack mechanism as [AmeriFlux Batch01 Stag
 
 ## Stage04 — one-paste IRIDIS6 stack/soil10 bootstrap
 
-[Stage04 portable shell bootstrap](scripts/04_iridis_stack_soil10_bootstrap.sh) is pinned to both repos, Git blob `443aa07438dd2d29bd5f7883846b618fb4548aa2`; it downloads Stage02/03 and the original 50-site soil collector + 5 source metadata/soil records through `curl`, **not git pull**.
+[Stage04 portable shell bootstrap](scripts/04_iridis_stack_soil10_bootstrap.sh) is pinned to both repos, Git blob `fa6ae72261f62e41381bd13d9650cd8ebf969775`; it downloads Stage02/03 and the original 50-site soil collector + 5 source metadata/soil records through `curl`, **not git pull**.
 
-Four explicit modes: `audit` confirms Stage21 min64MiB stack/child propagation and checks original soil collector selftest, **no Slurm**; `soil10` fetches genuine per-depth ReESH/BADM/USDA/SoilGrids source evidence for exact second-batch ten sites, builds original 10-layer 09-wide CSV, then runs Stage02 **read-only** surface check (isolated Batch02 per-depth evidence at `$HOME/CLM_FATES_SOIL/AmeriFlux_Batch02_10_20261026_Stage04`); `check-surfaces` repeats the read-only check from cached 10-layer evidence; `build-surfaces` writes only independent versioned candidate surfaces if every site passes the original evidence/surface gate. **Never builds or submits any CIME model.**
+Five explicit modes: `all` (default) performs stack audit, original 10-site Layer1–10 soil profile collection, science checks and construction of independent candidate surfaces in ONE command; `audit` confirms Stage21 min64MiB stack/child propagation and checks original soil collector selftest, **no Slurm**; `soil10` fetches genuine per-depth ReESH/BADM/USDA/SoilGrids source evidence for exact second-batch ten sites, builds original 10-layer 09-wide CSV, then runs Stage02 **read-only** surface check (isolated Batch02 per-depth evidence at `$HOME/CLM_FATES_SOIL/AmeriFlux_Batch02_10_20261026_Stage04`); `check-surfaces` repeats the read-only check from cached 10-layer evidence; `build-surfaces` writes only independent versioned candidate surfaces if every site passes the original evidence/surface gate. **Never builds or submits any CIME model.**
 
 Quick operator commands (do not run `soil10` until network access and original source packages are available on IRIDIS6):
 
 ```bash
-COMMIT=6d4cf03d4fd668b7ddd21d4dab6c5ab5855ad750
+COMMIT=aac5984b7de90415649ea330a74f8f89ef249700
 SCRIPT="$HOME/AMF_Batch02_04_stack_soil10.sh"
 curl -fLsS --retry 3 "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$COMMIT/examples/AmeriFlux_Batch02_10/scripts/04_iridis_stack_soil10_bootstrap.sh" -o "$SCRIPT"
-test "$(git hash-object "$SCRIPT")" = 443aa07438dd2d29bd5f7883846b618fb4548aa2
-bash "$SCRIPT" audit
-# After audit: bash "$SCRIPT" soil10
-# After ten-site true layer profile check passes: bash "$SCRIPT" build-surfaces
+test "$(git hash-object "$SCRIPT")" = fa6ae72261f62e41381bd13d9650cd8ebf969775
+bash "$SCRIPT" all
+# Only if source data are missing, inspect holds then rerun: bash "$SCRIPT" soil10
+# Or reuse cached profiles: bash "$SCRIPT" build-surfaces
 ```
 
 **Stack persistence:** This bootstrap adjusts its own subshell; it does not change the parent IRIDIS6 shell. Future real `case.submit` must run *within* Stage03 high-stack guarded submit, not independently. Strict Stage03 science release receipts are deliberately not auto-created by Stage04, so successful candidate surfaces cannot accidentally launch 400 years.
+
+**Documented proxy correction (Stage02 source commit `63a79d7a80d766a97f87763619f1f216c6607b6e`):** US-Ho2 and US-Ho3 final recommended soil is explicitly **US-Ho1 ReESH measured nearest-neighbour L1–L10**, not their earlier stand-alone Stage01 SoilGrids 0–30 cm values. The script checks the source Ho1 measurement tier before proxying, records Ho1 provenance, and never invents a ten-layer texture. All other sites must match their source-pinned original top-5-node means. The `all` mode creates independent new surfdata only and never submits AD400.
