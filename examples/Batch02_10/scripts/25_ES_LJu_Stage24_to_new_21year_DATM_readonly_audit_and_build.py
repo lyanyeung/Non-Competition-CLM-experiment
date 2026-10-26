@@ -81,6 +81,8 @@ def test():
  v=np.arange(17520,dtype=float)
  req(len(v)==365*48,"NOLEAP self-test")
  req(abs(0.01*1800-18)<1e-10,"PRECTmms conversion self-test")
+ req(f"{2004} ORIGINAL TBOT"=="2004 ORIGINAL TBOT" and
+     f"{2024} KEEP WIND"=="2024 KEEP WIND","Year-labelled comparison self-test")
  print("STAGE25 SELF-TEST PASS: 21x17520, 30-min timestep, meteorological variables")
 def main():
  p=argparse.ArgumentParser(description=__doc__)
@@ -162,9 +164,9 @@ def main():
    orig_values={k:vec(nc.variables[k]) for k in
        ("TBOT","QBOT","PRECTmms","PSRF","FSDS","FLDS","WIND")}
    for key,tol in (("TBOT",.015),("QBOT",.00002),("PRECTmms",.00002)):
-    compare(orig_values[key],bb[key].to_numpy(float),year+" ORIGINAL "+key,tol)
+    compare(orig_values[key],bb[key].to_numpy(float),f"{year} ORIGINAL {key}",tol)
    for key,tol in (("PSRF",.15),("FSDS",.15),("FLDS",.15),("WIND",.02)):
-    compare(orig_values[key],ss[key].to_numpy(float),year+" KEEP "+key,tol)
+    compare(orig_values[key],ss[key].to_numpy(float),f"{year} KEEP {key}",tol)
   changed={}
   for name in REPLACE:
    old=orig_values[name]
