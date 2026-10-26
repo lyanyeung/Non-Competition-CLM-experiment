@@ -1,5 +1,12 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## IT-Noe Stage40 partial new case: effective non-history lnd_in mismatch — Stage41 read-only diff
+
+Latest operator output: Stage40 source audit PASS, verifies **both FATES_GPP and FATES_NPP registered** and original (22y QC-v3) DATM/PFT/executable unchanged. Stage40 successfully cloned `IT-Noe_B02_FIXNC_GPPNPP_HISTFIX_AD400`, generated and checked `hist_fincl1` first; then ***failed before writing a success receipt or submitting Slurm*** because `without_tape1(new lnd_in) != without_tape1(original lnd_in)`. The new case and `stage40_IT_Noe_GPPNPP_histfix_AD400/prepare_attempt.json` exist; phase is `PREPARATION_ATTEMPT_UNCERTAIN`. **DO NOT rerun Stage40 --prepare, --start, or old Stage15; do not delete or overwrite partial case**. This may reflect CIME-generated formatting/default differences or a real unintended namelist change; do not presume which.
+
+[Stage41 targeted read-only diffs](scripts/41_IT_Noe_partial_case_lnd_diff_readonly.py) validates original Stage39 SHA and new tape1 replacement, inspects actual new CaseDocs and RUNDIR lnd_in, computes byte-identical comparisons outside tape1, prints every changed assignment and a bounded unified diff (excludes only the intended tape1 delta), checks untouched submission receipt and partial preparation phase. Source/partial case, CIME configs and Slurm entirely unchanged. Run Stage41 audit, review actual diffs and only then implement a guarded **resume of existing partial prepared case** that checks all non-history science keys and final effective outputs. Do not use earlier Stage40 whole-file condition's failure as proof of scientific mismatch.
+
+---
 ## IT-Noe Stage40 read-only source audit false blocker — fixed (26 Oct)
 
 Actual operator attempt: `--self-test PASS`, `--audit-source` failed with `user_nl_clm original hist_fincl1 not exactly 7 expected fields`. This was an overconstraint on the **input** `user_nl_clm`: CIME combines templates/defaults/user_nl to produce the **effective** `CaseDocs/lnd_in`, which Stage39 explicitly pinned by SHA and confirmed exactly `TOTSOMC,TOTSOMN,TLAI,GPP,NPP,TWS,H2OSNO`. The source user_nl may specify a different subset or no tape1 list; this does not override the evidence from the effective file.
