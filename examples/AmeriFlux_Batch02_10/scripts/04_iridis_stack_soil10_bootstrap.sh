@@ -5,7 +5,7 @@
 set -euo pipefail
 MODE="${1:-audit}"
 case "$MODE" in audit|soil10|check-surfaces|build-surfaces) ;; *) echo 'Use audit | soil10 | check-surfaces | build-surfaces' >&2; exit 2;; esac
-NCREV=ecb58d4c0a69df9d541ce087c26cc2fff00f8675
+NCREV=407dd89a339f8bbf145cce7e2073ab6fd9e76ed5
 MAINREV=f4a17c66cc2a07d933edfbc03efcbb503187907b
 NCROOT="https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$NCREV"
 MAINROOT="https://raw.githubusercontent.com/lyanyeung/CLM-FATES-single-site-workflows/$MAINREV"
