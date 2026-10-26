@@ -1,5 +1,12 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## 26 October Stage34 NetCDF float32 precision hotfix — **use new v2 candidate path**
+
+Actual operator result: Stage34 `--self-test` and `--audit` PASS; expected source SHA hashes and 1996/1999/2005/2021 intervention counts exactly match (QBOT 27, TBOT 4). The initial `--build` failed on first year 1996 *before publishing its first candidate NetCDF* due to **overly tight `1e-6 K` floating-point exactness** in the post-NetCDF TBOT check. This is a writer/verifier precision issue, not evidence that paired source-anomaly selection was wrong. Old `stage34_BE_Bra_curated_MET_QC_v1` directory may remain empty or partially created; never delete or overwrite it automatically.
+
+**Updated Stage34** [script](scripts/34_BE_Bra_curated_4year_DATM_candidate.py): writes only authorized TBOT/QBOT half-hour indices (not the full 17,520-value variable), guards unscaled float32/64 native storage, validates exact value after cast to actual on-disk dtype, and uses **new `stage34_BE_Bra_curated_MET_QC_v2`** exclusive output. **Updated Stage35** [script](scripts/35_BE_Bra_MET34_independent_AD400_prepare_submit.py) requires the v2 folder, version and four-year per-field count proof, never accepts v1. Audit/prepare do not submit; only `--start` after explicit operator choice can submit the independent direct AD400. The 2002 rain remains original; all edits are labelled EXPERIMENTAL interpolation without source-QC/ERA5 validation.
+
+---
 ## BE-Bra Stage33 **human review** → Stage34 independent met candidate → Stage35 fresh AD400
 
 User supplied Stage33 all anomaly context, source SHA from actual effective Stage30 BE-Bra data.
