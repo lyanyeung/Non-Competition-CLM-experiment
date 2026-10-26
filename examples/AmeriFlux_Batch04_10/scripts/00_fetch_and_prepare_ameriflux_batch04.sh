@@ -8,9 +8,9 @@ if [[ "$MODE" != "--check-only" && "$MODE" != "--build" ]]; then
   echo "ERROR: use --check-only or --build" >&2; exit 2
 fi
 RAW="https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment"
-COMMIT="6a98f209e3608483b79c33141f4fe811a7c36a9a"
+COMMIT="a51ece95c6cdcce6a6fba07f22980d4e277014d8"
 REL="examples/AmeriFlux_Batch04_10"
-TARGET="$HOME/ameriflux_batch04_fates_pair_setup_6a98f209e360"
+TARGET="$HOME/ameriflux_batch04_fates_pair_setup_a51ece95c6cd"
 mkdir -p "$TARGET/data" "$TARGET/scripts"
 for filename in \
     AMF_BATCH04_10_PFT_SOURCE_SNAPSHOT_20261026.csv \
