@@ -1,5 +1,19 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## CH-Lae Stage33 human review → Stage36 constrained Met candidate → Stage37 independent AD400 (26 October)
+
+Operator confirms **BE-Bra Stage35 submitted successfully** (Job ID not yet supplied). DK-Sor and FR-FBn Stage31 AD400 likewise already submitted; do NOT resubmit any of them. **CH-Lae Stage32** actual 2004–2024: 21 provisional-name input files, no invalid physics, zero RH<5, negative VPD or >12°C half-hour changes, but **7 instances >8°C**. Subsequent full Stage33 context shows **three isolated T anomalies** (one with T-only change and two with paired Q) warranting local numerical sensitivity candidates:
+
+- **2012-11-02 14:30** T=10.149°C between 1.076 and −0.728°C; QBOT=0.0054983 between 0.00379997 and 0.00375857. Proposed 1 half-hour TBOT/QBOT midpoint.
+- **2015-06-12 15:30** T=14.097°C between 23.020 and 20.350°C; leave QBOT as observed/selected, propose T midpoint only.
+- **2017-06-27 14:30** T=15.452°C between 24.386 and 23.970°C; QBOT=0.00504751 between 0.01001135 and 0.01044575. Propose 1 half-hour TBOT/QBOT midpoint.
+- **2005-12-31 08:00**, T jumps −5.201°C to 3.388°C and remains ≈3.4°C (sustained step); **2012-11-01 15:30**, abrupt 10.093°C→−0.487°C followed by ≈−0.3°C (sustained step). **Do NOT interpolate these as isolated points, or assert their scientific validity**. Requires native tower/met time-source comparison for publication-grade forcing.
+
+[Stage36 versioned site-specific 21-year DATM candidate](scripts/36_CH_Lae_targeted_3year_DATM_candidate.py) pins exact actual Stage30 CH-Lae source CDEPS stream and source SHA for 2005,2012,2015,2017; reads source NetCDF, checks time, exact timestamps/neighbor T and Q signatures, performs only **TBOT3/QBOT2** sparse half-hour writes into **three new** annual NetCDF, leaves 18 source annual files and all precipitation/time/data variables unchanged, verifies every variable/source count and on-disk float32/float64 quantum equality. Manifest includes source SHA, 21 files and unresolved sustained-source warning. Output `stage36_CH_Lae_targeted_MET_QC_v1`. **Exploratory interpolation, not an original ICOS/ERA5 verified science release.**
+
+[Stage37 independent exact-selected-21-file AD400 controller](scripts/37_CH_Lae_MET36_independent_AD400_prepare_submit.py) clones unsubmitted Stage30 CH-Lae case into new `CH-Lae_B02_FIXNC_FOREST_MET36_AD400`, reuses original exe and FATES proxy PFT ENF12 DBF88, regenerates model AD user_nl via trusted private overlay, rewrites *only* new-case selected CDEPS for three candidate years and verifies all 21 year SHA, nuopc point, effective lnd_in and restart emptiness. `--prepare` creates **NO Slurm jobs**; `--audit` read-only; `--start --confirm SUBMIT_CH_LAE_STAGE37_TARGETED_EXPLORATORY_AD400_ONCE` one-time submits 80×5 years with `--skip-preview-namelist`. Never run prior Stage31 `--start --sites CH-Lae` in parallel and never resubmit after an uncertain Stage37 submission.
+
+---
 ## 26 October Stage34 NetCDF float32 precision hotfix — **use new v2 candidate path**
 
 Actual operator result: Stage34 `--self-test` and `--audit` PASS; expected source SHA hashes and 1996/1999/2005/2021 intervention counts exactly match (QBOT 27, TBOT 4). The initial `--build` failed on first year 1996 *before publishing its first candidate NetCDF* due to **overly tight `1e-6 K` floating-point exactness** in the post-NetCDF TBOT check. This is a writer/verifier precision issue, not evidence that paired source-anomaly selection was wrong. Old `stage34_BE_Bra_curated_MET_QC_v1` directory may remain empty or partially created; never delete or overwrite it automatically.
