@@ -8,7 +8,8 @@
 --plan: same checks and write NEW research-only paired 20-arm JSON+TSV
         under experiment NonCompetitionObserved22/AmeriFlux_Batch04_10.
         Does NOT create CIME cases/CLM namelists/forcing/netcdf/surface or jobs.
-AD400 (5+395 years) then Normal400 (5+395), per-arm. Existing user
+Direct AD400 (80x5 years; RESUBMIT=79; no AD5 handoff), then Normal400,
+per-arm, per operator instruction on 26 October 2026. Existing user
 approved 10-site Gate0 is a numeric screen, not verified ZBOT/time center,
 scientific PFT/organic soil, FATES HLM parameter map or model permission.
 """
@@ -195,7 +196,9 @@ def plan(results,shas):
               "site":site["site"],"arm":arm,
               "case_name_proposed":site["site"]+"_AMF_B04_"+
                    ("FULL" if arm.startswith("FULL") else "FIXNC")+"_AD400",
-              "AD400_years":400,"AD_first_smoke":5,"AD_continue_after_success":395,
+              "AD400_years":400,"AD_first_smoke":0,"AD_continue_after_success":0,
+              "AD_protocol":"DIRECT_80x5_ONE_SUBMISSION_NO_AD5_HANDOFF",
+              "AD_STOP_N":5,"AD_RESUBMIT":79,
               "Normal400_years":400,"Normal_first_smoke":5,
               "Normal_continue_after_success":395,
               "forcing_source_sha256":site["meteorology_SHA256"],
@@ -214,7 +217,7 @@ def plan(results,shas):
                  "Slurm_PropagateResourceLimits_must_include":"ALL_OR_STACK",
                  "guard_import":"scripts/b04_stack_guard.py",
                  "guard_before_each_CIME_case_submit":True,
-                 "check_every_phase":["AD5","AD395","NORMAL5","NORMAL395"],
+                 "check_every_phase":["AD400","NORMAL5","NORMAL395"],
                  "attempt_before_submit_ledger_mandatory":True,
                  "current_model_submission_allowed":False},
               "HOLD":["ZBOT","DATM_UTC_TIME_CENTER",
@@ -238,7 +241,7 @@ def plan(results,shas):
               "prefer_soft_KiB":300000,
               "never_reduce_high_or_unlimited":True,
               "verify_Slurm_PropagateResourceLimits":"STACK_OR_ALL",
-              "enforce_for_AD5_AD395_Normal5_Normal395":True,
+              "enforce_for_AD400_Normal5_Normal395":True,
               "live_cases_exist":False,
               "model_jobs_submitted":False}}
 def main():
@@ -267,3 +270,4 @@ def main():
     print("AMF_B04 GATE HOLD ZBOT DATM UTC CLOCK FATES PARAM PFT SOIL ORGANIC PTS CO2")
     print("NO SOURCE/SURFACE/CASE/DATM/MODEL/SLURM WRITES")
 if __name__=="__main__":main()
+

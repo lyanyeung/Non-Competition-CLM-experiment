@@ -1,3 +1,21 @@
+# AmeriFlux Batch04: direct AD400 with Batch01 height and stack treatment
+
+**Current operator protocol, 26 October 2026:** use source-documented BASE TA sensor height proxies as in Batch01, including the dated US-Rpf relocation; skip the separate AD5 test and schedule **AD400 as 80 x 5-year segments, RESUBMIT=79**. The later instruction to follow Batch01 supersedes the earlier request to hold all sites lacking verified TA_F height crosswalks. Those crosswalks remain explicitly unverified.
+
+Implementation: [height/CO2 source policies](data), [UTC/NOLEAP DATM builder](scripts/04_build_UTC_NOLEAP_DATM_and_inventory.py), [case preparation and direct submission controller](scripts/05_prepare_and_submit_direct_AD400.py), [immutable downloader](scripts/06_fetch_direct_AD400.sh), and [full protocol, exact height table, execution/recovery and validation limits](docs/DIRECT_AD400_BASE_TA_PROXY_20261026.md).
+
+The downloader supports `--inputs`, `--prepare --manifest PATH`, `--submit --manifest PATH`, or `--all`, with the full published `--commit`. Default `--inputs` creates forcing only; `--all` proceeds through actual case preparation and submission if all technical checks pass. Source files and old experiments stay unchanged. The actual submitter imports the live stack guard immediately before every initial `case.submit`; no compiler stack protection is disabled.
+
+**Paired interpretation:** FULL uses standard dynamic biogeography/competition; FIXNC imposes the site fractions and bare area. The common surface does not prove identical initial PFT area in FULL. These are standard FULL-vs-FIXNC configuration experiments, not a verified competition-only contrast. Original gridded soil depth layers remain explicit fallbacks, not site observations. Normal400 follows verified AD400 completion and is not automatically started by this release.
+
+**Actual runtime status:** implementation and local tests are prepared; no new IRIDIS6 case, Slurm submission or AD400 completion is claimed without operator output. The prior AD5-only gate is retained as a historical diagnostic and is not required by the current direct AD400 protocol.
+
+---
+
+## Earlier source-preparation record
+
+The following sections preserve the original source/PFT preparation record. Their AD5-only sequencing and categorical claims that no controller exists are historical and superseded by the current protocol above.
+
 # AmeriFlux Batch04 — paired full FATES vs fixed-biogeography/no-competition FATES
 
 **Created 2026-10-26; ten new AmeriFlux station projects. This is NOT the ICOS `examples/Batch03_10` or `examples/Batch01_10` experiment.** Source meteorology and provisional surfaces are newly verified, but **no site has a science-approved ZBOT, active DATM/forcing NetCDF stream, final CLM ten-layer/ORGANIC soil source, verified FATES parameter mapping in a constructed case, production CIME case or Slurm job**. Do not call these experiments running or completed.
@@ -136,3 +154,4 @@ The older [AmeriFlux Batch01 Stage21](../AmeriFlux_Batch01_10/scripts/21_laneA_A
 5. Only after **each arm** AD5 model restart + archive verified: extend AD395, convert that arm to Normal400, verify Normal5 then Normal395; keep both arms independently guarded against duplicate Slurm submissions and receipt drift.
 
 **Status**: Project directory, science snapshots, two scripts and planning method are now created in GitHub. All actual scientific inputs are **research-only** pending the case-science gates above. No Full/FIXNC CIME case, model/Slurm submission or spinup completion is claimed.
+
