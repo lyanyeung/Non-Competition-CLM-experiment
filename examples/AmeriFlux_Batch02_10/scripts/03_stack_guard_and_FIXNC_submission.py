@@ -13,7 +13,7 @@ PropagateResourceLimits includes STACK before model submission.
                attempt ledger BEFORE submitting; never duplicate submissions.
 Supports AD5, AD395, NORMAL5, NORMAL395. Does not create model cases.
 """
-import argparse,hashlib,json,os,re,resource,subprocess,sys
+import argparse,configparser,hashlib,json,os,re,resource,subprocess,sys
 from pathlib import Path
 from datetime import datetime,timezone
 
@@ -104,6 +104,16 @@ def case_gate(site,phase,case,receipt):
         if not p.is_file() or sha(p)!=proof.get(key):
             fail("Case configuration changed after science approval: "+item)
     if not (case/"case.submit").is_file():fail("Missing CIME case.submit")
+    # Batch01 Stage21 requires skip-preview-namelist to be persisted
+    # in case submit options after the scientifically approved private
+    # FATES AD buildnml configuration was previewed. Do NOT silently
+    # regenerate different namelists during model submission.
+    cp=configparser.RawConfigParser()
+    if not cp.read(case/".submit_options"):
+        fail("Missing CIME .submit_options, cannot prove prior approved buildnml")
+    if not (cp.has_section("SubmitOptions") and
+            cp.getboolean("SubmitOptions","skip_pnl",fallback=False)):
+        fail("CIME skip_pnl was not persisted like Batch01 Stage21")
     cs=case/"CaseStatus"
     if cs.is_file() and re.search("case.submit starting|case.run starting|model execution starting",
                                   cs.read_text(errors="replace"),re.I):
