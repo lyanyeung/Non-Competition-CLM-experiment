@@ -171,8 +171,14 @@ def build():
             ds.variables[v][:] = a.reshape(ds.variables[v].shape)
         ds.variables['ZBOT'][:] = np.full(ds.variables['ZBOT'].shape, zbot)
         ds.setncattr('stage45_source', f'{MERGED.name} year 2025 (ICOSETC/ICOS merged), FLUXNET_MultiSite_6 v5 conversion; layout copied from {f24.name}')
-    back = nc_read(new)
-    for v, a in c25.items(): need(np.allclose(back[v], a, rtol=0, atol=1e-9), f'readback {v}')
+    with Dataset(str(new)) as ds:  # readback in the file's own storage type (v5 files are float32)
+        for v, a in c25.items():
+            var = ds.variables[v]
+            got = np.ma.filled(np.ma.asarray(var[:]), np.nan).ravel().astype(var.dtype)
+            need(np.array_equal(got, a.astype(var.dtype)), f'readback {v} (dtype {var.dtype})')
+        need(np.all(np.asarray(ds.variables['ZBOT'][:]).ravel() == np.asarray(zbot, dtype=ds.variables['ZBOT'].dtype)), 'readback ZBOT')
+        tu = ds.variables['time'].units
+    need(tu.startswith('days since 2025-01-01'), f'time units {tu}')
     files = sorted(tmp.glob('DK-Sor_DATM_*.nc'))
     man = {'site': 'DK-Sor', 'years': [1996, 2025], 'n_files': len(files), 'zbot_2025_m': zbot,
            'source_csv': str(MERGED), 'source_csv_sha256': sha(MERGED), 'template_2024': str(f24),
