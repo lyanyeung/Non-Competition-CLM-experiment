@@ -24,7 +24,7 @@ from netCDF4 import Dataset,num2date
 SITE="BE-Bra"
 ROOT=Path("/iridisfs/scratch/ly3n24/CLM_FATES")
 CASE=ROOT/"cases/BE-Bra_B02_FIXNC_FOREST_PROXY_AD5"
-DEST=ROOT/"experiments/NonCompetitionObserved22/Batch02_10/stage34_BE_Bra_curated_MET_QC_v1"
+DEST=ROOT/"experiments/NonCompetitionObserved22/Batch02_10/stage34_BE_Bra_curated_MET_QC_v2"
 STREAM_SHA="7fafea5869f183173fda3a00dc9b013e654daf1237b72bb19d46ed1f5a000109"
 PINS={
  1996:"0d482d4c9d84893d20b5208389c69e9d0d1a17ab2a5f3d77cc7ed77bbeab7079",
@@ -34,7 +34,7 @@ PINS={
  2021:"5947209e7194ac68a30bfad430811ec2e96144d0f7cd0fe719114a89c8bb6f44"}
 YEARS=(1996,1999,2005,2021)
 ACK="CREATE_BE_BRA_STAGE34_FOUR_YEAR_EXPLORATORY_MET_OVERLAY"
-VERSION="BE-Bra-1996-1999-2005-2021-curated-QC-v1-20261026"
+VERSION="BE-Bra-1996-1999-2005-2021-curated-QC-v2-20261026"
 def require(ok,msg):
  if not ok:raise RuntimeError(str(msg))
 def sha(path):
@@ -77,13 +77,31 @@ def arr(ds,key):
  data=np.ma.asarray(v[:],dtype=np.float64)
  result=np.moveaxis(data,v.dimensions.index("time"),0)
  return np.asarray(np.ma.filled(result.reshape(17520),np.nan),dtype=np.float64)
-def put(ds,key,data):
+def put(ds,key,edits):
+ # Write only the authorized half-hours. Never write the full variable:
+ # reserializing ~17520 floats may re-quantize untouched entries.
  v=ds.variables[key]
- old=np.ma.asarray(v[:])
- target=np.asarray(data).reshape((17520,)+tuple(1 for _ in range(v.ndim-1)))
- target=np.moveaxis(target,0,v.dimensions.index("time"))
- require(target.shape==v.shape,"Unexpected target shape for "+key)
- v[:]=target
+ require("time" in v.dimensions and v.size==17520,
+         "Unexpected selected NetCDF variable shape "+key)
+ require(v.dtype.kind=="f" and v.dtype.itemsize in (4,8),
+         "Explicit float32/float64 storage required for exact quantization guard "+key)
+ require(not hasattr(v,"scale_factor") and not hasattr(v,"add_offset"),
+         "Packed/scaled variable unsupported for unambiguous precision guard "+key)
+ ax=v.dimensions.index("time")
+ for i,value in edits.items():
+  require(0<=i<17520 and np.isfinite(value),"Invalid authorized edit")
+  loc=[0]*v.ndim
+  loc[ax]=int(i)
+  v[tuple(loc)]=np.asarray(value,dtype=v.dtype).item()
+
+def quantized_match(candidate,readback,dtype):
+ # Exact match after the *declared on-disk* float representation.
+ dt=np.dtype(dtype)
+ require(dt.kind=="f" and dt.itemsize in (4,8),
+         "Cannot audit unexpected NetCDF target numeric type")
+ expect=np.asarray(candidate,dtype=dt).item()
+ return np.asarray(readback,dtype=dt).item()==expect
+
 def rh(t,q,p):
  c=t-273.15
  e=q*p/(.622+.378*q)
@@ -194,8 +212,10 @@ def verify_candidate(src,dst,edits):
                        rtol=0,atol=0,equal_nan=True))
     require(set(diff)==set(edits[key]),"Unauthorized "+key+" data changed "+str(diff[:20]))
     for i,v in edits[key].items():
-     require(abs(float(zz[i])-v)<1e-6 if key=="TBOT" else abs(float(zz[i])-v)<1e-8,
-             "Post-NetCDF rounding differs for "+key)
+     require(quantized_match(v,zz[i],b.variables[key].dtype),
+             "Post-NetCDF quantized value mismatch "+key+" at HH "+str(i)+
+             " expected_on_disk="+str(np.asarray(v,dtype=b.variables[key].dtype).item())+
+             " got="+str(float(zz[i])))
    else:
     require(np.array_equal(np.ma.getmaskarray(x),np.ma.getmaskarray(z)),
             "Unexpected mask change "+key)
@@ -217,9 +237,7 @@ def build(files,plan):
    with Dataset(tmp,"r+") as ds:
     for key in ("TBOT","QBOT"):
      if edits[key]:
-      z=arr(ds,key)
-      for i,v in edits[key].items():z[i]=v
-      put(ds,key,z)
+      put(ds,key,edits[key])
     ds.setncattr("batch02_stage34","exploratory_manual_inference_not_original_QC_or_ERA_verified")
    verify_candidate(source,tmp,edits)
    d=sha(tmp);os.link(tmp,out)
@@ -263,10 +281,15 @@ def main():
   assert expected_year_fields("1996","2025","1996")
   assert not expected_year_fields("1996","2025","2004")
   assert not expected_year_fields("1996","2024","1996")
+  assert quantized_match(283.123456789,np.float32(283.123456789),np.dtype("f4"))
+  assert quantized_match(1.234567890123e-3,np.float32(1.234567890123e-3),np.dtype("f4"))
+  assert not quantized_match(283.123456789,np.float32(284.123456789),np.dtype("f4"))
+  assert quantized_match(283.123456789,283.123456789,np.dtype("f8"))
+  assert "stage34_BE_Bra_curated_MET_QC_v2" in str(DEST)
   assert YEARS==(1996,1999,2005,2021) and len(PINS)==5
   assert (6998,14756)==(6998,14756)
   assert 13+12+1+1==27 and 2+1+1==4
-  print("STAGE34 SELF-TEST PASS: exact source PINS/year/event count; NO WRITES")
+  print("STAGE34 SELF-TEST PASS: SHA pins, clocks, float32/float64 round-trip, event count, fresh v2 output; NO WRITES")
   return
  require(not a.build or a.confirm==ACK,
          "--build requires --confirm "+ACK)
