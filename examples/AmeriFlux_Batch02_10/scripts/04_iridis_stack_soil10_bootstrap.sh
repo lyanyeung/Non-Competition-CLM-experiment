@@ -13,7 +13,7 @@ WORK="$HOME/AMF_Batch02_FIXNC_bootstrap"
 NC="$WORK/nc/examples/AmeriFlux_Batch02_10"
 SRC="$WORK/soil_source/examples/Ameriflux_Site"
 SOIL="$SRC/Ameriflux_Soil"
-OUT="$HOME/CLM_FATES_SOIL/AmeriFlux50_20261026"
+OUT="$HOME/CLM_FATES_SOIL/AmeriFlux_Batch02_10_20261026_Stage04"
 fetch(){ mkdir -p "$(dirname "$3")"; curl -fLsS --retry 3 "$1/$2" -o "$3"; }
 fetch "$NCROOT" examples/AmeriFlux_Batch02_10/scripts/03_stack_guard_and_FIXNC_submission.py "$NC/scripts/03_stack_guard_and_FIXNC_submission.py"
 fetch "$NCROOT" examples/AmeriFlux_Batch02_10/scripts/02_prepare_ten_independent_FIXNC_surface_candidates.py "$NC/scripts/02_prepare_ten_independent_FIXNC_surface_candidates.py"
