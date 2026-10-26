@@ -31,6 +31,11 @@ Actions (--sites limits; defaults shown):
   audit-normal5        READ ONLY: restart Y+405, spinup_state=0
   continue-normal395
   audit-normal400      READ ONLY: restart Y+800, spinup_state=0
+  submit-normal400-direct  operator choice (26 Oct 2026): skip the Normal5 smoke and
+                       submit the staged hybrid case once as 80 x 5 years
+                       (RESUBMIT=79). Needs ledger PREPARED_NOT_SUBMITTED.
+  audit-normal-first5  READ ONLY, direct sites: first segment archived Y+405 with
+                       spinup_state=0 (the check Normal5 would have given)
   status               READ ONLY
 """
 from __future__ import annotations
@@ -71,6 +76,7 @@ ACK_STAGE="STAGE_AMF_LANEA_NORMAL400_HYBRID_CASES_NO_SLURM"
 ACK_N5="SUBMIT_AMF_LANEA_NORMAL5_SMOKES"
 ACK_N395="CONTINUE_AMF_LANEA_VERIFIED_NORMAL5_BY_395_YEARS"
 ACK_RESTAGE="QUARANTINE_INTERRUPTED_NORMAL_STAGE_AND_RESTAGE_NO_SLURM"
+ACK_N400D="SUBMIT_AMF_LANEA_NORMAL400_DIRECT_80x5_NO_SMOKE_ONCE"
 RUN_RE=re.compile(r"Submitted job case\.run with id (\d+)")
 ARCH_RE=re.compile(r"Submitted job case\.st_archive with id (\d+)")
 
@@ -595,8 +601,47 @@ def continue_normal395(s,r,stack):
     print(s,"NORMAL395 SUBMITTED",stamp(y),"->",stamp(y+395),"run=",rid,"archive=",aid)
 
 
+def submit_normal400_direct(s,stack):
+    """Skip Normal5: one CIME submission of 80 x 5-year segments from the staged hybrid case."""
+    led=n_ledger(s); obj=load(led)
+    if obj.get("phase")!="PREPARED_NOT_SUBMITTED": fail(s+": Normal ledger phase "+str(obj.get("phase")))
+    case=n_case(s)
+    if (case/"CaseStatus").is_file() and re.search(r"case\.submit starting|case\.run starting",(case/"CaseStatus").read_text(errors="replace")):
+        fail(s+": Normal CaseStatus shows submission")
+    if queued(n_name(s)) or sacct_name(n_name(s)): fail(s+": Normal jobs queued or in sacct history")
+    if latest(n_arch(s))[1]: fail(s+": Normal archive already has restarts")
+    validate_normal(s); pft_gate(s,case)
+    if xq(case,"RESUBMIT_SETS_CONTINUE_RUN").lower()!="true": fail(s+": RESUBMIT_SETS_CONTINUE_RUN is not TRUE")
+    obj.update(phase="NORMAL400_DIRECT_ATTEMPTED_UNCERTAIN",attempt_utc=utc(),stack_limit_at_submit=stack,
+               mode="DIRECT_80x5_NO_NORMAL5_SMOKE",intended_final_year=obj["normal400_target_year"]); save(led,obj)
+    xc(case,"RESUBMIT",str(SEGMENTS-1))
+    if xq(case,"RESUBMIT")!=str(SEGMENTS-1) or xq(case,"CONTINUE_RUN").lower()!="false" or xq(case,"STOP_N")!="5":
+        fail(s+": direct settings not applied; DO NOT RETRY")
+    out,r,a=submit(case)
+    if not r or not a: fail(s+": unparseable submit; DO NOT RETRY. "+out[-600:])
+    obj.update(phase="NORMAL400_DIRECT_SUBMITTED",NORMAL400_first_run_job=r,NORMAL400_first_archive_job=a,
+               cime_submit_output_tail=out[-850:]); save(led,obj)
+    print(s,"NORMAL400 DIRECT SUBMITTED",stamp(obj["normal_start_year"]),"->",stamp(obj["normal400_target_year"]),
+          f"({SEGMENTS}x5, RESUBMIT={SEGMENTS-1}) run=",r,"archive=",a)
+
+
+def normal_first5_one(s):
+    obj=load(n_ledger(s))
+    if obj.get("phase")!="NORMAL400_DIRECT_SUBMITTED": fail(s+": Normal ledger phase "+str(obj.get("phase")))
+    name=n_name(s); first=int(obj["NORMAL400_first_run_job"])
+    rows=[r for r in sacct_name(name) if r[0]>=first]
+    bad=[r for r in rows if r[2] not in ("COMPLETED","RUNNING","PENDING") or (r[2]=="COMPLETED" and r[3]!="0:0")]
+    if bad: fail(name+": failed jobs: "+repr(bad[:4]))
+    y=obj["normal5_target_year"]; files=triplet(name,n_arch(s),y); st=restart_state(files["clm2"])
+    if st!=0: fail(f"{s}: first-segment spinup_state={st}, expected 0")
+    l,n=latest(n_arch(s))
+    return {"case":name,"final":stamp(y),"spinup_state":st,"rest_dirs":n,"runs":sum(r[1].startswith("run.") and r[2]=="COMPLETED" for r in rows)}
+
+
 def normal400_one(s):
     obj=load(n_ledger(s))
+    if obj.get("phase")=="NORMAL400_DIRECT_SUBMITTED":
+        return chain(s,n_name(s),n_case(s),n_arch(s),obj["NORMAL400_first_run_job"],obj["normal400_target_year"],0)
     if obj.get("phase")!="NORMAL395_SUBMITTED": fail(s+": Normal ledger phase "+str(obj.get("phase")))
     return chain(s,n_name(s),n_case(s),n_arch(s),obj["NORMAL5_run_job"],obj["normal400_target_year"],0)
 
@@ -621,7 +666,7 @@ def self_test():
     assert recommended("CA-LP1")[0]=={2:100.0} and recommended("CA-TP4")[0]=={2:93.0,6:7.0}
     t="a = 1\n spinup_state = 2\nb = 2\n"; assert nml_get(nml_del(t,"spinup_state"),"spinup_state") is None
     assert RUN_RE.search("Submitted job case.run with id 4732088").group(1)=="4732088"
-    assert len({ACK_AD5,ACK_AD395,ACK_STAGE,ACK_N5,ACK_N395})==5
+    assert len({ACK_AD5,ACK_AD395,ACK_STAGE,ACK_N5,ACK_N395,ACK_RESTAGE,ACK_N400D})==7
     print("AMERIFLUX STAGE21 SELF-TEST PASS (no HPC access, no writes)")
 
 
@@ -629,7 +674,8 @@ def main():
     ap=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("action",choices=("self-test","pft-check","submit-ad5","audit-ad5","continue-ad395","audit-ad400",
                                       "inspect-interrupted","restage-interrupted",
-                                      "stage-normal","submit-normal5","audit-normal5","continue-normal395","audit-normal400","status"))
+                                      "stage-normal","submit-normal5","audit-normal5","continue-normal395","audit-normal400",
+                                      "submit-normal400-direct","audit-normal-first5","status"))
     ap.add_argument("--sites",nargs="+"); ap.add_argument("--confirm",default="")
     a=ap.parse_args()
     if a.action=="self-test": return self_test()
@@ -644,6 +690,8 @@ def main():
         _,h=table("LANE A NORMAL5 AUDIT (read only)",pick(a.sites),normal5_one); raise SystemExit(2 if h else 0)
     if a.action=="audit-normal400":
         _,h=table("LANE A NORMAL400 AUDIT (read only)",pick(a.sites),normal400_one); raise SystemExit(2 if h else 0)
+    if a.action=="audit-normal-first5":
+        _,h=table("LANE A DIRECT NORMAL400 FIRST-SEGMENT AUDIT (read only)",pick(a.sites),normal_first5_one); raise SystemExit(2 if h else 0)
     if a.action=="inspect-interrupted":
         _,h=table("INTERRUPTED NORMAL STAGE INSPECTION (read only)",pick(a.sites),interrupted_one); raise SystemExit(2 if h else 0)
     if a.action=="restage-interrupted":
@@ -671,6 +719,10 @@ def main():
     if a.action=="submit-normal5":
         if a.confirm!=ACK_N5: fail("requires --confirm "+ACK_N5)
         return batch("SUBMIT-NORMAL5",pick(a.sites),submit_normal5,stack)
+    if a.action=="submit-normal400-direct":
+        if a.confirm!=ACK_N400D: fail("requires --confirm "+ACK_N400D)
+        if not a.sites: fail("submit-normal400-direct requires explicit --sites")
+        return batch("SUBMIT-NORMAL400-DIRECT",pick(a.sites),submit_normal400_direct,stack)
     if a.action=="continue-normal395":
         if a.confirm!=ACK_N395: fail("requires --confirm "+ACK_N395)
         sites=pick(a.sites); ok,h=table("PREFLIGHT NORMAL5",sites,normal5_one)

@@ -7,16 +7,18 @@ The user-confirmed AmeriFlux Batch01 **Stage80 forcing selection**, **Stage81 21
 [**AmeriFlux-specific ten-site AD400 → Normal400 preflight and runbook**](examples/AmeriFlux_Batch01_10/README.md) is separate from the European/ICOS `examples/Batch01_10` scripts. It explains the safe progression: Stage80/81/82 read-only provenance check → verify static/dynamic site TA_F sensor heights/ZBOT and DATM time/stream/domain → one new isolated FATES fixed-biogeography/no-competition case and AD5 smoke → guarded remaining AD395 → independent hybrid Normal5 → guarded Normal395. **Do not run existing Europe-specific Batch01 submission scripts for AmeriFlux stations**.
 
 
-## Operator status snapshot — 26 October 2026, 13:09 UK
+## Operator status snapshot — 26 October 2026, 17:15 UK
 
-This snapshot comes from the archive restart listing and squeue. Except for the Batch03 Normal400 audit, the AD and Normal results are not yet audited.
+This snapshot comes from operator IRIDIS6 output. Submitted means CIME returned job IDs; it does not mean the run has completed.
 
 | Cohort | AD400 | NORMAL400 |
 | --- | --- | --- |
 | **ICOS Batch01** (10) | 10/10 archived to Y+400 | **10/10 archived to Y+800**, nothing queued; `audit-normal400` not yet run |
-| **ICOS Batch02** (10) | **4/10 complete** (FI-Hyy 2397, FR-Hes 2397, CH-Fru 2405, IT-MBo 2403); IT-Noe GPP/NPP history-fix AD400 running (2039); BE-Bra, CH-Lae, DK-Sor, ES-LJu, FR-FBn have no B02 archive | **Not started**; next step is Stage27 `audit-ad400` → `stage-normal` for the 4 complete sites |
-| **ICOS Batch03** (10) | 10/10 | **6/10 audited PASS** (IL-Yat, DE-Obe, CZ-Stn, DE-Lnf, AT-Neu, CH-Cha); IT-Lav 2703, DE-Hzd 2710, FI-Let 2705, GF-Guy 2674 running |
-| **AmeriFlux Batch01** (10) | 4 running AD395 (CA-LP1 2397, CA-Ca3 2376, CA-TP4 2287, BR-Ma2 2219); 6 not started (US-Bar needs surface; CA-TP1/TP3/US-Aud dynamic ZBOT; CA-Cbo/CA-Man multi-level TA) | Not started |
+| **ICOS Batch02** (10) | **4/10 audited PASS** (FI-Hyy, FR-Hes, CH-Fru, IT-MBo); IT-Noe GPP/NPP history-fix AD400 running; ES-LJu, DK-Sor, FR-FBn, BE-Bra, CH-Lae Stage43 history-fix cases prepared and verified, one-shot `--start` (80×5) given to operator | **4/4 Normal5 PASS, Normal395 submitted** 17:12: FI-Hyy 4740959/60, FR-Hes 4740961/62, CH-Fru 4740963/64, IT-MBo 4740965/66 |
+| **ICOS Batch03** (10) | 10/10 | **6/10 audited PASS** (IL-Yat, DE-Obe, CZ-Stn, DE-Lnf, AT-Neu, CH-Cha); IT-Lav, FI-Let, DE-Hzd, GF-Guy still running |
+| **AmeriFlux Batch01** (10) | **CA-Ca3, CA-LP1 audited PASS**; CA-TP4, BR-Ma2 AD395 running; 6 not started (US-Bar needs surface; CA-TP1/TP3/US-Aud dynamic ZBOT; CA-Cbo/CA-Man multi-level TA) | CA-Ca3, CA-LP1 Normal cases re-staged (VALIDATE PASS). By operator decision they go **directly to Normal400 (80×5, no Normal5 smoke)** via Stage21 `submit-normal400-direct` |
+
+All 25 staged Normal cases were checked read-only: each Normal `fates_paramfile` has the same content as its AD source (sha256 `0819f8fddcb3…`). The paths differ only between the private overlay and the shared CTSM copy.
 
 Seven `st_archive` jobs are stuck with `DependencyNeverSatisfied`: 4734857, 4734697, 4734488, 4734486, 4734426, 4733522 and 4728207. Their run jobs failed or were cancelled. Identify them with `sacct` before cancelling.
 

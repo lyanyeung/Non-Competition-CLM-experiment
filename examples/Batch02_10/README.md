@@ -1,5 +1,15 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## Normal400 for the four AD400-complete sites — Normal395 submitted (26 October 2026, 17:12 UK)
+
+Operator IRIDIS6 output from Stage27:
+- `audit-normal5` PASS 4/4 with `spinup_state=0`: FI-Hyy 2402, FR-Hes 2402, CH-Fru 2410, IT-MBo 2408.
+- `continue-normal395` then submitted the first continuation segments (run/archive): FI-Hyy 4740959/4740960 (→2797), FR-Hes 4740961/4740962 (→2797), CH-Fru 4740963/4740964 (→2805), IT-MBo 4740965/4740966 (→2803).
+
+The Normal `fates_paramfile` content equals each AD source (sha256 `0819f8fddcb3…`). Next: `audit-normal400` after the 79-segment chains finish. Do not rerun `continue-normal395`.
+
+For the five Stage43 history-fix cases (ES-LJu, DK-Sor, FR-FBn, BE-Bra, CH-Lae), the operator reported `--prepare` and `--verify` PASS with no jobs. The one-shot `--start --confirm SUBMIT_FIVE_BATCH02_HISTORY_FIXED_AD400_ONCE` is the next operator step.
+
 ## Stage42 operator-confirmed five history-output failures; Stage43 isolated AD400 recovery (26 October 2026)
 
 The actual five-case diagnosis confirms **all five** ES-LJu/DK-Sor/FR-FBn/BE-Bra/CH-Lae jobs failed in `histFileMod.F90:899`: tape1 requests unregistered `GPP,NPP`, while each exact model registry has 1141 fields including `FATES_GPP,FATES_NPP`. Both effective land namelists match and no restart/pointer/archive date exists for any of the five. The downstream Slurm Killed message is not the root cause shown by these logs. The pasted AmeriFlux Batch02 audit is a different campaign and is not a recovery target here.

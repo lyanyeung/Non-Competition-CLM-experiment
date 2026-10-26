@@ -28,6 +28,13 @@ All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height 
 - Then `restage-interrupted --sites ... --confirm QUARANTINE_INTERRUPTED_NORMAL_STAGE_AND_RESTAGE_NO_SLURM` moves the partial case, run directory and ledger to `Stage21_AD400_NORMAL400/quarantine_interrupted_stage/<site>_<UTC>/`, writes a receipt, and stages again. It never submits to Slurm. A mock test covers this, including the Slurm-accounting and phase gates.
 - Run long steps inside `tmux`.
 
+**26 Oct 17:05–17:15 UK: re-staged; direct Normal400 by operator decision.**
+- The interrupted staging was not caused by the disconnect. `validate_normal` failed with "Normal fates_paramfile differs from AD": the AD namelist used the private overlay path, while the Normal namelist used the shared CTSM default path. The file content is identical (sha256 `0819f8fddcb3…`).
+- `stage_normal_one` now pins the AD effective `fates_paramfile` into the Normal `user_nl_clm`, and the ledger records it with its sha256. `restage-interrupted` then printed VALIDATE PASS and NORMAL CASE STAGED for both CA-Ca3 and CA-LP1, with no Slurm job. The partial cases are in `quarantine_interrupted_stage/CA-Ca3_20261026T170030Z` and `CA-LP1_20261026T170043Z`.
+- **Operator decision: sites whose AD400 has passed skip the Normal5 smoke.** The new action `submit-normal400-direct --sites ... --confirm SUBMIT_AMF_LANEA_NORMAL400_DIRECT_80x5_NO_SMOKE_ONCE` needs ledger `PREPARED_NOT_SUBMITTED`. It also requires no CaseStatus submission, no queue or sacct history and no Normal archive, and it re-runs `validate_normal` and the PFT gate. It then writes `NORMAL400_DIRECT_ATTEMPTED_UNCERTAIN`, sets `RESUBMIT=79` (80 × 5 years from the hybrid start, `CONTINUE_RUN=FALSE`) and submits once.
+- The read-only `audit-normal-first5` gives the check Normal5 would have given: no failed jobs, an archived Y+405 restart triplet and `spinup_state=0`. `audit-normal400` accepts both the direct and the smoke paths.
+- A mock end-to-end test covers both paths: direct for CA-Ca3/CA-LP1 and smoke for CA-TP4/BR-Ma2. It also confirms that duplicate direct submission, Normal5 after direct and direct after Normal5 are all refused.
+
 **PFT inputs for all ten sites now follow** [RECOMMENDED_50_SITE_CLM_FATES_INPUT_PFT_20261026.csv](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/Ameriflux_Site/Ameriflux_PFT/RECOMMENDED_50_SITE_CLM_FATES_INPUT_PFT_20261026.csv), copied for Batch01 to [data/amf_batch01_recommended_pft_20261026.csv](../../data/amf_batch01_recommended_pft_20261026.csv). These are model hypotheses, not observations.
 
 | Site | Recommended (FATES) | Host `PCT_NAT_PFT` | FIXNC state |
