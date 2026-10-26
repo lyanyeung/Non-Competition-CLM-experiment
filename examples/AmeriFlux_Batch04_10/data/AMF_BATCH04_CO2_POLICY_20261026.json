@@ -1,0 +1,62 @@
+{
+  "US-Rpf": {
+    "first_forcing_year": 2008,
+    "constant_global_background_CO2_ppm": 385.02,
+    "source": "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv",
+    "policy": "BATCH01_METHOD_CONSTANT_INITIAL_FORCING_YEAR_GLOBAL_ANNUAL_MEAN_NOT_SITE_OBSERVATION"
+  },
+  "US-SP1": {
+    "first_forcing_year": 2000,
+    "constant_global_background_CO2_ppm": 368.96,
+    "source": "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv",
+    "policy": "BATCH01_METHOD_CONSTANT_INITIAL_FORCING_YEAR_GLOBAL_ANNUAL_MEAN_NOT_SITE_OBSERVATION"
+  },
+  "US-SRG": {
+    "first_forcing_year": 2008,
+    "constant_global_background_CO2_ppm": 385.02,
+    "source": "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv",
+    "policy": "BATCH01_METHOD_CONSTANT_INITIAL_FORCING_YEAR_GLOBAL_ANNUAL_MEAN_NOT_SITE_OBSERVATION"
+  },
+  "US-SRM": {
+    "first_forcing_year": 2004,
+    "constant_global_background_CO2_ppm": 376.95,
+    "source": "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv",
+    "policy": "BATCH01_METHOD_CONSTANT_INITIAL_FORCING_YEAR_GLOBAL_ANNUAL_MEAN_NOT_SITE_OBSERVATION"
+  },
+  "US-Seg": {
+    "first_forcing_year": 2007,
+    "constant_global_background_CO2_ppm": 382.9,
+    "source": "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv",
+    "policy": "BATCH01_METHOD_CONSTANT_INITIAL_FORCING_YEAR_GLOBAL_ANNUAL_MEAN_NOT_SITE_OBSERVATION"
+  },
+  "US-Ses": {
+    "first_forcing_year": 2007,
+    "constant_global_background_CO2_ppm": 382.9,
+    "source": "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv",
+    "policy": "BATCH01_METHOD_CONSTANT_INITIAL_FORCING_YEAR_GLOBAL_ANNUAL_MEAN_NOT_SITE_OBSERVATION"
+  },
+  "US-Slt": {
+    "first_forcing_year": 2005,
+    "constant_global_background_CO2_ppm": 378.98,
+    "source": "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv",
+    "policy": "BATCH01_METHOD_CONSTANT_INITIAL_FORCING_YEAR_GLOBAL_ANNUAL_MEAN_NOT_SITE_OBSERVATION"
+  },
+  "US-Syv": {
+    "first_forcing_year": 2001,
+    "constant_global_background_CO2_ppm": 370.57,
+    "source": "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv",
+    "policy": "BATCH01_METHOD_CONSTANT_INITIAL_FORCING_YEAR_GLOBAL_ANNUAL_MEAN_NOT_SITE_OBSERVATION"
+  },
+  "US-Ton": {
+    "first_forcing_year": 2001,
+    "constant_global_background_CO2_ppm": 370.57,
+    "source": "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv",
+    "policy": "BATCH01_METHOD_CONSTANT_INITIAL_FORCING_YEAR_GLOBAL_ANNUAL_MEAN_NOT_SITE_OBSERVATION"
+  },
+  "US-Uaf": {
+    "first_forcing_year": 2003,
+    "constant_global_background_CO2_ppm": 375.14,
+    "source": "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv",
+    "policy": "BATCH01_METHOD_CONSTANT_INITIAL_FORCING_YEAR_GLOBAL_ANNUAL_MEAN_NOT_SITE_OBSERVATION"
+  }
+}

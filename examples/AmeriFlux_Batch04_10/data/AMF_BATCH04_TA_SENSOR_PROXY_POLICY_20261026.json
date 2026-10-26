@@ -1,0 +1,299 @@
+{
+  "US-Rpf": {
+    "zbot_m": 2.3,
+    "events": [
+      {
+        "local_start": "201305130000",
+        "zbot_m": 4.0,
+        "date_policy": "SOURCE_DAY_RESOLUTION_USE_LOCAL_MIDNIGHT"
+      }
+    ],
+    "height_kind": "DOCUMENTED_BASE_TA_SENSOR_PROXY",
+    "source_variable": "TA_PI_F_1_1_1",
+    "height_evidence": "BASE_MeasurementHeight_20260908.csv; TA_PI_F_1_1_1; raw sensor metadata, FLUXNET TA_F crosswalk unverified",
+    "BASE_snapshot_sha256": "1c1e4171d295406a13d503f877b58661a651c88ffb6f0b6ec498f56bb1fcec5a",
+    "source_url": "https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/06c75f28f1b894db81ddb03a9a0ec8c4be9fc528/examples/AmeriFlux_sites/metadata/BASE_MeasurementHeight_20260908.csv",
+    "source_rows": [
+      {
+        "csv_line": 24274,
+        "Site_ID": "US-Rpf",
+        "Variable": "TA_PI_F_1_1_1",
+        "Start_Date": "20130513",
+        "Height": "4",
+        "Instrument_Model": "TEMP-ElectResis",
+        "Instrument_Model2": "",
+        "Comment": "",
+        "BASE_Version": "11-5"
+      },
+      {
+        "csv_line": 24275,
+        "Site_ID": "US-Rpf",
+        "Variable": "TA_PI_F_1_1_1",
+        "Start_Date": "",
+        "Height": "2.3",
+        "Instrument_Model": "TEMP-ElectResis",
+        "Instrument_Model2": "",
+        "Comment": "20080820",
+        "BASE_Version": "11-5"
+      }
+    ],
+    "FLUXNET_TA_F_sensor_crosswalk_verified": false,
+    "historical_height_coverage_verified": false,
+    "early_period_extension_policy": "EARLIEST_REPORTED_HEIGHT_AS_EXPLICIT_PROXY",
+    "multiple_TA_levels_policy": "CHOSEN_MAIN_TOWER_UPPER_TA_OR_PI_ALIAS_PROXY_NOT_VERIFIED_CROSSWALK",
+    "operator_decision": "2026-10-26 user: follow AmeriFlux Batch01 method",
+    "wind_height_not_substituted_for_TA": true
+  },
+  "US-SP1": {
+    "zbot_m": 30.0,
+    "events": [],
+    "height_kind": "DOCUMENTED_BASE_TA_SENSOR_PROXY",
+    "source_variable": "TA_1_1_1",
+    "height_evidence": "BASE_MeasurementHeight_20260908.csv; TA_1_1_1; raw sensor metadata, FLUXNET TA_F crosswalk unverified",
+    "BASE_snapshot_sha256": "1c1e4171d295406a13d503f877b58661a651c88ffb6f0b6ec498f56bb1fcec5a",
+    "source_url": "https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/06c75f28f1b894db81ddb03a9a0ec8c4be9fc528/examples/AmeriFlux_sites/metadata/BASE_MeasurementHeight_20260908.csv",
+    "source_rows": [
+      {
+        "csv_line": 25383,
+        "Site_ID": "US-SP1",
+        "Variable": "TA_1_1_1",
+        "Start_Date": "",
+        "Height": "30.0",
+        "Instrument_Model": "RH-Capac",
+        "Instrument_Model2": "",
+        "Comment": "2000",
+        "BASE_Version": "5-5"
+      }
+    ],
+    "FLUXNET_TA_F_sensor_crosswalk_verified": false,
+    "historical_height_coverage_verified": false,
+    "early_period_extension_policy": "EARLIEST_REPORTED_HEIGHT_AS_EXPLICIT_PROXY",
+    "multiple_TA_levels_policy": "CHOSEN_MAIN_TOWER_UPPER_TA_OR_PI_ALIAS_PROXY_NOT_VERIFIED_CROSSWALK",
+    "operator_decision": "2026-10-26 user: follow AmeriFlux Batch01 method",
+    "wind_height_not_substituted_for_TA": true
+  },
+  "US-SRG": {
+    "zbot_m": 2.9,
+    "events": [],
+    "height_kind": "DOCUMENTED_BASE_TA_SENSOR_PROXY",
+    "source_variable": "TA_1_1_1",
+    "height_evidence": "BASE_MeasurementHeight_20260908.csv; TA_1_1_1; raw sensor metadata, FLUXNET TA_F crosswalk unverified",
+    "BASE_snapshot_sha256": "1c1e4171d295406a13d503f877b58661a651c88ffb6f0b6ec498f56bb1fcec5a",
+    "source_url": "https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/06c75f28f1b894db81ddb03a9a0ec8c4be9fc528/examples/AmeriFlux_sites/metadata/BASE_MeasurementHeight_20260908.csv",
+    "source_rows": [
+      {
+        "csv_line": 25504,
+        "Site_ID": "US-SRG",
+        "Variable": "TA_1_1_1",
+        "Start_Date": "",
+        "Height": "2.9",
+        "Instrument_Model": "TEMP-ElectResis",
+        "Instrument_Model2": "",
+        "Comment": "",
+        "BASE_Version": "21-5"
+      }
+    ],
+    "FLUXNET_TA_F_sensor_crosswalk_verified": false,
+    "historical_height_coverage_verified": false,
+    "early_period_extension_policy": "EARLIEST_REPORTED_HEIGHT_AS_EXPLICIT_PROXY",
+    "multiple_TA_levels_policy": "CHOSEN_MAIN_TOWER_UPPER_TA_OR_PI_ALIAS_PROXY_NOT_VERIFIED_CROSSWALK",
+    "operator_decision": "2026-10-26 user: follow AmeriFlux Batch01 method",
+    "wind_height_not_substituted_for_TA": true
+  },
+  "US-SRM": {
+    "zbot_m": 6.0,
+    "events": [],
+    "height_kind": "DOCUMENTED_BASE_TA_SENSOR_PROXY",
+    "source_variable": "TA_1_1_1",
+    "height_evidence": "BASE_MeasurementHeight_20260908.csv; TA_1_1_1; raw sensor metadata, FLUXNET TA_F crosswalk unverified",
+    "BASE_snapshot_sha256": "1c1e4171d295406a13d503f877b58661a651c88ffb6f0b6ec498f56bb1fcec5a",
+    "source_url": "https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/06c75f28f1b894db81ddb03a9a0ec8c4be9fc528/examples/AmeriFlux_sites/metadata/BASE_MeasurementHeight_20260908.csv",
+    "source_rows": [
+      {
+        "csv_line": 25547,
+        "Site_ID": "US-SRM",
+        "Variable": "TA_1_1_1",
+        "Start_Date": "",
+        "Height": "6",
+        "Instrument_Model": "TEMP-ElectResis",
+        "Instrument_Model2": "",
+        "Comment": "",
+        "BASE_Version": "32-5"
+      }
+    ],
+    "FLUXNET_TA_F_sensor_crosswalk_verified": false,
+    "historical_height_coverage_verified": false,
+    "early_period_extension_policy": "EARLIEST_REPORTED_HEIGHT_AS_EXPLICIT_PROXY",
+    "multiple_TA_levels_policy": "CHOSEN_MAIN_TOWER_UPPER_TA_OR_PI_ALIAS_PROXY_NOT_VERIFIED_CROSSWALK",
+    "operator_decision": "2026-10-26 user: follow AmeriFlux Batch01 method",
+    "wind_height_not_substituted_for_TA": true
+  },
+  "US-Seg": {
+    "zbot_m": 3.2,
+    "events": [],
+    "height_kind": "DOCUMENTED_BASE_TA_SENSOR_PROXY",
+    "source_variable": "TA_PI_F",
+    "height_evidence": "BASE_MeasurementHeight_20260908.csv; TA_PI_F; raw sensor metadata, FLUXNET TA_F crosswalk unverified",
+    "BASE_snapshot_sha256": "1c1e4171d295406a13d503f877b58661a651c88ffb6f0b6ec498f56bb1fcec5a",
+    "source_url": "https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/06c75f28f1b894db81ddb03a9a0ec8c4be9fc528/examples/AmeriFlux_sites/metadata/BASE_MeasurementHeight_20260908.csv",
+    "source_rows": [
+      {
+        "csv_line": 24955,
+        "Site_ID": "US-Seg",
+        "Variable": "TA_PI_F",
+        "Start_Date": "",
+        "Height": "3.2",
+        "Instrument_Model": "SA-Campbell CSAT-3",
+        "Instrument_Model2": "",
+        "Comment": "TA data gapfilled from nearby towers sites and from Vaisala HMP45c data",
+        "BASE_Version": "30-5"
+      }
+    ],
+    "FLUXNET_TA_F_sensor_crosswalk_verified": false,
+    "historical_height_coverage_verified": false,
+    "early_period_extension_policy": "EARLIEST_REPORTED_HEIGHT_AS_EXPLICIT_PROXY",
+    "multiple_TA_levels_policy": "CHOSEN_MAIN_TOWER_UPPER_TA_OR_PI_ALIAS_PROXY_NOT_VERIFIED_CROSSWALK",
+    "operator_decision": "2026-10-26 user: follow AmeriFlux Batch01 method",
+    "wind_height_not_substituted_for_TA": true
+  },
+  "US-Ses": {
+    "zbot_m": 3.2,
+    "events": [],
+    "height_kind": "DOCUMENTED_BASE_TA_SENSOR_PROXY",
+    "source_variable": "TA_PI_F",
+    "height_evidence": "BASE_MeasurementHeight_20260908.csv; TA_PI_F; raw sensor metadata, FLUXNET TA_F crosswalk unverified",
+    "BASE_snapshot_sha256": "1c1e4171d295406a13d503f877b58661a651c88ffb6f0b6ec498f56bb1fcec5a",
+    "source_url": "https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/06c75f28f1b894db81ddb03a9a0ec8c4be9fc528/examples/AmeriFlux_sites/metadata/BASE_MeasurementHeight_20260908.csv",
+    "source_rows": [
+      {
+        "csv_line": 24982,
+        "Site_ID": "US-Ses",
+        "Variable": "TA_PI_F",
+        "Start_Date": "",
+        "Height": "3.2",
+        "Instrument_Model": "SA-Campbell CSAT-3",
+        "Instrument_Model2": "",
+        "Comment": "TA data gapfilled from nearby towers sites and from Vaisala HMP45c data",
+        "BASE_Version": "29-5"
+      }
+    ],
+    "FLUXNET_TA_F_sensor_crosswalk_verified": false,
+    "historical_height_coverage_verified": false,
+    "early_period_extension_policy": "EARLIEST_REPORTED_HEIGHT_AS_EXPLICIT_PROXY",
+    "multiple_TA_levels_policy": "CHOSEN_MAIN_TOWER_UPPER_TA_OR_PI_ALIAS_PROXY_NOT_VERIFIED_CROSSWALK",
+    "operator_decision": "2026-10-26 user: follow AmeriFlux Batch01 method",
+    "wind_height_not_substituted_for_TA": true
+  },
+  "US-Slt": {
+    "zbot_m": 15.9,
+    "events": [],
+    "height_kind": "DOCUMENTED_BASE_TA_SENSOR_PROXY",
+    "source_variable": "TA_1_1_1",
+    "height_evidence": "BASE_MeasurementHeight_20260908.csv; TA_1_1_1; raw sensor metadata, FLUXNET TA_F crosswalk unverified",
+    "BASE_snapshot_sha256": "1c1e4171d295406a13d503f877b58661a651c88ffb6f0b6ec498f56bb1fcec5a",
+    "source_url": "https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/06c75f28f1b894db81ddb03a9a0ec8c4be9fc528/examples/AmeriFlux_sites/metadata/BASE_MeasurementHeight_20260908.csv",
+    "source_rows": [
+      {
+        "csv_line": 25136,
+        "Site_ID": "US-Slt",
+        "Variable": "TA_1_1_1",
+        "Start_Date": "",
+        "Height": "15.9",
+        "Instrument_Model": "TEMP-ElectResis",
+        "Instrument_Model2": "",
+        "Comment": "",
+        "BASE_Version": "8-5"
+      }
+    ],
+    "FLUXNET_TA_F_sensor_crosswalk_verified": false,
+    "historical_height_coverage_verified": false,
+    "early_period_extension_policy": "EARLIEST_REPORTED_HEIGHT_AS_EXPLICIT_PROXY",
+    "multiple_TA_levels_policy": "CHOSEN_MAIN_TOWER_UPPER_TA_OR_PI_ALIAS_PROXY_NOT_VERIFIED_CROSSWALK",
+    "operator_decision": "2026-10-26 user: follow AmeriFlux Batch01 method",
+    "wind_height_not_substituted_for_TA": true
+  },
+  "US-Syv": {
+    "zbot_m": 36.0,
+    "events": [],
+    "height_kind": "DOCUMENTED_BASE_TA_SENSOR_PROXY",
+    "source_variable": "TA_PI_F_1_1_1",
+    "height_evidence": "BASE_MeasurementHeight_20260908.csv; TA_PI_F_1_1_1; raw sensor metadata, FLUXNET TA_F crosswalk unverified",
+    "BASE_snapshot_sha256": "1c1e4171d295406a13d503f877b58661a651c88ffb6f0b6ec498f56bb1fcec5a",
+    "source_url": "https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/06c75f28f1b894db81ddb03a9a0ec8c4be9fc528/examples/AmeriFlux_sites/metadata/BASE_MeasurementHeight_20260908.csv",
+    "source_rows": [
+      {
+        "csv_line": 25948,
+        "Site_ID": "US-Syv",
+        "Variable": "TA_PI_F_1_1_1",
+        "Start_Date": "",
+        "Height": "36",
+        "Instrument_Model": "TEMP-ElectResis",
+        "Instrument_Model2": "",
+        "Comment": "",
+        "BASE_Version": "35-5"
+      }
+    ],
+    "FLUXNET_TA_F_sensor_crosswalk_verified": false,
+    "historical_height_coverage_verified": false,
+    "early_period_extension_policy": "EARLIEST_REPORTED_HEIGHT_AS_EXPLICIT_PROXY",
+    "multiple_TA_levels_policy": "CHOSEN_MAIN_TOWER_UPPER_TA_OR_PI_ALIAS_PROXY_NOT_VERIFIED_CROSSWALK",
+    "operator_decision": "2026-10-26 user: follow AmeriFlux Batch01 method",
+    "wind_height_not_substituted_for_TA": true
+  },
+  "US-Ton": {
+    "zbot_m": 23.5,
+    "events": [],
+    "height_kind": "DOCUMENTED_BASE_TA_SENSOR_PROXY",
+    "source_variable": "TA_PI_F_1_1_1",
+    "height_evidence": "BASE_MeasurementHeight_20260908.csv; TA_PI_F_1_1_1; raw sensor metadata, FLUXNET TA_F crosswalk unverified",
+    "BASE_snapshot_sha256": "1c1e4171d295406a13d503f877b58661a651c88ffb6f0b6ec498f56bb1fcec5a",
+    "source_url": "https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/06c75f28f1b894db81ddb03a9a0ec8c4be9fc528/examples/AmeriFlux_sites/metadata/BASE_MeasurementHeight_20260908.csv",
+    "source_rows": [
+      {
+        "csv_line": 26276,
+        "Site_ID": "US-Ton",
+        "Variable": "TA_PI_F_1_1_1",
+        "Start_Date": "",
+        "Height": "23.5",
+        "Instrument_Model": "TEMP-ElectResis",
+        "Instrument_Model2": "",
+        "Comment": "",
+        "BASE_Version": "27-5"
+      }
+    ],
+    "FLUXNET_TA_F_sensor_crosswalk_verified": false,
+    "historical_height_coverage_verified": false,
+    "early_period_extension_policy": "EARLIEST_REPORTED_HEIGHT_AS_EXPLICIT_PROXY",
+    "multiple_TA_levels_policy": "CHOSEN_MAIN_TOWER_UPPER_TA_OR_PI_ALIAS_PROXY_NOT_VERIFIED_CROSSWALK",
+    "operator_decision": "2026-10-26 user: follow AmeriFlux Batch01 method",
+    "wind_height_not_substituted_for_TA": true
+  },
+  "US-Uaf": {
+    "zbot_m": 8.0,
+    "events": [],
+    "height_kind": "DOCUMENTED_BASE_TA_SENSOR_PROXY",
+    "source_variable": "TA_PI_F_1_1_1",
+    "height_evidence": "BASE_MeasurementHeight_20260908.csv; TA_PI_F_1_1_1; raw sensor metadata, FLUXNET TA_F crosswalk unverified",
+    "BASE_snapshot_sha256": "1c1e4171d295406a13d503f877b58661a651c88ffb6f0b6ec498f56bb1fcec5a",
+    "source_url": "https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/06c75f28f1b894db81ddb03a9a0ec8c4be9fc528/examples/AmeriFlux_sites/metadata/BASE_MeasurementHeight_20260908.csv",
+    "source_rows": [
+      {
+        "csv_line": 26902,
+        "Site_ID": "US-Uaf",
+        "Variable": "TA_PI_F_1_1_1",
+        "Start_Date": "",
+        "Height": "8",
+        "Instrument_Model": "TEMP-ElectResis",
+        "Instrument_Model2": "",
+        "Comment": "",
+        "BASE_Version": "15-5"
+      }
+    ],
+    "FLUXNET_TA_F_sensor_crosswalk_verified": false,
+    "historical_height_coverage_verified": false,
+    "early_period_extension_policy": "EARLIEST_REPORTED_HEIGHT_AS_EXPLICIT_PROXY",
+    "multiple_TA_levels_policy": "CHOSEN_MAIN_TOWER_UPPER_TA_OR_PI_ALIAS_PROXY_NOT_VERIFIED_CROSSWALK",
+    "operator_decision": "2026-10-26 user: follow AmeriFlux Batch01 method",
+    "wind_height_not_substituted_for_TA": true
+  }
+}
