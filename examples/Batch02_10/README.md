@@ -1,5 +1,15 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## 26 October 03:16 UTC: actual Stage25 success, Stage26 prepared, submit preflight bug fixed
+
+Operator IRIDIS6 log: Stage27 self-test passed, but all four Batch02 AD chains are still running/queued; latest archived restart years FI-Hyy **2222**, FR-Hes **2202**, CH-Fru **2335**, IT-MBo **2333** (respective AD400 targets 2397/2397/2405/2403). `audit-ad400` correctly **HOLD 4/4**. Do not stage Normal400 yet.
+
+ES-LJu Stage25 actual audit **PASS 21/21**, then successfully **CREATED 21/21** versioned new annual NetCDF files in:
+`/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/Batch02_10/stage25_ESLJu_20261026T031624Z_1628022`.
+Stage26 self-test, independent case prepare, and read-only audit all **PASS**; case `ES-LJu_B02_FIXNC_AD400_BARE49_C3GRA31_SHRUB20_MET24`, effective new stream SHA256 `d1302407bf5b31e2c16331a4d205a57d97f56b2c09d7375316c80d1b03a63abe`. The first Stage26 `--start` stopped at a **pre-submission Python TypeError**: `subprocess.run(..., at=CASE)` instead of `cwd=CASE`. The failure was **before** a submission receipt, `RESUBMIT=79` change, or `case.submit`. [Stage26 hotfix](scripts/26_ES_LJu_new_Stage24_DATM_AD400_prepare_audit_submit.py) commit [3c5b410](https://github.com/lyanyeung/Non-Competition-CLM-experiment/commit/3c5b4102bfa8adf02a270444637f959f01c5b454) replaces the wrong keyword and adds a regression self-test. Operator should download only the fixed Stage26, run `--self-test`, `--audit --datm-dir <existing Stage25 folder>`, then **one-time** `--start --datm-dir <existing Stage25 folder> --confirm SUBMIT_ES_LJU_STAGE24_DIRECT_AD400_ONCE`. Do not rerun Stage25 build or Stage26 prepare.
+
+---
+
 ## 26 October: reported Slurm results, Stage25 hotfix and guarded Normal400
 
 **Operator-provided evidence, not live HPC:** first AD395 continuation run/archive for FI-Hyy (4732398/99), FR-Hes (4732400/01), CH-Fru (4732402/03), and IT-MBo (4732404/05) are all `COMPLETED 0:0`. This is **only the first five-year segment** of each 395-year automatic chain, not proof of AD400. Stage27 [four-site Normal controller](scripts/27_batch02_AD400_to_NORMAL400.py) must first verify **80 AD runs and 80 archives** from original AD5, exhausted RESUBMIT, no queue, complete Y+400 CLM/DATM/CPL archived restarts, and land `spinup_state=2`. It then supports isolated Normal5 hybrid case preparation, one-time Normal5 submission, five-year audit, and one-time Normal395 continuation. This file has been committed to GitHub but is **not yet syntax/self-test/runtime confirmed on IRIDIS**.
