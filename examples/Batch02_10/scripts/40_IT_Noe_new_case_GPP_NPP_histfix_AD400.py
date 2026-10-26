@@ -61,13 +61,33 @@ def fields(text):
  need(len(m)==1,"Expected unique hist_fincl1 assignment")
  return [z.strip() for z in QUOTES.findall(m[0].group(1))]
 def fix(text):
+ """Set the new case's tape1 explicitly. Only *effective* OLD lnd_in has
+ a SHA-pinned seven-field list; OLD user_nl_clm can have a subset, a different
+ list, or no tape1 assignment at all (CIME merges default/history sources).
+ Preserve all other user_nl entries and fail on ambiguous duplicate tape1.
+ """
  m=list(TAPE.finditer(text))
- need(len(m)==1 and fields(text)==BEFORE,
-      "user_nl_clm original hist_fincl1 not exactly 7 expected fields")
+ need(len(m)<=1,"Duplicate user_nl_clm hist_fincl1 assignment, stop")
  corrected="hist_fincl1 = "+", ".join("'"+v+"'" for v in AFTER)+"\n"
- output=text[:m[0].start()]+corrected+text[m[0].end():]
- need(fields(output)==AFTER,"History field replacement not exact")
+ if len(m)==1:
+  output=text[:m[0].start()]+corrected+text[m[0].end():]
+ else:
+  output=text.rstrip()+"\n"+corrected
+ need(fields(output)==AFTER,"New case user_nl_clm tape1 replacement failed")
+ if len(m)==1:
+  # Everything except the changed tape1 assignment must remain byte-identical.
+  need(text[:m[0].start()]==output[:m[0].start()] and
+       text[m[0].end():]==output[m[0].start()+len(corrected):],
+       "Changed unintended user_nl_clm content")
+ else:
+  need(output==text.rstrip()+"\n"+corrected,
+       "Unexpected user_nl_clm append side effect")
  return output
+
+def without_tape1(text):
+ m=list(TAPE.finditer(text))
+ need(len(m)==1,"Effective lnd_in must have one history tape1")
+ return text[:m[0].start()]+"HIST_FINCL1_AUDIT_PLACEHOLDER\n"+text[m[0].end():]
 def nmlkey(text,key):
  x=re.findall(r"(?im)^\s*"+re.escape(key)+r"\s*=\s*([^\r\n!]*)",text)
  need(len(x)==1,"Missing or duplicate effective namelist key "+key)
@@ -105,7 +125,13 @@ def source():
  need((OLD/"env_case.xml").read_bytes()==(OLD/"LockedFiles/env_case.xml").read_bytes(),
       "Original case CIME env case lock changed")
  need((OLD/"user_nl_clm").is_file(),"Source user_nl_clm missing")
- fix((OLD/"user_nl_clm").read_text())
+ usertext=(OLD/"user_nl_clm").read_text()
+ user_tapes=list(TAPE.finditer(usertext))
+ need(len(user_tapes)<=1,"Ambiguous duplicate user_nl_clm tape1")
+ print("STAGE40 ORIGINAL USER_NL_CLM TAPE1",
+       fields(usertext) if len(user_tapes)==1 else "ABSENT",
+       "(authoritative effective lnd_in tape1 is SHA-verified seven fields)")
+ need(fields(fix(usertext))==AFTER,"Cannot set new-case history list")
  ledger=E/"stage15_IT_NoE_direct_AD400/submission_attempt.json"
  need(ledger.is_file(),"Original one-time Stage15 submit receipt missing")
  attempt=json.loads(ledger.read_text())
@@ -147,6 +173,8 @@ def verify_new(resubmit=0):
  for p in (NEW/"CaseDocs/lnd_in",RUN/"lnd_in"):
   need(p.is_file() and fields(p.read_text())==AFTER,
        "Effective new 7 history fields not fixed: "+str(p))
+  need(without_tape1(p.read_text())==without_tape1(orig),
+       "Effective lnd_in changed outside hist_fincl1; investigate before submission: "+str(p))
   for k in ("fsurdat","fates_paramfile","finidat","spinup_state","use_cn",
             "use_fates","use_fates_sp","use_fates_nocomp",
             "use_fates_fixed_biogeog"):
@@ -276,8 +304,18 @@ def main():
   assert BEFORE[3:5]==["GPP","NPP"] and AFTER[3:5]==["FATES_GPP","FATES_NPP"]
   trial="hist_fincl1 = 'TOTSOMC','TOTSOMN','TLAI','GPP','NPP','TWS','H2OSNO'\nhist_mfilt = 12\n"
   assert fields(trial)==BEFORE and fields(fix(trial))==AFTER
+  assert fields(fix("hist_fincl1 = 'TLAI'\nhist_mfilt = 12\n"))==AFTER
+  assert fields(fix("hist_mfilt = 12\n"))==AFTER
+  assert fix("hist_mfilt = 12\n").startswith("hist_mfilt = 12\n")
+  assert without_tape1(trial)==without_tape1(fix(trial))
+  try:
+   fix("hist_fincl1 = 'TLAI'\nhist_fincl1 = 'GPP'\n")
+  except RuntimeError:
+   pass
+  else:
+   raise AssertionError("Duplicate tape1 must stop")
   assert len(OLD_LOG_SHA)==len(OLD_NML_SHA)==len(MET_SHA)==64
-  print("STAGE40 SELF-TEST PASS | isolated 7-field history correction, no writes")
+  print("STAGE40 SELF-TEST PASS | effective-source 7-field correction, source user_nl subset/absent guards, no writes")
  elif args.audit_source:
   need(not args.confirm,"Do not confirm audit-source")
   source()
