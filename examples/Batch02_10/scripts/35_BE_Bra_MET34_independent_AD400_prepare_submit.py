@@ -63,6 +63,9 @@ def load_manifest(folder):
         m.get("source_case")==SOURCE.name and
         m.get("source_stream_sha256")==SOURCE_STREAM_SHA,
         "Stage34 source case/year/time provenance changed")
+ ensure(m.get("science_status")==
+        "EXPLORATORY_LOCAL_BRACKET_INTERPOLATION_PENDING_NATIVE_QC_ERA_VALIDATION",
+        "Stage34 cannot be misrepresented as source-verified QA")
  ensure(m.get("total_QBOT_edits")==27 and m.get("total_TBOT_edits")==4
         and m.get("unmodified_2002_rain_original_retained") is True
         and m.get("original_source_files_modified") is False
@@ -266,7 +269,7 @@ def prepare(folder):
  result=validate_new(folder,expected_resubmit=0)
  result.update({"phase":"PREPARED_NEW_MET34_NOT_SUBMITTED",
                 "created_utc":clock(),"case":str(CASE),
-                "stage34_21_annual_DTM_files":len(paths),
+                "stage34_30_selected_annual_DATM_files":len(paths),
                 "effective_stream_sha256":new_sha})
  PREP.write_text(json.dumps(result,indent=2)+"\n")
  print("STAGE35 PREPARE PASS (NO JOBS)",CASE)
