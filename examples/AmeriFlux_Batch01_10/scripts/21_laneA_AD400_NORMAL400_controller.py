@@ -456,6 +456,11 @@ def stage_normal_one(s,adr):
     u=case/"user_nl_clm"; t=nml_del(u.read_text(),"spinup_state")
     if nml_get(t,"reseed_dead_plants") is not None: fail(s+": reseed_dead_plants in user_nl_clm")
     t=nml_set(t,"finidat","'"+str(n_run(s)/files["clm2"].name)+"'")
+    # Pin the exact FATES parameter file used by the AD case. The AD namelist was generated with the
+    # private CTSM overlay; the Normal namelist uses the shared CTSM, whose default may differ.
+    pf=nml_get((adc/"CaseDocs/lnd_in").read_text(),"fates_paramfile")
+    if not pf or not Path(pf).is_file(): fail(s+": AD fates_paramfile missing: "+str(pf))
+    t=nml_set(t,"fates_paramfile","'"+pf+"'")
     u.write_text(t)
     if not (case/".case.run").is_file(): cmd([case/"case.setup"],cwd=case,timeout=300)
     cmd([case/"preview_namelists"],cwd=case,timeout=600)
@@ -463,7 +468,7 @@ def stage_normal_one(s,adr):
     save(led,{"site":s,"case":str(case),"phase":"PREPARED_NOT_SUBMITTED","source_ad_case":ad_name(s),
               "source_ad_restart":stamp(y),"source_restart_sha256":src_sha,"ad_start_year":adr["start_year"],
               "normal_start_year":y,"normal5_target_year":y+5,"normal400_target_year":y+400,
-              "executable_sha256":exe_sha,"pft_gate":pft,
+              "executable_sha256":exe_sha,"pft_gate":pft,"fates_paramfile":pf,"fates_paramfile_sha256":digest(pf),
               "generated_lnd_in_sha256":digest(case/"CaseDocs/lnd_in"),"created_utc":utc()})
     print(s,"NORMAL CASE STAGED",name,"start",date,"| NO SLURM")
 
@@ -520,7 +525,7 @@ def validate_normal(s,files=None):
     for k,v in AD_FLAGS.items():
         if nml_get(t,k)!=v: fail(f"{s}: Normal lnd_in {k}={nml_get(t,k)}")
     for k in ("fsurdat","fates_paramfile","use_crop","co2_ppmv","fates_spitfire_mode"):
-        if nml_get(t,k)!=nml_get(a,k): fail(f"{s}: Normal {k} differs from AD")
+        if nml_get(t,k)!=nml_get(a,k): fail(f"{s}: Normal {k} differs from AD: {nml_get(t,k)} vs {nml_get(a,k)}")
     if nml_raw(t,"hist_fincl1")!=nml_raw(a,"hist_fincl1"): fail(s+": Normal history fields differ from AD")
     if nml_get(t,"finidat")!=str(n_run(s)/files["clm2"].name): fail(s+": Normal finidat "+str(nml_get(t,"finidat")))
     if nml_get(t,"spinup_state") not in (None,"0"): fail(s+": Normal spinup_state must be 0/absent")
