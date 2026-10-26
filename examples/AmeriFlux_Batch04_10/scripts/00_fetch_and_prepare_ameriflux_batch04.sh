@@ -2,7 +2,8 @@
 # Pinned one-command Batch04 FULL FATES/FIXNC project preparation.
 # bash .../00_fetch_and_prepare_ameriflux_batch04.sh [--check-only|--build]
 set -euo pipefail
-MODE="$1"
+MODE="--check-only"
+if [[ $# -ge 1 ]]; then MODE="$1"; fi
 if [[ "$MODE" != "--check-only" && "$MODE" != "--build" ]]; then
   echo "ERROR: use --check-only or --build" >&2; exit 2
 fi
