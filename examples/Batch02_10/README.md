@@ -1,5 +1,12 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## IT-Noe Stage40 read-only source audit false blocker — fixed (26 Oct)
+
+Actual operator attempt: `--self-test PASS`, `--audit-source` failed with `user_nl_clm original hist_fincl1 not exactly 7 expected fields`. This was an overconstraint on the **input** `user_nl_clm`: CIME combines templates/defaults/user_nl to produce the **effective** `CaseDocs/lnd_in`, which Stage39 explicitly pinned by SHA and confirmed exactly `TOTSOMC,TOTSOMN,TLAI,GPP,NPP,TWS,H2OSNO`. The source user_nl may specify a different subset or no tape1 list; this does not override the evidence from the effective file.
+
+**Updated Stage40** [script](scripts/40_IT_Noe_new_case_GPP_NPP_histfix_AD400.py): validates all seven **effective** original history fields and exact old namelist/model-log SHA, prints old user_nl tape1 if present, accepts a single nonmatching or missing old user_nl tape1, and injects/replaces **only `hist_fincl1` in the newly cloned case's `user_nl_clm`**. The new effective `CaseDocs/lnd_in` and `RUNDIR/lnd_in` must contain all seven desired entries, all requested model science keys must match original, and **the entire new generated effective lnd_in except tape1 must be byte-identical to original**. Duplicate source tape1 assignments and any failure to generate exact new effective namelist stop before submit. Previous failure happened before writing any new case or Slurm jobs; do not rerun old Stage15. Stage40 scientific basis remains exploratory.
+
+---
 ## IT-Noe Stage39 exact repair: two missing history fields; isolated Stage40 (26 October)
 
 Operator-completed **Stage39** effective failed case `lnd_in` SHA `a270910c91f55cb492d417109b034a39a1d05ba84c0109434b1c5db7258aeea6`, failed `lnd.log.4733521.*` SHA `be88700306ad1347d20a50c02f7e9fa82e6253c63dc37a68eef6d81d8a7c9158`; 1015 registered history fields. History tape 1 `hist_fincl1` requests exactly `TOTSOMC, TOTSOMN, TLAI, GPP, NPP, TWS, H2OSNO`. All but **GPP (4th), NPP (5th)** registered. FATES `FATES_GPP` registered; [CTSM official history documentation](https://escomp.github.io/CTSM/users_guide/setting-up-and-running-a-case/history_fields_fates.html) includes both `FATES_GPP` and `FATES_NPP` (production in kg C m-2 s-1). **Do not confuse `fincl(4)` (field 4, tape 1) with `hist_fincl4`!** FATES_NPP must additionally be confirmed in *this exact failed-run model registry* before new-case creation.
