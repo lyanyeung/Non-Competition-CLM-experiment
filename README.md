@@ -7,21 +7,25 @@ The user-confirmed AmeriFlux Batch01 **Stage80 forcing selection**, **Stage81 21
 [**AmeriFlux-specific ten-site AD400 → Normal400 preflight and runbook**](examples/AmeriFlux_Batch01_10/README.md) is separate from the European/ICOS `examples/Batch01_10` scripts. It explains the safe progression: Stage80/81/82 read-only provenance check → verify static/dynamic site TA_F sensor heights/ZBOT and DATM time/stream/domain → one new isolated FATES fixed-biogeography/no-competition case and AD5 smoke → guarded remaining AD395 → independent hybrid Normal5 → guarded Normal395. **Do not run existing Europe-specific Batch01 submission scripts for AmeriFlux stations**.
 
 
-## Operator status snapshot — 26 October 2026, 17:15 UK
+## Operator status snapshot — 26 October 2026, 20:00 UK
 
-This snapshot comes from operator IRIDIS6 output. Submitted means CIME returned job IDs; it does not mean the run has completed.
+Submitted means CIME returned job IDs; completion still has to be audited.
 
 | Cohort | AD400 | NORMAL400 |
 | --- | --- | --- |
-| **ICOS Batch01** (10) | 10/10 archived to Y+400 | **10/10 archived to Y+800**, nothing queued; `audit-normal400` not yet run |
-| **ICOS Batch02** (10) | **4/10 audited PASS** (FI-Hyy, FR-Hes, CH-Fru, IT-MBo); IT-Noe GPP/NPP history-fix AD400 running; ES-LJu 4740990, DK-Sor 4740992, FR-FBn 4740994, BE-Bra 4740996, CH-Lae 4740998 Stage43 history-fix AD400 **submitted** 80×5 (17:20) | **4/4 Normal5 PASS, Normal395 submitted** 17:12: FI-Hyy 4740959/60, FR-Hes 4740961/62, CH-Fru 4740963/64, IT-MBo 4740965/66 |
-| **ICOS Batch03** (10) | 10/10 | **6/10 audited PASS** (IL-Yat, DE-Obe, CZ-Stn, DE-Lnf, AT-Neu, CH-Cha); IT-Lav, FI-Let, DE-Hzd, GF-Guy still running |
-| **AmeriFlux Batch02** (10) | 10 FIXNC surfaces built (Stage05); Stage06 direct AD400 (80×5, no AD5) controller ready — prepare + submit pending on IRIDIS | Not started |
-| **AmeriFlux Batch01** (10) | **CA-Ca3, CA-LP1 audited PASS**; CA-TP4, BR-Ma2 AD395 running; 6 not started (US-Bar needs surface; CA-TP1/TP3/US-Aud dynamic ZBOT; CA-Cbo/CA-Man multi-level TA) | CA-Ca3, CA-LP1 Normal cases re-staged (VALIDATE PASS). By operator decision they go **directly to Normal400 (80×5, no Normal5 smoke)** via Stage21 `submit-normal400-direct` |
+| **ICOS Batch01** (10) | 10/10 done | 10/10 archived to Y+800; `audit-normal400` not yet run |
+| **ICOS Batch02** (10) | FI-Hyy, FR-Hes, CH-Fru, IT-MBo PASS. Stage43 history-fix AD400 running: ES-LJu, FR-FBn, CH-Lae (FR-FBn kept at ENF75/EBF25, inside the ICOS range). IT-Noe history-fix AD400 running. **DK-Sor and BE-Bra rebuilt (Stage44)** with ICOS basal-area PFT and 1996–2025 forcing (DK-Sor 2025 added by Stage45), submitted 4741595 and 4741597; all old outputs deleted | FI-Hyy, FR-Hes, CH-Fru, IT-MBo Normal395 running |
+| **ICOS Batch03** (10) | 10/10 | 6/10 audited PASS; IT-Lav, FI-Let, DE-Hzd, GF-Guy running |
+| **AmeriFlux Batch01** (10) | CA-Ca3, CA-LP1 PASS; CA-TP4, BR-Ma2 AD395 running; 6 not started | CA-Ca3, CA-LP1 direct Normal400 (80×5) queued |
+| **AmeriFlux Batch02** (10) | **Stage06 direct AD400 submitted 10/10.** US-ICh and US-ICt failed at init (peat 0/0 sand+clay); repaired by Stage07 (L1–L4 ← L5 mineral texture) and resubmitted as 4741683 and 4741685. The other 8 are running | Not started |
 
-All 25 staged Normal cases were checked read-only: each Normal `fates_paramfile` has the same content as its AD source (sha256 `0819f8fddcb3…`). The paths differ only between the private overlay and the shared CTSM copy.
+**PFT register:** 38-site register updated with ICOS ETC basal area ([FINAL_38_SITE_FIXNC_PFT_20261026_ICOS.csv](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/FINAL_38_SITE_FIXNC_PFT_20261026_ICOS.csv)):
+- Changed: DK-Sor DBF 100, BE-Bra ENF 84 / DBF 16, FR-FBn ENF 70 / EBF 30.
+- 11 sites confirmed.
+- 24 sites have no ICOS report.
+- ICOS reports contain no soil texture.
 
-Seven `st_archive` jobs are stuck with `DependencyNeverSatisfied`: 4734857, 4734697, 4734488, 4734486, 4734426, 4733522 and 4728207. Their run jobs failed or were cancelled. Identify them with `sacct` before cancelling.
+**Stale jobs:** the seven `DependencyNeverSatisfied` archive jobs were cancelled at 19:54.
 
 **Research aim:** Evaluate forest- and ecosystem-carbon responses in FATES under **fixed biogeography** and **no inter-PFT competition**, using the best available EC-station vegetation evidence and transparently versioned site surface data.
 
