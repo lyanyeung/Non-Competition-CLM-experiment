@@ -11,7 +11,10 @@ PropagateResourceLimits includes STACK before model submission.
 --submit     : only a fully science-approved, independently built new
                Batch02 FIXNC CIME case with matching SHA receipt; writes
                attempt ledger BEFORE submitting; never duplicate submissions.
-Supports AD5, AD395, NORMAL5, NORMAL395. Does not create model cases.
+Direct protocol: AD400 in ONE case.submit, CIME 80x5y RESUBMIT=79;
+then NORMAL400 from a VERIFIED AD400 restart in a separate CIME case,
+also ONE case.submit 80x5y. No initial AD5/NORMAL5 stage is required.
+This tool validates and submits prepared cases but does not create them.
 """
 import argparse,configparser,hashlib,json,os,re,resource,subprocess,sys
 from pathlib import Path
@@ -23,7 +26,10 @@ CASES=BASE/"cases"
 SITES=("US-BZS","US-CMW","US-EML","US-GLE","US-Ha1","US-Ho1","US-Ho2","US-Ho3","US-ICh","US-ICt")
 MIN_KB=65536
 TARGET_KB=300000
-PHASES=("AD5","AD395","NORMAL5","NORMAL395")
+PHASES=("AD400","NORMAL400")
+SEGMENT_YEARS=5
+SEGMENTS=80
+AUTOMATIC_RESUBMITS=79
 CONFIRM="SUBMIT_AMF_BATCH02_ONE_SCIENCE_APPROVED_FIXNC_CASE_WITH_STACK_GUARD"
 REQUIRED=("site_PFT_surface_sha_verified",
           "all_ten_soil_layers_and_organic_policy_approved",
@@ -118,14 +124,88 @@ def case_gate(site,phase,case,receipt):
     if cs.is_file() and re.search("case.submit starting|case.run starting|model execution starting",
                                   cs.read_text(errors="replace"),re.I):
         fail("Prior submission seen in CaseStatus; refuse duplicate")
-    if phase in ("AD5","NORMAL5") and not (
-        proof.get("STOP_OPTION")=="nyears" and proof.get("STOP_N")==5
-        and proof.get("REST_N")==5 and proof.get("RESUBMIT")==0):
-        fail("AD5/Normal5 smoke must be 5 years, RESUBMIT=0")
-    if phase in ("AD395","NORMAL395") and not (
-        proof.get("prior_5year_completed_and_restart_sha_verified") is True
-        and proof.get("intended_years")==395 and proof.get("RESUBMIT")==78):
-        fail("395y continuation requires real 5-year restart and 78 resubmits")
+    # Direct AD400 / Normal400: one submission per phase, 80 * 5-year
+    # continuous CIME segments, 79 internal automatic resubmissions. NOT
+    # a separate initial 5-year pilot, and no manual 395-year handoff.
+    if not (
+        proof.get("protocol")=="DIRECT400_SINGLE_CIME_CASE_80x5"
+        and proof.get("intended_years")==400
+        and proof.get("segment_years")==SEGMENT_YEARS
+        and proof.get("segments")==SEGMENTS
+        and proof.get("STOP_OPTION")=="nyears"
+        and proof.get("STOP_N")==SEGMENT_YEARS
+        and proof.get("REST_OPTION")=="nyears"
+        and proof.get("REST_N")==SEGMENT_YEARS
+        and proof.get("RESUBMIT")==AUTOMATIC_RESUBMITS
+        and proof.get("RESUBMIT_SETS_CONTINUE_RUN") is True
+        and proof.get("DOUT_S") is True):
+        fail("Direct 400y CIME science receipt mismatch: require 80x5, 79 automatic resubmits")
+    if not (proof.get("model_executable_sha256") and
+            proof.get("fates_parameter_file_sha256") and
+            proof.get("actual_DATM_streams_xml_sha256")):
+        fail("Missing pinned executable, private FATES parameter and actual DATM stream source SHA")
+    for item,key in (("CaseDocs/datm.streams.xml","actual_DATM_streams_xml_sha256"),):
+        if not (case/item).is_file() or sha(case/item)!=proof[key]:
+            fail("Effective CIME DATM streams were not approved or changed")
+    if sha(Path(proof.get("model_executable_path","/INVALID")))!=proof["model_executable_sha256"]:
+        fail("Approved compiled executable missing or changed")
+    if sha(Path(proof.get("fates_parameter_file_path","/INVALID")))!=proof["fates_parameter_file_sha256"]:
+        fail("Approved FATES parameter map missing or changed")
+    def xml(field):
+        proc=subprocess.run([str(case/"xmlquery"),field,"--value"],
+             cwd=case,capture_output=True,text=True,timeout=45)
+        if proc.returncode:
+            fail("Cannot confirm actual CIME "+field+": "+proc.stderr[-200:])
+        return proc.stdout.strip()
+    expected={
+        "STOP_OPTION":"nyears","STOP_N":"5",
+        "REST_OPTION":"nyears","REST_N":"5",
+        "RESUBMIT":"79",
+        "RESUBMIT_SETS_CONTINUE_RUN":"true",
+        "DOUT_S":"true",
+    }
+    for field,want in expected.items():
+        if xml(field).lower()!=want:
+            fail("Actual CIME "+field+" differs from expected "+want+" (ONE 400-year trajectory)")
+    if xml("CLM_ACCELERATED_SPINUP").lower()!=("on" if phase=="AD400" else "off"):
+        fail("Wrong AD spin-up accelerator state for "+phase)
+    if xml("CONTINUE_RUN").lower()!="false":
+        fail("Direct 400y fresh case must start CONTINUE_RUN=FALSE")
+    if xml("RUN_TYPE").lower()!=("startup" if phase=="AD400" else "hybrid"):
+        fail("AD400 must startup; NORMAL400 must hybrid from verified AD400 restart")
+    if not re.fullmatch(r"\\d{4}-01-01",xml("RUN_STARTDATE")):
+        fail("RUN_STARTDATE must be an exact NOLEAP Jan1, one 400-year span")
+    if xml("CALENDAR").upper()!="NO_LEAP":
+        fail("Original tower forcing needs NO_LEAP calendar")
+    lnd_text=(case/"CaseDocs/lnd_in").read_text(errors="replace")
+    expected_flags={
+       "use_fates":".true.",
+       "use_fates_sp":".false.",
+       "use_fates_fixed_biogeog":".true.",
+       "use_fates_nocomp":".true.",
+    }
+    def nml(k):
+        found=re.findall(r"(?im)^\\s*"+re.escape(k)+r"\\s*=\\s*([^!\\n]+)",lnd_text)
+        if len(found)!=1:
+            fail("Generated CIME lnd_in missing/ambiguous "+k)
+        return found[0].strip().strip(",").strip().strip("'\\\"").lower()
+    for key,val in expected_flags.items():
+        if nml(key)!=val:
+            fail("Generated site FATES FIXNC flag mismatch "+key)
+    if phase=="AD400":
+        if nml("spinup_state")!="2":
+            fail("AD400 must have FATES spinup_state=2")
+        if re.search(r"(?im)^\\s*finidat\\s*=\\s*['\\\"]?[^'\\\"\\s,]+",lnd_text):
+            fail("AD400 unexpectedly has land restart FINIDAT; no approved previous spinup")
+    else:
+        if proof.get("AD400_final_restart_scientifically_and_sha_verified") is not True:
+            fail("Cannot start Normal400 without complete 400-year AD final restart")
+        if proof.get("AD400_final_restart_sha256") is None:
+            fail("Normal400 missing AD400 final restart SHA")
+        if nml("spinup_state") not in ("0",""):
+            fail("Normal400 land spinup_state must be 0 or absent")
+        if not proof.get("Normal400_hybrid_restart_handoff_sha_verified") is True:
+            fail("Normal400 hybrid initialization not approved")
     return proof
 
 def submit(site,phase,case,receipt):
@@ -150,7 +230,8 @@ def submit(site,phase,case,receipt):
                   status="SUBMITTED_MODEL_UNVERIFIED" if p.returncode==0 else "FAILED_OR_UNCERTAIN_NO_BLIND_RETRY")
     ledger.write_text(json.dumps(record,indent=2)+"\n")
     if p.returncode:fail("CIME submission returned error, inspect ledger and Slurm before deciding any retry")
-    print("AMF_B02_SUBMITTED",site,phase,"MODEL_NOT_YET_VERIFIED",flush=True)
+    print("AMF_B02_DIRECT400_SUBMITTED",site,phase,"ONE_CASE_80x5y_RESUBMIT79",
+          "MODEL_NOT_YET_VERIFIED",flush=True)
 
 def main():
     p=argparse.ArgumentParser()
@@ -164,8 +245,9 @@ def main():
     a=p.parse_args()
     if a.self_test:
         assert MIN_KB==65536 and TARGET_KB>=MIN_KB and len(SITES)==10
-        assert len(PHASES)==4 and len(REQUIRED)==7
-        print("AMF_B02_STACK_SELF_TEST_PASS | Stage21 64MiB minimum, four phases, no model jobs or file writes")
+        assert PHASES==("AD400","NORMAL400") and SEGMENT_YEARS*SEGMENTS==400
+        assert AUTOMATIC_RESUBMITS==SEGMENTS-1 and len(REQUIRED)==7
+        print("AMF_B02_DIRECT400_SELF_TEST_PASS | 1 AD400 submit -> 80x5y, RESUBMIT=79; then 1 Normal400 submit; stack >=65536KiB, no writes")
         return
     if a.audit:
         stack_guard(True)
