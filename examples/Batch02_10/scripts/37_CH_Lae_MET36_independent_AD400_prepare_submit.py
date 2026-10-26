@@ -123,7 +123,7 @@ def actual_stream(case):
  ensure(read("taxmode")=="cycle" and int(read("year_align"))==2004 and
         read("offset")=="0","Unexpected DATM time alignment")
  data=s.find("datafiles")
- ensure(data is not None and len(list(data))==21,"Expected exact 30 DATM entries")
+ ensure(data is not None and len(list(data))==21,"Expected exact 21 DATM entries")
  paths=[Path((v.text or "").strip()) for v in data]
  return xml,paths
 def set_new_stream(case,paths):
@@ -147,6 +147,9 @@ def set_new_stream(case,paths):
 def verify_original_preview():
  ensure(SOURCE.is_dir() and SOURCE_RECEIPT.is_file(),
         "Stage30 unsubmitted CH-Lae source preview not available")
+ oldsubmit=E/"stage31_forest_direct_AD400_submission_receipts/CH-Lae_AD400_submission_attempt.json"
+ ensure(not oldsubmit.exists(),
+        "An original Stage31 CH-Lae submission attempt exists; never create a second model job")
  rec=json.loads(SOURCE_RECEIPT.read_text())
  ensure(rec.get("phase")=="PREVIEW_VERIFIED_NOT_SUBMITTED" and
         rec.get("slurm_submitted") is False and
@@ -172,7 +175,7 @@ def verify_original_preview():
  ensure(field(nl,"fsurdat")==str(SURF),
         "Stage30 source PFT surface does not match Stage29")
  xml,selected=actual_stream(SOURCE)
- ensure(sha(xml)==SOURCE_STREAM_SHA and len(selected)==30,
+ ensure(sha(xml)==SOURCE_STREAM_SHA and len(selected)==21,
         "Stage30 source actual original DATM stream changed")
  exe=Path(query(SOURCE,"EXEROOT"))/"cesm.exe"
  ensure(exe.is_file(),"Stage30 same-site compiled CESM/FATES binary absent")
@@ -219,7 +222,7 @@ def validate_new(folder,expected_resubmit=None):
              "fsurdat":str(SURF)}.items():
   ensure(field(nl,k)==v,"Stage37 actual lnd_in key changed "+k)
  _,live_files=actual_stream(CASE)
- ensure(live_files==paths,"Stage37 effective DATM not Stage36 30y files")
+ ensure(live_files==paths,"Stage37 effective DATM not Stage36 21y files")
  for runconfig in (CASE/"CaseDocs/nuopc.runconfig",RUN/"nuopc.runconfig"):
   ensure(runconfig.is_file(),"Missing point-coupler runconfig: "+str(runconfig))
   cfg=runconfig.read_text()
