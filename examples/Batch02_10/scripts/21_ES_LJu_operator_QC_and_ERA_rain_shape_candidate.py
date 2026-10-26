@@ -238,9 +238,12 @@ def main():
     for y in range(2005,2010):
         dates=idx[(idx.year==y)].normalize().unique()
         for day in dates:
-            mask=idx.normalize()==day
-            positions=np.flatnonzero(mask)
-            require(len(positions)==48,f"Daily 48HH noleap failure {day}")
+            start=lut.get(pd.Timestamp(day))
+            require(start is not None,f"Daily date missing: {day}")
+            positions=np.arange(start,start+48)
+            require(len(positions)==48 and positions[-1]<len(idx) and
+                    (idx[positions].normalize()==pd.Timestamp(day)).all(),
+                    f"Daily 48HH noleap failure {day}")
             rv=rawdf.iloc[positions]["P_F"].to_numpy(float)
             qcv=rawdf.iloc[positions]["P_F_QC"].to_numpy(float)
             ev=eraf.iloc[positions]["P_ERA"].to_numpy(float)
