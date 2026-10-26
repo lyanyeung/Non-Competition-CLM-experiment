@@ -12,6 +12,32 @@ This **new cohort** consists of BR-Ma2, CA-Ca3, CA-Cbo, CA-LP1, CA-Man, CA-TP1, 
 
 All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height Stage31 metadata yielded five static and three dynamic **provisional sensor-height profiles**; CA-Cbo and CA-Man have multi-layer temperature heights but **no verified crosswalk of FLUXNET TA_F to a specific source sensor**. Stage31 dates for some sites have month/year uncertainty. Do not silently assume 2m or 30m, the WS/EC height, or an upper-canopy TA sensor is the forcing air temperature measurement level.
 
+## Stage21 — CA-TP4 AD5 VERIFIED; recommended PFT adopted; AD5 → AD395 → Normal400 controller (26 October 2026)
+
+**CA-TP4 AD5 succeeded** (operator CaseStatus): `model execution success`, `case.run success 4732088`, `st_archive success 4732089`; archived restart `2007-01-01-00000`. The PTS correction worked, and the run passed the Leung_2023 Prigent dust ESMF mesh read (`use_prigent_roughness = .true.`).
+
+**PFT inputs for all ten sites now follow** [RECOMMENDED_50_SITE_CLM_FATES_INPUT_PFT_20261026.csv](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/Ameriflux_Site/Ameriflux_PFT/RECOMMENDED_50_SITE_CLM_FATES_INPUT_PFT_20261026.csv), copied for Batch01 to [data/amf_batch01_recommended_pft_20261026.csv](../../data/amf_batch01_recommended_pft_20261026.csv). These are model hypotheses, not observations.
+
+| Site | Recommended (FATES) | Host `PCT_NAT_PFT` | FIXNC state |
+| --- | --- | --- | --- |
+| CA-TP4 | ENF 93 / DBF 7 | 1:93, 7:7 | Surface/case built; **AD5 verified** |
+| BR-Ma2 | Tropical EBF 100 | 4:100 | Surface/case built; AD5 not yet submitted |
+| CA-Ca3 | ENF 100 | 1:100 | Surface/case built; AD5 not yet submitted |
+| CA-LP1 | ENF 100 | recommended 2:100; built 1:100 | Built surface is **FATES-identical** (HLM 1 and 2 both map solely to `needleleaf_evergreen_extratrop_tree`); AD5 not yet submitted |
+| US-Bar | ENF 17 / DBF 83 | 1:17, 7:83 | PFT now resolved (3% residual → ENF); forcing ready; **surface and case not built** |
+| CA-TP1 | ENF 100 | 1:100 | Blocked: dynamic ZBOT undecided |
+| CA-TP3 | ENF 99 / DBF 1 | 1:99, 7:1 | Blocked: dynamic ZBOT undecided |
+| US-Aud | C4 70 / bare 30 | 0:30, 14:70 | Blocked: dynamic ZBOT undecided. Bare ground is technically supported (Batch03 IL-Yat BARE52 completed AD400) |
+| CA-Cbo | ENF 18.6 / DBF 81.4 | 1:18.6, 7:81.4 | Blocked: multi-level TA source for ZBOT |
+| CA-Man | ENF 100 | 2:100 | Blocked: multi-level TA source for ZBOT |
+
+**[Stage21 Lane A controller](scripts/21_laneA_AD400_NORMAL400_controller.py)** ports the Batch03 workflow (AD400 10/10, Normal5 10/10 on IRIDIS6) to CA-TP4, BR-Ma2, CA-Ca3 and CA-LP1:
+
+- **PFT gate:** before every stateful action, the case's actual `fsurdat` is mapped through the pinned `fates_hlm_pft_map` and must reproduce the recommended FATES fractions and bare share, with NATVEG = 100.
+- **Stack guard:** every submission requires `ulimit -s` ≥ 65536 KB. Stage18/20 had no such guard; CA-TP4 passed only because it was submitted from a high-stack shell.
+- **Actions:** `submit-ad5` (three sites; CA-TP4 is refused) → `audit-ad5` → `continue-ad395` (`RESUBMIT=78`) → `audit-ad400` → `stage-normal` (independent hybrid `<site>_AMF_FIXNC_NORMAL400_UTC_V*_PTS` from the Y+400 restart, `spinup_state` removed, unpatched CTSM, DATM streams checked identical to AD) → `submit-normal5` → `audit-normal5` → `continue-normal395` → `audit-normal400`.
+- **Safety:** attempt-before-submit ledgers under `.../AmeriFlux_Batch01_10/Stage21_AD400_NORMAL400/`. A mock run (fake CIME/Slurm/NetCDF) covers the full chain and every HOLD path.
+
 ## Stage20 real corrected CA-TP4 AD5 submitted: 4732088 run / 4732089 archive (25 October 2026)
 
 **Actual user-provided CIME output:** `Check case OK`; `case.submit --skip-preview-namelist` successfully submitted the **corrected** `CA-TP4_AMF_FIXNC_AD400_UTC_V3_PTS_AD5` case, **run Slurm job 4732088**, dependent **short-term archive job 4732089**. This is distinct from the retired, failed original `4728206/4728207` pair. The successful one-time submission guard was passed, including exact original `fsurdat` `PTS_LAT=42.7102` / `PTS_LON=279.6426`, exact effective CaseDocs and RUNDIR `scol_lat/scol_lon`, and original forcing years and CO2.
