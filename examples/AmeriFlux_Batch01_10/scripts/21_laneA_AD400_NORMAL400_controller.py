@@ -70,6 +70,7 @@ ACK_AD395="CONTINUE_AMF_LANEA_VERIFIED_AD5_BY_395_YEARS"
 ACK_STAGE="STAGE_AMF_LANEA_NORMAL400_HYBRID_CASES_NO_SLURM"
 ACK_N5="SUBMIT_AMF_LANEA_NORMAL5_SMOKES"
 ACK_N395="CONTINUE_AMF_LANEA_VERIFIED_NORMAL5_BY_395_YEARS"
+ACK_RESTAGE="QUARANTINE_INTERRUPTED_NORMAL_STAGE_AND_RESTAGE_NO_SLURM"
 RUN_RE=re.compile(r"Submitted job case\.run with id (\d+)")
 ARCH_RE=re.compile(r"Submitted job case\.st_archive with id (\d+)")
 
@@ -467,6 +468,41 @@ def stage_normal_one(s,adr):
     print(s,"NORMAL CASE STAGED",name,"start",date,"| NO SLURM")
 
 
+def interrupted_one(s):
+    """READ ONLY: an interrupted stage-normal (e.g. SSH drop) leaves ledger phase
+    STAGE_ATTEMPTED_UNCERTAIN and a partial case/run. Report it and prove that no
+    Normal job was ever queued or accounted for this case name."""
+    led=n_ledger(s); obj=load(led); name=n_name(s)
+    if obj.get("phase")!="STAGE_ATTEMPTED_UNCERTAIN":
+        fail(s+": Normal ledger phase "+str(obj.get("phase"))+" (only STAGE_ATTEMPTED_UNCERTAIN is recoverable here)")
+    if queued(name): fail(s+": Normal jobs queued: "+str(queued(name)))
+    hist=sacct_name(name)
+    if hist: fail(s+": Slurm accounting exists for Normal case; manual review: "+str(hist[:4]))
+    if n_arch(s).exists(): fail(s+": Normal archive exists "+str(n_arch(s)))
+    case,run=n_case(s),n_run(s)
+    if (case/"CaseStatus").is_file() and re.search(r"case\.submit|case\.run starting",(case/"CaseStatus").read_text(errors="replace")):
+        fail(s+": partial case CaseStatus shows a submission")
+    info={"case_exists":case.is_dir(),"case_setup":(case/".case.run").is_file(),
+          "casedocs_lnd_in":(case/"CaseDocs/lnd_in").is_file(),"run_exists":run.is_dir(),
+          "run_files":sorted(x.name for x in run.iterdir())[:12] if run.is_dir() else [],"attempt_at":obj.get("at")}
+    print(f"  {s}: interrupted stage {info}")
+    return info
+
+
+def restage_interrupted_one(s,adr):
+    interrupted_one(s)
+    q=D21/"quarantine_interrupted_stage"/f"{s}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
+    q.mkdir(parents=True,exist_ok=False)
+    moved={}
+    for tag,p in (("case",n_case(s)),("run_parent",n_run(s).parent),("ledger",n_ledger(s))):
+        if p.exists():
+            dst=q/tag; shutil.move(str(p),str(dst)); moved[tag]={"from":str(p),"to":str(dst)}
+    (q/"QUARANTINE_RECEIPT.json").write_text(json.dumps({"site":s,"reason":"interrupted stage-normal (no Slurm job ever submitted)",
+                                                         "moved":moved,"utc":utc()},indent=2)+"\n")
+    print(f"  {s}: partial Normal stage quarantined to {q}")
+    stage_normal_one(s,adr)
+
+
 def validate_normal(s,files=None):
     case=n_case(s); adc=ad_case(s)
     if files is None:
@@ -587,6 +623,7 @@ def self_test():
 def main():
     ap=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("action",choices=("self-test","pft-check","submit-ad5","audit-ad5","continue-ad395","audit-ad400",
+                                      "inspect-interrupted","restage-interrupted",
                                       "stage-normal","submit-normal5","audit-normal5","continue-normal395","audit-normal400","status"))
     ap.add_argument("--sites",nargs="+"); ap.add_argument("--confirm",default="")
     a=ap.parse_args()
@@ -602,6 +639,16 @@ def main():
         _,h=table("LANE A NORMAL5 AUDIT (read only)",pick(a.sites),normal5_one); raise SystemExit(2 if h else 0)
     if a.action=="audit-normal400":
         _,h=table("LANE A NORMAL400 AUDIT (read only)",pick(a.sites),normal400_one); raise SystemExit(2 if h else 0)
+    if a.action=="inspect-interrupted":
+        _,h=table("INTERRUPTED NORMAL STAGE INSPECTION (read only)",pick(a.sites),interrupted_one); raise SystemExit(2 if h else 0)
+    if a.action=="restage-interrupted":
+        if a.confirm!=ACK_RESTAGE: fail("requires --confirm "+ACK_RESTAGE)
+        if not a.sites: fail("restage-interrupted requires explicit --sites")
+        sites=pick(a.sites); ok,h=table("PREFLIGHT AD400",sites,ad400_one)
+        if h: fail("AD400 incomplete for "+",".join(h))
+        _,h2=table("PREFLIGHT INTERRUPTED STAGE",sites,interrupted_one)
+        if h2: fail("not a recoverable interrupted stage: "+",".join(h2))
+        return batch("RESTAGE-INTERRUPTED",sites,lambda s,_:restage_interrupted_one(s,ok[s]),None)
     if a.action=="stage-normal":
         if a.confirm!=ACK_STAGE: fail("requires --confirm "+ACK_STAGE)
         sites=pick(a.sites); ok,h=table("PREFLIGHT AD400",sites,ad400_one)

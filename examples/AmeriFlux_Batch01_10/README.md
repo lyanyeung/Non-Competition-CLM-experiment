@@ -21,6 +21,13 @@ All ten NetCDFs intentionally **omit ZBOT**. The previous AmeriFlux BASE-height 
 - **BR-Ma2, CA-Ca3 and CA-LP1 AD5 passed the audit** with `spinup_state=2` and the recommended PFT gate. Final AD5 restarts: BR-Ma2 2004, CA-Ca3 2006, CA-LP1 2012. `continue-ad395 --sites BR-Ma2 CA-Ca3 CA-LP1` was run, and AD395 handoff folders exist for all three. First AD395 segments (status 03:53 UTC, all RUNNING with archive PENDING): BR-Ma2 4734578/4734579, CA-Ca3 4734580/4734581, CA-LP1 4734582/4734583.
 - Next: `audit-ad400` once each chain finishes, then `stage-normal`.
 
+**26 Oct 16:44 UK: interrupted Normal staging.**
+- CA-Ca3 and CA-LP1 AD400 passed the audit: 80 + 80 jobs, restarts 2401 and 2407, `spinup_state=2`.
+- Their `stage-normal` was interrupted by an SSH disconnect. Both ledgers are left at `STAGE_ATTEMPTED_UNCERTAIN`, with a partial `*_NORMAL400_UTC_V2_PTS` case. No Normal job was submitted. The guard correctly refused `submit-normal5`.
+- Recovery uses two new actions. Run `inspect-interrupted` first (read only). It proves the phase, that nothing is queued, and that there is no Slurm accounting and no Normal archive for the Normal case.
+- Then `restage-interrupted --sites ... --confirm QUARANTINE_INTERRUPTED_NORMAL_STAGE_AND_RESTAGE_NO_SLURM` moves the partial case, run directory and ledger to `Stage21_AD400_NORMAL400/quarantine_interrupted_stage/<site>_<UTC>/`, writes a receipt, and stages again. It never submits to Slurm. A mock test covers this, including the Slurm-accounting and phase gates.
+- Run long steps inside `tmux`.
+
 **PFT inputs for all ten sites now follow** [RECOMMENDED_50_SITE_CLM_FATES_INPUT_PFT_20261026.csv](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/Ameriflux_Site/Ameriflux_PFT/RECOMMENDED_50_SITE_CLM_FATES_INPUT_PFT_20261026.csv), copied for Batch01 to [data/amf_batch01_recommended_pft_20261026.csv](../../data/amf_batch01_recommended_pft_20261026.csv). These are model hypotheses, not observations.
 
 | Site | Recommended (FATES) | Host `PCT_NAT_PFT` | FIXNC state |
