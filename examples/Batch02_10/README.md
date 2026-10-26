@@ -1,5 +1,24 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## BE-Bra Stage33 **human review** → Stage34 independent met candidate → Stage35 fresh AD400
+
+User supplied Stage33 all anomaly context, source SHA from actual effective Stage30 BE-Bra data.
+
+**Reviewed decisions:**
+- 1996 **12 RH<5%**: many physically implausible paired cold/dry interruptions, e.g. Jul20 19:00 and Aug19 19:00 isolated TBOT drops ≈7–10°C with concurrent QBOT collapse, plus prolonged very dry QBOT at Aug05/Aug09; **modelling proxy**: local bracketing RH>=10 donor interpolation for 12 QBOT rows, plus exactly 2 visually isolated TBOT records Jul20 19:00 and Aug19 19:00. *Native tower-QC / ERA5 donor not independently confirmed*. Some complex 1996 humidity episodes may be scientifically underdetermined; label every modification.
+- 1999 **13 RH<1%**: isolated/dropout QBOT to ≈1–5×10^-6 kg/kg between neighboring RH ≈70–98%; interpolate exactly 13 QBOT rows, preserve TBOT.
+- 2005-05-26 19:00: isolated TBOT 25.038°C against ≈11.3/11.05°C neighbors and QBOT 0.00969 vs 0.0065/0.00718; replace exactly that T/Q pair with two-neighbor midpoint, preserve other points.
+- 2021-11-04 10:00: TBOT 48.06°C and QBOT 0.03321 between ≈10.07 and9.13°C neighbors, and 0.00533/0.00642 QBOT; replace exactly that one T/Q pair.
+- 2002-08-24 original **154.5 mm total** is a multihour rainstorm with near 100% RH and smooth T, not an isolated rogue 30-min datum. **Retain original 2002 DATM and precipitation exactly**; not externally rain-gauge certified.
+
+**Science caveat:** Stage34 is an **EXPLORATORY, LOCAL-INTERPOLATED MODEL SENSITIVITY FORCING**, **not** an official source-QC corrected meteorology series. To produce publication-grade forcing, compare flagged times with actual native tower QA/QC plus collocated ERA5/ERA5-L; do not misdescribe interpolation as ERA5 or observation. Independent Stage35 case leaves the original raw data untouched. No modification of the already submitted DK-Sor or FR-FBn jobs.
+
+[Stage34 candidate (4 modified annual NCs / 26 original annual NCs)](scripts/34_BE_Bra_curated_4year_DATM_candidate.py): `--self-test`, `--audit` (read-only); `--build --confirm CREATE_BE_BRA_STAGE34_FOUR_YEAR_EXPLORATORY_MET_OVERLAY` writes a new immutable `stage34_BE_Bra_curated_MET_QC_v1` folder, 4 new annual files, a provenance manifest selecting all 30 years. Pins SHA256 of selected source 1996,1999,2002,2005,2021 and the actual CDEPS stream, verifies EXACT number/position/values of T/Q changes (TBOT4, QBOT27), and all unaffected NetCDF variables/time/rain bitwise-equivalent. Refuses all accidental source changes or second build.
+
+[Stage35 isolated direct AD400 80x5y](scripts/35_BE_Bra_MET34_independent_AD400_prepare_submit.py): `--self-test`, `--prepare --datm-dir .../stage34_BE_Bra_curated_MET_QC_v1 --confirm PREPARE_BE_BRA_STAGE35_INDEPENDENT_MET34_AD400_NO_SUBMIT`, `--audit --datm-dir ...` (READ ONLY), and **only when operator explicitly approves the experimental input** `--start --datm-dir ... --confirm SUBMIT_BE_BRA_STAGE35_CURATED_EXPLORATORY_AD400_ONCE`. Uses proven Stage26 independent create_clone, private AD FATES namelist preview and exact modified Stage34 selected stream, original same-site compiled executable and Stage29 site PFT. No jobs at prepare/audit. The start guard creates exclusive submission-attempt ledger before Slurm; **never retry if stage35 receipt exists, even if a job appears failed/uncertain**.
+
+---
+
 ## Stage32 operator output and Stage33 scoped context (26 October)
 
 Stage32 read-only 51-year input scan **completed** on IRIDIS. Exact effective streams: BE-Bra 1996–2025 30 annual files in `datm_11_provisional_dynamic_zbot_v1`, and CH-Lae 2004–2024 21 files in the similarly labelled stream. Both passed the exact 17,520-per-year noleap TIME and 1PT physics inventory. **BE-Bra** `QC_HOLD_FOR_TARGETED_REVIEW`: physical invalid 0; RH<1=14, RH<5=26; 4 jumps >12°C/30min; 38 jumps >8°C/30min; T>45=1; 1 day >100mm; no negative VPD, rain >40mm/30min or spurious 23:00 clustering. Priority: 2021-11-04 10:00 48.06°C/QBOT0.03321 then 10:30 9.13°C, isolated RH0.856% on 1996-08-05 17:30; Jan1999 RH minimum0.026% and 13 RH<1; 2005-05-26 19:00–19:30 25.038°C→11.049°C, one 2002 day with 154.5mm rain. BE-Bra remains **HOLD** for paired source native QC and source-supported candidate replacements, never blind interpolation.
