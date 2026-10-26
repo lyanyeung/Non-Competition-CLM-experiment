@@ -184,28 +184,31 @@ def case_gate(site,phase,case,receipt):
        "use_fates_fixed_biogeog":".true.",
        "use_fates_nocomp":".true.",
     }
-    def nml(k):
-        found=re.findall(r"(?im)^\s*"+re.escape(k)+r"\s*=\s*([^!\n]+)",lnd_text)
+    def nml(k, required=True):
+        pattern=r'(?im)^\s*'+re.escape(k)+r'\s*=\s*([^!\n]+)'
+        found=re.findall(pattern,lnd_text)
+        if len(found)==0 and not required:
+            return ''
         if len(found)!=1:
-            fail("Generated CIME lnd_in missing/ambiguous "+k)
-        return found[0].strip().strip(",").strip().strip("'\\"").lower()
+            fail('Generated CIME lnd_in missing/ambiguous '+k)
+        return found[0].strip().strip(',').strip().strip(chr(39)+chr(34)).lower()
     for key,val in expected_flags.items():
         if nml(key)!=val:
-            fail("Generated site FATES FIXNC flag mismatch "+key)
-    if phase=="AD400":
-        if nml("spinup_state")!="2":
-            fail("AD400 must have FATES spinup_state=2")
-        if re.search(r"(?im)^\s*finidat\s*=\s*['\\"]?[^'\\"\s,]+",lnd_text):
-            fail("AD400 unexpectedly has land restart FINIDAT; no approved previous spinup")
+            fail('Generated site FATES FIXNC flag mismatch '+key)
+    if phase=='AD400':
+        if nml('spinup_state')!='2':
+            fail('AD400 must have FATES spinup_state=2')
+        if nml('finidat',required=False) not in ('','none'):
+            fail('AD400 unexpectedly has land FINIDAT; no prior equilibrated restart approved')
     else:
-        if proof.get("AD400_final_restart_scientifically_and_sha_verified") is not True:
-            fail("Cannot start Normal400 without complete 400-year AD final restart")
-        if proof.get("AD400_final_restart_sha256") is None:
-            fail("Normal400 missing AD400 final restart SHA")
-        if nml("spinup_state") not in ("0",""):
-            fail("Normal400 land spinup_state must be 0 or absent")
-        if not proof.get("Normal400_hybrid_restart_handoff_sha_verified") is True:
-            fail("Normal400 hybrid initialization not approved")
+        if proof.get('AD400_final_restart_scientifically_and_sha_verified') is not True:
+            fail('Cannot start Normal400 without complete AD400 final restart')
+        if not proof.get('AD400_final_restart_sha256'):
+            fail('Normal400 missing AD400 final restart SHA')
+        if nml('spinup_state',required=False) not in ('0',''):
+            fail('Normal400 spinup_state must be zero or absent')
+        if proof.get('Normal400_hybrid_restart_handoff_sha_verified') is not True:
+            fail('Normal400 hybrid initialization not approved')
     return proof
 
 def submit(site,phase,case,receipt):
