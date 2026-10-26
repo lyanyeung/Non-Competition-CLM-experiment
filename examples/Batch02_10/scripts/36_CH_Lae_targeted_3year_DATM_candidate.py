@@ -25,7 +25,7 @@ STREAM_SHA="dc015e2bd718609d573d0c14adf86a88a9bc6762a2bdfd2cc9ab23a891dc7a61"
 PINS={
  2005:"61e1aa3e37a452052d90a9325e026853cf17988d7dde3fd3d5127168b5dbb710",
  2012:"c33516c923f5664ac87c16b252337dd4919ef03b1efd6089a5bb3bc449952832",
- 2015:"5449640847ad4941e1036c6e3df99ece104b33b2ba2a998a98ec8323bdf5af23f6",
+ 2015:"5449640847ad4941e1036c6e3df99ece104b33b2ba2a998a98ec8323f5af23f6",
  2017:"f1c801dee830a2029b15b4fdbd371aff5358f5136632fe828036d7de25117994"}
 YEARS=(2012,2015,2017)
 ACK="CREATE_CH_LAE_STAGE36_THREE_YEAR_EXPLORATORY_MET_OVERLAY"
@@ -258,6 +258,12 @@ def main():
  if a.self_test:
   assert expected_year_fields("2004","2024","2004")
   assert not expected_year_fields("2004","2025","2004")
+  # Exact independent Stage33 YEAR_SOURCE SHA256 2005/2012/2015/2017.
+  assert PINS[2005]=="61e1aa3e37a452052d90a9325e026853cf17988d7dde3fd3d5127168b5dbb710"
+  assert PINS[2012]=="c33516c923f5664ac87c16b252337dd4919ef03b1efd6089a5bb3bc449952832"
+  assert PINS[2015]=="5449640847ad4941e1036c6e3df99ece104b33b2ba2a998a98ec8323f5af23f6"
+  assert PINS[2017]=="f1c801dee830a2029b15b4fdbd371aff5358f5136632fe828036d7de25117994"
+  assert all(len(d)==64 and all(c in "0123456789abcdef" for c in d) for d in PINS.values())
   assert YEARS==(2012,2015,2017) and len(PINS)==4
   assert 2+1==3 and 1+0+1==2
   assert quantized_match(283.123456789,np.float32(283.123456789),np.dtype("f4"))
