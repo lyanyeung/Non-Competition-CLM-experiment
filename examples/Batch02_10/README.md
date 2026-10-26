@@ -39,6 +39,13 @@ A mock test passed. It covered a broken-forcing HOLD, the CO₂ gate, purge-befo
 
 **Stage44 additions:** `inspect` (read only) and `quarantine-failed-prepare --confirm QUARANTINE_STAGE44_FAILED_PREPARE_NO_SLURM`, for the BE-Bra `PREPARE_ATTEMPTED_UNCERTAIN` ledger found at 19:23. The partial case and ledger move to `stage44_ICOS_PFT_rebuild/quarantine_failed_prepare/`, the verified surface is reused, and prepare can then run again.
 
+**19:36 UK results:**
+- **Stage45 `check` PASS.** The regression reproduces `DK-Sor_DATM_2024.nc` exactly: 100% of records within tolerance for all seven variables, max difference about 1e-5.
+- **2025 sanity PASS.**
+- **2025 vs ERA5:** TA bias +0.52 K, r = 0.977; SW r = 0.911; LW r = 0.859; PA r = 0.998; WS r = 0.874. P is 630 mm in 2025 against 830 mm in 2024.
+- **BE-Bra `prepare` failed in `create_clone`** with "No such file or directory: <template>/SourceMods". `create_clone --keepexe` links a clone's `SourceMods` to the source case, so deleting the intermediate `*_FOREST_*` cases in purge round 1 left both Stage43 templates with dangling `SourceMods` links.
+- **Fix:** `prepare` now points the template's and the new case's `SourceMods` directly at the executable-owner case (`cases/<EXEROOT parent>/SourceMods`, resolved) and records this in the ledger. `purge-old` refuses to delete a folder that a surviving case's `SourceMods` resolves into.
+
 ## Normal400 for the four AD400-complete sites — Normal395 submitted (26 October 2026, 17:12 UK)
 
 Operator IRIDIS6 output from Stage27:

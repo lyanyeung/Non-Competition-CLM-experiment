@@ -231,6 +231,33 @@ def du(p):
     except Exception: return '?'
 
 
+# ------------------------------------------------------------------ SourceMods
+def exe_owner_sourcemods(case):
+    """CIME create_clone --keepexe makes <clone>/SourceMods a symlink to the source case's
+    SourceMods. Deleting an intermediate case therefore leaves dangling links. The stable
+    target is the SourceMods of the case that built the shared executable (EXEROOT/..)."""
+    owner = BASE / 'cases' / Path(query(case, 'EXEROOT')).parent.name / 'SourceMods'
+    need(owner.is_dir(), f'executable-owner SourceMods missing or dangling: {owner}')
+    real = owner.resolve()
+    need(real.is_dir() and not real.is_symlink(), f'cannot resolve executable-owner SourceMods: {owner}')
+    return real
+
+
+def pin_sourcemods(case, label):
+    sm = Path(case) / 'SourceMods'
+    if sm.is_dir() and not sm.is_symlink():
+        return {'case': str(case), 'SourceMods': 'real directory, unchanged'}
+    need(sm.is_symlink(), f'{label}: SourceMods missing in {case}')
+    before = os.readlink(sm); dangling = not sm.exists()
+    owner = exe_owner_sourcemods(case)
+    if not dangling and Path(before) == owner:  # direct link only; a chain through another case can break later
+        return {'case': str(case), 'SourceMods': f'already -> {owner}'}
+    sm.unlink(); sm.symlink_to(owner)
+    need(Path(os.readlink(sm)) == owner and sm.resolve() == owner, f'{label}: SourceMods relink failed')
+    print(f'  {label}: SourceMods {"DANGLING " if dangling else ""}{before} -> {owner}', flush=True)
+    return {'case': str(case), 'SourceMods_before': before, 'was_dangling': dangling, 'SourceMods_now': str(owner)}
+
+
 # ------------------------------------------------------------------ surface
 def build_surface(site, src, dst):
     from netCDF4 import Dataset
@@ -331,11 +358,14 @@ def prepare_one(site, args):
             need(co2s, f'{site}: new forcing starts {a}; pass --co2 {site}=<NOAA global mean {a}>')
         co2 = float(co2s) if co2s else None
         print(f'  {site}: new forcing {a}-{b} ({len(newfiles)} files) from {fd}; all years complete, no missing values', flush=True)
+    exe_owner_sourcemods(tpl)  # preflight: stable SourceMods target exists before anything is written
     src = Path(nml(tl, 'fsurdat'))
     surf = build_surface(site, src, p['surf'])
     save(p['ledger'], {'site': site, 'phase': 'PREPARE_ATTEMPTED_UNCERTAIN', 'at': utc()})
+    sm_tpl = pin_sourcemods(tpl, site + ' template')
     call([CTSM / 'cime/scripts/create_clone', '--case', new, '--clone', tpl, '--keepexe'], cwd=CTSM / 'cime/scripts', timeout=700)
     need(query(new, 'CASE') == p['name'], f'{site}: clone identity')
+    sm_new = pin_sourcemods(new, site + ' new case')
     settings = {'RUNDIR': p['run'], 'DOUT_S_ROOT': p['arch'], 'RUN_TYPE': 'startup', 'CONTINUE_RUN': 'FALSE',
                 'STOP_OPTION': 'nyears', 'STOP_N': '5', 'REST_OPTION': 'nyears', 'REST_N': '5', 'RESUBMIT': '0',
                 'RESUBMIT_SETS_CONTINUE_RUN': 'TRUE', 'CLM_ACCELERATED_SPINUP': 'on', 'CLM_FORCE_COLDSTART': 'on', 'DOUT_S': 'TRUE'}
@@ -380,7 +410,8 @@ def prepare_one(site, args):
                        'surface': str(surf), 'surface_sha256': digest(surf), 'host_PCT_NAT_PFT': c['host'],
                        'start_year': int(query(new, 'RUN_STARTDATE')[:4]), 'forcing_dir': fd,
                        'forcing_years': [int(query(new, 'DATM_YR_START')), int(query(new, 'DATM_YR_END'))],
-                       'co2_ppmv': float(query(new, 'CCSM_CO2_PPMV')), **h, 'created_utc': utc()})
+                       'co2_ppmv': float(query(new, 'CCSM_CO2_PPMV')), 'sourcemods_template': sm_tpl,
+                       'sourcemods_new': sm_new, **h, 'created_utc': utc()})
     print(f'{site} CASE VERIFIED {p["name"]} host={c["host"]} start={query(new, "RUN_STARTDATE")} '
           f'DATM {query(new, "DATM_YR_START")}-{query(new, "DATM_YR_END")} CO2={query(new, "CCSM_CO2_PPMV")} | NO SLURM', flush=True)
 
@@ -428,6 +459,13 @@ def purge_one(site):
     need(SITES[site]['new'] not in names, 'new case in delete list')
     q = queued_for(names)
     need(not q, f'{site}: queued jobs for old cases: {q}')
+    # never delete a folder that a surviving case's SourceMods link resolves into
+    for keep in [p['new'], p['tpl']]:
+        sm = keep / 'SourceMods'
+        if keep.is_dir() and sm.is_symlink() and sm.exists():
+            tgt = sm.resolve()
+            for d in dirs:
+                if keep != d: need(not str(tgt).startswith(str(d.resolve()) + '/'), f'{site}: {keep.name}/SourceMods -> {tgt} lies inside {d}; refuse')
     rec = D44 / f'{site}_purge_receipt.json'
     deleted = []
     for d in dirs:
