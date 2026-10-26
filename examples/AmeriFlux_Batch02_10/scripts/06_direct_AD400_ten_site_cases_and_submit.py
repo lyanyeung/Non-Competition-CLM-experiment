@@ -178,7 +178,7 @@ def arch_dir(s): return OUT / "archive" / name(s)
 def ledger(s): return D06 / f"{s}_AD400_DIRECT_state.json"
 def surface(s): return EXP / s / "surface" / f"surfdata_{s}_FIXNC_PFT_soil10_stage02_v1.nc"
 def forcing_dir(s): return EXP / s / "forcing_UTC_midpoint_ZBOT_stage06_v1"
-def arctic_param(s): return EXP / s / "fates_params_ARCTIC_PURE_stage06_v1.nc"
+def arctic_param(s, ext=".json"): return EXP / s / f"fates_params_ARCTIC_PURE_stage06_v1{ext}"
 
 
 # ---------------------------------------------------------------- scheduler
@@ -411,28 +411,65 @@ def fates_map_matrix(ds):
     return v, (a if hlm_first else a.T), hlm_first
 
 
+ARCTIC_NAMES = {9: "broadleaf_evergreen_arctic_shrub", 10: "broadleaf_colddecid_arctic_shrub",
+                6: "broadleaf_evergreen_extratrop_shrub", 11: "arctic_c3_grass"}
+
+
+def _json_map(obj):
+    p = obj["parameters"]
+    names = [str(x).strip() for x in p["fates_pftname"]["data"]]
+    m = np.asarray(p["fates_hlm_pft_map"]["data"], dtype=float)
+    if len(names) != 14 or m.shape != (14, 14): fail(f"FATES JSON map shape {m.shape} names {len(names)}")
+    for i, n in ARCTIC_NAMES.items():
+        if names[i] != n: fail(f"FATES PFT {i + 1} is {names[i]}, expected {n}")
+    return m
+
+
+def _verify_arctic_json(p, base):
+    a, b = json.loads(Path(p).read_text()), json.loads(Path(base).read_text())
+    if not np.allclose(_json_map(a), ARCTIC_PURE): fail(str(p) + ": ARCTIC map wrong")
+    pa, pb = dict(a["parameters"]), dict(b["parameters"])
+    pa.pop("fates_hlm_pft_map"); pb.pop("fates_hlm_pft_map")
+    if pa != pb or {k: v for k, v in a.items() if k != "parameters"} != {k: v for k, v in b.items() if k != "parameters"}:
+        fail(str(p) + ": parameters other than fates_hlm_pft_map differ from the template file")
+
+
 def build_arctic_param(s, base):
-    from netCDF4 import Dataset
-    p = arctic_param(s); rec = Path(str(p) + ".json")
+    """Private copy of the template FATES parameter file (JSON or NetCDF) with ARCTIC_PURE map."""
+    base = Path(base); ext = base.suffix.lower()
+    if ext not in (".json", ".nc"): fail("unsupported FATES parameter file " + str(base))
+    p = arctic_param(s, ext); rec = Path(str(p) + ".receipt.json")
     if p.is_file() and rec.is_file():
         r = json.loads(rec.read_text())
         if r.get("sha256") == digest(p) and r.get("base_sha256") == digest(base):
-            with Dataset(p) as ds:
-                if not np.allclose(fates_map_matrix(ds)[1], ARCTIC_PURE): fail(s + ": existing ARCTIC param map wrong")
+            if ext == ".json": _verify_arctic_json(p, base)
+            else:
+                from netCDF4 import Dataset
+                with Dataset(p) as ds:
+                    if not np.allclose(fates_map_matrix(ds)[1], ARCTIC_PURE): fail(s + ": existing ARCTIC param map wrong")
             print(f"  {s}: ARCTIC_PURE param reused {p}", flush=True)
             return p
         fail(s + ": existing ARCTIC param/receipt mismatch; move aside")
     if p.exists(): fail(s + ": partial ARCTIC param " + str(p))
-    with Dataset(base) as ds:
-        if not np.allclose(fates_map_matrix(ds)[1], DEFAULT14): fail("template FATES map is not DEFAULT14; refuse")
     p.parent.mkdir(parents=True, exist_ok=True)
-    tmp = Path(str(p) + ".partial"); shutil.copyfile(base, tmp)
-    with Dataset(tmp, "r+") as ds:
-        v, _, hlm_first = fates_map_matrix(ds)
-        v[:] = ARCTIC_PURE if hlm_first else ARCTIC_PURE.T
-        ds.setncattr("AMF_B02_stage06_map", "ARCTIC_PURE: host9->broadleaf_evergreen_arctic_shrub, host11->broadleaf_colddecid_arctic_shrub; all else DEFAULT14")
-    with Dataset(tmp) as ds:
-        if not np.allclose(fates_map_matrix(ds)[1], ARCTIC_PURE): fail(s + ": ARCTIC map write failed")
+    tmp = Path(str(p) + ".partial")
+    if ext == ".json":
+        obj = json.loads(base.read_text())
+        if not np.allclose(_json_map(obj), DEFAULT14): fail("template FATES map is not DEFAULT14; refuse")
+        obj["parameters"]["fates_hlm_pft_map"]["data"] = ARCTIC_PURE.tolist()
+        tmp.write_text(json.dumps(obj, indent=2) + "\n")
+        _verify_arctic_json(tmp, base)
+    else:
+        from netCDF4 import Dataset
+        with Dataset(base) as ds:
+            if not np.allclose(fates_map_matrix(ds)[1], DEFAULT14): fail("template FATES map is not DEFAULT14; refuse")
+        shutil.copyfile(base, tmp)
+        with Dataset(tmp, "r+") as ds:
+            v, _, hlm_first = fates_map_matrix(ds)
+            v[:] = ARCTIC_PURE if hlm_first else ARCTIC_PURE.T
+            ds.setncattr("AMF_B02_stage06_map", "ARCTIC_PURE: host9->broadleaf_evergreen_arctic_shrub, host11->broadleaf_colddecid_arctic_shrub; all else DEFAULT14")
+        with Dataset(tmp) as ds:
+            if not np.allclose(fates_map_matrix(ds)[1], ARCTIC_PURE): fail(s + ": ARCTIC map write failed")
     tmp.rename(p)
     rec.write_text(json.dumps({"site": s, "path": str(p), "sha256": digest(p), "base": str(base), "base_sha256": digest(base),
                                "profile": "ARCTIC_PURE", "changed_rows_host": [9, 11], "created_utc": utc()}, indent=2) + "\n")
@@ -468,6 +505,8 @@ def template_info():
     if nml_get(lnd, "spinup_state") != "2": fail("template is not an AD case")
     pf = nml_get(lnd, "fates_paramfile")
     if not pf or not Path(pf).is_file(): fail("template fates_paramfile missing " + str(pf))
+    if pf.lower().endswith(".json") and not np.allclose(_json_map(json.loads(Path(pf).read_text())), DEFAULT14):
+        fail("template FATES JSON map is not DEFAULT14")
     for f in ("user_nl_clm", "user_nl_datm_streams", "LockedFiles/env_case.xml"):
         if not (TEMPLATE / f).is_file(): fail("template missing " + f)
     for f in ("bld/CLMBuildNamelist.pm", "bld/build-namelist"):
