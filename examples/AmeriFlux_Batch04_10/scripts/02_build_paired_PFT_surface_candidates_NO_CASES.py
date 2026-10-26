@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Batch04 10-site paired model hypotheses: NEW PFT-only surface candidates.
+"""Batch04 10-site FIXNC model hypotheses: NEW PFT-only surface candidates.
 
 Original CTSM gridded 2000 surfaces (SYVH12) untouched. Use exact 10-row
 50-site recommended CLM host PCT_NAT_PFT (index 0 is source-model bare).
@@ -13,7 +13,7 @@ data. A successful candidate is not a model-ready PFT+soil/ZBOT source.
 --self-test synthetic host mapping/allocation; no files/no writes
 --check reads all source SHA/manifest and validates actual schemas; NO writes
 --build creates ten isolated complete SHA-verified NetCDF research copies
-        and a 10-site/20-arm common-initial-surface registry. NO case/DATM,
+        and a 10-site FIXNC surface registry. NO case/DATM,
         no private FATES parameter map, no Slurm, original files unchanged.
 
 One-arm case input must never be substituted for the other if a subsequent
@@ -133,7 +133,6 @@ def build_one(site,info,output):
             "idealized_NATVEG100_CROP0":True,
             "host_PFT_percentages":host,
             "FATES_mapping_profile":info["FATES_mapping_profile"],
-            "FULL_FATES_start_surface":str(dest),
             "FIXED_NO_COMP_START_SURFACE":str(dest),
             "soil_texture_CLM10_layers_unchanged":True,
             "organic_unchanged_not_approved":True,
@@ -179,7 +178,7 @@ def main():
     require(len(output)==10,"Ten research model surfaces not fully generated")
     receipt={
       "status":"TEN_IDENTICAL_PAIRED_INITIAL_PFT_SURFACES_CREATED_RESEARCH_ONLY",
-      "site_surfaces":output,"n_sites":10,"n_planned_model_arms":20,
+      "site_surfaces":output,"n_sites":10,"n_planned_model_arms":10,
       "source_provenance":shas,
       "PFT_mapping_profile_ACTIVATED":False,
       "observed_PFT_proportions_accepted_as_actual":False,
@@ -195,3 +194,4 @@ def main():
     print("MODEL_GATE HOLD SOURCE_HEIGHT ZBOT UTC_NC FATES_MAPPING PERLAYER_SOIL ORGANIC CIME")
     print("NO ORIGINAL SOURCE/SURFACE/DATM/CASE/SLURM WRITES")
 if __name__=="__main__":main()
+

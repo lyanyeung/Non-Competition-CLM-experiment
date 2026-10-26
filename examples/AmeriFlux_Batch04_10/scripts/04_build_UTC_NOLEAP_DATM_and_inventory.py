@@ -151,7 +151,7 @@ def checked_inputs(pft_receipt=PFT_RECEIPT):
     pre = loadpre()
     sites, _, source_shas = pre.audit()
     shared = readj(pft_receipt)
-    need(shared['n_sites'] == 10 and shared['n_planned_model_arms'] == 20,
+    need(shared['n_sites'] == 10 and shared['n_planned_model_arms'] in (10,20),
          'Shared PFT receipt cohort differs')
     pfts = {r['site']:r for r in shared['site_surfaces']}
     need(len(shared['site_surfaces']) == len(pfts) == 10 and set(pfts) == set(pre.SITES),
@@ -166,7 +166,7 @@ def checked_inputs(pft_receipt=PFT_RECEIPT):
         path = Path(surface['new_model_hypothesis_surface'])
         need(path.is_relative_to(Path(pft_receipt).parent/site) and
              sha(path) == surface['new_surface_SHA256'], site+' shared PFT SHA mismatch')
-        need(surface['FULL_FATES_start_surface'] == str(path) ==
+        need(surface.get('FULL_FATES_start_surface',str(path)) == str(path) ==
              surface['FIXED_NO_COMP_START_SURFACE'] and
              surface['source_surface_SHA256'] == row['source_surface_SHA256'] and
              surface['FATES_mapping_profile'] == row['FATES_mapping_profile'],

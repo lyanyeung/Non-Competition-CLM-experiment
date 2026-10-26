@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""AmeriFlux Batch04 new paired FULL-FATES vs FIXNC experiment -- source-locked.
+"""AmeriFlux Batch04 FIXNC-only experiment source audit and planning.
 
 --self-test: synthetic registry/protocol checks; NO HPC/source writes.
 --audit: original ten SYVH9 met source SHAs, Gate0 receipt, 10 original
          SYVH12 gridded surface NetCDF SHAs and coordinates, ten immutable
          PFT and soil recommendation snapshots; NO writes.
---plan: same checks and write NEW research-only paired 20-arm JSON+TSV
+--plan: same checks and write NEW research-only ten-site FIXNC JSON
         under experiment NonCompetitionObserved22/AmeriFlux_Batch04_10.
         Does NOT create CIME cases/CLM namelists/forcing/netcdf/surface or jobs.
 Direct AD400 (80x5 years; RESUBMIT=79; no AD5 handoff), then Normal400,
@@ -31,11 +31,7 @@ SOIL=BASE/"data/AMF_BATCH04_10_SOIL_SOURCE_SNAPSHOT_20261026.csv"
 SITES=("US-Rpf","US-SP1","US-SRG","US-SRM","US-Seg",
        "US-Ses","US-Slt","US-Syv","US-Ton","US-Uaf")
 ARCTIC={"US-Uaf"}
-ARMS={"FULL_FATES_COMPETITION":{"use_fates":True,
-                                "use_fates_sp":False,
-                                "use_fates_fixed_biogeog":False,
-                                "use_fates_nocomp":False},
-      "FIXED_BIOGEOG_NO_COMPETITION":{"use_fates":True,
+ARMS={"FIXED_BIOGEOG_NO_COMPETITION":{"use_fates":True,
                                     "use_fates_sp":False,
                                     "use_fates_fixed_biogeog":True,
                                     "use_fates_nocomp":True}}
@@ -195,7 +191,7 @@ def plan(results,shas):
             rows.append({
               "site":site["site"],"arm":arm,
               "case_name_proposed":site["site"]+"_AMF_B04_"+
-                   ("FULL" if arm.startswith("FULL") else "FIXNC")+"_AD400",
+                   "FIXNC_AD400",
               "AD400_years":400,"AD_first_smoke":0,"AD_continue_after_success":0,
               "AD_protocol":"DIRECT_80x5_ONE_SUBMISSION_NO_AD5_HANDOFF",
               "AD_STOP_N":5,"AD_RESUBMIT":79,
@@ -227,9 +223,7 @@ def plan(results,shas):
     return {"cohort":"AmeriFlux_Batch04_10",
             "status":"PAIRED_EXPERIMENT_REGISTER_RESEARCH_ONLY_NO_MODEL_CASES",
             "source_receipts":shas,"protocol":"AD400_THEN_NORMAL400_PER_ARM",
-            "arms":{"FULL_FATES_COMPETITION":ARMS["FULL_FATES_COMPETITION"],
-                    "FIXED_BIOGEOG_NO_COMPETITION":ARMS[
-                       "FIXED_BIOGEOG_NO_COMPETITION"]},
+            "arms":ARMS,
             "model_surface_policy":SURFACE_MODEL,
             "sites":results,"experiments":rows,
             "fates_ad_spinup_state":2,
@@ -251,22 +245,22 @@ def main():
     a=ap.parse_args()
     _,pft,soil=config()
     if a.self_test:
-        require(len(SITES)==10 and len(ARMS)==2 and
+        require(len(SITES)==10 and len(ARMS)==1 and
                 len(ARCTIC)==1 and
                 pct(json.loads(pft["US-Uaf"]["clm_pct_nat_pft_json"]),"US-Uaf")
                 and len(soil)==10,"Synthetic register/source experiment test failed")
-        print("AMF_B04 PAIR SELF-TEST PASS 10 sites, 2 independent FATES arms, 800y per arm; NO WRITES")
+        print("AMF_B04 FIXNC SELF-TEST PASS 10 sites, FIXNC ONLY, 800y per site; NO WRITES")
         return
     sites,_,shas=audit()
     if a.audit:
-        print("AMF_B04 AUDIT READONLY; 20 PROPOSED ARMS MODEL_NOT_READY")
+        print("AMF_B04 AUDIT READONLY; 10 FIXNC CASES PLANNED")
         return
     p=plan(sites,shas)
     OUT.mkdir(parents=True,exist_ok=True)
-    target=OUT/("paired_FATES_FIXNC_AD400_Normal400_plan_"+
+    target=OUT/("FIXNC_ONLY_AD400_Normal400_plan_"+
        datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")+"_"+uuid4().hex[:8]+".json")
     target.write_text(json.dumps(p,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
-    print("AMF_B04 PAIRED EXPERIMENT PLAN 20 ARM ENTRIES CREATED",target)
+    print("AMF_B04 FIXNC-ONLY PLAN 10 CASE ENTRIES CREATED",target)
     print("AMF_B04 GATE HOLD ZBOT DATM UTC CLOCK FATES PARAM PFT SOIL ORGANIC PTS CO2")
     print("NO SOURCE/SURFACE/CASE/DATM/MODEL/SLURM WRITES")
 if __name__=="__main__":main()

@@ -109,6 +109,27 @@ class ForcingTests(unittest.TestCase):
 
 
 class CaseTests(unittest.TestCase):
+    def test_new_plan_contains_only_ten_fixnc_cases(self):
+        pre = met.loadpre()
+        rows = [{'site':s,'meteorology_SHA256':'a'*64,'source_surface_SHA256':'b'*64,
+                 'recommended_PFT':'test','FATES_mapping_profile':'DEFAULT14'} for s in pre.SITES]
+        plan = pre.plan(rows,{})
+        self.assertEqual(len(plan['experiments']),10)
+        self.assertEqual(set(plan['arms']),{'FIXED_BIOGEOG_NO_COMPETITION'})
+        for row in plan['experiments']:
+            self.assertIn('_FIXNC_AD400',row['case_name_proposed'])
+            self.assertTrue(row['case_flags_desired_requires_CTSM_build_verification']['use_fates_nocomp'])
+
+    def test_full_preparation_and_submission_are_blocked_before_io(self):
+        self.assertEqual(case.ARMS,('FIXNC',))
+        with patch.object(case,'paths',side_effect=AssertionError('No FULL filesystem access')):
+            with self.assertRaisesRegex(RuntimeError,'FULL preparation is disabled'):
+                case.prepare_one('US-Ton','FULL',{},Path('/manifest'),370.57)
+            with self.assertRaisesRegex(RuntimeError,'FULL submission is disabled'):
+                case.submit_one('US-Ton','FULL',{},Path('/manifest'),370.57)
+        with self.assertRaisesRegex(RuntimeError,'FULL is disabled'):
+            case.flags('FULL')
+
     def test_actual_cime_docs_runtime_maps_and_coordinates(self):
         with scratch() as folder:
             root = Path(folder)
@@ -136,7 +157,7 @@ class CaseTests(unittest.TestCase):
             xml += '<datavars>'+''.join('<var>'+k+' '+v+'</var>' for k,v in case.METMAP.items())+'</datavars>'
             xml += '<datafiles><file>/US-Ton/2001.nc</file><file>/US-Ton/2002.nc</file></datafiles></stream_info></streams>'
             runtime = 'scol_lat = 38.43\nscol_lon = 239.04\nsingle_column_lnd_domainfile = UNSET\n'
-            for arm in ('FULL','FIXNC'):
+            for arm in ('FIXNC',):
                 land = '\n'.join(k+' = '+v for k,v in case.flags(arm).items())
                 land += "\nfsurdat = '/US-Ton/surf.nc'\nfates_paramfile = '"+str(param)+"'\nfinidat = ''\nhist_fincl1 = 'FATES_GPP','FATES_NPP'\n"
                 for directory in (docs,rundir):

@@ -1,4 +1,7 @@
-# Fourth-batch direct AD400 with Batch01 BASE TA sensor proxies
+# Fourth-batch FIXNC-only direct AD400 with Batch01 BASE TA sensor proxies
+
+**Current operator correction: FIXNC only. The earlier FULL arm is withdrawn.**
+See [FULL cancellation and retained FIXNC jobs](FIXNC_ONLY_STOP_FULL_20261026.md).
 
 The operator requested on 26 October 2026: finish AmeriFlux Batch04 using
 the Batch01 stack method, without an AD5 test. After checking the ten local
@@ -50,16 +53,12 @@ experiment and no manual AD395 continuation. Five-year segments are CIME
 restart/archival units. Normal400 is a subsequent phase after complete
 AD400 restart/archive verification; this release does not start Normal.
 
-The two arms share meteorology, TA proxy policy, coordinates, PFT surface,
-original grid soil layers and constant first-forcing-year global CO2.
-FIXNC has `use_fates_fixed_biogeog=true`, `use_fates_nocomp=true`;
-standard FULL has both false. **Sharing a PFT surface does not impose
-identical initial PFT area in FULL.** Standard dynamic FATES can initialize
-and recruit outside the prescribed FIXNC mixture. This is a standard
-FULL-versus-FIXNC configuration contrast; it must not be presented as a
-competition-only causal test with proven identical initial vegetation.
-The controller records this limitation and does not silently change
-FATES initial densities or disable recruitment to manufacture a match.
+Only FIXNC is retained: `use_fates_fixed_biogeog=true` and
+`use_fates_nocomp=true`. The standard dynamic FULL arm was unwanted and
+must be stopped, not converted in place or resubmitted. The existing FIXNC
+cases retain their already verified meteorology, height policy, site PFT
+fractions, source soil layers, CO2 and executable. No new input build is
+needed to cancel FULL.
 
 The same installed default FATES JSON as the successful Batch01 cases is
 pinned by SHA256 `0819f8fddcb3566f6209f72bb1159a3161d03c8225a1464727b1d2b21aec6c04`.
@@ -77,7 +76,7 @@ the Batch01 method, not local site measurements or transient CO2.
 
 Use `scripts/06_fetch_direct_AD400.sh --commit FULL_SHA --all` after
 activating `clm_fates_env` to download a versioned package, verify the BASE
-source, build/independently verify annual DATM, prepare both arms and submit
+source, build/independently verify annual DATM, prepare FIXNC only and submit
 AD400. It never uses git pull or changes another experiment.
 
 For a staged execution, use `--inputs` first, then reuse the exact manifest
@@ -112,12 +111,11 @@ It never treats a successful submit or first restart as AD400 completion.
 Local tests use real NetCDF write/read and CSV source reconversion for
 leap exclusion, UTC cyclic boundaries, all field/unit equality, the Rpf
 dated height change, exact VPD precision exceptions, and corruption
-rejection. Synthetic CIME fixtures check both arms, live-vs-CaseDocs input
+rejection. Synthetic CIME fixtures check FIXNC, live-vs-CaseDocs input
 identity, wrong-station streams and wrong point coordinates. Mock Slurm
 tests check live stack before attempt/submit, hard-limit/exclusion failure,
 and no duplicate initial submission. Bash is checked with `bash -n`.
 
-Actual cluster paths, the installed pinned executable/parameter source,
-CIME previews and Slurm execution must pass on IRIDIS6. Local test success
-does not establish that any of the twenty cases has been created, submitted
-or completed on the cluster.
+Operator output now confirms the 207-file input verification and initial
+case preparation/submission on IRIDIS6. It does not establish AD400 completion
+or that unwanted FULL jobs have stopped; those need their respective audits.

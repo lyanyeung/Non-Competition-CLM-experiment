@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Download an immutable release; no git pull. --all prepares and submits
-# directly to AD400. --inputs only builds forcing, --prepare never submits.
+# FIXNC only directly to AD400. --inputs builds forcing, --prepare never submits.
 set -euo pipefail
 COMMIT=""
 MODE="inputs"
@@ -64,12 +64,12 @@ python3 -B "$M" --verify --manifest "$MANIFEST"
 printf '%s\n' "$MANIFEST" > "$RELEASE/CURRENT_DATM_MANIFEST.txt"
 printf 'B04 CURRENT MANIFEST: %s\n' "$MANIFEST"
 if [[ "$MODE" == prepare || "$MODE" == all ]]; then
-  python3 -B "$C" prepare --manifest "$MANIFEST" --confirm PREPARE_BATCH04_DIRECT_AD400_CASES_NO_SLURM
+  python3 -B "$C" prepare --arms FIXNC --manifest "$MANIFEST" --confirm PREPARE_BATCH04_DIRECT_AD400_CASES_NO_SLURM
 fi
 if [[ "$MODE" == submit || "$MODE" == all ]]; then
-  python3 -B "$C" verify --manifest "$MANIFEST"
+  python3 -B "$C" verify --arms FIXNC --manifest "$MANIFEST"
   # The actual submitter raises only its own LOW soft stack and checks
   # Slurm propagation immediately before each case.submit, as Batch01.
-  python3 -B "$C" submit-ad400 --manifest "$MANIFEST" --confirm SUBMIT_BATCH04_DIRECT_AD400_80x5_WITH_STACK_GUARD_ONCE
+  python3 -B "$C" submit-ad400 --arms FIXNC --manifest "$MANIFEST" --confirm SUBMIT_BATCH04_DIRECT_AD400_80x5_WITH_STACK_GUARD_ONCE
 fi
-printf 'B04 FINISHED MODE=%s; AD400 uses 80x5 years; no AD5 test/handoff.\n' "$MODE"
+printf 'B04 FINISHED MODE=%s; FIXNC ONLY; AD400 uses 80x5 years; no AD5 test/handoff.\n' "$MODE"

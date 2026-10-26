@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Batch04 independent Full/FIXNC CIME cases, direct AD400, Batch01 machinery.
+"""Batch04 FIXNC-only CIME cases, direct AD400, Batch01 machinery.
 
 prepare: NEW cases and namelist previews, no Slurm; completed preparations
 are verified/reused, interrupted ones held. submit-ad400: explicit case
@@ -7,10 +7,9 @@ selection, once-only ledger + live stack/Slurm guard before case.submit.
 audit-ad400: only complete 80-segment archived integrations pass.
 
 No AD5 test/handoff. Each case starts 80x5 years with RESUBMIT=79.
-Full is standard dynamic FATES; it does not impose surface PFT shares as
-initial/durable area. FIXNC imposes the prescribed site map/bare fraction.
-Common met/surface/CO2/soil are verified, but equal initial vegetation and
-a competition-only causal contrast are NOT asserted.
+Operator correction: only fixed biogeography/no competition is authorized.
+FULL preparation/submission is refused even through direct function calls.
+Existing FULL cases are handled only by the separate cancellation script.
 """
 from __future__ import annotations
 import argparse
@@ -40,7 +39,7 @@ PARAM = CTSM/'src/fates/parameter_files/fates_params_default.json'
 PARAM_SHA = '0819f8fddcb3566f6209f72bb1159a3161d03c8225a1464727b1d2b21aec6c04'
 SHARED_BLOB = '698f2396aba8e11cbbbdd58c74ad221e6b7e7038'
 SITES = ('US-Rpf','US-SP1','US-SRG','US-SRM','US-Seg','US-Ses','US-Slt','US-Syv','US-Ton','US-Uaf')
-ARMS = ('FULL','FIXNC')
+ARMS = ('FIXNC',)
 ACK_PREP = 'PREPARE_BATCH04_DIRECT_AD400_CASES_NO_SLURM'
 ACK_SUBMIT = 'SUBMIT_BATCH04_DIRECT_AD400_80x5_WITH_STACK_GUARD_ONCE'
 METMAP = {'PRECTmms':'Faxa_precn','FSDS':'Faxa_swdn','ZBOT':'Sa_z',
@@ -140,7 +139,8 @@ def settings(row,case,rundir,archive,co2):
 
 
 def flags(arm):
-    fixed = '.true.' if arm == 'FIXNC' else '.false.'
+    need(arm == 'FIXNC','FULL is disabled: operator authorized FIXNC only')
+    fixed = '.true.'
     return {'use_fates':'.true.','use_fates_sp':'.false.','use_cn':'.false.',
             'use_fates_fixed_biogeog':fixed,'use_fates_nocomp':fixed,'spinup_state':'2'}
 
@@ -284,6 +284,7 @@ def generated(case,rundir,row,arm,param,co2,initial=True):
 
 
 def prepare_one(site,arm,row,manifest,co2):
+    need(arm == 'FIXNC','FULL preparation is disabled by operator instruction')
     case,rundir,archive,ledger = paths(site,arm)
     if ledger.exists():
         rec = j(ledger)
@@ -314,8 +315,7 @@ def prepare_one(site,arm,row,manifest,co2):
         'target_end_year':row['first_year']+400,'source_PFT_forward_map':forward,
         'height_policy':row['height'],'constant_global_CO2_ppm':co2,
         'soil_policy':'ORIGINAL_GRID_DEPTH_LAYERS_PRESERVED_NOT_SITE_MEASUREMENTS',
-        'FULL_initial_composition_policy':'STANDARD_DYNAMIC_FATES_NOT_PRESCRIBED_SURFACE_PERCENTAGES',
-        'equal_initial_vegetation_or_competition_only_causality_verified':False,
+        'experiment_policy':'FIXED_BIOGEOGRAPHY_NO_COMPETITION_ONLY',
         'Slurm_submitted':False,'created_utc':datetime.now(timezone.utc).isoformat()},True)
     print('B04 PREPARATION ATTEMPT',site,arm,ledger,flush=True)
     run([CTSM/'cime/scripts/create_clone','--case',case,'--clone',REFERENCE,'--keepexe'],
@@ -372,6 +372,7 @@ def verify_one(site,arm,row,manifest,co2):
 
 
 def submit_one(site,arm,row,manifest,co2):
+    need(arm == 'FIXNC','FULL submission is disabled by operator instruction')
     rec = verify_one(site,arm,row,manifest,co2)
     case,_,_,ledger = paths(site,arm)
     queued = run(['squeue','-u',getpass.getuser(),'-h','-o','%j'],timeout=45)
@@ -437,8 +438,9 @@ def main():
     a = ap.parse_args()
     need(len(a.sites) == len(set(a.sites)) and len(a.arms) == len(set(a.arms)),'Duplicate site/arm selection')
     if a.action == 'self-test':
-        need(5*(79+1) == 400 and flags('FULL')['use_fates_nocomp'] == '.false.' and
-             flags('FIXNC')['use_fates_nocomp'] == '.true.','AD400 arm configuration invalid')
+        need(5*(79+1) == 400 and ARMS == ('FIXNC',) and
+             flags('FIXNC')['use_fates_nocomp'] == '.true.' and
+             flags('FIXNC')['use_fates_fixed_biogeog'] == '.true.','FIXNC-only AD400 configuration invalid')
         sample = "x = 1\nhist_fincl1 = 'GPP',\n 'NPP'\ny = 2\n"
         fixed = setnml(sample,'hist_fincl1',"'FATES_GPP','FATES_NPP'")
         need('y = 2' in fixed and "'GPP'" not in fixed,'Multiline history replacement failed')
