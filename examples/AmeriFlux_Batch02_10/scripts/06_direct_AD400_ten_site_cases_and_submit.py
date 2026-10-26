@@ -13,8 +13,11 @@ Inputs (all read only):
             no ZBOT) in AmeriFlux_MultiSite_10_Batch02/reports/stage95_...
   clock     BIF UTC offset (Stage97/98); US-BZS / US-Ho1 have no BIF offset and use
             their time-zone standard offsets (AKST -9, EST -5; neighbours agree)
-  ZBOT      earliest dated BIF TA_F height (Stage98); US-BZS 6.1 m and US-Ho1 29 m
-            documented proxies (no BIF height); --zbot SITE=M overrides
+  ZBOT      AmeriFlux BASE measurement-height table BASE_MeasurementHeight_20260908.csv,
+            the same source and static rule as AmeriFlux Batch01 Stage31: the single
+            TA, or the top level of the main tower (TA_1_1_1, the EC level) when
+            several levels exist. BIF/BADM files hold no sensor heights.
+            --zbot SITE=M overrides
   CO2       NOAA GML global annual mean of the first forcing year (as Batch01)
   template  CA-Ca3_AMF_FIXNC_AD400_UTC_V2_PTS_AD5 (AD400 audited PASS) via
             create_clone --keepexe; preview with the proven private FATES AD overlay
@@ -62,6 +65,8 @@ D06 = EXP / "Stage06_direct_AD400"
 SRC = B / "experiments/AmeriFlux_MultiSite_10_Batch02"
 S95 = SRC / "reports/stage95_ten_site_122_user_approved_versioned_forcing_215NC_20261026T034516Z_f4afa348"
 S98_GLOB = "stage98_batch02_BIF_date_precision_and_height_prehistory_*"
+BASE_HEIGHTS = D06 / "BASE_MeasurementHeight_20260908.csv"
+BASE_HEIGHTS_SHA = "1c1e4171d295406a13d503f877b58661a651c88ffb6f0b6ec498f56bb1fcec5a"
 TEMPLATE = B / "cases/CA-Ca3_AMF_FIXNC_AD400_UTC_V2_PTS_AD5"
 OVERLAY = B / "experiments/NonCompetitionObserved22/Batch01_10/_private_ctsm_FATES_AD400_namelist_overlay"
 REGISTER = REPO / "examples/AmeriFlux_Batch02_10/data/AMF_BATCH02_10_PFT_SOIL_RECOMMENDATIONS_SOURCE_PINNED_20261026.csv"
@@ -84,8 +89,10 @@ UTC_BIF = {"US-CMW": -7.0, "US-GLE": -7.0, "US-EML": -9.0, "US-ICh": -9.0, "US-I
            "US-Ha1": -5.0, "US-Ho2": -5.0, "US-Ho3": -5.0}
 UTC_PROXY = {"US-BZS": (-9.0, "Alaska Standard Time; AmeriFlux data are local standard time; EML/ICh/ICt BIF -9"),
              "US-Ho1": (-5.0, "Eastern Standard Time; neighbouring US-Ho2/US-Ho3 BIF -5")}
-ZBOT_PROXY = {"US-BZS": (6.1, "no BIF TA_F height; instruments ~20 ft (6.1 m) on the ~30 ft BZS tower, UAF Aurora 2022"),
-              "US-Ho1": (29.0, "no BIF TA_F height; Howland main-tower fluxes measured at 29 m, Hollinger et al. 2004 GCB")}
+# Expected BASE TA heights (checked against the pinned table at run time)
+ZBOT_BASE = {"US-BZS": ("TA", 5.0), "US-CMW": ("TA_1_1_1", 14.0), "US-EML": ("TA", 3.65), "US-GLE": ("TA_1_1_1", 23.4),
+             "US-Ha1": ("TA_1_1_1", 27.9), "US-Ho1": ("TA_1_1_1", 28.0), "US-Ho2": ("TA_1_1_1", 27.7),
+             "US-Ho3": ("TA_1_1_1", 29.5), "US-ICh": ("TA", 1.93), "US-ICt": ("TA", 2.82)}
 MET = ("FLDS", "FSDS", "PRECTmms", "PSRF", "QBOT", "RH", "SHUM", "TBOT", "WIND")
 FIELDS = {"PRECTmms": "Faxa_precn", "FSDS": "Faxa_swdn", "ZBOT": "Sa_z", "TBOT": "Sa_tbot",
           "WIND": "Sa_wind", "QBOT": "Sa_shum", "PSRF": "Sa_pbot", "FLDS": "Faxa_lwdn"}
@@ -247,40 +254,48 @@ def surface_info(s, reg):
 
 
 def stage98():
+    """Optional: Stage98 report, used only to cross-check BIF UTC offsets."""
     c = sorted(p for p in (SRC / "reports").glob(S98_GLOB) if (p / "manifest.json").is_file())
-    if not c: fail("Stage98 height report not found under " + str(SRC / "reports"))
-    rep = c[-1]
-    rows = {r["site"]: r for r in csv.DictReader((rep / "10_site_height_history_decision_summary.csv").open(encoding="utf8"))}
-    ev = json.loads((rep / "site_historical_height_evidence.json").read_text())
-    return rep, rows, ev
+    if not c: return None
+    rows = {r["site"]: r for r in csv.DictReader((c[-1] / "10_site_height_history_decision_summary.csv").open(encoding="utf8"))}
+    return c[-1], rows
 
 
-def clock_and_height(s, s98, overrides):
-    rep, rows, ev = s98
-    row = rows.get(s) or fail(s + ": not in Stage98 summary")
-    got = [float(x) for x in row.get("UTC_BIF_hours", "").split(",") if x.strip()]
+def base_heights(path=None):
+    p = Path(path) if path else BASE_HEIGHTS
+    if not p.is_file(): fail("BASE measurement-height table missing: " + str(p))
+    if digest(p) != BASE_HEIGHTS_SHA: fail("BASE measurement-height table sha256 differs: " + str(p))
+    out = {}
+    for r in csv.DictReader(p.open(encoding="utf-8-sig")):
+        if r["Site_ID"] in SITES: out.setdefault(r["Site_ID"], []).append(r)
+    return out, str(p)
+
+
+def clock_and_height(s, s98, base, overrides):
     if s in UTC_BIF:
-        if got != [UTC_BIF[s]]: fail(f"{s}: Stage98 UTC {got} != expected BIF {UTC_BIF[s]}")
-        tz, tz_src = UTC_BIF[s], "BIF UTC_OFFSET (Stage97/98)"
+        tz, tz_src = UTC_BIF[s], "BIF UTC_OFFSET"
+        if s98:
+            got = [float(x) for x in s98[1].get(s, {}).get("UTC_BIF_hours", "").split(",") if x.strip()]
+            if got and got != [tz]: fail(f"{s}: Stage98 UTC {got} != expected BIF {tz}")
+            tz_src += " (Stage98 cross-check)" if got else ""
     else:
-        if got: fail(f"{s}: Stage98 now reports a BIF UTC {got}; update the proxy table")
         tz, tz_src = UTC_PROXY[s][0], "PROXY: " + UTC_PROXY[s][1]
-    events = ev[s]["TA_and_WS_height_evidence"]["TA_F"]["exact_dated_height_events"]
+    rows = base[0].get(s, [])
+    var, want = ZBOT_BASE[s]
+    top = [r for r in rows if r["Variable"] in ("TA", "TA_1_1_1")]
+    hs = sorted({float(r["Height"]) for r in top})
+    dated = [r for r in top if (r.get("Start_Date") or "").strip()]
+    levels = sorted({(r["Variable"], float(r["Height"])) for r in rows if re.fullmatch(r"TA(_\d+_\d+_\d+)?", r["Variable"])})
     if s in overrides:
         z, z_src = overrides[s], "OPERATOR --zbot override"
-    elif events:
-        first = min(e["date_label"] for e in events)
-        hs = sorted({float(e["height_m"]) for e in events if e["date_label"] == first})
-        if len(hs) != 1: fail(f"{s}: conflicting earliest TA_F heights {hs}; pass --zbot {s}=M")
-        z = hs[0]
-        allh = sorted({float(e["height_m"]) for e in events})
-        z_src = f"earliest dated BIF TA_F height ({first[:10]}); all BIF TA_F heights {allh}"
-    elif s in ZBOT_PROXY:
-        z, z_src = ZBOT_PROXY[s][0], "PROXY: " + ZBOT_PROXY[s][1]
     else:
-        fail(f"{s}: no BIF TA_F height and no proxy; pass --zbot {s}=M")
+        if len(hs) != 1 or dated: fail(f"{s}: BASE TA/TA_1_1_1 heights {hs} dated={len(dated)}; pass --zbot {s}=M")
+        z = hs[0]
+        if abs(z - want) > 1e-6: fail(f"{s}: BASE {var} height {z} != expected {want}")
+        z_src = f"BASE {var} {z:g} m (Batch01 Stage31 static rule); BASE TA levels {levels}"
     if not (1.0 <= z <= 150.0): fail(f"{s}: ZBOT {z} out of range")
-    return {"utc_offset_h": tz, "utc_source": tz_src, "zbot_m": z, "zbot_source": z_src, "stage98_report": str(rep)}
+    return {"utc_offset_h": tz, "utc_source": tz_src, "zbot_m": z, "zbot_source": z_src,
+            "zbot_table": base[1], "stage98_report": str(s98[0]) if s98 else None}
 
 
 def stage95_files(s, full_sha=False):
@@ -730,7 +745,8 @@ def context(sites, args, full=False):
     print(f"TEMPLATE PASS {TEMPLATE.name} exe={tpl['exe']} fates_paramfile={tpl['paramfile']} sha={tpl['param_sha256'][:12]}")
     print("TEMPLATE hist_fincl1:", ",".join(tpl["hist_fincl1"]))
     co2, co2_src, co2_sha = co2_table(args.co2_csv)
-    s98 = stage98(); print("STAGE98", s98[0])
+    s98 = stage98(); print("STAGE98 (UTC cross-check only)", s98[0] if s98 else "not found")
+    base = base_heights(args.height_csv); print("BASE heights", base[1])
     over = {}
     for z in args.zbot or []:
         k, v = z.split("="); over[k] = float(v)
@@ -740,7 +756,7 @@ def context(sites, args, full=False):
     for s in sites:
         try:
             ctx["surface"][s] = surface_info(s, reg[s])
-            ctx["clock"][s] = ch = clock_and_height(s, s98, over)
+            ctx["clock"][s] = ch = clock_and_height(s, s98, base, over)
             stage95_files(s, full_sha=full)
             for p in (case_dir(s), OUT / name(s), arch_dir(s)):
                 if p.exists() and not load(ledger(s)): fail(f"{s}: unexpected existing {p}")
@@ -754,6 +770,7 @@ def context(sites, args, full=False):
 def self_test():
     assert len(SITES) == 10 and sum(b - a + 1 for a, b in SITES.values()) == 215
     assert set(UTC_BIF) | set(UTC_PROXY) == set(SITES) and not set(UTC_BIF) & set(UTC_PROXY)
+    assert set(ZBOT_BASE) == set(SITES)
     assert np.allclose(DEFAULT14.sum(1), 1) and np.allclose(ARCTIC_PURE.sum(1), 1)
     diff = np.argwhere(~np.isclose(DEFAULT14, ARCTIC_PURE))
     assert sorted({int(r) for r, _ in diff}) == [8, 10]
@@ -780,6 +797,7 @@ def main():
     ap.add_argument("--confirm", default="")
     ap.add_argument("--zbot", nargs="*", help="SITE=metres overrides")
     ap.add_argument("--co2-csv", help="local copy of NOAA co2_annmean_gl.csv (default: download once)")
+    ap.add_argument("--height-csv", help="BASE_MeasurementHeight_20260908.csv (default: Stage06 folder)")
     a = ap.parse_args()
     sites = pick(a.sites)
     if a.action == "self-test": return self_test()
