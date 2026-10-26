@@ -21,13 +21,15 @@ for filename in \
 done
 for filename in \
     01_audit_source_PFT_soil_surface_and_pair_plan.py \
-    02_build_paired_PFT_surface_candidates_NO_CASES.py; do
+    02_build_paired_PFT_surface_candidates_NO_CASES.py \
+    b04_stack_guard.py; do
   curl -fLsS --retry 3 "$RAW/$COMMIT/$REL/scripts/$filename" \
     -o "$TARGET/scripts/$filename"
 done
 ONE="$TARGET/scripts/01_audit_source_PFT_soil_surface_and_pair_plan.py"
 TWO="$TARGET/scripts/02_build_paired_PFT_surface_candidates_NO_CASES.py"
-python3 -B -m py_compile "$ONE" "$TWO"
+python3 -B -m py_compile "$ONE" "$TWO" "$TARGET/scripts/b04_stack_guard.py"
+python3 -u -B "$TARGET/scripts/b04_stack_guard.py" --self-test
 python3 -u -B "$ONE" --self-test
 python3 -u -B "$TWO" --self-test
 echo "B04 SOURCE PACKAGE PIN+SELFTEST PASS"
