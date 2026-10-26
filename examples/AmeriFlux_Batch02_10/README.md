@@ -115,3 +115,23 @@ The user explicitly requests the same stack mechanism as [AmeriFlux Batch01 Stag
 ### Soil10 preparation continues in parallel
 
 [Batch02 Stage02 independent surface builder](scripts/02_prepare_ten_independent_FIXNC_surface_candidates.py) needs the ORIGINAL source-generated 50-site `09_RECOMMENDED_CLM10_PCT_SAND_PCT_CLAY_WIDE.csv` with L1–L10 separately. The source is [Ameriflux_Soil Stage01](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/Ameriflux_Site/Ameriflux_Soil/scripts/01_collect_soil_texture_evidence.py) in the other repository, with its data files/manifest. No valid 10/10 depth profile has yet been shown in this chat. Never fill ten layers with the averaged 0–30cm values. The 4 Arctic/permafrost-relevant sites also need explicit organic-soil and ARCTIC_PURE FATES map approval. Preserve original GLE historical job.
+
+## Stage04 — one-paste IRIDIS6 stack/soil10 bootstrap
+
+[Stage04 portable shell bootstrap](scripts/04_iridis_stack_soil10_bootstrap.sh) is pinned to both repos, Git blob `883537eafe0be22ae229d1eb1b07b0615430e64b`; it downloads Stage02/03 and the original 50-site soil collector + 5 source metadata/soil records through `curl`, **not git pull**.
+
+Four explicit modes: `audit` confirms Stage21 min64MiB stack/child propagation and checks original soil collector selftest, **no Slurm**; `soil10` fetches genuine per-depth ReESH/BADM/USDA/SoilGrids source evidence for exact second-batch ten sites, builds original 10-layer 09-wide CSV, then runs Stage02 **read-only** surface check; `check-surfaces` repeats the read-only check from cached 10-layer evidence; `build-surfaces` writes only independent versioned candidate surfaces if every site passes the original evidence/surface gate. **Never builds or submits any CIME model.**
+
+Quick operator commands (do not run `soil10` until network access and original source packages are available on IRIDIS6):
+
+```bash
+COMMIT=a4253f8724359381d87bd7b5bf57ebd6aab9cef4
+SCRIPT="$HOME/AMF_Batch02_04_stack_soil10.sh"
+curl -fLsS --retry 3 "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$COMMIT/examples/AmeriFlux_Batch02_10/scripts/04_iridis_stack_soil10_bootstrap.sh" -o "$SCRIPT"
+test "$(git hash-object "$SCRIPT")" = 883537eafe0be22ae229d1eb1b07b0615430e64b
+bash "$SCRIPT" audit
+# After audit: bash "$SCRIPT" soil10
+# After ten-site true layer profile check passes: bash "$SCRIPT" build-surfaces
+```
+
+**Stack persistence:** This bootstrap adjusts its own subshell; it does not change the parent IRIDIS6 shell. Future real `case.submit` must run *within* Stage03 high-stack guarded submit, not independently. Strict Stage03 science release receipts are deliberately not auto-created by Stage04, so successful candidate surfaces cannot accidentally launch 400 years.
