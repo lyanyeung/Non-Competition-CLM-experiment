@@ -159,3 +159,33 @@ bash "$SCRIPT" all
 **Stack persistence:** This bootstrap adjusts its own subshell; it does not change the parent IRIDIS6 shell. Future real `case.submit` must run *within* Stage03 high-stack guarded submit, not independently. Strict Stage03 science release receipts are deliberately not auto-created by Stage04, so successful candidate surfaces cannot accidentally launch 400 years.
 
 **Documented proxy correction (Stage02 source commit `63a79d7a80d766a97f87763619f1f216c6607b6e`):** US-Ho2 and US-Ho3 final recommended soil is explicitly **US-Ho1 ReESH measured nearest-neighbour L1–L10**, not their earlier stand-alone Stage01 SoilGrids 0–30 cm values. The script checks the source Ho1 measurement tier before proxying, records Ho1 provenance, and never invents a ten-layer texture. All other sites must match their source-pinned original top-5-node means. The `all` mode creates independent new surfdata only and never submits AD400.
+
+## Stage05 — actual Stage04 US-BZS source coordinate failure repaired
+
+Real operator run 2026-10-26: STACK unlimited soft/hard, child inherits, Slurm `PropagateResourceLimits=ALL`: stack **PASS**. Original ten-site Stage01 source collector PASS for US-CMW, US-EML, US-GLE, US-Ha1, US-Ho1, US-Ho2, US-Ho3, US-ICh, US-ICt. **US-BZS** lacked geolocation (`coords=None,None`) because released BIF did not provide it. Collector then silently fell back to original surface soil Sand/Clay **23.6/26.2 (T4_KEEP_SURFACE)**, contradicting the independently pinned **40.0/8.9 (T3_SOILGRIDS_250M)** in the final 50-site recommendation. Stage02 correctly rejected this mismatch before writing any candidate surface.
+
+Source method already documents the BZS station-specific override `--coords US-BZS:64.6963:-148.3235` ([original Ameriflux_Soil README](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/Ameriflux_Site/Ameriflux_Soil/README.md)).
+
+**[Stage05 BZS ONLY repair/finish ten surfaces](scripts/05_repair_BZS_soilgrids_and_finish_10_surfaces.py)**, source Git blob `fc74aa14eebc64996440f8f55ddb83261b1092e1`: first finds an independently completed, genuine source-checked original full 50-site Stage01 BZS SoilGrids 10-layer row if available; otherwise re-runs the original pinned 50-site soil collector for **US-BZS only** with explicit source-documented coords, expecting tier T3 and original **per-node L1..L10** values whose first five node mean matches 40.0/8.9. It then writes a **new** versioned merged wide CSV replacing exactly the erroneous BZS source row, preserving the nine correct original Stage04 site rows SHA-for-SHA and does NOT overwrite original data or source report. Invokes Stage02 check + build for all ten; per-site HOLDs are printed. Creates independent FIXNC candidate surfdata only; **no CIME model jobs or AD400**.
+
+Stage02 source selection was also improved (Git blob `255890d4efe5aa1a14b424c93b4dc7be63b40889`): prefer original per-site subset-data point surface; if absent, verify the **specific selected original reference surface** in the existing Stage04 `10_RECOMMENDED_SITE_SUMMARY.csv`, or demand a unique on-site original surface, rather than failing solely because one fixed folder name differs.
+
+Do not invent BZS 10-layer values from its 0–30 cm Sand=40 and Clay=8.9 recommendation. If the external SoilGrids service is unreachable and no source-checked prior 50-site 10-layer row exists, Stage05 stops with an explicit evidence HOLD. Organic layers and four Arctic-specific FATES mapping parameterizations remain separate scientific approval gates even if all ten new candidate surfaces build.
+
+### Immediate operator command
+
+```bash
+(
+ set -euo pipefail
+ REV=ffe1fafbb1b2681c5bc3186bd89186a4005f4cab
+ BASE="https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$REV/examples/AmeriFlux_Batch02_10/scripts"
+ WORK="$HOME/AMF_Batch02_FIXNC_bootstrap/nc/examples/AmeriFlux_Batch02_10/scripts"
+ mkdir -p "$WORK"
+ curl -fLsS --retry 3 "$BASE/02_prepare_ten_independent_FIXNC_surface_candidates.py" -o "$WORK/02_prepare_ten_independent_FIXNC_surface_candidates.py"
+ curl -fLsS --retry 3 "$BASE/05_repair_BZS_soilgrids_and_finish_10_surfaces.py" -o "$WORK/05_repair_BZS_soilgrids_and_finish_10_surfaces.py"
+ test "$(git hash-object "$WORK/02_prepare_ten_independent_FIXNC_surface_candidates.py")" = 255890d4efe5aa1a14b424c93b4dc7be63b40889
+ test "$(git hash-object "$WORK/05_repair_BZS_soilgrids_and_finish_10_surfaces.py")" = fc74aa14eebc64996440f8f55ddb83261b1092e1
+ python3 -B "$WORK/05_repair_BZS_soilgrids_and_finish_10_surfaces.py" --self-test
+ python3 -B "$WORK/05_repair_BZS_soilgrids_and_finish_10_surfaces.py" --repair-build
+)
+```
