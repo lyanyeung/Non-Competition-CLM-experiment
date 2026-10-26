@@ -173,7 +173,7 @@ def case_gate(site,phase,case,receipt):
         fail("Direct 400y fresh case must start CONTINUE_RUN=FALSE")
     if xml("RUN_TYPE").lower()!=("startup" if phase=="AD400" else "hybrid"):
         fail("AD400 must startup; NORMAL400 must hybrid from verified AD400 restart")
-    if not re.fullmatch(r"\\d{4}-01-01",xml("RUN_STARTDATE")):
+    if not re.fullmatch(r"\d{4}-01-01",xml("RUN_STARTDATE")):
         fail("RUN_STARTDATE must be an exact NOLEAP Jan1, one 400-year span")
     if xml("CALENDAR").upper()!="NO_LEAP":
         fail("Original tower forcing needs NO_LEAP calendar")
@@ -185,17 +185,17 @@ def case_gate(site,phase,case,receipt):
        "use_fates_nocomp":".true.",
     }
     def nml(k):
-        found=re.findall(r"(?im)^\\s*"+re.escape(k)+r"\\s*=\\s*([^!\\n]+)",lnd_text)
+        found=re.findall(r"(?im)^\s*"+re.escape(k)+r"\s*=\s*([^!\n]+)",lnd_text)
         if len(found)!=1:
             fail("Generated CIME lnd_in missing/ambiguous "+k)
-        return found[0].strip().strip(",").strip().strip("'\\\"").lower()
+        return found[0].strip().strip(",").strip().strip("'\\"").lower()
     for key,val in expected_flags.items():
         if nml(key)!=val:
             fail("Generated site FATES FIXNC flag mismatch "+key)
     if phase=="AD400":
         if nml("spinup_state")!="2":
             fail("AD400 must have FATES spinup_state=2")
-        if re.search(r"(?im)^\\s*finidat\\s*=\\s*['\\\"]?[^'\\\"\\s,]+",lnd_text):
+        if re.search(r"(?im)^\s*finidat\s*=\s*['\\"]?[^'\\"\s,]+",lnd_text):
             fail("AD400 unexpectedly has land restart FINIDAT; no approved previous spinup")
     else:
         if proof.get("AD400_final_restart_scientifically_and_sha_verified") is not True:
