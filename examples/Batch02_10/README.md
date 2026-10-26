@@ -1,5 +1,12 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## Stage42 operator-confirmed five history-output failures; Stage43 isolated AD400 recovery (26 October 2026)
+
+The actual five-case diagnosis confirms **all five** ES-LJu/DK-Sor/FR-FBn/BE-Bra/CH-Lae jobs failed in `histFileMod.F90:899`: tape1 requests unregistered `GPP,NPP`, while each exact model registry has 1141 fields including `FATES_GPP,FATES_NPP`. Both effective land namelists match and no restart/pointer/archive date exists for any of the five. The downstream Slurm Killed message is not the root cause shown by these logs. The pasted AmeriFlux Batch02 audit is a different campaign and is not a recovery target here.
+
+[Stage43 independent five-case recovery controller](scripts/43_five_GPP_NPP_histfix_AD400.py) and [commands/preservation contract](docs/five_history_fixed_AD400_recovery_20261026.md) pin the actual failure/input hashes, create five separate same-site history-fix cases, preserve selected MET24/MET34/MET36 and PFT/soil/executable inputs, compare all non-history land settings, and follow AmeriFlux Stage21's submitter-stack guard. Preparation and verification submit no jobs; the separate one-shot start launches each new AD400 chain as 80x5 years. Old cases and pending archive jobs, the four completed sites and the active IT-Noe case remain untouched. **Code publication is not evidence of live preparation, submission or AD400 success.**
+
+
 ## Latest operator report: five Batch02 initial AD400 failures — Stage42 diagnosis (26 October 2026)
 
 The operator reports four Batch02 sites completed AD400, IT-Noe running in its separate GPP/NPP history-fix case (model clock 2039), and five unresolved initial AD failures: **ES-LJu 4734425, DK-Sor 4734485, FR-FBn 4734487, BE-Bra 4734696, CH-Lae 4734856**. Earlier running/submission snapshots below are historical for these jobs. The resolved 25 October low-stack first attempts, IL-Yat 4728152 and superseded CA-TP4 V2 4728206 are not new recovery targets.
