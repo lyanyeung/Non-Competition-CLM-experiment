@@ -50,3 +50,30 @@ The files **exist now** and have been matched to all ten AmeriFlux Batch02 IDs. 
 - **(4) Avoid user-instructed proliferating unrelated test groups**; ten-site cohort is one workflow, model comparisons later between competition and FIXNC. Existing full-FATES/history runs and ten original weather files are not touched. No FIXNC jobs have been submitted as a result of the documentation/CSV preparation here.
 
 **Never invoke** `examples/Batch02_10` for AmeriFlux: that directory is the **second ICOS/European cohort**, with completely different site list/cases/PFT and soil.
+
+
+## Stage02: ten independent FIXNC candidate surfaces
+
+Operator read-only Stage01 audit completed (2026-10-26):
+- `AMF_B02_SELF_TEST_PASS`, `AMF_B02_REGISTER_PASS 10/10`, original Stage95 215 NC receipt present, **not** evidence ten CIME cases or ten AD spinups.
+- **US-GLE HIST2005-2020** Slurm run `4739020 RUNNING` and archive `4739021 PENDING` at audit time; it is separate from FIXNC. **US-Ha1_FATES_1PT** has at least one prior `model execution success`, not proof of a full spinup or this batch's fixed-NC configuration.
+- Other eight sites had zero discovered cases. Original US-Ho1 QC/height science and Arctic/permafrost physics still HOLD.
+
+**[Stage02 source-gated 10-site surface candidate builder](scripts/02_prepare_ten_independent_FIXNC_surface_candidates.py)** source Git blob `84ee53d68b71b0d54d5e0fb888636fb3e941910d` (initial commit `57c3848bc2366c1723abbea502d58bbfff77ce07`) uses:
+1. Exact source-pinned 10-site PFT + soil recommendation [register](data/AMF_BATCH02_10_PFT_SOIL_RECOMMENDATIONS_SOURCE_PINNED_20261026.csv), 100% sum under host PFT index 0..14 and correct DEFAULT14 or ARCTIC_PURE *candidate* mapping.
+2. **Actual original Stage01 50-site depth-profile output** `$HOME/CLM_FATES_SOIL/AmeriFlux50_20261026/09_RECOMMENDED_CLM10_PCT_SAND_PCT_CLAY_WIDE.csv` (or use `--soil-wide /absolute/path`). Checks site layer1..10 sand/clay complete, physical, mean first five layer values agree with independently pinned 50-site 0–30cm recommendations to 0.11 percentage point. If no genuine source 10-layer profile, holds: does **not** fill all layers with 0–30cm mean.
+3. Original station surface `/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/<SITE>/subset_data_batch02_surf2000/surfdata*.nc`. Only if one valid point NetCDF with `PCT_NAT_PFT natpft15` and `PCT_SAND/PCT_CLAY` ten nodes, copies it to new independent `/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/AmeriFlux_Batch02_10/<SITE>/surface/*stage02_v1.nc`. Creates idealized NATVEG100/CROP0 stand surface, actual complete soil profile, candidate PFT host distribution. All original other landunits become zero; **this is a model hypothesis, not observed tower footprint proportions**.
+4. Preserves all other source variables, including `ORGANIC` (which is **not approved as site-realistic** at US-BZS, US-EML, US-ICh and US-ICt); reports absolute source and candidate SHA. Existing original surfaces, GLE historical case and all existing CIME/Slurm jobs remain untouched.
+5. For four Arctic sites, PFT map **ARCTIC_PURE** requires separate per-site FATES parameter file activation and verification before any FIXNC CIME. Creating a host-PFT surface alone does **not** install the FATES HLM map or justify AD400.
+6. All commands are non-submitting. `--self-test` synthetic invariants, `--check` read-only all-site preflight, `--build` copy+validate independent new surfaces only. Does not overwrite existing candidate outputs; missing/uncertain site source produces named HOLD rather than guessed values.
+
+Use pinned raw source rather than Git pull, as usual. Example:
+```bash
+python3 -B 02_prepare_ten_independent_FIXNC_surface_candidates.py --self-test
+python3 -B 02_prepare_ten_independent_FIXNC_surface_candidates.py --check
+python3 -B 02_prepare_ten_independent_FIXNC_surface_candidates.py --build
+```
+Only build when the Stage01 10-layer source exists and all applicable science assumptions are explicit. A 10/10 candidate surface PASS does **not** imply CIME namelist/mapping/actual climate science is ready for AD400.
+
+If Stage01 output is missing, **DO NOT substitute the 0–30 cm means**. Run the *existing* original Stage01 collector with full BADM/download cache per [soil README](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/Ameriflux_Site/Ameriflux_Soil/README.md), or locate an earlier authoritative `09_RECOMMENDED_CLM10_PCT_SAND_PCT_CLAY_WIDE.csv` and pass `--soil-wide`. These source files have not been confirmed on the cluster from this chat; the script will report the missing exact path.
+
