@@ -49,6 +49,7 @@ SITES = {
 ACK_PREP = 'PREPARE_STAGE44_ICOS_PFT_CASES_NO_SLURM'
 ACK_PURGE = 'DELETE_OLD_B02_DKSOR_BEBRA_CASES_AND_OUTPUTS'
 ACK_SUB = 'SUBMIT_STAGE44_ICOS_PFT_AD400_80x5_ONCE'
+ACK_Q = 'QUARANTINE_STAGE44_FAILED_PREPARE_NO_SLURM'
 FATES = {'use_fates': '.true.', 'use_fates_sp': '.false.', 'use_fates_fixed_biogeog': '.true.',
          'use_fates_nocomp': '.true.', 'use_cn': '.false.', 'spinup_state': '2'}
 YEAR_RE = re.compile(r'(?<!\d)(19[5-9]\d|20[0-4]\d)(?!\d)')
@@ -488,6 +489,33 @@ def first5_one(site):
     return {'restart': stamp, 'spinup_state': st}
 
 
+def inspect_one(site):
+    p = P(site); o = load(p['ledger'])
+    print(f'== {site}  ledger={p["ledger"]} phase={o.get("phase", "-")} at={o.get("at", o.get("created_utc", "-"))}')
+    for label, x in (('new case', p['new']), ('run parent', p['run'].parent), ('archive', p['arch']), ('surface', p['surf'])):
+        print(f'  {label:11} {"EXISTS " if x.exists() else "absent "} {x}')
+    if p['new'].is_dir():
+        for f in ('CaseStatus', 'user_nl_clm', 'CaseDocs/lnd_in', 'CaseDocs/datm.streams.xml', '.case.run'):
+            print(f'    {f:28} {"yes" if (p["new"] / f).exists() else "no"}')
+        cs = p['new'] / 'CaseStatus'
+        if cs.is_file(): print('    CaseStatus tail:', ' | '.join(cs.read_text(errors='replace').strip().splitlines()[-4:]))
+    print('  queued:', queued_for([p['name']]) or 'none', '| template present:', p['tpl'].is_dir())
+
+
+def quarantine_one(site):
+    p = P(site); o = load(p['ledger'])
+    need(o.get('phase') == 'PREPARE_ATTEMPTED_UNCERTAIN', f'{site}: phase {o.get("phase")}; only an uncertain prepare is quarantined')
+    need(not queued_for([p['name']]), f'{site}: jobs queued for the new case; refuse')
+    cs = (p['new'] / 'CaseStatus').read_text(errors='replace') if (p['new'] / 'CaseStatus').is_file() else ''
+    need(not re.search(r'case\.submit|case\.run', cs), f'{site}: CaseStatus shows submission; refuse')
+    q = D44 / 'quarantine_failed_prepare' / f'{site}_{datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")}'
+    q.mkdir(parents=True); moved = {}
+    for label, x in (('case', p['new']), ('run_parent', p['run'].parent), ('archive', p['arch']), ('ledger', p['ledger'])):
+        if x.exists(): shutil.move(str(x), str(q / label)); moved[label] = str(x)
+    save(q / 'RECEIPT.json', {'site': site, 'moved': moved, 'utc': utc()})
+    print(f'  {site}: partial prepare moved to {q}; surface kept (reused if verified); prepare may now be run again')
+
+
 def batch(label, sites, fn):
     bad = []
     for s in sites:
@@ -507,13 +535,13 @@ def self_test():
     t = "fsurdat = 'a'\nhist_fincl1 = 'TOTSOMC','TOTSOMN','TLAI','FATES_GPP','FATES_NPP','TWS','H2OSNO'\n"
     assert nml(nml_set(t, 'fsurdat', "'b'"), 'fsurdat') == 'b' and hist_fields(t) == AFTER
     assert max_run(np.array([1, 1, 2, 2, 2, 3.])) == 3
-    assert len({ACK_PREP, ACK_PURGE, ACK_SUB}) == 3
+    assert len({ACK_PREP, ACK_PURGE, ACK_SUB, ACK_Q}) == 4
     print('STAGE44 SELF-TEST PASS (no files, no HPC)')
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('action', choices=('self-test', 'inventory', 'prepare', 'purge-old', 'submit', 'status', 'audit-first5'))
+    ap.add_argument('action', choices=('self-test', 'inventory', 'inspect', 'quarantine-failed-prepare', 'prepare', 'purge-old', 'submit', 'status', 'audit-first5'))
     ap.add_argument('--sites', nargs='+', choices=list(SITES))
     ap.add_argument('--confirm', default='')
     ap.add_argument('--forcing-dir', nargs='*', help='SITE=/folder/with/one/NC/per/year (DK-Sor full record)')
@@ -522,6 +550,12 @@ def main():
     sites = list(dict.fromkeys(a.sites or SITES))
     if a.action == 'self-test': return self_test()
     if a.action == 'inventory': return inventory(sites)
+    if a.action == 'inspect':
+        for s in sites: inspect_one(s)
+        return
+    if a.action == 'quarantine-failed-prepare':
+        need(a.confirm == ACK_Q and a.sites, 'requires explicit --sites and --confirm ' + ACK_Q)
+        return batch('QUARANTINE', sites, quarantine_one)
     if a.action == 'status':
         for s in sites:
             o = load(P(s)['ledger']); print(s, o.get('phase', '-'), o.get('first_run_job', '-'), queued_for([SITES[s]['new']]) or '')

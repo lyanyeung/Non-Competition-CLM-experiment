@@ -24,6 +24,21 @@
 
 A mock test passed. It covered a broken-forcing HOLD, the CO₂ gate, purge-before-prepare refusal, queued-job refusal, duplicate prepare/submit refusal, surface PFT for both sites and the forcing swap.
 
+## Stage45 — DK-Sor forcing extended to 1996–2025 (26 October 2026)
+
+**Operator 19:16 UK:** DK-Sor should cycle 1996–2025 like the other ICOS sites. The full FATES runs (FLUXNET_MultiSite_6) used 1996–2024, because the `ICOS_DK-Sor_FLUXNET_1996-2024_v1.3_r1` release ends in 2024.
+- On IRIDIS, `forcing/merged_multisource_v1/DK-Sor_multisource_HH_1996_2025_candidate.csv` merges ICOS and ICOSETC, with yearly met coverage 1.0 for 1996–2025.
+- Only 1996–2024 had been converted to DATM (`processed_v5`, then `datm_v5_candidate_timevarying_zbot`).
+
+[Stage45](scripts/45_build_DKSor_2025_DATM_v5_extension.py) converts 2025 with exactly the v5 rule (TBOT, QBOT from TA/VPD/PA, PSRF, FSDS, FLDS, WIND, PRECT = P/1800) and the 2024 ZBOT (43 m, BIF history since 2021-02-06). Its gates:
+- **Regression:** merged 2024 converted the same way must reproduce `DK-Sor_DATM_2024.nc` for at least 99% of records per variable.
+- **2025 sanity:** no missing values, v5 ranges, QBOT not above saturation.
+- **ERA5:** a comparison with FLUXNET ERA5_HH for 2025 is printed.
+
+`build` writes `stage45_DKSor_DATM_1996_2025/`: 29 symlinks to the unchanged 1996–2024 files plus the new `DK-Sor_DATM_2025.nc`. Stage44 then uses `prepare --forcing-dir DK-Sor=<that folder>`. The start year (1996) and CO₂ (361.93 ppm) stay unchanged.
+
+**Stage44 additions:** `inspect` (read only) and `quarantine-failed-prepare --confirm QUARANTINE_STAGE44_FAILED_PREPARE_NO_SLURM`, for the BE-Bra `PREPARE_ATTEMPTED_UNCERTAIN` ledger found at 19:23. The partial case and ledger move to `stage44_ICOS_PFT_rebuild/quarantine_failed_prepare/`, the verified surface is reused, and prepare can then run again.
+
 ## Normal400 for the four AD400-complete sites — Normal395 submitted (26 October 2026, 17:12 UK)
 
 Operator IRIDIS6 output from Stage27:
