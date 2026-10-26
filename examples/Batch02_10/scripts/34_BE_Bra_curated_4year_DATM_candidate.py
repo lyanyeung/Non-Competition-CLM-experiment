@@ -42,6 +42,9 @@ def sha(path):
  with Path(path).open("rb") as f:
   for chunk in iter(lambda:f.read(1048576),b""):h.update(chunk)
  return h.hexdigest()
+def expected_year_fields(first,last,align):
+ return (int(first),int(last),int(align))==(1996,2025,1996)
+
 def stream():
  cp=CASE/"CaseDocs/datm.streams.xml"
  rt=Path("/scratch/ly3n24/CTSM_FATES_OUTPUTS")/CASE.name/"run/datm.streams.xml"
@@ -51,8 +54,10 @@ def stream():
  ss=[node for node in root.iter("stream_info") if node.attrib.get("name")=="CLM_USRDAT.UNSET"]
  require(len(ss)==1,"selected one-point stream ambiguous")
  s=ss[0]
- require((int(s.find("year_first").text),int(s.find("year_last").text),
-          int(s.find("year_align").text))==(1996,2025,1996),"Unexpected BE-Bra met years")
+ require(expected_year_fields(s.find("year_first").text,
+                              s.find("year_last").text,
+                              s.find("year_align").text),
+         "Unexpected BE-Bra met years/year_align")
  require(s.find("taxmode").text.strip()=="cycle" and
          s.find("offset").text.strip()=="0","Unexpected met time policy")
  entries=s.find("datafiles")
@@ -254,8 +259,10 @@ def main():
  ap.add_argument("--confirm",default="")
  a=ap.parse_args()
  if a.self_test:
-  # 3 CDEPS fields: year_first, year_last, year_align. Do not compare to a 2-tuple.
-  assert (1996,2025,1996)==(1996,2025,1996)
+  # Regression: the original bug compared 3 actual values to only 2 expected values.
+  assert expected_year_fields("1996","2025","1996")
+  assert not expected_year_fields("1996","2025","2004")
+  assert not expected_year_fields("1996","2024","1996")
   assert YEARS==(1996,1999,2005,2021) and len(PINS)==5
   assert (6998,14756)==(6998,14756)
   assert 13+12+1+1==27 and 2+1+1==4
