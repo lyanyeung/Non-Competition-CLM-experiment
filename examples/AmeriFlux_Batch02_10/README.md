@@ -77,3 +77,41 @@ Only build when the Stage01 10-layer source exists and all applicable science as
 
 If Stage01 output is missing, **DO NOT substitute the 0–30 cm means**. Run the *existing* original Stage01 collector with full BADM/download cache per [soil README](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/Ameriflux_Site/Ameriflux_Soil/README.md), or locate an earlier authoritative `09_RECOMMENDED_CLM10_PCT_SAND_PCT_CLAY_WIDE.csv` and pass `--soil-wide`. These source files have not been confirmed on the cluster from this chat; the script will report the missing exact path.
 
+
+## Stage03 — Batch01-style stack guard
+
+The user explicitly requests the same stack mechanism as [AmeriFlux Batch01 Stage21](../AmeriFlux_Batch01_10/scripts/21_laneA_AD400_NORMAL400_controller.py), which successfully controls AD5 → AD395 → Normal5 → Normal395 submissions.
+
+**Exactly as Batch01:** minimum submitting-process `RLIMIT_STACK` soft **65536 KiB** (64 MiB), required because insufficient stack can segfault at ESMF/Prigent roughness input. On IRIDIS6, Slurm normally inherits submitted process limits via `PropagateResourceLimits=ALL`. This is separate from the old CA-TP4 incorrect point-domain PTS and scientific PFT/soil approval.
+
+[Batch02 Stage03 guarded submit](scripts/03_stack_guard_and_FIXNC_submission.py), Git blob `b622eae34bdcbefb0b82117fb4120b81a1380c62`, provides:
+
+- `--self-test`: no CIME or job changes.
+- `--audit`: verifies stack limit, raises **only** a low process soft limit (target 300000 KiB where hard limit permits), never decreases an existing high or unlimited stack or changes hard limit; verifies a child inherits it; inspects actual Slurm `PropagateResourceLimits`.
+- `--submit`: all four AD5/AD395/Normal5/Normal395 model phases use that guard **inside the SAME Python process as the child `case.submit`**, fail-closed if Slurm stack propagation not confirmed.
+- Before any CIME submission, require SHA-pinned per-case science release receipt, including **real ten-layer soil and organic decision**, FATES HLM/Arctic private mapping, source UTC/ZBOT, CIME PTS geometry, CIME preview, and exact prepared 5-year smoke or a verified 5-year restart with 395-year continuation.
+- As in Stage21, requires `.submit_options` `skip_pnl=true` before invoking `case.submit --skip-preview-namelist` (do not accidentally regenerate approved private AD namelists). Creates an exclusive attempt-before-submit ledger to prevent blind duplicates after a disconnect.
+- Does NOT submit any case until separate science receipts and independent FIXNC cases actually exist. Existing US-GLE historical job and US-Ha1 old case are untouched. Passing stack checks does NOT make ten site inputs/model conditions approved.
+
+### Immediate IRIDIS6 command (no new jobs)
+
+```bash
+(
+ set -euo pipefail
+ REV=3b165ec39558525a072fbc8e6f3619b09052139e
+ SRC="$HOME/AMF_Batch02_stage03_stack_guard.py"
+ curl -fLsS --retry 3 "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$REV/examples/AmeriFlux_Batch02_10/scripts/03_stack_guard_and_FIXNC_submission.py" -o "$SRC"
+ test "$(git hash-object "$SRC")" = b622eae34bdcbefb0b82117fb4120b81a1380c62
+ python3 -B -m py_compile "$SRC"
+ python3 -B "$SRC" --self-test
+ echo "SHELL SOFT=$(ulimit -s)KB HARD=$(ulimit -Hs)KB"
+ python3 -B "$SRC" --audit
+ scontrol show config | grep -i PropagateResourceLimits
+)
+```
+
+**Important:** `--audit` changes only its current Python process, not the parent shell. Future real CIME submission MUST run through this guarded submission path, not through an independent unguarded caller.
+
+### Soil10 preparation continues in parallel
+
+[Batch02 Stage02 independent surface builder](scripts/02_prepare_ten_independent_FIXNC_surface_candidates.py) needs the ORIGINAL source-generated 50-site `09_RECOMMENDED_CLM10_PCT_SAND_PCT_CLAY_WIDE.csv` with L1–L10 separately. The source is [Ameriflux_Soil Stage01](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/Ameriflux_Site/Ameriflux_Soil/scripts/01_collect_soil_texture_evidence.py) in the other repository, with its data files/manifest. No valid 10/10 depth profile has yet been shown in this chat. Never fill ten layers with the averaged 0–30cm values. The 4 Arctic/permafrost-relevant sites also need explicit organic-soil and ARCTIC_PURE FATES map approval. Preserve original GLE historical job.
