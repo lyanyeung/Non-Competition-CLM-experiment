@@ -283,7 +283,7 @@ def start(folder):
                     "-o","%i|%j|%T"],capture_output=True,text=True,timeout=60)
  ensure(sq.returncode==0,"Cannot verify Slurm queue; do NOT submit")
  ensure(NAME not in sq.stdout,"Stage26 new case has queued/running Slurm job")
- h=subprocess.run([str(CASE/"case.submit"),"--help"],at=CASE,
+ h=subprocess.run([str(CASE/"case.submit"),"--help"],cwd=CASE,
                   capture_output=True,text=True,timeout=80)
  ensure("--skip-preview-namelist" in h.stdout+h.stderr,
         "CIME case.submit lacks mandatory skip-preview-namelist")
@@ -334,7 +334,16 @@ def self_test():
  ensure(NAME.startswith("ES-LJu_B02_FIXNC") and CASE!=SOURCE,
         "Unsafe cloning case identity")
  ensure(SURF_SHA.startswith("d44083a1"),"Site surface SHA")
- print("STAGE26 SELF-TEST PASS: separate ES-LJu case and 80x5y; no writes")
+ # Guard against the former subprocess.run(at=CASE) mistake (valid only for our command helper).
+ import ast, inspect, textwrap
+ tree=ast.parse(textwrap.dedent(inspect.getsource(start)))
+ direct=[n for n in ast.walk(tree) if isinstance(n,ast.Call) and
+         isinstance(n.func,ast.Attribute) and
+         isinstance(n.func.value,ast.Name) and n.func.value.id=="subprocess" and
+         n.func.attr=="run"]
+ ensure(len(direct)==3 and all(all(k.arg!="at" for k in n.keywords) for n in direct),
+        "Stage26 direct subprocess.run must use cwd=, never at=")
+ print("STAGE26 SELF-TEST PASS: separate ES-LJu case, 80x5y, subprocess.run cwd; no writes")
 def main():
  ap=argparse.ArgumentParser(description=__doc__)
  g=ap.add_mutually_exclusive_group(required=True)
