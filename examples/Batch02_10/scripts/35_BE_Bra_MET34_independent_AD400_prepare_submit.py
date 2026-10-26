@@ -61,7 +61,7 @@ def load_manifest(folder):
  ensure(folder.name=="stage34_BE_Bra_curated_MET_QC_v2" and
         m.get("version")=="BE-Bra-1996-1999-2005-2021-curated-QC-v2-20261026",
         "Only new Stage34 v2 verified model inputs permitted")
-  ensure(m.get("site")=="BE-Bra" and m.get("years")==[1996,2025]
+ ensure(m.get("site")=="BE-Bra" and m.get("years")==[1996,2025]
         and m.get("record_count_per_year")==17520 and
         m.get("source_case")==SOURCE.name and
         m.get("source_stream_sha256")==SOURCE_STREAM_SHA,
@@ -86,7 +86,7 @@ def load_manifest(folder):
   ensure(len(items.get("changes",{}).get("TBOT",{}))==tb and
          len(items.get("changes",{}).get("QBOT",{}))==qb,
          "Stage34 unexpected year-specific authorised TBOT/QBOT changes: "+str(y))
-  records=m.get("selected_30_annual_DATM",[])
+ records=m.get("selected_30_annual_DATM",[])
  ensure(len(records)==30 and len({x.get("path") for x in records})==30,
         "Stage34 expected 30 unique yearly file paths")
  out=[]
