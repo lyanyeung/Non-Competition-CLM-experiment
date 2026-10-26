@@ -14,7 +14,11 @@ import pandas as pd
 
 ROOT = Path("/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/Batch02_10")
 STAGE16 = ROOT / "stage16_ES_LJu_manual_review_v1_20261025"
-PINNED_SELECTED_SHA = "a9c0d441e5e4b02b310158891d040ebe14c7ff50172a64ee250c0b4aaf05df1"
+STAGE28_ORIGINAL_MANIFEST = Path(
+    "/iridisfs/scratch/ly3n24/CLM_FATES/experiments/"
+    "FLUXNET_MultiSite_13_MET_stage28_20261018_052344_851367/"
+    "reports/01_selected_13site_STAGE28_provisional_manifest.csv"
+)
 
 # Exact time windows that the operator has authorized; do not broaden automatically.
 PAIRED_ERA_WINDOWS = [
@@ -109,8 +113,29 @@ def main():
     selected_info=manifest["stage28_source"]
     src=Path(selected_info["path"])
     require(src.is_file(),"Pinned Stage28 selected CSV missing")
-    require(selected_info["sha256"]==PINNED_SELECTED_SHA,"Stage16 expected Stage28 SHA changed")
-    require(fingerprint(src)==PINNED_SELECTED_SHA,"Selected Stage28 forcing SHA mismatch")
+    # Stage16 already independently pinned the true Stage28 source and compared
+    # its bytes to the active DATM. Re-verify against BOTH that audit and the
+    # original Stage28 13-site manifest. A historical targeted-trial SHA is
+    # not the selected Stage28 file and must never be used as a pseudo-pin.
+    require(STAGE28_ORIGINAL_MANIFEST.is_file(),
+            "Original Stage28 manifest missing; cannot verify lineage")
+    original_manifest=pd.read_csv(STAGE28_ORIGINAL_MANIFEST,dtype={"site":str})
+    require({"site","forcing_path","sha256"}.issubset(original_manifest.columns),
+            "Original Stage28 manifest missing required provenance columns")
+    row=original_manifest.loc[original_manifest.site=="ES-LJu"]
+    require(len(row)==1,"Expected exactly one original Stage28 ES-LJu record")
+    expected_sha=str(row.iloc[0]["sha256"])
+    require(Path(str(row.iloc[0]["forcing_path"])).resolve()==src.resolve(),
+            "Stage16 and original Stage28 selected paths differ: STOP")
+    require(len(expected_sha)==64 and all(x in "0123456789abcdef" for x in expected_sha.lower()),
+            "Invalid original Stage28 SHA format")
+    require(str(selected_info["sha256"])==expected_sha,
+            "Stage16 and original Stage28 manifest SHA DIFFER: STOP")
+    actual_sha=fingerprint(src)
+    require(actual_sha==expected_sha,
+            "Selected Stage28 CSV bytes SHA DIFFER from two independent manifests: STOP")
+    print("STAGE28 TRIPLE-SOURCE SHA VERIFIED:",expected_sha)
+    print("Selected Stage28 CSV:",src)
     raw=Path(manifest["original_fluxmet_hourly"]["raw_path"])
     require(raw.is_file(),"Original FLUXMET missing")
     require(fingerprint(raw)==manifest["original_fluxmet_hourly"]["sha256"],
