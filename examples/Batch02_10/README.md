@@ -1,5 +1,25 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## Stage29–31: four remaining Batch02 forests — scenario surfaces → isolated preview → exploratory AD400
+
+The operator requested using the existing [38-site FINAL FIXNC PFT register](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/FINAL_38_SITE_FIXNC_PFT_20261025.csv) instead of restarting the literature investigation. **That table still labels four forest residuals OPEN**, so this sequence uses named, explicitly *unapproved model proxy/sensitivity* vectors from the [11-option table](data/four_open_PFT_exploratory_closure_sensitivity_20261026.csv), not fabricated complete observations.
+
+| Site | Stage29 exploratory whole-natural-landunit PFT percentage | Unknown fraction treatment |
+|---|---|---|
+| DK-Sor | DBF80 / ENF10 / DNF10 | ENF+DNF20 observed only as combined amount; assume 10/10 for test |
+| FR-FBn | ENF75 / EBF25 | Assume the unknown 25 of tree basal area is holm-oak EBF, upper-bound scenario |
+| BE-Bra | ENF55 / DBF45 | Assign the unknown22 to DBF, explicit bound |
+| CH-Lae | DBF88 / ENF12 | Assign unreported8 to DBF, explicit bound |
+
+Technical sequence:
+1. [Stage29](scripts/29_build_four_open_forest_PFT_sensitivity_surfaces.py): `--self-test`, `--plan` (read-only); `--build --confirm CREATE_FOUR_BATCH02_FOREST_PFT_SCENARIO_SURFACES` creates exactly four independent, manifested NetCDF point surfaces, no case or Slurm changes. NATVEG100%, CROP0%; **original source-grid PCT_SAND/CLAY is inherited and documented as unverified grid input, not site-observed soil**.
+2. [Stage30](scripts/30_prepare_four_forest_AD5_proxies_no_slurm.py): `--self-test`, `--check` (read-only), `--prepare --confirm PREPARE_FOUR_BATCH02_FOREST_AD5_PREVIEWS_NO_SLURM` (creates four fresh same-site cloned FIXNC AD startup cases, no Slurm), `--verify` (read-only). Reuses the proven private FATES namelist overlay and explicitly corrects any inherited original CIME point-coordinate mismatch in the new case, then checks actual NUOPC coordinates against the candidate surface. Despite name AD5, prepared case is the first 5-year segment only; no run job yet.
+3. [Stage31](scripts/31_submit_four_forest_exploratory_AD400_once.py): `--self-test`, `--audit`, then optionally **explicit one-time exploratory Slurm** `--start --confirm SUBMIT_FOUR_BATCH02_EXPLORATORY_FOREST_AD400_ONCE`. Starts 80×5-year accelerated spinup segments *directly*, with no separately submitted 5-year smoke. Verifies Stage30 source, exact case flags/namelist, stored point geometry, no current matching jobs and no prior submit attempt. A submission receipt is written before submitting; after any uncertain attempt, **never rerun** without investigating the ledger, CIME and Slurm.
+
+**Not a climate QA release.** Stage30 checks the selected original DATM annual files exist, source/year/coordinates/time-loop are coherent; Stage31 does not validate all half-hour meteorology for anomalies. If a site is found to have an unreleased source issue, stop its model submission and validate meteorology first. Model output must be labelled exploratory PFT sensitivity, not an observed-ground-truth stand reconstruction.
+
+---
+
 ## 26 October 03:16 UTC: actual Stage25 success, Stage26 prepared, submit preflight bug fixed
 
 Operator IRIDIS6 log: Stage27 self-test passed, but all four Batch02 AD chains are still running/queued; latest archived restart years FI-Hyy **2222**, FR-Hes **2202**, CH-Fru **2335**, IT-MBo **2333** (respective AD400 targets 2397/2397/2405/2403). `audit-ad400` correctly **HOLD 4/4**. Do not stage Normal400 yet.
