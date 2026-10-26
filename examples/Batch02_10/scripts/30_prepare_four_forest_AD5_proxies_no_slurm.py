@@ -32,16 +32,16 @@ NEW_RESEED='if ( $nl_flags->{$var} ne "off" && &value_is_true($nl_flags->{\'use_
 SITES={
  "DK-Sor":{"source":"DK-Sor_FATES_SPINUP500","case":"DK-Sor_B02_FIXNC_FOREST_PROXY_AD5",
     "pft":{1:10,3:10,7:80},"scenario":"MID_SPLIT_TRIAL",
-    "science_hold":"ENF_DNF_COMBINED_20_UNKNOWN_SENSITIVITY_ONLY"},
+    "science_hold":"ENF_DNF_20_COMBINED_UNRESOLVED_PROXY"},
  "FR-FBn":{"source":"FR-FBn_FATES_SPINUP500","case":"FR-FBn_B02_FIXNC_FOREST_PROXY_AD5",
     "pft":{1:75,5:25},"scenario":"OAK_UPPER_BOUND",
-    "science_hold":"UNKNOWN25_TO_EBF_NOT_MEASURED_SENSITIVITY_ONLY"},
+    "science_hold":"REMAINDER25_NOT_VERIFIED_ALL_EBF"},
  "BE-Bra":{"source":"BE-Bra_FATES_SPINUP500_11P","case":"BE-Bra_B02_FIXNC_FOREST_PROXY_AD5",
     "pft":{1:55,7:45},"scenario":"UNKNOWN22_TO_DBF_BOUND",
-    "science_hold":"UNKNOWN22_TO_DBF_NOT_MEASURED_SENSITIVITY_ONLY"},
+    "science_hold":"UNKNOWN22_ASSIGNED_TO_DBF_SENSITIVITY_ONLY"},
  "CH-Lae":{"source":"CH-Lae_FATES_SPINUP500_11P","case":"CH-Lae_B02_FIXNC_FOREST_PROXY_AD5",
     "pft":{1:12,7:88},"scenario":"UNKNOWN8_TO_DBF_BOUND",
-    "science_hold":"UNKNOWN8_TO_DBF_NOT_MEASURED_SENSITIVITY_ONLY"},
+    "science_hold":"UNKNOWN8_ASSIGNED_TO_DBF_SENSITIVITY_ONLY"},
 }
 FIELDS={"use_fates":".true.","use_fates_sp":".false.","use_fates_fixed_biogeog":".true.",
         "use_fates_nocomp":".true.","spinup_state":"2","finidat":""}
@@ -92,9 +92,7 @@ def preload_manifests():
   if doc.get("PFT_scenario")!=item["scenario"] or doc.get("original_case")!=item["source"]:
    stop(site+": Stage29 source/scenario mismatch")
   if doc.get("science_gate")!=item["science_hold"]:
-   # Stage29 emits a more descriptive scientific hold, but both explicitly mark unresolved science.
-   if not isinstance(doc.get("science_gate"),str) or "PROXY" not in doc["science_gate"] and "SENSITIVITY" not in doc["science_gate"] and "UNRESOLVED" not in doc["science_gate"]:
-    stop(site+": Stage29 science gate missing")
+   stop(site+": Stage29 recorded science gate mismatch")
   expected=[0.]*15
   for k,v in item["pft"].items():expected[k]=float(v)
   if any(abs(float(x)-y)>1e-5 for x,y in zip(doc.get("PCT_NAT_PFT_15_HOST",[]),expected)) or len(doc.get("PCT_NAT_PFT_15_HOST",[]))!=15:
@@ -207,7 +205,9 @@ def preflight(site,existing=False):
  srcparam=Path(field(original_nl,"fates_paramfile"))
  if srcparam.resolve()!=PARAM.resolve():stop(site+" source FATES parameter differs")
  before=(float(query(old,"PTS_LAT")),float(query(old,"PTS_LON"))%360)
- if distance(before,point)>0.001:stop(site+" original site point geometry differs")
+ if distance(before,point)>0.001:
+  print("SOURCE PTS MISMATCH (legacy diagnostic)",site,before,"vs true surface",point,
+        "| independent new case will explicitly reset PTS_LAT/LON and validate NUOPC")
  if not existing:
   for p in (case,run,arch,attempt):
    if p.exists() or p.is_symlink():
