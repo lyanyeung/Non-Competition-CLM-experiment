@@ -220,7 +220,7 @@ def build(files,plan):
    d=sha(tmp);os.link(tmp,out)
    results[y]={"path":str(out),"sha256":d,"source":str(source),
                "source_sha256":PINS[y],"changes":changes}
-   print("STAGE34 BUILT",y,"SHA",d,"T",len(edits["TBOT"]),"Q",len(edits["QBOT"]))
+   print("STAGE36 BUILT",y,"SHA",d,"T",len(edits["TBOT"]),"Q",len(edits["QBOT"]))
   finally:tmp.unlink(missing_ok=True)
  selected=[]
  for y in range(2004,2025):
@@ -247,7 +247,7 @@ def build(files,plan):
  path=DEST/"manifest.json"
  with path.open("x") as f:
   json.dump(manifest,f,indent=2);f.write("\n");f.flush();os.fsync(f.fileno())
- print("STAGE34 CREATED MANIFEST",path,"QBOT",27,"TBOT",4,
+ print("STAGE36 CREATED MANIFEST",path,"QBOT",2,"TBOT",3,
        "21-year ready selection; ORIGINALS UNTOUCHED, NO SLURM")
 def main():
  ap=argparse.ArgumentParser(description=__doc__)
@@ -270,7 +270,7 @@ def main():
  files=stream()
  plan=get_plan(files)
  if a.audit:
-  print("STAGE34 AUDIT PASS: exact 1996,1999,2005,2021 intervention proposals; 2002 rain retained; NO WRITES")
+  print("STAGE36 AUDIT PASS: 2012/2015/2017 isolated anomalies; 2005 and 2012 sustained steps retained; all 21 annual precip unchanged; NO WRITES")
   return
  build(files,plan)
 if __name__=="__main__":main()
