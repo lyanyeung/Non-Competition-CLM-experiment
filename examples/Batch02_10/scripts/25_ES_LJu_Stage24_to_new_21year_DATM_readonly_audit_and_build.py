@@ -58,8 +58,14 @@ def year_values(d,y):
  req(sl.time.iloc[0]==pd.Timestamp(f"{y}-01-01 00:00") and
      sl.time.iloc[-1]==pd.Timestamp(f"{y}-12-31 23:30"),
      f"Selected time endpoints {y} differ")
- req((sl.time.diff().dropna()==pd.Timedelta(minutes=30)).all(),
-     f"Selected 30-min time gaps {y}")
+ gaps=sl.time.diff()
+ bad=(gaps.notna())&(gaps!=pd.Timedelta(minutes=30))
+ if y%4==0 and (y%100!=0 or y%400==0):
+  leap_edge=(sl.time.dt.month.eq(3)&sl.time.dt.day.eq(1)&
+             sl.time.dt.hour.eq(0)&sl.time.dt.minute.eq(0)&
+             (gaps==pd.Timedelta(days=1,minutes=30)))
+  bad=bad&~leap_edge
+ req(not bad.any(),f"Selected 30-min NOLEAP time gaps {y}")
  return sl
 def vec(v,n=17520):
  req(v.ndim>=1 and v.shape[0]==n and np.prod(v.shape[1:])==1,
@@ -193,8 +199,11 @@ def main():
      if name not in REPLACE:
       x=np.ma.getdata(before.variables[name][:])
       y=np.ma.getdata(after.variables[name][:])
-      req(np.array_equal(x,y,equal_nan=True),
-          f"Unexpected mutation of {name} {year}")
+      if np.issubdtype(x.dtype,np.number):
+       same=np.array_equal(x,y,equal_nan=True)
+      else:
+       same=np.array_equal(x,y)
+      req(same,f"Unexpected mutation of {name} {year}")
     for name in REPLACE:
      arr=vec(after.variables[name])
      tol={"TBOT":.015,"QBOT":.00002,"PRECTmms":.00002}[name]
