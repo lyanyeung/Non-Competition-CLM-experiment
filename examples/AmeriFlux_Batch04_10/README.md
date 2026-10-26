@@ -106,7 +106,15 @@ python3 -B scripts/02_build_paired_PFT_surface_candidates_NO_CASES.py --check
 python3 -B scripts/02_build_paired_PFT_surface_candidates_NO_CASES.py --build
 ```
 
-### Mandatory Batch01-derived stack/Slurm guard (implemented 26 October 2026)
+### AD5 submission status after operator 10/10 PFT surfaces and unlimited stack check
+
+**Operator 2026-10-26:** Ten final SYVH9 seven-met/NOLEAP sources and ten SYVH12 original point surface SHA PASS; actual `00_fetch_and_prepare_ameriflux_batch04.sh --build` produced one versioned per-site shared starting PFT surface, total **10/10 SHA PASS**, plus the exact **20 paired Full-FATES vs FIXNC AD400/Normal400 planning entries**. Current IRIDIS6 stack resource check `soft=unlimited hard=unlimited`, Slurm `PropagateResourceLimits=ALL` PASS. **AD5 CIME CASES=0, JOB SUBMISSIONS=0**. These are research-only candidate **source files**, not CIME run/restart/model completion. 
+
+**Answer to submit now: NO.** DATM NOLEAP annual NetCDF and activated stream/UTC time centering, original TA/wind ZBOT and source policy, branch-specific FATES PFT mapping (especially bare 40–45% and Arctic US-Uaf), CLM ten-layer/organic soil validation and actual paired CIME case/PTS and source registration are still HOLD. Stack PASS is not model-science PASS. No AD400 model jobs should be submitted before passing each site's independently audited AD5 case and archive. 
+
+New [read-only AD5 site/arm submission gate](scripts/03_batch04_AD5_readiness_gate_READONLY.py), pinned revision `2598dfa26c531010c1c9f227ef649574f0b31054`, independently rechecks ten source SHAs, ten shared PFT NetCDF SHA, exact 20 planned arms and live stack/Slurm preconditions. It correctly **exits 2** because no production input/case approval exists, and creates no input/model/job. [Detailed operator state and one-command gate check](docs/BATCH04_AD5_SUBMISSION_STATUS_AFTER_10_SHARED_PFT_20261026.md). Next: a **versioned technical DATM preview and ZBOT evidence**, then science-aware paired AD5 CIME case build, not direct AD400 submit.
+
+## Mandatory Batch01-derived stack/Slurm guard (implemented 26 October 2026)
 
 The older [AmeriFlux Batch01 Stage21](../AmeriFlux_Batch01_10/scripts/21_laneA_AD400_NORMAL400_controller.py) model submission guard requires RLIMIT_STACK soft **≥65,536 KiB** for every AD5, AD395, Normal5 and Normal395 submit, and records the stack at submit in immutable ledgers. This Batch04 project now has the same **[source-code guard](scripts/b04_stack_guard.py)** plus [full technical protocol](docs/STACK_GUARD_BATCH01_PROTOCOL_MANDATORY_BEFORE_ALL_CIME_SUBMISSIONS_20261026.md):
 
