@@ -78,17 +78,39 @@ Only build when the Stage01 10-layer source exists and all applicable science as
 If Stage01 output is missing, **DO NOT substitute the 0–30 cm means**. Run the *existing* original Stage01 collector with full BADM/download cache per [soil README](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/Ameriflux_Site/Ameriflux_Soil/README.md), or locate an earlier authoritative `09_RECOMMENDED_CLM10_PCT_SAND_PCT_CLAY_WIDE.csv` and pass `--soil-wide`. These source files have not been confirmed on the cluster from this chat; the script will report the missing exact path.
 
 
+## 2026-10-26 operator decision: DIRECT AD400, no separate AD5 pilot
+
+The operator explicitly cancelled the earlier AD5 → AD395 two-step manual workflow for AmeriFlux Batch02. **ONE SCIENCE-APPROVED FIXNC CIME case, ONE `case.submit`, 400 model years**. CIME runs **80 consecutive 5-year Slurm segments**, automatic `RESUBMIT=79`, `RESUBMIT_SETS_CONTINUE_RUN=TRUE`, `STOP_OPTION=nyears`, `STOP_N=5`, `REST_N=5`. **The 5-year interval is just a scheduler/restart increment, NOT an independently submitted or manually approved AD5 experiment.**
+
+The same rule applies to NORMAL400 after the ACTUAL AD400 final restart is archived, using a separate hybrid restart case, CLM_ACCELERATED_SPINUP=off, FATES `spinup_state=0` or absent, and its own one-time submission with RESUBMIT=79. Never interpret the Slurm submission as a completed 400y run.
+
+[Direct400 64-MiB stack-protected submit controller](scripts/03_stack_guard_and_FIXNC_submission.py) at source commit `ecb58d4c0a69df9d541ce087c26cc2fff00f8675`, Git blob `de15f89932107f153082bafdf17fcbdd1f8264c8` accepts `--phase AD400` or `--phase NORMAL400`; the old phase choices AD5/AD395/NORMAL5/NORMAL395 are NO LONGER USED for this cohort. It verifies **actual CIME XML=80×5**, FATES FIXNC flags and AD spinup_state=2, exact compiled exe/FATES parameter/DATM stream SHAs, source science releases, full source point geometry, stage-private FATES `skip_pnl` and Slurm stack propagation before any one-time case.submit. Normal400 additionally requires the **400-year** AD final restart and SHA-verified handoff; there is no 5-year handoff.
+
+**Scientific case readiness not waived.** The existing 10-site Stage95 forcing is technically generated but original height/UTC and soil organic/per-layer/ARCTIC_PURE data is not 10/10 approved. No AmeriFlux Batch02 dedicated FIXNC cases or per-case RELEASE receipts were present in the last user-provided audit; therefore this change **does not itself start AD400**. Original US-GLE historical job 4739020 and previous US-Ha1 case are different jobs, unaffected.
+
+To submit a vetted site after its independent case/receipt exists:
+
+```bash
+python3 -B 03_stack_guard_and_FIXNC_submission.py --submit \
+  --site US-GLE --phase AD400 \
+  --case /iridisfs/scratch/ly3n24/CLM_FATES/cases/US-GLE_<NEW_FIXNC_AD400_CASE> \
+  --receipt /iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/AmeriFlux_Batch02_10/<SITE>/AD400_RELEASE.json \
+  --confirm SUBMIT_AMF_BATCH02_ONE_SCIENCE_APPROVED_FIXNC_CASE_WITH_STACK_GUARD
+```
+
+The command above is a **template**, not runnable while placeholder paths remain. Do NOT point it to the historical GLE case or invent a release receipt.
+
 ## Stage03 — Batch01-style stack guard
 
-The user explicitly requests the same stack mechanism as [AmeriFlux Batch01 Stage21](../AmeriFlux_Batch01_10/scripts/21_laneA_AD400_NORMAL400_controller.py), which successfully controls AD5 → AD395 → Normal5 → Normal395 submissions.
+The user explicitly requests the same stack mechanism as [AmeriFlux Batch01 Stage21](../AmeriFlux_Batch01_10/scripts/21_laneA_AD400_NORMAL400_controller.py), which successfully controls AD400 (one submission with 79 automatic restarts) → Normal400 (one submission after verified AD400 completion) submissions.
 
 **Exactly as Batch01:** minimum submitting-process `RLIMIT_STACK` soft **65536 KiB** (64 MiB), required because insufficient stack can segfault at ESMF/Prigent roughness input. On IRIDIS6, Slurm normally inherits submitted process limits via `PropagateResourceLimits=ALL`. This is separate from the old CA-TP4 incorrect point-domain PTS and scientific PFT/soil approval.
 
-[Batch02 Stage03 guarded submit](scripts/03_stack_guard_and_FIXNC_submission.py), Git blob `b622eae34bdcbefb0b82117fb4120b81a1380c62`, provides:
+[Batch02 Stage03 guarded submit](scripts/03_stack_guard_and_FIXNC_submission.py), Git blob `de15f89932107f153082bafdf17fcbdd1f8264c8`, provides:
 
 - `--self-test`: no CIME or job changes.
 - `--audit`: verifies stack limit, raises **only** a low process soft limit (target 300000 KiB where hard limit permits), never decreases an existing high or unlimited stack or changes hard limit; verifies a child inherits it; inspects actual Slurm `PropagateResourceLimits`.
-- `--submit`: all four AD5/AD395/Normal5/Normal395 model phases use that guard **inside the SAME Python process as the child `case.submit`**, fail-closed if Slurm stack propagation not confirmed.
+- `--submit`: all four AD400/Normal400 model phases use that guard **inside the SAME Python process as the child `case.submit`**, fail-closed if Slurm stack propagation not confirmed.
 - Before any CIME submission, require SHA-pinned per-case science release receipt, including **real ten-layer soil and organic decision**, FATES HLM/Arctic private mapping, source UTC/ZBOT, CIME PTS geometry, CIME preview, and exact prepared 5-year smoke or a verified 5-year restart with 395-year continuation.
 - As in Stage21, requires `.submit_options` `skip_pnl=true` before invoking `case.submit --skip-preview-namelist` (do not accidentally regenerate approved private AD namelists). Creates an exclusive attempt-before-submit ledger to prevent blind duplicates after a disconnect.
 - Does NOT submit any case until separate science receipts and independent FIXNC cases actually exist. Existing US-GLE historical job and US-Ha1 old case are untouched. Passing stack checks does NOT make ten site inputs/model conditions approved.
@@ -98,10 +120,10 @@ The user explicitly requests the same stack mechanism as [AmeriFlux Batch01 Stag
 ```bash
 (
  set -euo pipefail
- REV=3b165ec39558525a072fbc8e6f3619b09052139e
+ REV=ecb58d4c0a69df9d541ce087c26cc2fff00f8675
  SRC="$HOME/AMF_Batch02_stage03_stack_guard.py"
  curl -fLsS --retry 3 "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$REV/examples/AmeriFlux_Batch02_10/scripts/03_stack_guard_and_FIXNC_submission.py" -o "$SRC"
- test "$(git hash-object "$SRC")" = b622eae34bdcbefb0b82117fb4120b81a1380c62
+ test "$(git hash-object "$SRC")" = de15f89932107f153082bafdf17fcbdd1f8264c8
  python3 -B -m py_compile "$SRC"
  python3 -B "$SRC" --self-test
  echo "SHELL SOFT=$(ulimit -s)KB HARD=$(ulimit -Hs)KB"
