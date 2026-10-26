@@ -165,8 +165,12 @@ def main():
             "Original missing mandatory FLUXMET columns")
     require(rawdf.index.equals(idx) and eraf.index.equals(idx),
             "Source/ERA/selected 21-year timeline labels mismatch; stop rather than shift")
-    require(not eraf[["TA_ERA","VPD_ERA"]].isna().any().any(),
-            "ERA temperature/VPD gap; cannot generate complete paired repair")
+    # Validate a companion pair at each *selected* edit in patch(), not every
+    # half-hour over 21 years; unrelated missing reanalysis cannot veto a
+    # bounded, scientifically approved repair.
+    unused_era_gaps=int(eraf[["TA_ERA","VPD_ERA"]].isna().any(axis=1).sum())
+    print("Companion ERA5 TA/VPD missing elsewhere in 21 years:",unused_era_gaps,
+          "(selected replacement points still require a valid paired tuple)")
     require(not (eraf.P_ERA.loc[eraf.index.year<=2009]<0).any(),
             "Negative ERA precipitation present")
 
@@ -351,6 +355,26 @@ def main():
                                tag=row.method))
     edges=pd.DataFrame(report).drop_duplicates(subset=["time_left","time_right"]) if report else pd.DataFrame(columns=["time_left","time_right","delta_T_C","tag"])
     low_total=int((RH<5).sum())
+    low_idx=np.flatnonzero(RH<5)
+    ere=eraf.iloc[low_idx]
+    era_es=es_hpa(ere.TA_ERA.to_numpy(dtype=float))
+    with np.errstate(divide="ignore",invalid="ignore"):
+        era_rh=100*(era_es-ere.VPD_ERA.to_numpy(dtype=float))/era_es
+    remaining=pd.DataFrame({
+       "time":[str(idx[k]) for k in low_idx],
+       "candidate_TA_C":T[low_idx],
+       "candidate_RH_pct":RH[low_idx],
+       "raw_TA_QC":rawdf.iloc[low_idx].TA_F_QC.to_numpy(),
+       "raw_VPD_QC":rawdf.iloc[low_idx].VPD_F_QC.to_numpy(),
+       "source_ERA_TA_C":ere.TA_ERA.to_numpy(dtype=float),
+       "source_ERA_VPD_hPa":ere.VPD_ERA.to_numpy(dtype=float),
+       "ERA_RH_pct":era_rh
+    })
+    heavy_positions=np.flatnonzero(data.PRECTmms.to_numpy(dtype=float)*1800>40)
+    remaining_heavy=pd.DataFrame({
+       "time":[str(idx[k]) for k in heavy_positions],
+       "candidate_mm_per_HH":data.PRECTmms.to_numpy(dtype=float)[heavy_positions]*1800
+    })
     print("STAGE21 INPUT LOCK PASS | SHA256 originals, exact 21 years, NOLEAP")
     print("2006 QC1 tower-minus-ERA normal deltas C:",[round(v,3) for v in biases])
     print("2006 robust MEDIAN temperature correction offset C:",round(offset,3))
@@ -358,6 +382,12 @@ def main():
     print("Eligible daily single-record rain days:",n_eligible)
     print("Redistributed days:",len(daily_ledger),"HOLD (ERA zero or missing):",len(rain_holds))
     print("Remaining RH<5 in overall 21-year candidate:",low_total)
+    print("  of those, companion ERA5 RH >= 10%:",
+          int((remaining.ERA_RH_pct>=10).sum()))
+    print("Remaining rainfall >40mm/30min:",len(remaining_heavy))
+    if len(remaining_heavy):
+        print("REMAINING EXTREME RAIN EVENTS (manual science review):")
+        print(remaining_heavy.to_string(index=False))
     print("Adjacent >5C jumps AT edited regions:",len(edges))
     print("\nTEMPERATURE / VPD EDIT LEDGER")
     print(ledger.round(5).to_string(index=False))
@@ -379,6 +409,8 @@ def main():
     pd.DataFrame(rain_holds,columns=["day","source_P_mm","reason"]).to_csv(
         out/"04_ERA_dry_or_missing_rain_HOLD.csv",index=False)
     edges.to_csv(out/"05_modified_temperature_boundary_warnings.csv",index=False)
+    remaining.to_csv(out/"07_remaining_RH_below5_ERA_comparison.csv",index=False)
+    remaining_heavy.to_csv(out/"08_remaining_rain_over40mmHH.csv",index=False)
     (out/"06_manifest.json").write_text(json.dumps({
        "selected_stage28_original":str(src),"original_sha256":fingerprint(src),
        "tower_raw_source":str(raw),"tower_original_sha256":fingerprint(raw),
@@ -388,6 +420,8 @@ def main():
        "rain_reconstructed_days":len(daily_ledger),
        "rain_HOLD_days":len(rain_holds),"candidate_remaining_RH_below5":low_total,
        "warnings_GT5C_near_patches":len(edges),
+       "ERA_reanalysis_missing_halfhours_elsewhere":unused_era_gaps,
+       "remaining_heavy_rain_halfhours":len(remaining_heavy),
        "scope":"2005-2008 one end-of-day rain record, 2009 single-23h wet days only; same-calendar-date ERA proportions",
        "status":"PROVISIONAL_DO_NOT_USE_FOR_DATM_UNTIL_BOUNDARY_AND_RAIN_HOLDS_APPROVED",
        "active_DATM_changes":0,"SLURM_jobs_submitted":0,
