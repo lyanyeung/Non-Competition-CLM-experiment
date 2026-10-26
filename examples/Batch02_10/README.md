@@ -1,5 +1,27 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## Stage32: BE-Bra and CH-Lae **selected effective** DATM meteorological QC (26 October)
+
+The operator submitted the DK-Sor and FR-FBn exploratory Stage31 forest-PFT AD400 cases. **Do not resubmit them.** BE-Bra and CH-Lae were held for meteorological review: Stage30 stream manifest listed **30** provisional-named years for BE-Bra (1996–2025), **21** for CH-Lae (2004–2024). These `PROVISIONAL` strings are input provenance labels, *not evidence of invalid physical values*.
+
+[Stage32 read-only QC script](scripts/32_QC_BE_Bra_CH_Lae_effective_DATM_readonly.py) checks all **51 actual source-year selected 1PT annual NetCDFs** referenced by Stage30 independent cases. Requires an exact CaseDocs/RUNDIR DATM stream match, source-year/time axis NOLEAP 17,520 half-hour records, correct selected source, CIME preview receipt. For all 51 years it reports T/Q/PSRF and diagnostic RH/VPD, physically invalid values or missing, RH<1/<5/>100/>110, temperature half-hour jumps >8/>12°C, rain >15/>40mm per half-hour, daily rain >100mm, 23:00–23:59 aggregation fraction, irradiance, winds and extreme temperature. Flagged half-hours include CDEPS time and companion T, Q, P, RH, VPD, rain. No source data repairs, ERA inference, CIME edits, Slurm submissions or user-data modifications.
+
+Run:
+
+```bash
+S32="$HOME/Batch02_10_stage32.py"
+RAW="https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/main/examples/Batch02_10/scripts/32_QC_BE_Bra_CH_Lae_effective_DATM_readonly.py"
+curl -fLsS "$RAW" -o "$S32"
+python3 -B -m py_compile "$S32"
+python3 -B "$S32" --self-test
+python3 -B "$S32" --check 2>&1 | tee "$HOME/Batch02_10_stage32_QC.log"
+grep -E "STAGE32 SITE_STATUS|STAGE32 RESULTS|SUMMARY BE-Bra|SUMMARY CH-Lae|UNIT_REVIEW_REQUIRED|YEAR_SEAM" "$HOME/Batch02_10_stage32_QC.log"
+```
+
+`QC_HOLD_FOR_TARGETED_REVIEW` means numerical critical/outlier flags require investigation; `QC_PROVISIONAL_REVIEW` means no current severe flag found but low-RH, rain spikes or provisional provenance remain; `NUMERIC_SCREEN_CLEAR` means screen did not flag selected coarse criteria, **not** that full source-derived flux meteorology has been source-QC verified. Operators should inspect actual results before authorizing Stage31 direct exploratory AD400 for those sites. Avoid replacing low RH or rain without matching source QC and time metadata. Site PFT residual allocations remain sensitivity assumptions independently.
+
+---
+
 ## Stage29–31: four remaining Batch02 forests — scenario surfaces → isolated preview → exploratory AD400
 
 The operator requested using the existing [38-site FINAL FIXNC PFT register](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/FINAL_38_SITE_FIXNC_PFT_20261025.csv) instead of restarting the literature investigation. **That table still labels four forest residuals OPEN**, so this sequence uses named, explicitly *unapproved model proxy/sensitivity* vectors from the [11-option table](data/four_open_PFT_exploratory_closure_sensitivity_20261026.csv), not fabricated complete observations.
