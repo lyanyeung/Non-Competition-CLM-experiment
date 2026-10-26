@@ -140,17 +140,17 @@ The user explicitly requests the same stack mechanism as [AmeriFlux Batch01 Stag
 
 ## Stage04 — one-paste IRIDIS6 stack/soil10 bootstrap
 
-[Stage04 portable shell bootstrap](scripts/04_iridis_stack_soil10_bootstrap.sh) is pinned to both repos, Git blob `a2d203cfb84b72f968289ab82fb8ce24ec916e22`; it downloads Stage02/03 and the original 50-site soil collector + 5 source metadata/soil records through `curl`, **not git pull**.
+[Stage04 portable shell bootstrap](scripts/04_iridis_stack_soil10_bootstrap.sh) is pinned to both repos, Git blob `443aa07438dd2d29bd5f7883846b618fb4548aa2`; it downloads Stage02/03 and the original 50-site soil collector + 5 source metadata/soil records through `curl`, **not git pull**.
 
 Four explicit modes: `audit` confirms Stage21 min64MiB stack/child propagation and checks original soil collector selftest, **no Slurm**; `soil10` fetches genuine per-depth ReESH/BADM/USDA/SoilGrids source evidence for exact second-batch ten sites, builds original 10-layer 09-wide CSV, then runs Stage02 **read-only** surface check (isolated Batch02 per-depth evidence at `$HOME/CLM_FATES_SOIL/AmeriFlux_Batch02_10_20261026_Stage04`); `check-surfaces` repeats the read-only check from cached 10-layer evidence; `build-surfaces` writes only independent versioned candidate surfaces if every site passes the original evidence/surface gate. **Never builds or submits any CIME model.**
 
 Quick operator commands (do not run `soil10` until network access and original source packages are available on IRIDIS6):
 
 ```bash
-COMMIT=4979787ddc8c40ab758839950da7508bbf47f9c6
+COMMIT=6d4cf03d4fd668b7ddd21d4dab6c5ab5855ad750
 SCRIPT="$HOME/AMF_Batch02_04_stack_soil10.sh"
 curl -fLsS --retry 3 "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$COMMIT/examples/AmeriFlux_Batch02_10/scripts/04_iridis_stack_soil10_bootstrap.sh" -o "$SCRIPT"
-test "$(git hash-object "$SCRIPT")" = a2d203cfb84b72f968289ab82fb8ce24ec916e22
+test "$(git hash-object "$SCRIPT")" = 443aa07438dd2d29bd5f7883846b618fb4548aa2
 bash "$SCRIPT" audit
 # After audit: bash "$SCRIPT" soil10
 # After ten-site true layer profile check passes: bash "$SCRIPT" build-surfaces
