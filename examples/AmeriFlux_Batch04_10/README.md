@@ -66,6 +66,22 @@ The original [50-site source soil register](https://github.com/lyanyeung/CLM-FAT
 | US-Ton | 20.9 / 23.0 | ReESH T1 |
 | US-Uaf | 17.8 / 12.3 | SoilGrids T3; permafrost/organic check |
 
+## Fast single-command setup from immutable GitHub snapshot (no git pull)
+
+GitHub also includes [`scripts/00_fetch_and_prepare_ameriflux_batch04.sh`](scripts/00_fetch_and_prepare_ameriflux_batch04.sh) (published revision `9913d2135887e806be1fec8f9eb084415918f1f2`), which downloads the two source-locked Python scripts and the three exact 10-site original-source tables from single **pinned commit `6a98f209e3608483b79c33141f4fe811a7c36a9a`**. First performs source self-tests and Python syntax check; with `--build` it audits actual SYVH9/SYVH12 10-site source SHAs, writes the 20-arm **planning-only** JSON and makes ten fully audited versioned initial-PFT NetCDF candidates **without** creating any CIME case or Slurm submission. The original CTSM grid surface and every meteorological source remain unchanged.
+
+```bash
+conda activate clm_fates_env
+BASE="$HOME/ameriflux_batch04_fates_pair_setup"
+mkdir -p "$BASE"
+curl -fLsS --retry 3 \
+  "https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/9913d2135887e806be1fec8f9eb084415918f1f2/examples/AmeriFlux_Batch04_10/scripts/00_fetch_and_prepare_ameriflux_batch04.sh" \
+  -o "$BASE/00_fetch_and_prepare_ameriflux_batch04.sh"
+bash "$BASE/00_fetch_and_prepare_ameriflux_batch04.sh" --build
+```
+
+For read-only confirmation without generating ten new PFT research surfaces, replace `--build` with `--check-only`. **Do not** substitute `git pull` or run European `Batch03_10` scripts on these ten AmeriFlux stations.
+
 ## Created scripts and operational gates
 
 [Source and paired-arm planning script](scripts/01_audit_source_PFT_soil_surface_and_pair_plan.py):
