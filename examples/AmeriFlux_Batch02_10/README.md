@@ -13,6 +13,16 @@ The independent [original AmeriFlux Batch02 source workflow](https://github.com/
 - 2020→2005 repeated forcing seam (|ΔTBOT| 3.877K, |ΔPSRF| 259Pa, |ΔWIND| 4.617m/s) intentionally **left unedited** by user's decision to run once-through historical forcing; actual DATM runtime date boundary requires checking from logs.
 - **Remaining nine sites have not supplied verified case/Slurm/completion receipts.** Do NOT label all ten simulated, ready for spinup, or successful. US-Ho1 retains 2000-12-27 original QC0/QC1/QC2 extreme temperature jump HOLD (08:00−15.7°C QC0, 08:30−15.1°C QC0, 09:00−15.4°C QC1, 09:30+3.346°C QC2); original sensor heights and local-UTC assumptions require per-site review. US-BZS/US-Ho1 missing official TA/WS time-dated height histories, other sites have gaps.
 
+## Stage07 — US-ICh / US-ICt peat layers: zero-texture surface repair (26 October 2026)
+
+**Failure.** The first segments, run 4741116 (US-ICh) and 4741118 (US-ICt), stopped 6 s after start in CTSM initialisation: `SoilStateInitTimeConstMod.F90:351 found depth points that do NOT sum to zero when surface does`. Both surfaces carry the SSURGO organic (peat) horizons as `PCT_SAND = PCT_CLAY = 0`, and CTSM requires sand + clay > 0 in every layer whenever any layer is mineral. The other eight Batch02 sites initialised normally.
+
+**Fix** ([Stage07](scripts/07_fix_zero_texture_layers_and_resubmit.py)). In CLM, peat is represented by `ORGANIC` (kg m⁻³) while `PCT_SAND`/`PCT_CLAY` describe the mineral fraction. Each 0/0 layer therefore takes the texture of the nearest mineral layer below it (BADM: "porous organic peat underlain by silt and glacial till"). `ORGANIC` and all other fields stay unchanged; the new surface is `surfdata_<SITE>_FIXNC_PFT_soil10_stage07_v2.nc`.
+
+The same Stage06 case gets the new `fsurdat` and is previewed again with the private AD overlay; its `lnd_in` must differ from before only in `fsurdat`, and the DATM streams must be unchanged. It is then submitted once (80 × 5 years).
+
+Preconditions: the first run job is FAILED with exactly this error, the last CaseStatus event is `case.run error`, no job is queued (cancel the dependent st_archive first), and no restart or history output exists. The Stage06 ledger keeps the failed attempt under `history`. A mock test passed (detection, fill plan L1–L3 ← L4, queue gate, refusal on a healthy site, duplicate refusal).
+
 ## Stage06 — ten FIXNC AD400 cases, direct 80 × 5 years (26 October 2026)
 
 **Operator status 17:21 UK:** Stage05 built all 10 independent FIXNC surfaces (PFT and L1–L10 soil); US-BZS is now SoilGrids T3 40.0/8.9. No CIME case existed yet. Operator decision: **AD400 runs directly (one case.submit, `STOP_N=5`, `RESUBMIT=79`), with no AD5 smoke.**
