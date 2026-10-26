@@ -86,14 +86,40 @@ def profile(path,reg):
         # Original Stage01 top_mean = arithmetic mean of first five nodes,
         # output rounded to one decimal place. It must match the independently
         # source-pinned final 50-site recommendation rather than a stale run.
-        for key,layer in (("recommended_sand_0_30cm_pct",sand),
-                          ("recommended_clay_0_30cm_pct",clay)):
-            expected=float(m[key])
-            if abs(round(sum(layer[:5])/5,1)-expected)>0.11:
-                fail(site+" Stage01 L1-L5 average differs from final 50site "+key+
-                     ": "+str(round(sum(layer[:5])/5,1))+" vs "+str(expected))
+        # Ho2/Ho3 were deliberately assigned a NEIGHBOUR Ho1 ReESH
+        # profile after independent Stage01 ran T3 site-specific SoilGrids.
+        # Their final decision is validated after the measured Ho1 override.
+        if site not in ("US-Ho2","US-Ho3"):
+            for key,layer in (("recommended_sand_0_30cm_pct",sand),
+                              ("recommended_clay_0_30cm_pct",clay)):
+                expected=float(m[key])
+                if abs(round(sum(layer[:5])/5,1)-expected)>0.11:
+                    fail(site+" Stage01 L1-L5 average differs from final 50site "+key+
+                         ": "+str(round(sum(layer[:5])/5,1))+" vs "+str(expected))
         bysite[site]={"sand":sand,"clay":clay,"tier":r.get("tier",""),
                        "profile_sha256":sha(path)}
+    # The authoritative 50-site final soil decision selects the measured
+    # US-Ho1 ReESH profile as a NEAR-TOWER PROXY for US-Ho2 and US-Ho3.
+    # The original Stage01 independent site-column could instead be T3
+    # SoilGrids (Ho2 38.5/14.3, Ho3 40.2/11.4). Do not accidentally
+    # overwrite this explicit FINAL source decision. Preserve provenance.
+    for site in ("US-Ho2","US-Ho3"):
+        chosen=reg[site][0]
+        if chosen["soil_tier"]!="T1N Ho1 ReESH":
+            fail("Howland near-neighbour soil decision no longer matches pinned register")
+        parent=bysite.get("US-Ho1")
+        if parent is None or parent["tier"] not in ("T1_SITE_MEASURED","T1_SITE_MEASURED_REESH"):
+            fail("Cannot apply Ho1 texture proxy: exact original measured Ho1 CLM10 profile unavailable")
+        entry={"sand":list(parent["sand"]),"clay":list(parent["clay"]),
+               "tier":"T1N_HO1_REESH_APPROVED_NEIGHBOUR_PROXY",
+               "profile_sha256":parent["profile_sha256"],
+               "soil_provenance_source_site":"US-Ho1",
+               "original_site_specific_stage01_tier":bysite.get(site,{}).get("tier","MISSING")}
+        for key,layer in (("recommended_sand_0_30cm_pct",entry["sand"]),
+                          ("recommended_clay_0_30cm_pct",entry["clay"])):
+            if abs(round(sum(layer[:5])/5,1)-float(chosen[key]))>.11:
+                fail(site+" documented Ho1 ReESH proxy disagrees with FINAL soil values")
+        bysite[site]=entry
     return bysite
 
 def original(site):
