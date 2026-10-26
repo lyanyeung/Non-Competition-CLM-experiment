@@ -1,5 +1,23 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## Stage44 — DK-Sor and BE-Bra rebuilt with ICOS basal-area PFT (26 October 2026)
+
+**Why.** The ICOS ETC ancillary reports give tree basal area by species. Register: [FINAL_38_SITE_FIXNC_PFT_20261026_ICOS.csv](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/FINAL_38_SITE_FIXNC_PFT_20261026_ICOS.csv).
+- **DK-Sor:** Fagus sylvatica 98.9% (CP 2023) and 100% (SP 2021), so **DBF 100**. The old case ran DBF 80 / ENF 10 / DNF 10.
+- **BE-Bra:** Pinus sylvestris 85.2% (CP 2023) and 82.1% (SP 2020), so **ENF 84 / DBF 16**. The old case ran ENF 55 / DBF 45.
+- **FR-FBn** keeps its running Stage43 case: ENF 75 / EBF 25 is inside the ICOS range (P. halepensis 70 / Q. ilex 25–28).
+
+**Operator 18:35 UK:** the Stage43 DK-Sor and BE-Bra AD400 jobs were cancelled. All old Batch02 outputs of the two sites are to be deleted. DK-Sor may have been transferred to IRIDIS with only part of the merged multi-source forcing, so its forcing is checked year by year before reuse.
+
+[Stage44 controller](scripts/44_rebuild_DKSor_BEBra_ICOS_PFT_AD400.py) runs these steps:
+1. **`inventory`** (read only) prints the template configuration and, for every forcing year, the record count, missing/fill values, means and longest constant run. It lists candidate annual-NC forcing folders with their year ranges and every old folder that `purge-old` would delete.
+2. **`prepare`** builds a new surface: a copy of the Stage29 surface with only `PCT_NAT_PFT` changed (soil, landunits and coordinates are verified unchanged). It then clones the Stage43 history-fixed case with `--keepexe` (new names `DK-Sor_B02_FIXNC_ICOS_DBF100_AD400` and `BE-Bra_B02_FIXNC_ICOS_ENF84_DBF16_AD400`), previews with the private AD overlay, keeps the approved meteorology XML, and validates that the effective `lnd_in` differs from the template only in `fsurdat`.
+   - For DK-Sor, `--forcing-dir DK-Sor=<folder>` installs a complete annual-NC record instead. Every year must be contiguous, carry all stream variables and the template record count, and have no missing or fill values; otherwise nothing is written. If the start year changes, `--co2 DK-Sor=<ppm>` is required.
+3. **`purge-old`** deletes every `<SITE>_B02_*` case, run and archive folder except the new one. It is allowed only after the new case is verified, and it refuses if any of those jobs is queued. A receipt is written.
+4. **`submit`** applies the stack guard and makes one `case.submit --skip-preview-namelist` with `RESUBMIT=79` (80 × 5 years). `audit-first5` checks the first 5-year restart.
+
+A mock test passed. It covered a broken-forcing HOLD, the CO₂ gate, purge-before-prepare refusal, queued-job refusal, duplicate prepare/submit refusal, surface PFT for both sites and the forcing swap.
+
 ## Normal400 for the four AD400-complete sites — Normal395 submitted (26 October 2026, 17:12 UK)
 
 Operator IRIDIS6 output from Stage27:
