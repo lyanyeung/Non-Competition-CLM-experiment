@@ -52,7 +52,7 @@ def stream():
  require(len(ss)==1,"selected one-point stream ambiguous")
  s=ss[0]
  require((int(s.find("year_first").text),int(s.find("year_last").text),
-          int(s.find("year_align").text))==(1996,2025),"Unexpected BE-Bra met years")
+          int(s.find("year_align").text))==(1996,2025,1996),"Unexpected BE-Bra met years")
  require(s.find("taxmode").text.strip()=="cycle" and
          s.find("offset").text.strip()=="0","Unexpected met time policy")
  entries=s.find("datafiles")
@@ -254,6 +254,8 @@ def main():
  ap.add_argument("--confirm",default="")
  a=ap.parse_args()
  if a.self_test:
+  # 3 CDEPS fields: year_first, year_last, year_align. Do not compare to a 2-tuple.
+  assert (1996,2025,1996)==(1996,2025,1996)
   assert YEARS==(1996,1999,2005,2021) and len(PINS)==5
   assert (6998,14756)==(6998,14756)
   assert 13+12+1+1==27 and 2+1+1==4
