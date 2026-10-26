@@ -106,7 +106,18 @@ python3 -B scripts/02_build_paired_PFT_surface_candidates_NO_CASES.py --check
 python3 -B scripts/02_build_paired_PFT_surface_candidates_NO_CASES.py --build
 ```
 
-### Next actual technical work before AD5
+### Mandatory Batch01-derived stack/Slurm guard (implemented 26 October 2026)
+
+The older [AmeriFlux Batch01 Stage21](../AmeriFlux_Batch01_10/scripts/21_laneA_AD400_NORMAL400_controller.py) model submission guard requires RLIMIT_STACK soft **≥65,536 KiB** for every AD5, AD395, Normal5 and Normal395 submit, and records the stack at submit in immutable ledgers. This Batch04 project now has the same **[source-code guard](scripts/b04_stack_guard.py)** plus [full technical protocol](docs/STACK_GUARD_BATCH01_PROTOCOL_MANDATORY_BEFORE_ALL_CIME_SUBMISSIONS_20261026.md):
+
+- The future real CIME submitter MUST import and call `require_for_submission(site=...,phase=...,may_raise=True)` **in that same process immediately before every case.submit**, all 20 arms and retry/recovery. Record stack proof in the one-time attempt ledger.
+- If stack is insufficient, raise **only** up to 300,000 KiB (when allowed by hard limit); **never reduce a higher or unlimited stack**. Abort if 65,536 KiB cannot be achieved.
+- Require actual Slurm `PropagateResourceLimits=ALL` or explicit `STACK`; if unknown, STOP. `--ensure` in a separate Python process does NOT increase a later shell process's stack.
+- Stage00 raw-GitHub installer now downloads and self-tests this new guard along with the source/PFT scripts, so it is in the pinned Batch04 source package. The twenty-arm planning JSON also includes an explicit `submission_resource_guards` contract on each proposed arm.
+
+**Important:** the actual future live case submission controller is not yet constructed. These protective gates are therefore implemented as a reusable module and mandatory case-controller contract, **not evidence of active CIME jobs**. The operator's just-completed two-arm source preparation remains **10 PFT surface NetCDFs created / 20 cases planned / 0 cases actually submitted**.
+
+## Next actual technical work before AD5
 
 1. Produce active time-centred **UTC DATM annual NOLEAP NetCDF** from exact SYVH9 final source (TBOT/PSRF/WIND/FSDS/FLDS/PRECTmms/QBOT), documenting the three VPD numerical-precision-only water saturation overroundings, and independently inspect stream time coordinates & true source local-clock offset.
 2. Recover **per-site TA measurement height and wind height** from source tower operator/BASE/BADM or published instrumentation; ZBOT must match forcing temperature, not `HEIGHTC` and not copied 2m. If truly unavailable, only an explicit, labeled height sensitivity protocol is scientifically defensible.
