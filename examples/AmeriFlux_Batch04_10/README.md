@@ -117,6 +117,8 @@ The older [AmeriFlux Batch01 Stage21](../AmeriFlux_Batch01_10/scripts/21_laneA_A
 
 **Important:** the actual future live case submission controller is not yet constructed. These protective gates are therefore implemented as a reusable module and mandatory case-controller contract, **not evidence of active CIME jobs**. The operator's just-completed two-arm source preparation remains **10 PFT surface NetCDFs created / 20 cases planned / 0 cases actually submitted**.
 
+**Actual IRIDIS6 stack-guard operator check (2026-10-26):** login6001, `clm_fates_env`, `ulimit -s unlimited` confirmed. `b04_stack_guard.py --self-test` **PASS**; live `--check` returned `soft_before_KiB=unlimited, soft_at_submit_KiB=unlimited, hard_KiB=unlimited, adequate=true, changed_this_python_process_only=false`. Live Slurm `scontrol show config` returned `PropagateResourceLimits=ALL`, **stack_propagated=true**. Therefore this login session's **resource preflight PASS** without lowering/modifying stack. This does **not** certify future separate submitter processes or release Batch04 model jobs; mandatory same-process `require_for_submission` for AD5/395 and NORMAL5/395 remains active. Actual Batch04 **CIME_CASES=0 / SLURM_JOBS=0** from operator's completed source preparation.
+
 ## Next actual technical work before AD5
 
 1. Produce active time-centred **UTC DATM annual NOLEAP NetCDF** from exact SYVH9 final source (TBOT/PSRF/WIND/FSDS/FLDS/PRECTmms/QBOT), documenting the three VPD numerical-precision-only water saturation overroundings, and independently inspect stream time coordinates & true source local-clock offset.
