@@ -162,6 +162,35 @@ All submissions require the stack guard. Each action accepts `--sites`, so a sit
 
 Normal400 is a **separate** hybrid case per site from the verified Y+400 AD restart triplet, using the [DE-Tha independent AD→Normal method](../DE-Tha/scripts/14_AD_to_Normal_independent_branch.py) and [protocol](../../docs/AD400_NORMAL400_PROTOCOL.md): Normal5 smoke (`CLM_ACCELERATED_SPINUP=off`, restart `spinup_state=0`), then guarded Normal395. Never carry the explicit AD `spinup_state=2` from `user_nl_clm` into the Normal case. 800 model years is the design, not proof of equilibrium.
 
+## Plots after NORMAL400 — convergence and EC tower (Stage15)
+
+[`15_plot_AD400_NORMAL400_convergence_and_EC.py`](scripts/15_plot_AD400_NORMAL400_convergence_and_EC.py) is read-only. It uses the same figure style as [FLUXNET_MultiSite_6/11](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/tree/main/examples), joining the AD case (spin-up years 1–400) and the Normal case (401–800):
+
+| Output | Content |
+| --- | --- |
+| `<site>_01_carbon_pools_AD400_NORMAL400.png` | Total ecosystem C, soil organic C and FATES vegetation C across 800 years. A dashed line marks the AD→Normal switch; a step there is expected because AD pools are rescaled when the case leaves accelerated decomposition. The final 100 years are shaded. |
+| `<site>_02_carbon_pools_NORMAL400_panels.png` | Up to 6 pools for the Normal phase only (years 401–800) |
+| `<site>_GPP_NEE_monthly_overview.png` | EC tower vs FATES monthly means over the **last complete aligned forcing cycle** of the Normal phase, mapped to observation years with the case's DATM `year_first/year_last/year_align`. Panel titles give N, R², RMSE and bias. |
+| CSV / JSON | annual carbon means, convergence metrics (Normal phase: last 30/100-year trends, last-two-cycle change, AD-end vs Normal values), daily and monthly pairs, flux metrics, metadata, cohort summary |
+
+**GPP policy (corrected):** `GPP_NT_VUT_REF` is used first. `GPP_DT_VUT_REF` is used only when a source file has no usable NT values. The column actually used is written in the legend and in `metadata.json`.
+
+Other comparison settings:
+- EC NEE is `NEE_VUT_REF`; model NEE is `−FATES_NEP`; model GPP is `FATES_GPP`. All fluxes are in g C m⁻² d⁻¹.
+- A day needs ≥ 40 valid half-hours; a month needs ≥ 20 days.
+- EC sources come from `sites/MY_EC_SITE/<site>/forcing/raw*`, preferring ICOS > ICOSETC > EUF > FLX; ERA5/AUX files are excluded.
+- The script reads either annual history files (daily or monthly samples) or monthly history files.
+
+A site is plotted only when both phases have 400 contiguous archived years. `--allow-incomplete` makes figures labelled INTERIM. Output must be an absolute path outside scratch.
+
+```bash
+cd /iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/Batch03_10
+python3 -B 15_plot_AD400_NORMAL400_convergence_and_EC.py --preflight
+python3 -B 15_plot_AD400_NORMAL400_convergence_and_EC.py --output-root $HOME/CLM_FATES_PLOTS/Batch03_AD400_NORMAL400
+```
+
+Other cohorts can use `--pair SITE:AD_CASE:NORMAL_CASE` (with `--cases-root` if their cases live elsewhere).
+
 ## Verification done off-cluster (25 October 2026)
 
 - `self-test` for Stage11/12/13: PASS (CSV consistency, template names, namelist helpers, job-ID parser, overlay path).
