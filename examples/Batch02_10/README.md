@@ -1,5 +1,15 @@
 # Batch02_10 — second European/ICOS cohort, AD400 → Normal400
 
+## Stage32 operator output and Stage33 scoped context (26 October)
+
+Stage32 read-only 51-year input scan **completed** on IRIDIS. Exact effective streams: BE-Bra 1996–2025 30 annual files in `datm_11_provisional_dynamic_zbot_v1`, and CH-Lae 2004–2024 21 files in the similarly labelled stream. Both passed the exact 17,520-per-year noleap TIME and 1PT physics inventory. **BE-Bra** `QC_HOLD_FOR_TARGETED_REVIEW`: physical invalid 0; RH<1=14, RH<5=26; 4 jumps >12°C/30min; 38 jumps >8°C/30min; T>45=1; 1 day >100mm; no negative VPD, rain >40mm/30min or spurious 23:00 clustering. Priority: 2021-11-04 10:00 48.06°C/QBOT0.03321 then 10:30 9.13°C, isolated RH0.856% on 1996-08-05 17:30; Jan1999 RH minimum0.026% and 13 RH<1; 2005-05-26 19:00–19:30 25.038°C→11.049°C, one 2002 day with 154.5mm rain. BE-Bra remains **HOLD** for paired source native QC and source-supported candidate replacements, never blind interpolation.
+
+**CH-Lae** `QC_PROVISIONAL_REVIEW`: physical invalid0, RH<5=0, RH>100=0, negative VPD0, >12°C jumps0, >8°C jumps7, rain >40mm/30min0, max annual half-hour rain27.7mm (2023). Could be considered for explicitly experimental proxy-PFT AD400 if source provenance is accepted; **not** a declaration of original-tower met validation.
+
+[Stage33 read-only targeted context](scripts/33_BE_Bra_CH_Lae_targeted_source_context_readonly.py): selected-source SHA + ±2h companion RH/QBOT/T/VPD/precip for all BE-Bra 1996/1999 RH<5, 2005/2021 >12°C jumps and T>45, 2002 daily rain >100mm, plus all CH-Lae >8°C changes. **No input writes, CIME edits or Slurm.** Run after `curl`, `python3 -B -m py_compile`, `--self-test`, then `--check`. Analyze source context before constructing separately versioned humidity- and temperature-repaired annual forcing. Do not reuse Stage31 old case with new forcing without a fresh independent case and provenance manifest.
+
+---
+
 ## Stage32: BE-Bra and CH-Lae **selected effective** DATM meteorological QC (26 October)
 
 The operator submitted the DK-Sor and FR-FBn exploratory Stage31 forest-PFT AD400 cases. **Do not resubmit them.** BE-Bra and CH-Lae were held for meteorological review: Stage30 stream manifest listed **30** provisional-named years for BE-Bra (1996–2025), **21** for CH-Lae (2004–2024). These `PROVISIONAL` strings are input provenance labels, *not evidence of invalid physical values*.
