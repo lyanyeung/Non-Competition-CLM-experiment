@@ -15,6 +15,22 @@ The following are **not** handled here:
 
 **Operator decision:** Normal400 runs directly as 80 × 5 years (`STOP_N=5`, `RESUBMIT=79`, one `case.submit`), with no Normal5 smoke. The first segment is audited instead (`audit-first5`: restart Y+405, `spinup_state=0`), which is the check Normal5 would have made.
 
+## Operator status, 27 October 2026 14:25 UK
+
+`audit-ad400`: PASS for 7 sites (US-BZS, US-CMW, US-EML, US-GLE, US-ICt, IT-Noe, FR-FBn). HOLD (still queued) for US-Ha1, US-Ho1, US-Ho2, US-Ho3, US-ICh, ES-LJu, CH-Lae, DK-Sor and BE-Bra. `stage-normal`: 7/7. `submit`: 7/7, with `skip_pnl` persisted.
+
+| Site | run / archive | Model years |
+| --- | --- | --- |
+| US-BZS | 4748888 / 4748889 | 2410 → 2810 |
+| US-CMW | 4748890 / 4748891 | 2401 → 2801 |
+| US-EML | 4748892 / 4748893 | 2408 → 2808 |
+| US-GLE | 4748896 / 4748897 | 2405 → 2805 |
+| US-ICt | 4748898 / 4748899 | 2407 → 2807 |
+| IT-Noe | 4748900 / 4748901 | 2404 → 2804 |
+| FR-FBn | 4748902 / 4748903 | 2408 → 2808 |
+
+Same session, AmeriFlux Batch01 Stage21: CA-TP4 4748904 (2402 → 2802) and BR-Ma2 4748906 (2399 → 2799). Next check: `audit-first5`.
+
 ## Method
 
 [Script](scripts/01_direct_NORMAL400_after_AD400.py). The method is the same one that already produced Normal runs on IRIDIS6: AmeriFlux Batch01 Stage21, ICOS Batch02 Stage27 and DE-Tha Stage14.
