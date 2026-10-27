@@ -19,6 +19,8 @@ Submitted means CIME returned job IDs; completion still has to be audited.
 | **AmeriFlux Batch01** (10) | CA-Ca3, CA-LP1 PASS; CA-TP4, BR-Ma2 AD395 running; 6 not started | CA-Ca3, CA-LP1 direct Normal400 (80×5) queued |
 | **AmeriFlux Batch02** (10) | **Stage06 direct AD400 submitted 10/10.** US-ICh and US-ICt failed at init (peat 0/0 sand+clay); repaired by Stage07 (L1–L4 ← L5 mineral texture) and resubmitted as 4741683 and 4741685. The other 8 are running | Not started |
 
+**Next step (27 Oct):** [cross-cohort direct Normal400 controller](examples/Cross_cohort_NORMAL400/README.md) for the AmeriFlux Batch02 (Stage06) and ICOS Batch02 Stage40/43/44 AD400 cases. It audits AD400 completion read-only, stages hybrid Normal cases for PASS sites only, and submits 80 × 5 years with no Normal5 smoke. AmeriFlux Batch01 stays on its Stage21 controller.
+
 **PFT register:** 38-site register updated with ICOS ETC basal area ([FINAL_38_SITE_FIXNC_PFT_20261026_ICOS.csv](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/FINAL_38_SITE_FIXNC_PFT_20261026_ICOS.csv)):
 - Changed: DK-Sor DBF 100, BE-Bra ENF 84 / DBF 16, FR-FBn ENF 70 / EBF 30.
 - 11 sites confirmed.
