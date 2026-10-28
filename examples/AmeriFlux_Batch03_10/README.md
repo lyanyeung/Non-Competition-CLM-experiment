@@ -68,3 +68,27 @@ The source Run12 2015-09-26 05:00, 05:30, 06:00 and 06:30 native time, between t
 For efficient *next* batch evidence, the existing [six-run method validation](ME6_BATCH_METHOD_VALIDATION.md) compares raw ERA RH, buffered QC0-residual-calibrated ERA RH, and the short Run12 direct QC0 interpolation in one read-only IRIDIS6 run. This provides empirical method screens and explicit timestamp-level review without silently approving 2017 QC2 neighbours or the five long 2015 source subepisodes. It had **not** been confirmed executed at the time of this handoff.
 
 Other sites in the ten-site AmeriFlux Batch03 are not covered by these US-Me6 method decisions.
+
+
+## 28 October 2026 — actual six-run batch method validation completed
+
+IRIDIS6 successfully ran the SHA-pinned `13_validation_Me6_six_run_repair_candidates.py`, producing:
+`/iridisfs/scratch/ly3n24/CLM_FATES/experiments/AmeriFlux_MultiSite_10_Batch03/reports/stage13_validation_Me6_six_run_repair_candidates_20261028T162002Z_4a34daf8`.
+
+Exactly 13 method comparisons (1,568 candidate-value rows representing 782 unique native QC1 source times) were checked. **Only Run12 direct two-original-QC0-boundary shortgap VPD interpolation was classified `CANDIDATE_FOR_GROUPED_REVIEW`** (empirical validation PASS, 0.211 hPa max step). This method was explicitly operator-approved for the exact four 2015-09-26 HH as documented in [the decision JSON](decisions/US-Me6_Run12_20150926_QC0_linear_user_approval.json). All 12 other method/run comparisons remained HOLD. No forcing was written by the batch method validation.
+
+| Held original run | Original HH | Best tested bounded method and key blockers |
+| --- | ---: | --- |
+| Run14 (2015-11-04–14) | 469 | Raw/adjusted ERA maximum native 30-min VPD steps 2.512/2.955 hPa, but **5 source site–ERA T >8C exceptions**, long-run source independence and empirical validation unproven |
+| Run15 (2017-06-28–30) | 95 | Adjusted ERA empirical screen PASS, but **8 T>8C rows**, native 30-min VPD jump 5.924 hPa, original immediate VPD QC2 edges |
+| Run16 (2017-06-30–07-01) | 30 | Adjusted ERA empirical screen PASS, but max VPD step 4.535 hPa and original QC2 borders |
+| Run17 (2017-07-01–04) | 137 | Adjusted ERA empirical screen PASS, but **1 T>8C**, 4.191 hPa max step and QC2 borders |
+| Run18 (2017-07-04–05) | 47 | Adjusted ERA empirical screen PASS, but 7.588 hPa max step and QC2 borders |
+
+An adjusted-ERA empirical PASS does **not** override independent physical checks or original QC2 provenance. Do not apply any five held full runs as a blanket correction.
+
+Two **new, independent scripts**, maintained only in the source-workflow repository, are available:
+- [Stage13AA separate Run12 research-only shadow](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/e3351cacb1ac67d6652ba09042650d3cbb26e746/examples/AmeriFlux_MultiSite_10_Batch03/scripts/stage13/13aa_Me6_Run12_fourHH_operator_approved_QC0_linear_SHADOW.py). Its mobile runner [13aa](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/2b83607cbcb2a5ac8dab9f840cd9448b74ef425c/examples/AmeriFlux_MultiSite_10_Batch03/scripts/stage13/13aa_Me6_mobile_approved_Run12_fourHH_research_shadow.sh) downloads the exact earlier user approval JSON, checks source SHA, preserves Stage13S 235HH and Stage12AC 5HH, changes only VPD_USE/QBOT at the approved four original source times, and writes an independent complete NOLEAP research-only CSV. **Prepared but not yet confirmed run on IRIDIS6**.
+- [Stage13AB 14 source-T exception and four 2017 QC2-edge source review](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/b80a86c3d43e31d71a6ac584e67dbbd75ebc9f45/examples/AmeriFlux_MultiSite_10_Batch03/scripts/stage13/13ab_Me6_14_exception_and_QC2_edge_review_READONLY.py) and [mobile read-only runner](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/01fbe7bd0bc580156bd7eefc82a14062a37a24c0/examples/AmeriFlux_MultiSite_10_Batch03/scripts/stage13/13ab_Me6_mobile_review_14T_QC2_edges_READONLY.sh). It checks signed method-report and original source receipts, then builds a compact exact-time decision table; **not yet run on IRIDIS6**.
+
+Scientific HOLD: Run14–18 source repair requires separate method review. All original tower/ERA files, approved Stage13S prior shadow, prior five 2017 observations, DATM/Post-v5 and model remain protected.
