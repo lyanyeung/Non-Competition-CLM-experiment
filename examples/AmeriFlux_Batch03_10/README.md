@@ -92,3 +92,18 @@ Two **new, independent scripts**, maintained only in the source-workflow reposit
 - [Stage13AB 14 source-T exception and four 2017 QC2-edge source review](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/b80a86c3d43e31d71a6ac584e67dbbd75ebc9f45/examples/AmeriFlux_MultiSite_10_Batch03/scripts/stage13/13ab_Me6_14_exception_and_QC2_edge_review_READONLY.py) and [mobile read-only runner](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/01fbe7bd0bc580156bd7eefc82a14062a37a24c0/examples/AmeriFlux_MultiSite_10_Batch03/scripts/stage13/13ab_Me6_mobile_review_14T_QC2_edges_READONLY.sh). It checks signed method-report and original source receipts, then builds a compact exact-time decision table; **not yet run on IRIDIS6**.
 
 Scientific HOLD: Run14–18 source repair requires separate method review. All original tower/ERA files, approved Stage13S prior shadow, prior five 2017 observations, DATM/Post-v5 and model remain protected.
+
+
+## Stage13AC — actual 28 October US-Me6 original tower and companion ERA context review
+
+The operator's **successful** Stage13AA applied four 2015-09-26 operator-approved Run12 QC0-anchored halfhours to a **separate** new research-only shadow. Exact directory:
+`/iridisfs/scratch/ly3n24/CLM_FATES/experiments/AmeriFlux_MultiSite_10_Batch03/science_trials/stage13aa_Me6_Run12_4HH_QC0_LINEAR_APPROVED_RESEARCH_ONLY_20261028T162945Z_25df5b3a`.
+The actual run declared 4 changed `VPD_USE` cells and 4 thermodynamically recalculated `QBOT` cells, original Stage13S SHA unchanged, and no production/model admission.
+
+The operator's **successful** Stage13AB (read-only) produced:
+`/iridisfs/scratch/ly3n24/CLM_FATES/experiments/AmeriFlux_MultiSite_10_Batch03/reports/stage13ab_Me6_14_T_exceptions_QC2_and_4hPa_REVIEW_ONLY_20261028T163021Z_65ad5c8b`.
+Original source strict `|TA_F - TA_ERA|>8C` 14 events: 5 on Nov07 2015 (Run14), 8 on June29–30 2017 (Run15), one Jul03 2017 (Run17). Nine distinct 30-minute candidate VPD jumps exceed 4hPa across Runs15–18; Stage13AB emits 18 method-specific rows. Four 2017 held original source runs have QC2 immediate bookends and no directly observed QC0 bookends.
+
+To answer the operator's request for **before/after actual tower and ERA values**, the new [Stage13AC source-only script](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/2f9b984d603fc9c4d548c3757b9c42e0368870af/examples/AmeriFlux_MultiSite_10_Batch03/scripts/stage13/13ac_Me6_tower_ERA_original_vs_candidate_neighbor_review_READONLY.py) and [SHA-pinned mobile runner](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/83c79d969538bcab4827e3c75bd020527b466c48/examples/AmeriFlux_MultiSite_10_Batch03/scripts/stage13/13ac_Me6_mobile_original_tower_ERA_neighbors_READONLY.sh) combine *original* `TA_F`, `VPD_F`, `*_QC`; companion source `TA_ERA`, `VPD_ERA` and ERA-derived RH; prior Stage13S selected values; current independently approved Stage13AA research shadow; and the **two unapproved** ERA source-humidity candidates for all 14 anomalous halfhours and nine candidate jump boundaries, with ±2 hour source context and each held run's start/end. It checks SHA provenance of source/data/reports and writes **read-only reports only**. The independent ERA5-Land external series is **not equated** to the `TA_ERA/VPD_ERA` source companion without additional verification. The script has not been run on IRIDIS6 yet.
+
+Neither Stage13AB nor Stage13AC approves any Run14–18 forcing replacement.
