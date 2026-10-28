@@ -9,6 +9,10 @@ This is one controller for the AD400 cases that have no Normal stage of their ow
 | ICOS Batch02 | ES-LJu, FR-FBn, CH-Lae | `<SITE>_B02_FIXNC_*_GPPNPP_HISTFIX_AD400` (Stage43) |
 | ICOS Batch02 | DK-Sor, BE-Bra | `DK-Sor_B02_FIXNC_ICOS_DBF100_AD400`, `BE-Bra_B02_FIXNC_ICOS_ENF84_DBF16_AD400` (Stage44) |
 
+Added 28 Oct: **AmeriFlux Batch04** FIXNC arm (US-Rpf, US-SP1, US-SRG, US-SRM, US-Seg, US-Ses, US-Slt, US-Syv, US-Ton, US-Uaf; `<SITE>_AMF_B04_FIXNC_AD400_BASETA_V1`) and **DE-Tha** (`DE-Tha_OBSPFT_NC_V1_AD400`). These cases have no ledger in this repository, so the chain's first job is the 80th-last `run.<case>` job in Slurm accounting, and every job from there on must be `COMPLETED 0:0`. For all sites `audit-ad400` now also requires the full restart sequence Y+5 … Y+400 and an AD case whose land root is the shared CTSM.
+
+The 28 Oct [read-only progress scan](scripts/02_scan_all_spinup_progress_readonly.py) (only `_FIXNC_` / `_OBSPFT_NC_` cases) found **34 sites with NORMAL400 done**. Nineteen sites have AD400 done but no Normal yet: BE-Bra, CH-Lae, DK-Sor, ES-LJu, US-Ha1, US-Ho1, US-Ho2, US-Ho3, the ten Batch04 sites and DE-Tha. BR-Ma2's Normal400 was at 380 years and still running. US-ICh had failed, and NL-Loo is the legacy PRE50/AD200 example.
+
 The following are **not** handled here:
 - **AmeriFlux Batch01** (CA-TP4, BR-Ma2, CA-Ca3, CA-LP1) uses its own [Stage21 controller](../AmeriFlux_Batch01_10/scripts/21_laneA_AD400_NORMAL400_controller.py) (`stage-normal` → `submit-normal400-direct`).
 - **ICOS Batch01/03** and the four original ICOS Batch02 sites already have Normal cases.

@@ -7,6 +7,13 @@ Covers the AD400 cases that have no Normal stage of their own:
                      after the Stage07 surface repair)
   ICOS Batch02       Stage40 IT-Noe, Stage43 ES-LJu / FR-FBn / CH-Lae,
                      Stage44 DK-Sor / BE-Bra (ICOS basal-area PFT rebuild)
+  AmeriFlux Batch04  <SITE>_AMF_B04_FIXNC_AD400_BASETA_V1 (10 sites, FIXNC arm)
+  DE-Tha             DE-Tha_OBSPFT_NC_V1_AD400 (AD5 + AD395)
+
+The Batch04 and DE-Tha cases have no machine-readable ledger in this repository, so the
+first job of the AD400 chain is taken from Slurm accounting instead: the 80th-last run job
+of that exact case name. Every run/st_archive job from there on must be COMPLETED 0:0.
+For every site the archive must also hold the full restart sequence Y+5, Y+10 ... Y+400.
 
 Not covered: AmeriFlux Batch01 (use its Stage21 controller), ICOS Batch01/03 and the
 four original ICOS Batch02 sites (they already have Normal cases).
@@ -64,7 +71,7 @@ OUT = Path("/scratch/ly3n24/CTSM_FATES_OUTPUTS")
 EXP22 = BASE / "experiments/NonCompetitionObserved22"
 D = EXP22 / "Cross_cohort_NORMAL400_direct"
 USER = "ly3n24"
-SACCT_START = "2026-10-25"
+SACCT_START = "2026-10-01"
 MIN_STACK_KB = 65536
 SEGMENTS = 80
 SEG_YEARS = 5
@@ -86,6 +93,7 @@ STAGE43 = {"ES-LJu": "ES-LJu_B02_FIXNC_MET24_GPPNPP_HISTFIX_AD400",
            "CH-Lae": "CH-Lae_B02_FIXNC_MET36_GPPNPP_HISTFIX_AD400"}
 STAGE44 = {"DK-Sor": "DK-Sor_B02_FIXNC_ICOS_DBF100_AD400",
            "BE-Bra": "BE-Bra_B02_FIXNC_ICOS_ENF84_DBF16_AD400"}
+AMF_B04 = ("US-Rpf", "US-SP1", "US-SRG", "US-SRM", "US-Seg", "US-Ses", "US-Slt", "US-Syv", "US-Ton", "US-Uaf")
 
 
 def registry():
@@ -105,6 +113,10 @@ def registry():
     for s, n in STAGE44.items():
         r[s] = dict(cohort="ICOS Batch02 Stage44", ad=n, ledger=b02 / "stage44_ICOS_PFT_rebuild" / f"{s}_state.json",
                     phases=("AD400_SUBMITTED",), job="first_run_job")
+    for s in AMF_B04:
+        r[s] = dict(cohort="AmeriFlux Batch04 FIXNC arm", ad=f"{s}_AMF_B04_FIXNC_AD400_BASETA_V1",
+                    ledger=None, phases=(), job=None)
+    r["DE-Tha"] = dict(cohort="DE-Tha pilot", ad="DE-Tha_OBSPFT_NC_V1_AD400", ledger=None, phases=(), job=None)
     return r
 
 
@@ -293,7 +305,12 @@ def start_year(case):
 
 
 def ad_first_job(s):
-    r = REG[s]; o = load(r["ledger"])
+    r = REG[s]
+    if r["ledger"] is None:  # no ledger: the 80th-last run job of this exact case name
+        runs = sorted(x[0] for x in sacct_name(ad_name(s)) if x[1].startswith("run."))
+        if len(runs) < SEGMENTS: fail(f"{s}: only {len(runs)} run jobs in Slurm accounting since {SACCT_START}")
+        return str(runs[-SEGMENTS])
+    o = load(r["ledger"])
     if not o: fail(f"{s}: AD ledger missing {r['ledger']}")
     if o.get("phase") not in r["phases"]: fail(f"{s}: AD ledger phase {o.get('phase')} (need {'/'.join(r['phases'])})")
     j = str(o.get(r["job"]) or "")
@@ -311,8 +328,13 @@ def ad400_one(s):
     for k, v in {**FATES_FLAGS, "spinup_state": "2"}.items():
         if nml_get(lnd, k) != v: fail(f"{s}: AD lnd_in {k}={nml_get(lnd, k)}")
     if not submit_options_ok(case): fail(s + ": AD skip-preview-namelist not persisted")
+    if Path(xq(case, "COMP_ROOT_DIR_LND")).resolve() != CTSM.resolve():
+        fail(s + ": AD case land root is not the shared CTSM (a Normal clone would inherit it): " + xq(case, "COMP_ROOT_DIR_LND"))
     y = start_year(case)
     r = chain(ad_name(s), case, ad_arch(s), j, y + 400, 2)
+    have = {d.name for d in (ad_arch(s) / "rest").iterdir() if d.is_dir()}
+    gap = [stamp(y + SEG_YEARS * k) for k in range(1, SEGMENTS + 1) if stamp(y + SEG_YEARS * k) not in have]
+    if gap: fail(f"{s}: restart sequence incomplete, missing {gap[:3]} ({len(gap)} of {SEGMENTS})")
     r.update(start_year=y, first_job=j, cohort=REG[s]["cohort"], normal=load(n_ledger(s)).get("phase", "-"))
     return r
 
@@ -511,10 +533,10 @@ def status(sites):
     try: rows = queue_rows()
     except Exception: rows = None
     for s in sites:
-        a = load(REG[s]["ledger"]); n = load(n_ledger(s))
+        a = load(REG[s]["ledger"]) if REG[s]["ledger"] else {"phase": "no-ledger"}; n = load(n_ledger(s))
         q = "scheduler unavailable" if rows is None else (
             "; ".join("|".join(r) for r in queued(ad_name(s), rows) + queued(n_name(s), rows)) or "-")
-        print(f"{s:7} AD={a.get('phase', '-')}/{a.get(REG[s]['job'], '-')} AD_latest={latest(ad_arch(s))[0]} "
+        print(f"{s:7} AD={a.get('phase', '-')}/{a.get(REG[s]['job'] or '', '-')} AD_latest={latest(ad_arch(s))[0]} "
               f"NORMAL={n.get('phase', '-')} N_latest={latest(n_arch(s))[0]} QUEUE={q}")
 
 
@@ -543,7 +565,9 @@ def batch(label, sites, fn):
 
 
 def self_test():
-    assert len(REG) == 16 and len(set(n_name(s) for s in REG)) == 16
+    assert len(REG) == 27 and len(set(n_name(s) for s in REG)) == 27
+    assert n_name("US-Syv") == "US-Syv_AMF_B04_FIXNC_NORMAL400_BASETA_V1"
+    assert n_name("DE-Tha") == "DE-Tha_OBSPFT_NC_V1_NORMAL400"
     assert n_name("US-GLE") == "US-GLE_AMF_B02_FIXNC_NORMAL400_DIRECT"
     assert n_name("DK-Sor") == "DK-Sor_B02_FIXNC_ICOS_DBF100_NORMAL400"
     assert n_name("IT-Noe") == "IT-Noe_B02_FIXNC_GPPNPP_HISTFIX_NORMAL400"
