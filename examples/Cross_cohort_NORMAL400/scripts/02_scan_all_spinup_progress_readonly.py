@@ -18,7 +18,11 @@ Verdicts (quick view; the per-cohort audit actions remain the formal completion 
 
 Then one line per site: best AD and best Normal case.
 
-Usage:  python3 -B 02_scan_all_spinup_progress_readonly.py [--match TEXT ...] [--all]
+Only this experiment's cases are scanned by default: names containing _FIXNC_ (all ICOS and
+AmeriFlux fixed-biogeography/no-competition cohorts) or _OBSPFT_NC_ (DE-Tha). The older full-FATES
+PFT-competition cases share the archive and site IDs; --everything includes them.
+
+Usage:  python3 -B 02_scan_all_spinup_progress_readonly.py [--match TEXT ...] [--all] [--everything]
         --all also lists cases with < 5 archived years (smokes, failed first segments).
 """
 from __future__ import annotations
@@ -30,6 +34,7 @@ BASE = Path("/iridisfs/scratch/ly3n24/CLM_FATES")
 OUT = Path("/scratch/ly3n24/CTSM_FATES_OUTPUTS")
 USER = "ly3n24"
 TARGET = 400
+EXPERIMENT_TAGS = ("_FIXNC_", "_OBSPFT_NC_")
 STAMP = re.compile(r"^(\d{4})-01-01-00000$")
 
 
@@ -78,13 +83,14 @@ def last_event(case):
     return " ".join(ev[-1]) if ev else "-"
 
 
-def scan(match, show_all):
+def scan(match, show_all, everything=False):
     q = queue()
     names = set()
     arch = OUT / "archive"
     if arch.is_dir():
         names |= {d.name for d in arch.iterdir() if (d / "rest").is_dir()}
     if q: names |= {n for n in q if (BASE / "cases" / n).is_dir()}
+    if not everything: names = {n for n in names if any(k in n for k in EXPERIMENT_TAGS)}
     if match: names = {n for n in names if any(m in n for m in match)}
     rows = []
     for n in sorted(names):
@@ -112,9 +118,9 @@ def scan(match, show_all):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--match", nargs="+"); ap.add_argument("--all", action="store_true")
+    ap.add_argument("--match", nargs="+"); ap.add_argument("--all", action="store_true"); ap.add_argument("--everything", action="store_true")
     a = ap.parse_args()
-    rows = scan(a.match, a.all)
+    rows = scan(a.match, a.all, a.everything)
     print(f"{'VERDICT':8} {'MODE':6} {'YEARS':>5} {'SPIN':>4} {'LATEST':16} {'QUEUE':12} {'LAST EVENT':24} CASE")
     for r in sorted(rows, key=lambda r: (r["site"], r["mode"], r["name"])):
         print(f"{r['verdict']:8} {r['mode']:6} {str(r['years']):>5} {str(r['st']):>4} {str(r['latest']):16} "
@@ -131,8 +137,8 @@ def main():
         ad, nm = best.get("AD"), best.get("NORMAL")
         if ad and ad["verdict"] == "DONE": cnt["AD400 DONE"] += 1
         if nm and nm["verdict"] == "DONE": cnt["NORMAL400 DONE"] += 1
-        f = lambda r: f"{r['verdict']} {r['years']}y" if r else "-"
-        print(f"  {s:8} AD400: {f(ad):14} NORMAL400: {f(nm):14}")
+        f = lambda r: f"{r['verdict']} {r['years'] if r['years'] is not None else 0}y" if r else "-"
+        print(f"  {s:8} AD400: {f(ad):14} NORMAL400: {f(nm):14} {nm['name'] if nm else (ad['name'] if ad else '')}")
     print(f"\nSITES {len(sites)} | AD400 DONE {cnt['AD400 DONE']} | NORMAL400 DONE {cnt['NORMAL400 DONE']}"
           " | quick scan only; use the cohort audit actions before plotting or the next stage")
 
