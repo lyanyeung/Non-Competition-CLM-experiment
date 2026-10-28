@@ -49,6 +49,12 @@ Actions (--sites limits; read-only ones default to all registered sites):
   self-test
   audit-ad400              READ ONLY
   stage-normal             --sites ... --confirm STAGE_CROSS_COHORT_NORMAL400_CASES_NO_SLURM
+                           [--carry-ad-streams]  for AD cases whose effective DATM streams were
+                           written into CaseDocs + RUNDIR after preview (Batch02 Stage25/34/36/44/45):
+                           a regenerated Normal stream file points back to the original forcing, so
+                           the AD case's EXACT effective datm.streams.xml is copied into the Normal
+                           CaseDocs and RUNDIR (AD RUNDIR copy must equal AD CaseDocs byte for byte,
+                           and every listed data file must exist). Recorded in the ledger.
   submit                   --sites ... --confirm SUBMIT_CROSS_COHORT_NORMAL400_DIRECT_80x5_ONCE
   audit-first5             READ ONLY
   audit-normal400          READ ONLY
@@ -360,7 +366,18 @@ def pin_sourcemods(case):
 
 
 # ------------------------------------------------------------- Normal400
-def stage_normal_one(s, adr):
+def ad_effective_streams(s):
+    """The stream file the AD run actually read: AD RUNDIR copy, which must equal AD CaseDocs."""
+    doc, run = ad_case(s) / "CaseDocs/datm.streams.xml", ad_run(s) / "datm.streams.xml"
+    if not doc.is_file() or not run.is_file(): fail(s + ": AD CaseDocs or RUNDIR datm.streams.xml missing")
+    if digest(doc) != digest(run): fail(s + ": AD CaseDocs and RUNDIR datm.streams.xml differ; which one the AD read is ambiguous")
+    files = [e.text.strip() for e in ET.parse(run).getroot().iter("file") if (e.text or "").strip()]
+    missing = [f for f in files if not Path(f).is_file()]
+    if not files or missing: fail(f"{s}: AD stream data files missing ({len(missing)}): {missing[:3]}")
+    return run, digest(run), len(files)
+
+
+def stage_normal_one(s, adr, carry=False):
     name = n_name(s); case = n_case(s); led = n_ledger(s); adc = ad_case(s)
     for p in (case, n_run(s), n_arch(s), led):
         if p.exists() or p.is_symlink(): fail(s + ": Normal path exists; no overwrite: " + str(p))
@@ -405,13 +422,22 @@ def stage_normal_one(s, adr):
     u.write_text(t)
     if not (case / ".case.run").is_file(): cmd([case / "case.setup"], cwd=case, timeout=300)
     cmd([case / "preview_namelists"], cwd=case, timeout=600)
+    carried = None
+    if carry:
+        src, src_sha, nfiles = ad_effective_streams(s)
+        regenerated_sha = digest(case / "CaseDocs/datm.streams.xml")
+        payload = src.read_bytes()
+        for target in (case / "CaseDocs/datm.streams.xml", n_run(s) / "datm.streams.xml"):
+            tmp = Path(str(target) + ".tmpN400"); tmp.write_bytes(payload); tmp.replace(target)
+        carried = {"from": str(src), "sha256": src_sha, "data_files": nfiles, "regenerated_sha256_replaced": regenerated_sha}
+        print(s, f"AD effective DATM streams carried ({nfiles} data files, sha {src_sha[:12]})", flush=True)
     validate_normal(s, files)
     save(led, {"site": s, "cohort": REG[s]["cohort"], "case": str(case), "phase": "PREPARED_NOT_SUBMITTED",
                "source_ad_case": ad_name(s), "source_ad_first_job": adr["first_job"], "source_ad_restart": stamp(y),
                "source_restart_sha256": src_sha, "ad_start_year": adr["start_year"], "normal_start_year": y,
                "normal5_target_year": y + SEG_YEARS, "normal400_target_year": y + 400, "executable_sha256": exe_sha,
                "fsurdat": surf, "fsurdat_sha256": digest(surf), "fates_paramfile": pf, "fates_paramfile_sha256": digest(pf),
-               "sourcemods": sm, "generated_lnd_in_sha256": digest(case / "CaseDocs/lnd_in"),
+               "sourcemods": sm, "datm_streams_carried_from_AD": carried, "generated_lnd_in_sha256": digest(case / "CaseDocs/lnd_in"),
                "datm_streams_sha256": digest(case / "CaseDocs/datm.streams.xml"), "created_utc": utc()})
     print(s, "NORMAL CASE STAGED", name, "start", date, "| NO SLURM", flush=True)
 
@@ -440,7 +466,10 @@ def validate_normal(s, files=None):
     if nml_get(t, "reseed_dead_plants") is not None: fail(s + ": reseed_dead_plants present")
     sem = lambda e: (e.tag, tuple(sorted(e.attrib.items())), (e.text or "").strip(), tuple(sem(k) for k in e))
     if sem(ET.parse(case / "CaseDocs/datm.streams.xml").getroot()) != sem(ET.parse(adc / "CaseDocs/datm.streams.xml").getroot()):
-        fail(s + ": Normal DATM streams differ from AD case")
+        fail(s + ": Normal DATM streams differ from AD case (AD streams were set after preview? use --carry-ad-streams)")
+    rs = n_run(s) / "datm.streams.xml"
+    if rs.is_file() and digest(rs) != digest(case / "CaseDocs/datm.streams.xml"):
+        fail(s + ": Normal RUNDIR datm.streams.xml differs from Normal CaseDocs")
     for ptr, c in POINTERS:
         src = files[c]; dst = n_run(s) / src.name
         if not dst.is_file() or digest(dst) != digest(src): fail(f"{s}: staged restart mismatch {c}")
@@ -461,6 +490,7 @@ def submit_one(s, stack):
     if latest(n_arch(s))[1]: fail(s + ": Normal archive already has restarts")
     validate_normal(s)
     if digest(case / "CaseDocs/lnd_in") != obj["generated_lnd_in_sha256"]: fail(s + ": lnd_in changed after staging")
+    if digest(case / "CaseDocs/datm.streams.xml") != obj["datm_streams_sha256"]: fail(s + ": DATM streams changed after staging")
     if digest(obj["fsurdat"]) != obj["fsurdat_sha256"] or digest(obj["fates_paramfile"]) != obj["fates_paramfile_sha256"]:
         fail(s + ": surface or FATES parameter file changed after staging")
     if xq(case, "RESUBMIT_SETS_CONTINUE_RUN").lower() != "true": fail(s + ": RESUBMIT_SETS_CONTINUE_RUN is not TRUE")
@@ -586,6 +616,7 @@ def main():
     ap.add_argument("action", choices=("self-test", "audit-ad400", "stage-normal", "submit", "audit-first5",
                                        "audit-normal400", "inspect-interrupted", "quarantine-interrupted", "status"))
     ap.add_argument("--sites", nargs="+"); ap.add_argument("--confirm", default="")
+    ap.add_argument("--carry-ad-streams", action="store_true")
     a = ap.parse_args()
     if a.action == "self-test": return self_test()
     if a.action == "status": return status(pick(a.sites))
@@ -604,7 +635,7 @@ def main():
         if a.confirm != ACK_STAGE: fail("requires --confirm " + ACK_STAGE)
         ok, h = table("PREFLIGHT AD400", sites, ad400_one)
         if h: fail("AD400 not verified for " + ",".join(h) + "; use --sites with PASS sites only")
-        return batch("STAGE-NORMAL", sites, lambda s: stage_normal_one(s, ok[s]))
+        return batch("STAGE-NORMAL", sites, lambda s: stage_normal_one(s, ok[s], a.carry_ad_streams))
     if a.action == "submit":
         if a.confirm != ACK_SUB: fail("requires --confirm " + ACK_SUB)
         stack = stack_guard()

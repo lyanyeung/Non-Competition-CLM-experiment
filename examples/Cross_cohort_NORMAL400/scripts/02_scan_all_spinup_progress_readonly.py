@@ -24,6 +24,11 @@ PFT-competition cases share the archive and site IDs; --everything includes them
 
 Usage:  python3 -B 02_scan_all_spinup_progress_readonly.py [--match TEXT ...] [--all] [--everything]
         --all also lists cases with < 5 archived years (smokes, failed first segments).
+        --streams  also compares every Normal case's effective DATM streams (RUNDIR
+                   datm.streams.xml, else CaseDocs) with its RUN_REFCASE AD case: same data
+                   files in the same order and same year_first/year_last/year_align. Several
+                   Batch02 AD cases had curated streams written after preview, which a
+                   regenerated Normal namelist silently reverts to the original forcing.
 """
 from __future__ import annotations
 import argparse, re, subprocess
@@ -116,9 +121,42 @@ def scan(match, show_all, everything=False):
     return rows
 
 
+def stream_info(case_name):
+    for p in (OUT / case_name / "run" / "datm.streams.xml", BASE / "cases" / case_name / "CaseDocs/datm.streams.xml"):
+        if p.is_file():
+            try:
+                r = ET.parse(p).getroot()
+            except ET.ParseError:
+                return p, None, None
+            files = [(e.text or "").strip() for e in r.iter("file") if (e.text or "").strip()]
+            years = tuple((e.text or "").strip() for tag in ("year_first", "year_last", "year_align") for e in r.iter(tag))
+            return p, files, years
+    return None, None, None
+
+
+def streams(rows):
+    print("\nDATM STREAMS: Normal case vs its RUN_REFCASE AD case (effective RUNDIR copy preferred)")
+    bad = 0
+    for r in sorted((r for r in rows if r["mode"] == "NORMAL"), key=lambda r: r["name"]):
+        ref = r.get("refcase")
+        if not ref or ref.upper() == "UNSET":
+            print(f"  NO-REF  {r['name']}"); continue
+        pn, fn, yn = stream_info(r["name"]); pa, fa, ya = stream_info(ref)
+        if fn is None or fa is None:
+            print(f"  UNKNOWN {r['name']} (normal {pn}, AD {pa})"); continue
+        if fn == fa and yn == ya:
+            print(f"  MATCH   {r['name']}  ({len(fn)} files)"); continue
+        bad += 1
+        diff = [(x, y) for x, y in zip(fa, fn) if x != y]
+        ex = f" first: AD {'/'.join(Path(diff[0][0]).parts[-2:])} -> NORMAL {'/'.join(Path(diff[0][1]).parts[-2:])}" if diff else ""
+        print(f"  DIFF    {r['name']}  AD {len(fa)} files {ya} | NORMAL {len(fn)} files {yn} | {len(diff)} differing{ex}")
+    print(f"STREAM DIFFERENCES: {bad} Normal case(s) — a DIFF means that Normal run reads different forcing from its AD run")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--match", nargs="+"); ap.add_argument("--all", action="store_true"); ap.add_argument("--everything", action="store_true")
+    ap.add_argument("--streams", action="store_true")
     a = ap.parse_args()
     rows = scan(a.match, a.all, a.everything)
     print(f"{'VERDICT':8} {'MODE':6} {'YEARS':>5} {'SPIN':>4} {'LATEST':16} {'QUEUE':12} {'LAST EVENT':24} CASE")
@@ -141,6 +179,7 @@ def main():
         print(f"  {s:8} AD400: {f(ad):14} NORMAL400: {f(nm):14} {nm['name'] if nm else (ad['name'] if ad else '')}")
     print(f"\nSITES {len(sites)} | AD400 DONE {cnt['AD400 DONE']} | NORMAL400 DONE {cnt['NORMAL400 DONE']}"
           " | quick scan only; use the cohort audit actions before plotting or the next stage")
+    if a.streams: streams(rows)
 
 
 if __name__ == "__main__":
