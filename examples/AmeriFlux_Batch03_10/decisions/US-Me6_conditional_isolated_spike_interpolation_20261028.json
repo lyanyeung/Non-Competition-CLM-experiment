@@ -1,0 +1,47 @@
+{
+  "schema": "user-conditional-single-spike-science-review-policy-v1",
+  "recorded_date": "2026-10-28",
+  "user_wording": "这种跳变的如果前后都是正常的，但是一个不正常，那就把这个不正常的直接插值",
+  "site": "US-Me6",
+  "batch": "AmeriFlux_MultiSite_10_Batch03",
+  "interpretation": "For an isolated single native 30-minute source anomaly, when its before and after context are otherwise continuous and physically plausible, use interpolation across the single point. Never interpret all >4hPa candidate edges as actual source defects.",
+  "demonstrated_target_for_strict_trial": {
+    "native_time": "2017-07-04 12:00:00",
+    "original_VPD_QC": 2,
+    "retained_source_VPD_hPa": 21.84,
+    "local_original_tower_vpd_hPa": {
+      "2017-07-04 11:00:00": 27.711,
+      "2017-07-04 11:30:00": 28.983,
+      "2017-07-04 12:00:00": 21.84,
+      "2017-07-04 12:30:00": 29.15,
+      "2017-07-04 13:00:00": 28.664
+    },
+    "expected_single_point_linear_vpd_hPa": 29.0665,
+    "neighbor_vpd_qc": [
+      1,
+      1
+    ],
+    "neighbor_anchor_provenance": "Original source QC1 not directly measured QC0; scientific qualification must be explicitly recorded and cannot be described as QC0 observation.",
+    "source_era_vpd_at_target_hPa": 21.84,
+    "target_role": "Original source immediate QC2 left boundary of Run18; must not imply approval for other original QC2 edges."
+  },
+  "strict_constraints": {
+    "candidate_only_if_exact_single_original_bad_point_and_true_adjacent_native_times": true,
+    "original_site_temperature_and_pressure_unchanged": true,
+    "nearby_anchor_tower_TA_QC0_required": true,
+    "neighbor_vpd_source_QC1_and_physically_valid_required": true,
+    "neighbor_selected_values_must_match_original_tower_source": true,
+    "outer_neighbors_must_support_local_continuity": true,
+    "maximum_after_interpolation_step_hPa": 4,
+    "prohibit_any_new_unapproved_other_timestamps": true,
+    "preserve_all_previous_2017_stage12ac_five": true,
+    "preserve_original_2015_stage13s_235_and_2015_run12_4": true,
+    "never_write_original_source": true,
+    "write_only_separate_research_shadow": true,
+    "postv5": false,
+    "DATM": false,
+    "AD400": false,
+    "Slurm": false
+  },
+  "approval_status": "USER_CONDITIONAL_METHOD_RULE; exact target still requires guarded source/physics audit before trial"
+}
