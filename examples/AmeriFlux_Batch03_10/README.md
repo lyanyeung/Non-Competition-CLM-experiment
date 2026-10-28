@@ -47,3 +47,24 @@ IRIDIS6 rerun of Stage13Z v2 reached `STAGE13Z SIX ORIGINAL SOURCE NODES | 2 TOW
 The [Stage13Z v3 Python script](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/49dc297db6f8c54911fb1a3019966e7c525ab71b/examples/AmeriFlux_MultiSite_10_Batch03/scripts/stage13/13z_Me6_fourHH_complete_QC0_boundary_method_screen_READONLY.py) explicitly emits `native_time` independent of pandas unnamed/named indexes, adds an exact six-timestamp test for both index-name variants, and preserves all prior model/data hold conditions. The [v3 runner](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/7b5ff940b65aa0c3bfb86e56c090ae20e75b2544/examples/AmeriFlux_MultiSite_10_Batch03/scripts/stage13/13z_Me6_mobile_full_edge_QC0_method_READONLY.sh) is SHA-pinned. A separate synthetic pandas-index regression has passed, but **no new IRIDIS6 v3 scientific report is confirmed yet**.
 
 No change to Stage13S, Stage12AC, 4 hPa edge threshold, forcing values, DATM, AD400 or SLURM.
+
+## Operator science decision, 28 October 2026 — Stage13Z v3 PASS, Run12 APPROVED
+
+The operator's actual IRIDIS6 run of `Stage13Z v3` passed source and report SHA checks, full six-node thermodynamics, the original two measured tower QC0 bookends and all five halfhour continuity comparisons. Actual signed report:
+`/iridisfs/scratch/ly3n24/CLM_FATES/experiments/AmeriFlux_MultiSite_10_Batch03/reports/stage13z_Me6_run12_full_boundary_method_GATE_READONLY_20261028T160506Z_a3e87f28`.
+
+The source Run12 2015-09-26 05:00, 05:30, 06:00 and 06:30 native time, between the 04:30 observed VPD=5.413 hPa and 07:00 observed VPD=6.468 hPa bookends, **now has the user's explicit scientific-method approval to use direct QC0-anchored linear VPD interpolation**. Candidate `VPD_USE` values are `5.624, 5.835, 6.046, 6.257` hPa, respectively; any corresponding `QBOT` must be recomputed thermodynamically from unchanged native `TA_USE` and `PSRF`, not interpolated independently. All five adjacent VPD jumps are 0.211 hPa, below the unchanged 4 hPa boundary test. The raw ERA-RH method at this gap remains **REJECTED**, with a measured boundary jump of 4.800355 hPa. The single previous `VPD_USE=NaN` is not evidence against the independently calculated candidate.
+
+[Exact user approval scope and exclusions](decisions/US-Me6_Run12_20150926_QC0_linear_user_approval.json) (commit `ff3e2a9e085dee022d6f129c40e00232b50f3c76`). This **only** authorizes the exact four-halfhour source-method and a separate research-only shadow subject to strict SHA/source/diff revalidation. No shadow has yet been verified as applied, and no Post-v5/DATM/AD400/Slurm run is approved. The older Stage13S 235 and Stage12AC five rows are immutable.
+
+### Remaining source-method scientific review (US-Me6 only)
+
+- **Run14**, 2015-11-04–14 (469 QC1 HH): source physical-ERA preview contains 5 site-vs-ERA `|ΔT|>8C` holds at 2015-11-07 03:00, 04:00, 04:30, 05:00, 08:00. Its four candidate science subgroups contain 124, 1, 5 and 334 HH (464 total). None has two directly observed QC0 bookends. Do not linearly interpolate across this long episode.
+- **Run15**, 2017-06-28–30 (95 QC1 HH): eight `|ΔT|>8C` holds, 2017-06-29 23:00 through 2017-06-30 02:30 every 30 minutes; two provisional fragments are 60 and 27 HH. Immediate original VPD source edges are QC2.
+- **Run16**, 2017-06-30–07-01 (30 QC1 HH): no strict site–ERA temperature failure among these 30, but both original source VPD immediate boundaries are QC2 and no nearby ±48h QC0 observations were available in Stage13X. Physical pass is not source-method authorization.
+- **Run17**, 2017-07-01–04 (137 QC1 HH): one `|ΔT|>8C` hold at 2017-07-03 07:00, two provisional fragments 86 and 45 HH, QC2 original edges.
+- **Run18**, 2017-07-04–05 (47 QC1 HH): original source boundaries QC2; paired ERA candidate-versus-retained values differ by 5.349405 and 4.479289 hPa at two immediate edges. These are value differences, not directly proven 30-minute jump failures. Protect five original Stage12AC 2017 Jul04 halfhours (06:00–08:00).
+
+For efficient *next* batch evidence, the existing [six-run method validation](ME6_BATCH_METHOD_VALIDATION.md) compares raw ERA RH, buffered QC0-residual-calibrated ERA RH, and the short Run12 direct QC0 interpolation in one read-only IRIDIS6 run. This provides empirical method screens and explicit timestamp-level review without silently approving 2017 QC2 neighbours or the five long 2015 source subepisodes. It had **not** been confirmed executed at the time of this handoff.
+
+Other sites in the ten-site AmeriFlux Batch03 are not covered by these US-Me6 method decisions.
