@@ -1,0 +1,70 @@
+{
+  "schema": "ameriflux-batch03-user-science-method-approval-v1",
+  "site": "US-Me6",
+  "batch": "AmeriFlux_MultiSite_10_Batch03",
+  "recorded_utc_date": "2026-10-28",
+  "user_approval_quote": "对的你这个案例线性插值可以。",
+  "source_approval_basis": "User expressly approved the specific US-Me6 2015-09-26 Run12 QC0-anchored linear interpolation after reviewing Stage13Z v3 output.",
+  "source_verification": {
+    "stage13z_script_git_sha": "49dc297db6f8c54911fb1a3019966e7c525ab71b",
+    "stage13z_report_dir": "/iridisfs/scratch/ly3n24/CLM_FATES/experiments/AmeriFlux_MultiSite_10_Batch03/reports/stage13z_Me6_run12_full_boundary_method_GATE_READONLY_20261028T160506Z_a3e87f28",
+    "stage13t_signed_receipt_sha256": "66022e2df1f317c7de94b21ed56a564424292336a30e3f94d9f3486c1fdc3631",
+    "stage13y_signed_receipt_sha256": "1a3f34022e3ad366cc29128a0fe123c70dce67cb79506869d3178352e4866fd3",
+    "protected_stage13s_235HH_full_forcing_sha256": "02e80edf89af35874a5cfb2c134e42fbe771b9b2ccc0899bfc4fe19bc2e18565"
+  },
+  "approved_scope": {
+    "original_run_id": 12,
+    "original_VPD_F_QC": 1,
+    "original_TA_F_QC": 0,
+    "source_native_times": [
+      "2015-09-26 05:00:00",
+      "2015-09-26 05:30:00",
+      "2015-09-26 06:00:00",
+      "2015-09-26 06:30:00"
+    ],
+    "protected_QC0_bookends": [
+      {
+        "time": "2015-09-26 04:30:00",
+        "original_measured_VPD_hPa": 5.413
+      },
+      {
+        "time": "2015-09-26 07:00:00",
+        "original_measured_VPD_hPa": 6.468
+      }
+    ],
+    "approved_method": "Linear interpolation of VPD between the two directly measured original tower VPD_F_QC0 bookends at native 30min cadence.",
+    "approved_candidate_VPD_USE_hPa": [
+      5.624,
+      5.835,
+      6.046,
+      6.257
+    ],
+    "QBOT_method": "Derive interior QBOT consistently from new VPD, unchanged tower TA_USE and PSRF; never interpolate QBOT independently.",
+    "allowed_fields_to_change": [
+      "VPD_USE",
+      "QBOT"
+    ],
+    "forbidden_fields_to_change": [
+      "TA_USE",
+      "PSRF",
+      "time"
+    ],
+    "max_full_six_node_30min_jump_hPa": 0.2110000000000003,
+    "complete_sequence_physically_valid_in_stage13z": true
+  },
+  "restriction": {
+    "scientific_method_approved_for_exact_four_HH_only": true,
+    "research_shadow_application_allowed_subject_to_sha_and_diff_safety_checks": true,
+    "all_unapproved_other_source_HH_unchanged": true,
+    "original_source_data_immutable": true,
+    "stage13s_235HH_immutable": true,
+    "stage12ac_2017_five_HH_immutable": true,
+    "stage13y_other_14_source_site_ERA_T_gt8C_HOLD": true,
+    "stage13y_2017_immediate_8_QC2_edges_HOLD": true,
+    "promote_postv5": false,
+    "enable_DATM": false,
+    "allow_AD400": false,
+    "allow_Slurm": false
+  },
+  "status": "USER_APPROVED_METHOD_EXACT_FOUR_HALF_HOURS_NOT_MODEL_READY"
+}
