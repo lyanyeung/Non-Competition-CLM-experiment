@@ -42,7 +42,7 @@ New versioned forcing shadows `science_trials/b3_<SITE>_metfix_v1/` (base shadow
 |---|---|---|---|
 | US-Kon | R1 19 months, R3 1 month | 713 → 792 (867) | 2012 160 → 240, 2016 442 → 783; 2009-01 SW 16 → 104 |
 | US-MMS | R1 5 | 1097 → 1106 (1032) | |
-| US-Me2 | B3_05: Me6-donor R5 / own-climatology R6 for every ERA-filled row; R1' 2 months vs Me6 | 475 → 492 | 2022 SW 113 → 184; donor beats climatology for all variables (TA MAE 2.4 vs 4.1 °C, SW r 0.968); 2002 P 204 mm kept (no reference) |
+| US-Me2 | B3_05: Me6-donor R5 / own-climatology R6 for every ERA-filled row; R1' 2 months vs Me6 | 475 → 480 | 2022 SW 113 → 184; donor beats climatology for all variables (TA MAE 2.4 vs 4.1 °C, SW r 0.968); 2002 P 204 mm kept (no reference) |
 | US-Me6 | R1 8 | 320 → 347 (494) | |
 | US-MOz | R1 5 | 902 → 913 (986) | |
 | US-Mpj | R1 2, R3 1 | 361 → 364 (385) | |
