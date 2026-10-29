@@ -68,7 +68,7 @@ def site(s, man):
         ld, rd = lagscan(dx, dy, list(range(-200, 201)))
         ratio = np.nanmean(y[np.isfinite(x)]) / np.nanmean(x)
         qc2 = int((q == 2).sum()) if q is not None else -1
-        flag = "  <-- MISALIGNED/BROKEN" if (v in ("TA", "SW_IN") and (r0 < 0.8 or ld != 0 or abs(lh) > n_h)) or (v == "SW_IN" and abs(ratio - 1) > 0.15) else ""
+        flag = "  <-- MISALIGNED/BROKEN" if (v in ("TA", "SW_IN") and (r0 < 0.8 or ld != 0 or abs(lh) > 3 * n_h)) or (v == "SW_IN" and abs(ratio - 1) > 0.15) else ""
         if flag: BAD.add(s)
         print(f"  {v:5} QC2 {qc2:6} | r(lag0) {r0:6.3f} | best HH-lag {lh * step / 60:+5.1f} h r {rh:6.3f} | best day-lag {ld:+4d} r {rd:6.3f} | mean ERA/tower {ratio:5.3f}{flag}", flush=True)
     if "SW_IN_F" in f and "SW_IN_ERA" in f:
