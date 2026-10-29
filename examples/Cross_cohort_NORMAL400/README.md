@@ -1,5 +1,10 @@
 # Cross-cohort: verified AD400 → direct NORMAL400 (27 October 2026)
 
+## Plot all completed sites
+
+[All-completed AD400 + Normal400 plotting runbook](ALL_COMPLETED_PLOTS.md): live status and reference-pair selection, NT-first EC comparison, and separate per-case carbon diagnostics. The analysis runs as a read-only-input Slurm job and writes new derived files under Home. Completion is not convergence.
+
+
 This is one controller for the AD400 cases that have no Normal stage of their own yet.
 
 | Cohort | Sites | AD case (ledger) |

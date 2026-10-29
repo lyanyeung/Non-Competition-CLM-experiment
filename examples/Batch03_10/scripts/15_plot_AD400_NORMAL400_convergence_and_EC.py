@@ -48,7 +48,7 @@ FATES_TO_GCD = 86400.0 * 1000.0      # kg C m-2 s-1     -> g C m-2 d-1
 HIST_RE = re.compile(r"\.clm2\.h0a?\.(\d{4})-(\d{2})(?:-(\d{2})-(\d{5}))?\.nc$")
 PHASE = 400
 CANDIDATES = ["TOTECOSYSC", "TOTSOMC", "FATES_VEGC", "TOTVEGC", "TOTLITC", "TOTSOILC",
-              "SOILC", "FATES_STOREC", "FATES_STRUCTC", "FATES_NONSTRUCTC", "TOTROOTC", "TLAI"]
+              "SOILC", "FATES_STOREC", "FATES_STRUCTC", "FATES_NONSTRUCTC", "TOTROOTC"]
 LABELS = {"TOTECOSYSC": "Total ecosystem carbon", "TOTSOMC": "Soil organic carbon",
           "FATES_VEGC": "FATES vegetation carbon", "TOTVEGC": "Total vegetation carbon",
           "TOTLITC": "Litter carbon", "TLAI": "Total LAI"}
@@ -77,8 +77,18 @@ def env_value(case_dir, key):
     raise KeyError(f"{key} not found in {case_dir}")
 
 
-def forcing_years(case_dir):
+def forcing_years(case_dir, run_dir=None):
     """year_first, year_last, year_align of the site met stream (CLM_USRDAT)."""
+    # The runtime copy is authoritative when curated after preview. CaseDocs is
+    # the fallback; user overrides alone may not reflect the executed stream.
+    for x in ([Path(run_dir) / "datm.streams.xml"] if run_dir else []) + [Path(case_dir) / "CaseDocs" / "datm.streams.xml"]:
+        if x.is_file():
+            for e in ET.parse(x).getroot().iter():
+                name = e.attrib.get("name", "")
+                if "CLM_USRDAT" in name:
+                    g = {c.tag: (c.text or "").strip() for c in e.iter()}
+                    if all(g.get(k, "").isdigit() for k in ("year_first", "year_last", "year_align")):
+                        return int(g["year_first"]), int(g["year_last"]), int(g["year_align"])
     p = Path(case_dir) / "user_nl_datm_streams"
     if p.is_file():
         txt = p.read_text()
@@ -89,14 +99,6 @@ def forcing_years(case_dir):
                 vals[k] = int(m[0])
         if len(vals) == 3:
             return vals["year_first"], vals["year_last"], vals["year_align"]
-    x = Path(case_dir) / "CaseDocs" / "datm.streams.xml"
-    if x.is_file():
-        for e in ET.parse(x).getroot().iter():
-            name = e.attrib.get("name", "")
-            if "CLM_USRDAT" in name:
-                g = {c.tag: (c.text or "").strip() for c in e.iter()}
-                if all(g.get(k, "").isdigit() for k in ("year_first", "year_last", "year_align")):
-                    return int(g["year_first"]), int(g["year_last"]), int(g["year_align"])
     raise ValueError(f"Cannot determine CLM_USRDAT year_first/last/align in {case_dir}")
 
 
@@ -313,7 +315,8 @@ def ec_sources(forcing_dir, override=None):
     for raw in sorted(d for d in forcing_dir.iterdir() if d.is_dir() and d.name.lower().startswith("raw")):
         for p in sorted(raw.rglob("*.csv")):
             up = p.name.upper()
-            if not any(k in up for k in ("FULLSET_HH", "FLUXMET_HH", "FLUXES_HH", "FLUX_HH")):
+            if not any(k in up for k in ("FULLSET_HH", "FLUXMET_HH", "FLUXES_HH", "FLUX_HH",
+                                          "FULLSET_HR", "FLUXMET_HR", "FLUXES_HR", "FLUX_HR")):
                 continue
             if any(k in up for k in ("ERA5", "ERAI", "AUX", "BIF")):
                 continue
@@ -324,7 +327,7 @@ def ec_sources(forcing_dir, override=None):
             if {"TIMESTAMP_START", "NEE_VUT_REF"} <= cols and (GPP_NT in cols or GPP_DT in cols):
                 cands.append((SOURCE_PRIORITY.get(up.split("_", 1)[0], 9), str(p), p))
     if not cands:
-        raise FileNotFoundError(f"No HH EC file with NEE_VUT_REF and GPP NT/DT under {forcing_dir}/raw*")
+        raise FileNotFoundError(f"No HH/HR EC file with NEE_VUT_REF and GPP NT/DT under {forcing_dir}/raw*")
     return [p for _, _, p in sorted(cands)]
 
 
@@ -336,16 +339,23 @@ def ec_daily_one(path, first, last, min_hh):
     raw["date"] = pd.to_datetime(ts, format="%Y%m%d%H%M", errors="raise")
     raw = raw[raw["date"].dt.year.between(first, last) & ~((raw["date"].dt.month == 2) & (raw["date"].dt.day == 29))]
     if raw.empty:
-        return None, None
+        return None, None, None
     if raw["date"].duplicated().any():
         raise ValueError(f"{path.name}: duplicated timestamps")
     raw = raw.set_index("date").sort_index()
+    steps = raw.index.to_series().diff().dropna().dt.total_seconds()
+    if steps.empty:
+        raise ValueError(f"{path.name}: insufficient timestamps to determine EC cadence")
+    cadence = int(steps.mode().iloc[0])
+    if cadence not in (1800, 3600) or (steps % cadence != 0).any():
+        raise ValueError(f"{path.name}: unsupported or inconsistent EC cadence")
+    minimum = int(math.ceil(min_hh * 1800 / cadence))
 
     def daily(col):
         v = pd.to_numeric(raw[col], errors="coerce").astype(float)
         v[(v <= -9990) | ~np.isfinite(v)] = np.nan
         mean, cnt = v.resample("D").mean(), v.resample("D").count()
-        mean[cnt < min_hh] = np.nan
+        mean[cnt < minimum] = np.nan
         return mean * EC_TO_GCD
 
     nee = daily("NEE_VUT_REF")
@@ -364,17 +374,17 @@ def ec_daily_one(path, first, last, min_hh):
     df["EC_GPP_column"] = np.where(df["EC_GPP"].notna(), gpp_col or "", "")
     df["EC_GPP_source"] = np.where(df["EC_GPP"].notna(), path.name, "")
     df["EC_source"] = path.name
-    return df, gpp_col
+    return df, gpp_col, cadence
 
 
 def ec_daily(paths, first, last, min_hh):
     combined, prov = None, []
     for p in paths:
-        d, col = ec_daily_one(p, first, last, min_hh)
+        d, col, cadence = ec_daily_one(p, first, last, min_hh)
         if d is None:
             prov.append({"path": str(p), "gpp_column": "NONE", "reason": "no timestamps in forcing period"})
             continue
-        prov.append({"path": str(p), "gpp_column": col or "NONE",
+        prov.append({"path": str(p), "gpp_column": col or "NONE", "sample_interval_seconds": cadence,
                      "valid_GPP_days": int(d["EC_GPP"].notna().sum()), "valid_NEE_days": int(d["EC_NEE"].notna().sum())})
         if combined is None:
             combined = d
@@ -546,7 +556,12 @@ def plot_flux(mon, site, cycle, first, last, gpp_label, dest, interim):
 def inventory(pair, args):
     s = pair["site"]
     y0 = int(env_value(pair["ad_case_dir"], "RUN_STARTDATE")[:4])
-    first, last, align = forcing_years(pair["ad_case_dir"])
+    normal_dir = args.cases_root / pair["normal"]
+    if env_value(normal_dir, "RUN_REFCASE") != pair["ad"]:
+        raise ValueError(f"{s}: Normal RUN_REFCASE does not match AD case")
+    if int(env_value(normal_dir, "RUN_STARTDATE")[:4]) != y0 + PHASE:
+        raise ValueError(f"{s}: Normal start is not the AD400 handoff year")
+    first, last, align = forcing_years(normal_dir, args.archive_root.parent / pair["normal"] / "run")
     fad = history_index(args.archive_root, pair["ad"])
     try:
         fno = history_index(args.archive_root, pair["normal"])
@@ -568,7 +583,10 @@ def process(pair, args):
     if len(inv["ad_years"]) < PHASE:
         raise RuntimeError(f"AD phase incomplete ({len(inv['ad_years'])}/400); no Normal-phase diagnostics possible")
     interim = not inv["complete"]
-    dest = args.output_root / s; dest.mkdir(parents=True, exist_ok=True)
+    dest = args.output_root / s
+    if getattr(args, "case_subdirectories", False):
+        dest = dest / pair["normal"]
+    dest.mkdir(parents=True, exist_ok=False)
     files = [(i + 1, y, "AD", inv["fad"][y]) for i, y in enumerate(inv["ad_years"])] + \
             [(PHASE + i + 1, y, "NORMAL", inv["fno"][y]) for i, y in enumerate(inv["normal_years"])]
     print(f"  AD {inv['ad_years'][0]}–{inv['ad_years'][-1]} ({len(inv['ad_years'])}), Normal "
@@ -616,7 +634,8 @@ def process(pair, args):
                 "ec_gpp_columns_used": gpp_cols, "ec_sources": prov, "ec_source_priority": SOURCE_PRIORITY,
                 "model_gpp": "FATES_GPP", "model_nee": "-FATES_NEP", "ec_nee": "NEE_VUT_REF",
                 "flux_units": "g C m-2 d-1", "carbon_variables": names, "carbon_units": meta,
-                "caveat": "Step at spin-up year 400/401 reflects AD pool rescaling. 800 years is not proof of equilibrium.",
+                "missing_primary_carbon_variables": [n for n in ("TOTECOSYSC", "TOTSOMC", "FATES_VEGC") if n not in names],
+                "caveat": "AD/Normal transition may include pool rescaling. 800 years is not proof of equilibrium. EC/model day alignment uses native timestamps without a timezone conversion; verify the clock basis, especially for UTC-shifted AmeriFlux forcing.",
                 "files": sorted(p.name for p in dest.iterdir() if p.is_file())}
     (dest / f"{s}_metadata.json").write_text(json.dumps(meta_out, indent=2, default=str) + "\n")
     row = {"Site": s, "Status": status, "Interim": interim, "NormalYears": len(inv["normal_years"]),

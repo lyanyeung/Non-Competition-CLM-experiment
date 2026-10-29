@@ -49,6 +49,32 @@ class TestScienceGuards(unittest.TestCase):
         self.assertEqual(row["model"], 2.)
         self.assertEqual(row["obs_NDAY"], 20)
 
+    def test_hourly_sources_use_equivalent_twenty_hours(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as tmp:
+            path = Path(tmp) / "AMF_X_FLUXMET_HR.csv"
+            ts = pd.date_range("2001-01-01", periods=24, freq="h")
+            pd.DataFrame({"TIMESTAMP_START": ts.strftime("%Y%m%d%H%M"),
+                          "NEE_VUT_REF": np.ones(24), "GPP_NT_VUT_REF": np.ones(24)}).to_csv(path, index=False)
+            data, prov = figures.ec_daily([path], 2001, 2001, 40)
+            self.assertEqual(prov[0]["sample_interval_seconds"], 3600)
+            self.assertTrue(np.isfinite(data.EC_GPP.iloc[0]))
+
+    def test_lai_is_not_a_carbon_pool(self):
+        self.assertNotIn("TLAI", figures.CANDIDATES)
+
+    def test_runtime_normal_stream_takes_precedence(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as tmp:
+            case = Path(tmp) / "case"
+            run = Path(tmp) / "run"
+            (case / "CaseDocs").mkdir(parents=True)
+            run.mkdir()
+            def stream(first, last, align):
+                return (f'<streams><stream name="CLM_USRDAT"><year_first>{first}</year_first>'
+                        f'<year_last>{last}</year_last><year_align>{align}</year_align></stream></streams>')
+            (case / "CaseDocs" / "datm.streams.xml").write_text(stream(2000, 2010, 2000))
+            (run / "datm.streams.xml").write_text(stream(2001, 2020, 2001))
+            self.assertEqual(figures.forcing_years(case, run), (2001, 2020, 2001))
+
 
 if __name__ == "__main__":
     unittest.main()
