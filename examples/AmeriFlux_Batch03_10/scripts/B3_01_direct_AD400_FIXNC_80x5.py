@@ -756,7 +756,8 @@ def context(sites, write=False):
             for p in (case_dir(s), OUT / name(s), arch_dir(s)):
                 if (p.exists() or p.is_symlink()) and not load(ledger(s)): fail(f"unexpected existing {p}")
             print(f"  source  {src.get('path')} sha={str(src.get('sha256'))[:12]} {src.get('status', '')} markers={src.get('markers', [])}", flush=True)
-            if s == "US-Me2": print(f"  Me2 ledger {src['decisions']} VPD_new<0={src['VPD_new_lt_0']}", flush=True)
+            if "decisions" in src: print(f"  Me2 ledger {src['decisions']} VPD_new<0={src['VPD_new_lt_0']}", flush=True)
+            if src.get("metfix_rules"): print(f"  metfix  base {src.get('base')} sha={str(src.get('base_sha256'))[:12]} rules={json.dumps(src['metfix_rules'])[:400]}", flush=True)
             print(f"  clock   UTC{CLOCK[s][0]:+d} ({clk}) | ZBOT {z} m ({zsrc})", flush=True)
             print(f"  PFT     {PFT[s][1]} host={PFT[s][0]} -> {fates}", flush=True)
             print(f"  soil    {soil[s]['tier']} sand L1-10={soil[s]['sand']} clay={soil[s]['clay']} | orig surface {surf.name}", flush=True)
