@@ -383,7 +383,12 @@ def me2_frame(write):
     d["_t"] = pd.to_datetime(d.time); return d, info
 
 
-def frame(s, write=False):
+def metfix_dir(s): return ST / f"b3_{s}_metfix_v1"
+
+
+def frame(s, write=False, base=False):
+    """Forcing frame. If a B3_03 metfix shadow exists (user-approved P/SW source repair) it is used, after checking its
+    receipt and that it was built on exactly this base shadow; base=True returns the base shadow."""
     if s == "US-Me2":
         d, info = me2_frame(write)
     else:
@@ -391,7 +396,15 @@ def frame(s, write=False):
         info = {"path": str(p), "sha256": h,
                 "markers": sorted(x.name for x in p.parent.iterdir() if x.is_file() and re.match(r"(INCOMPLETE|NOT_APPROVED)", x.name))}
     step = SITES[s][2]
-    return d, step, info
+    mf = metfix_dir(s) / "RECEIPT.json"
+    if base or not mf.is_file(): return d, step, info
+    r = json.loads(mf.read_text()); p = metfix_dir(s) / r["csv"]
+    if digest(p) != r["csv_sha256"]: fail(f"{s}: metfix shadow sha differs from its receipt")
+    if r.get("base_sha256") != info.get("sha256"): fail(f"{s}: metfix built on base {r.get('base_sha256')}, current base {info.get('sha256')}")
+    m = read_frame(p, s)
+    if len(m) != len(d) or not np.array_equal(m["time"].astype(str).to_numpy(), d["time"].astype(str).to_numpy()): fail(f"{s}: metfix timeline differs")
+    return m, step, {"path": str(p), "sha256": r["csv_sha256"], "base": info.get("path"), "base_sha256": info.get("sha256"),
+                     "metfix_rules": r.get("rules_applied"), "markers": info.get("markers", [])}
 
 
 # ------------------------------------------------------------- clock / height / soil / pft
