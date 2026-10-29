@@ -398,3 +398,29 @@ Operator executed **Stage13AQ 10 original Git SHA-pinned scripts** on IRIDIS6: a
 [Stage13AR mobile 11-source launcher](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/e3958e2ee73216b0240980322e5240472b8247e1/examples/AmeriFlux_MultiSite_10_Batch03/scripts/stage13/13ar_Me6_mobile_QC0_halfhour_day_year_native_hour_READONLY.sh) git blob `73c2ffa11aceae21e306ca55f7312f23e9037d42`. Both GitHub hash-verified; full Stage13AR only self-tested with synthetic values and awaiting HPC data run.
 
 Stage13AR v2 source provenance adjustment (before first HPC run): read the **exact** Δe value for the right-border exploratory QC0-calibrated hypothesis from the SHA-signed Stage13AQ report rather than using a decimal-rounded assumed constant; no science thresholds or population changes. GitHub code/runner pinned to v2; still untested on IRIDIS6.
+
+
+## 2026-10-29 02:47 UTC — Stage13AR v2 actual PASS, date/year weighting removes moderate-tier evidence
+
+On IRIDIS6 operator ran eleven exact Git SHA pinned Stage13AR v2 sources: syntax/self-test, signed Stage13AQ measured QC0 pair audit and untouched previous Stage13AI source gates PASS. Actual read-only report:
+`/iridisfs/scratch/ly3n24/CLM_FATES/experiments/AmeriFlux_MultiSite_10_Batch03/reports/stage13ar_Me6_right_QC0_day_year_clock_source_READONLY_20261029T024720Z_1bbd4fcf`.
+Still original **45 HH VPD_USE/QBOT missing** including **19 crossyear source QC2 winter HH**, and both original surrounding QC2 borders untouched; no shadow, forcing, DATM, AD400 or Slurm modifications.
+
+The exact Stage13AP signed right QC0-calibrated hypothetical `2015-01-01 08:30→09:00` water-vapour `Δe = +0.3673984153757241 hPa`, NOT a tower observation. Stage13AQ original independently measured 30-min `TA_F_QC=VPD_F_QC=0` samples reweighted:
+
+| QC0 analogue regime | raw native pairs (pctl candidate) | one median/day (pctl candidate) | median/year of day medians (pctl candidate) |
+|---|---|---|---|
+| strict T±3, ΔT±1, both source ERA mismatch ±3 | 11 pairs/11 dates/8 years (72.73; in 5-95) | 11 dates (72.73; in 5-95) | 8 year medians (62.5; in 5-95); weak n |
+| moderate T±3, ΔT±2, ERA anomalies ±3 | 35 pairs/26 dates/13 years (91.43; in 5-95) | 26 dates (**96.15**, >95, outside 5-95, day-level P95 **+0.356653 hPa**) | 13 year medians (**100th**, outside; year P95 +0.301854) |
+| broad T±5, ΔT±3, ERA anomalies ±5 | 527 pairs/87 dates/16 years (97.91; outside) | 87 dates (**98.85** outside, daily P95 +0.172256) | 16 source years (**100th** outside; year P95 +0.110164) |
+| temperature only ±5, ΔT±3 | 962 pairs/107 dates/16 years (97.71; outside) | 107 dates (**98.13** outside, P95 +0.200251) | 16 years (**100th** outside, P95 +0.106007) |
+
+Native clock around 09:00 from original source:
+* strict 09±1/2/4h: 10 date medians, pctl70, inside source P05-95 but small n;
+* moderate 09±1h: 17 dates / pctl94.12 (inside P05-95); ±2h 18 dates / pctl94.44 inside; ±4h 21 dates / pctl95.24 outside;
+* broad native 09±1h 11 dates / pctl90.91 inside, but ±2h 29 dates / pctl96.55 outside, ±4h 46 dates pctl97.83 outside;
+* temperature-only native 09±1h 19 dates / pctl89.47 inside; ±2h 39 dates pctl94.87 **outside P95 range** despite empirical rank <95 by discrete quantile convention; ±4h 70 dates pctl97.14 outside.
+
+All 8 **strict** whole-original-year withdrawals preserve candidate in empirical date-weighted P05-95 (but 8 years/11 dates only); all 13 **moderate** whole-original-year withdrawals place candidate OUTSIDE; all 16 broad and all 16 temperature-only whole-year withdrawals place candidate OUTSIDE: 53 folded source subsets in total. Strict condition strongly selects event-like warming and ERA temperature-mismatch and may not transfer to the original event; no contemporaneous tower humidity to adjudicate. Native clock's timezone/solar mapping not yet source BIF-verified: do not say local daytime-specific support. These checks are descriptive empirical ranges, NOT hypothesis test P-values or 95% confidence intervals. Original left 23:00→23:30 -9.757°C T splice QC2→QC1 has **zero** paired original measured QC0 analogue under all four Stage13AQ conditions.
+
+**Scientific decision**: Neither original QC2 VPD borders nor the isolated 19HH QC0-calibrated interior/09:00 replacement may be admitted to a model forcing, postv5, research shadow, AD400 or Slurm on this evidence. Stop additional post-hoc matching to optimize selection. Next *different-evidence* strategy: original release BIF native UTC offset + original sensor/meteorology provenance and genuinely separately obtained humidity constraints (e.g., CDS ERA5-Land dew point / temperature, different stations), treating ERA5-Land as reanalysis-dependent not ground truth. Inventory/check read-only prior to any download or science approvals. Other 26 currently missing native HH remain distinct from this 19HH window.
