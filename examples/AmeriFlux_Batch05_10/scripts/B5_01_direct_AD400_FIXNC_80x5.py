@@ -12,6 +12,7 @@ Forcing (per site, from the immutable original FLUXMET / FULLSET release, Stage0
             QC0 lane -> measured value retained
   T7        Stage104 7 temperature risks: only |source - two-sided QC0 bracket| > 5 C is replaced by the bracket
             (US-Wkg 2025-09-10 13:00, 12.9 vs 26.5 C); e kept, VPD recomputed. The others keep the source value.
+  R0        qcv5: <= 50 release values outside the broad physical range (PA SW LW WS P) -> same-variable ERA / interpolation
   R1/R2/R3  B3_03 rules (dead-gauge month -> P_ERA; ERA-only P > 2 x BIF MAP -> scale to MAP; SW fault month -> SW_ERA),
             applied only if the site's ERA passes the B3_04 alignment test (TA r >= 0.8 at lag 0, best day lag 0,
             SW_ERA / tower within 15 %); a failing ERA stops that site (as US-Me2 in Batch03).
@@ -95,7 +96,8 @@ SOIL5 = {"US-UiD": (8.0, 22.0), "US-UMB": (93.9, 3.3), "US-UMd": (91.1, 5.1), "U
 WKG_FINAL = (68.8, 12.8)
 VARS = ["TA_F", "VPD_F", "PA_F", "SW_IN_F", "LW_IN_F", "WS_F", "P_F"]
 QCS = ["TA_F_QC", "VPD_F_QC", "P_F_QC", "SW_IN_F_QC"]
-ERAV = ["TA_ERA", "SW_IN_ERA", "P_ERA"]
+ERAV = ["TA_ERA", "SW_IN_ERA", "P_ERA", "PA_ERA", "LW_IN_ERA", "WS_ERA"]
+ERA_OF = {"PA_F": "PA_ERA", "SW_IN_F": "SW_IN_ERA", "LW_IN_F": "LW_IN_ERA", "WS_F": "WS_ERA", "P_F": "P_ERA"}
 HARD = {"TA_F": (-80, 65), "VPD_F": (-0.1, 125), "PA_F": (50, 110), "SW_IN_F": (-5, 1600), "LW_IN_F": (60, 800), "WS_F": (-0.1, 75), "P_F": (-0.001, 300)}
 ACK_F, ACK_S = "WRITE_AMF_B05_AD400_FORCING_V1", "MAKE_AMF_B05_POINT_SURFACES"
 ACK_P, ACK_SUB = "PREPARE_AMF_B05_TEN_DIRECT_AD400_CASES_NO_SLURM", "SUBMIT_AMF_B05_DIRECT_AD400_80x5_ONCE"
@@ -186,10 +188,20 @@ def build(s, ov):
     if len(t) != len(exp) or not np.array_equal(t.to_numpy(), exp.to_numpy()): M.fail(f"{s}: not a complete NOLEAP {step}-min timeline")
     nan = {c: int(f[c].isna().sum()) for c in VARS if f[c].isna().any()}
     if nan: M.fail(f"{s}: NaN in release _F variables {nan}")
-    bad = {c: int((~f[c].between(lo, hi)).sum()) for c, (lo, hi) in HARD.items() if (~f[c].between(lo, hi)).any()}
-    if bad: M.fail(f"{s}: qcv5 HARD range failures {bad}")
-    key = f.TIMESTAMP_START.to_numpy(); pos = pd.Series(np.arange(len(f)), index=key)
-    T = f.TA_F.to_numpy(float).copy(); V = f.VPD_F.to_numpy(float).copy(); log = []; cnt = {}
+    key = f.TIMESTAMP_START.to_numpy(); pos = pd.Series(np.arange(len(f)), index=key); log = []; cnt = {}
+    # R0 (qcv5): a few release values outside the broad physical range -> ERA value of the same variable (in range),
+    # else linear interpolation; TA/VPD outside range, or > 50 rows of one variable, stop the site.
+    for c, (lo, hi) in HARD.items():
+        bad = ~f[c].between(lo, hi)
+        if not bad.any(): continue
+        if c not in ERA_OF or bad.sum() > 50: M.fail(f"{s}: qcv5 HARD range failures {c}: {int(bad.sum())}")
+        ev = f[ERA_OF[c]] if ERA_OF[c] in f else pd.Series(np.nan, index=f.index)
+        if c == "PA_F": ev = ev  # kPa in both
+        fill = ev.where(ev.between(lo, hi))
+        fill = fill.fillna(f[c].mask(bad).interpolate(limit_direction="both"))
+        log.append(pd.DataFrame({"TIMESTAMP_START": key[bad.to_numpy()], "rule": f"R0_{c}", "old": f.loc[bad, c].to_numpy(), "new": fill[bad].to_numpy()}))
+        f.loc[bad, c] = fill[bad]; cnt[f"R0_{c}"] = int(bad.sum())
+    T = f.TA_F.to_numpy(float).copy(); V = f.VPD_F.to_numpy(float).copy()
     o84, o89, h56, t7 = ov
 
     def apply(rows, tcol_src, vcol_src, tcol_new, vcol_new, tag):
@@ -242,7 +254,7 @@ def build(s, ov):
     if len(dead): rules["R1_months"] = [f"{yy}-{mm:02d}:{r.P:.0f}->{r.E:.0f}" for (yy, mm), r in dead.iterrows()]
     ann = pd.Series(Pn).groupby(y).sum()
     if MAP and q0p.mean() == 0 and ann.mean() > 2 * MAP:
-        fac = MAP / ann.mean(); Pn = Pn * fac; rules["R2_scale"] = round(float(fac), 5)
+        fac = MAP / ann.mean(); Pn = Pn * fac; rules["R2_scale"] = round(float(fac), 5); rules["R2_ERA_mean_mm_before"] = round(float(ann.mean()), 0)
     ch = np.flatnonzero(np.abs(Pn - P0) > 1e-12)
     if len(ch):
         log.append(pd.DataFrame({"TIMESTAMP_START": key[ch], "rule": "R1/R2", "P_old_mm": P0[ch], "P_new_mm": Pn[ch]})); d["PRECTmms"] = Pn / sec
