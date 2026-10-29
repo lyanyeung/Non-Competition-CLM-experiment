@@ -176,9 +176,20 @@ def annual_carbon(files, site):
     from netCDF4 import Dataset
     rows, chosen, meta = [], None, {}
     for i, (spin, model_year, phase, paths) in enumerate(files):
-        vals = {}
+        vals, weights, dates = {}, [], []
         for path in paths:
             with Dataset(str(path)) as ds:
+                bounds_name = next((b for b in ("time_bounds", "time_bnds") if b in ds.variables), None)
+                if bounds_name is None:
+                    raise ValueError(f"{path.name}: time bounds missing; cannot calculate a duration-weighted annual mean")
+                bounds = np.asarray(ds.variables[bounds_name][:], dtype=float)
+                if bounds.ndim != 2 or bounds.shape[1] != 2:
+                    raise ValueError(f"{path.name}: unexpected time bounds shape {bounds.shape}")
+                duration = bounds[:, 1] - bounds[:, 0]
+                if not np.all(np.isfinite(duration) & (duration > 0)):
+                    raise ValueError(f"{path.name}: invalid time interval lengths")
+                weights.append(duration)
+                dates.extend(noleap_dates(ds))
                 if chosen is None:
                     chosen = []
                     for n in CANDIDATES:
@@ -195,9 +206,18 @@ def annual_carbon(files, site):
                         raise RuntimeError(f"{path.name} lacks {n} (history fields changed between cases?)")
                     vals.setdefault(n, []).append(point_series(ds.variables[n]))
         row = {"Site": site, "SpinupYear": spin, "ModelYear": model_year, "Phase": phase}
+        w = np.concatenate(weights)
+        expected = ([(model_year, month, day) for month, days in enumerate(
+            (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31), 1)
+            for day in range(1, days + 1)] if len(dates) == 365 else
+            [(model_year, month, 1) for month in range(1, 13)])
+        if dates != expected:
+            raise ValueError(f"{site} {model_year}: history is not a complete daily or monthly year")
         for n in chosen:
-            v = np.concatenate(vals[n]); v = v[np.isfinite(v)]
-            row[n] = float(v.mean()) * meta[n]["factor"] if len(v) else np.nan
+            v = np.concatenate(vals[n]); good = np.isfinite(v)
+            if len(v) != len(w) or not np.all(good):
+                raise ValueError(f"{site} {model_year} {n}: incomplete samples; annual mean not calculated")
+            row[n] = float(np.average(v, weights=w)) * meta[n]["factor"]
         rows.append(row)
         if (i + 1) % 100 == 0:
             print(f"  read {i + 1}/{len(files)} model years", flush=True)
@@ -316,7 +336,7 @@ def ec_daily_one(path, first, last, min_hh):
     raw["date"] = pd.to_datetime(ts, format="%Y%m%d%H%M", errors="raise")
     raw = raw[raw["date"].dt.year.between(first, last) & ~((raw["date"].dt.month == 2) & (raw["date"].dt.day == 29))]
     if raw.empty:
-        raise ValueError(f"{path.name}: no timestamps in {first}-{last}")
+        return None, None
     if raw["date"].duplicated().any():
         raise ValueError(f"{path.name}: duplicated timestamps")
     raw = raw.set_index("date").sort_index()
@@ -342,6 +362,7 @@ def ec_daily_one(path, first, last, min_hh):
         g = pd.Series(np.nan, index=nee.index)
     df = pd.DataFrame({"EC_GPP": g, "EC_NEE": nee})
     df["EC_GPP_column"] = np.where(df["EC_GPP"].notna(), gpp_col or "", "")
+    df["EC_GPP_source"] = np.where(df["EC_GPP"].notna(), path.name, "")
     df["EC_source"] = path.name
     return df, gpp_col
 
@@ -350,15 +371,27 @@ def ec_daily(paths, first, last, min_hh):
     combined, prov = None, []
     for p in paths:
         d, col = ec_daily_one(p, first, last, min_hh)
+        if d is None:
+            prov.append({"path": str(p), "gpp_column": "NONE", "reason": "no timestamps in forcing period"})
+            continue
         prov.append({"path": str(p), "gpp_column": col or "NONE",
                      "valid_GPP_days": int(d["EC_GPP"].notna().sum()), "valid_NEE_days": int(d["EC_NEE"].notna().sum())})
         if combined is None:
             combined = d
         else:
-            g_fill = combined["EC_GPP"].isna() & d["EC_GPP"].reindex(combined.index).notna()
-            combined = combined.combine_first(d)
-            combined.loc[g_fill.reindex(combined.index, fill_value=False), "EC_GPP_column"] = \
-                d["EC_GPP_column"].reindex(combined.index)
+            combined = combined.reindex(combined.index.union(d.index)).sort_index()
+            d = d.reindex(combined.index)
+            # An NT value from any source outranks a DT value from an earlier
+            # source. Within the same partition, the original source order wins.
+            take = d["EC_GPP"].notna() & (
+                combined["EC_GPP"].isna() |
+                ((d["EC_GPP_column"] == GPP_NT) & (combined["EC_GPP_column"] == GPP_DT)))
+            fields = ["EC_GPP", "EC_GPP_column", "EC_GPP_source"]
+            combined.loc[take, fields] = d.loc[take, fields]
+            combined["EC_NEE"] = combined["EC_NEE"].combine_first(d["EC_NEE"])
+            combined["EC_source"] = combined["EC_source"].combine_first(d["EC_source"])
+    if combined is None:
+        raise ValueError(f"No EC timestamps in forcing period {first}-{last}")
     return combined.reset_index().rename(columns={"index": "date"}), prov
 
 
@@ -410,7 +443,7 @@ def trend(v, w):
     return s, (np.nan if abs(mu) < 1e-8 else 100 * s * 100 / abs(mu))
 
 
-def convergence(carbon, names, meta, n_force):
+def convergence(carbon, names, meta, n_force, align):
     nor = carbon[carbon.Phase == "NORMAL"]
     ad = carbon[carbon.Phase == "AD"]
     nN = len(nor)
@@ -418,10 +451,13 @@ def convergence(carbon, names, meta, n_force):
     for name in names:
         v = nor[name].to_numpy(float)
         s30, r30 = trend(v, 30); s100, r100 = trend(v, 100)
-        k = nN // n_force
-        last = v[(k - 1) * n_force:k * n_force] if k >= 1 else np.array([])
-        prev = v[(k - 2) * n_force:(k - 1) * n_force] if k >= 2 else np.array([])
-        first = v[:n_force] if k >= 1 else np.array([])
+        years = nor.ModelYear.to_numpy(int)
+        starts = [i for i, y in enumerate(years)
+                  if (y - align) % n_force == 0 and i + n_force <= nN]
+        k = len(starts)
+        last = v[starts[-1]:starts[-1] + n_force] if k >= 1 else np.array([])
+        prev = v[starts[-2]:starts[-2] + n_force] if k >= 2 else np.array([])
+        first = v[starts[0]:starts[0] + n_force] if k >= 1 else np.array([])
         cyc = (100 * np.nanmean(np.abs(last - prev)) / max(np.nanmean(np.abs(prev)), 1e-8)) if len(prev) else np.nan
         pct = lambda a, b: np.nan if not (np.isfinite(a) and np.isfinite(b)) or abs(b) < 1e-8 else 100 * (a - b) / abs(b)
         recs.append({
@@ -540,7 +576,7 @@ def process(pair, args):
           f"forcing {first}-{last} align {align}", flush=True)
     carbon, names, meta = annual_carbon(files, s)
     carbon.to_csv(dest / f"{s}_carbon_annual_means.csv", index=False)
-    conv = convergence(carbon, names, meta, n); conv.to_csv(dest / f"{s}_convergence_metrics.csv", index=False)
+    conv = convergence(carbon, names, meta, n, align); conv.to_csv(dest / f"{s}_convergence_metrics.csv", index=False)
     cases = f"{pair['ad']} → {pair['normal']} | model years {inv['start']}–{inv['start'] + len(files) - 1}"
     plot_overview(carbon, names, meta, s, cases, dest, interim)
     if inv["normal_years"]:
@@ -554,6 +590,10 @@ def process(pair, args):
             obs, prov = ec_daily(srcs, first, last, args.min_halfhour)
             gpp_cols = sorted({c for c in obs["EC_GPP_column"].dropna() if c})
             daily, mon = paired_monthly(model, obs, freq, args.min_days)
+            for flux in ("GPP", "NEE"):
+                matched = mon[[f"EC_{flux}", f"FATES_{flux}"]].dropna()
+                if len(matched) < 2:
+                    raise ValueError(f"{flux}: fewer than two matched monthly observations")
             mon.to_csv(dest / f"{s}_monthly_FATES_vs_EC.csv", index=False)
             label = " + ".join(gpp_cols) if gpp_cols else "no GPP"
             scores, _ = plot_flux(mon, s, cycle, first, last, label, dest, interim)
@@ -572,7 +612,7 @@ def process(pair, args):
                 "ad_years": [inv["ad_years"][0], inv["ad_years"][-1]] if inv["ad_years"] else [],
                 "normal_years": [inv["normal_years"][0], inv["normal_years"][-1]] if inv["normal_years"] else [],
                 "forcing_first_last_align": [first, last, align], "model_history_frequency": freq, "ec_cycle_model_years": [cycle[0], cycle[-1]] if cycle else [],
-                "gpp_policy": "GPP_NT_VUT_REF preferred; GPP_DT_VUT_REF only for a source without usable NT",
+                "gpp_policy": "NT takes priority across all sources; DT only when the source has no usable NT and no NT is available for that day",
                 "ec_gpp_columns_used": gpp_cols, "ec_sources": prov, "ec_source_priority": SOURCE_PRIORITY,
                 "model_gpp": "FATES_GPP", "model_nee": "-FATES_NEP", "ec_nee": "NEE_VUT_REF",
                 "flux_units": "g C m-2 d-1", "carbon_variables": names, "carbon_units": meta,
@@ -617,6 +657,7 @@ def main():
     else:
         pairs = batch03_pairs(a.sites)
     if a.preflight:
+        issues = 0
         for p in pairs:
             try:
                 inv = inventory(p, a)
@@ -634,17 +675,23 @@ def main():
                         cols.append(f"{sp.name}[cols {have}; NT used if it has valid days]")
                     line += "  EC: " + ", ".join(cols)
                 except Exception as e:
+                    issues += 1
                     line += f"  EC NEEDS REVIEW: {e}"
+                if not inv["complete"]:
+                    issues += 1
                 print(line, flush=True)
             except Exception as e:
+                issues += 1
                 print(f"{p['site']:7} FAIL {type(e).__name__}: {e}", flush=True)
-        return
+        return int(issues > 0)
     if a.output_root is None or not a.output_root.is_absolute():
         ap.error("--output-root must be an absolute path (Research Filestore or home), not scratch")
     out = a.output_root.expanduser().resolve()
     for scratch in (Path("/scratch"), Path("/iridisfs/scratch")):
         if out == scratch or scratch in out.parents:
             ap.error("Refusing to write under scratch: " + str(out))
+    if out.exists() and any(out.iterdir()):
+        ap.error("Output root is not empty; choose a new directory to avoid overwriting results: " + str(out))
     out.mkdir(parents=True, exist_ok=True); a.output_root = out
     rows = []
     for p in pairs:
@@ -659,7 +706,12 @@ def main():
     pd.DataFrame(rows).to_csv(out / "AD400_NORMAL400_summary.csv", index=False)
     print("\nSUMMARY written:", out / "AD400_NORMAL400_summary.csv")
     print(pd.DataFrame(rows).to_string(index=False))
+    if any(r["Status"] not in ("OK", "CARBON_ONLY") for r in rows):
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
+
+
