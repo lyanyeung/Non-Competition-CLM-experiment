@@ -10,6 +10,7 @@ it reads existing cases, archives and EC data and does not submit jobs or change
 model input. Use the existing `clm_fates_env` Python environment.
 
 ```bash
+(
 set -euo pipefail
 PY="$HOME/.conda/envs/clm_fates_env/bin/python"
 mkdir -p "$HOME/CLM_FATES_PLOTS"
@@ -26,6 +27,7 @@ PAIRS=(
 OUT="$HOME/CLM_FATES_PLOTS/Batch03_AD400_NORMAL400_$(date -u +%Y%m%dT%H%M%SZ)"
 "$PY" -u -B "$TOOLDIR/plot.py" --pair "${PAIRS[@]}" --output-root "$OUT"
 printf '\nResults: %s\n' "$OUT"
+)
 ```
 
 The preflight reports missing histories, forcing settings and EC files and exits
