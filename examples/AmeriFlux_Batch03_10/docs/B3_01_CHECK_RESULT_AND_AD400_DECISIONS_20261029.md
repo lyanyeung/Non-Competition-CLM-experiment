@@ -31,3 +31,41 @@ DATM clamp: rows with e above the DATM saturation (over ice below 0 °C) are cla
 - US-NR3 annual P 2009–3370 mm: high for alpine Niwot Ridge; check the P_F source/QC (blowing-snow overcatch or ERA fill).
 - US-Me2 2002 P 204 mm (record start) and 2022 mean SW 113 W m-2 (post-fire tower period) are outliers.
 - US-Me6 several years below 200 mm P.
+
+## Update 2026-10-29 09:05 UTC — precipitation/SW/ERA repair (metfix_v1) and AD400 submitted
+
+Audit `B3_02` and ERA alignment `B3_04` showed dead-gauge months recorded as measured zeros, an ERA-only NR3 precipitation 3 × the BIF MAP, and a broken US-Me2 FULLSET ERA (TA r 0.57, SW 13 % of tower, no consistent lag) that had filled every Me2 QC2 row. The other nine sites' ERA5 are aligned (TA r 0.87–0.99, day lag 0, SW ratio 0.95–0.97). User approved the predeclared rules ("按照你的建议").
+
+New versioned forcing shadows `science_trials/b3_<SITE>_metfix_v1/` (base shadows unchanged; B3_01 uses them only after receipt + base-sha verification):
+
+| site | rules | annual P mean before → after (BIF MAP) | notes |
+|---|---|---|---|
+| US-Kon | R1 19 months, R3 1 month | 713 → 792 (867) | 2012 160 → 240, 2016 442 → 783; 2009-01 SW 16 → 104 |
+| US-MMS | R1 5 | 1097 → 1106 (1032) | |
+| US-Me2 | B3_05: Me6-donor R5 / own-climatology R6 for every ERA-filled row; R1' 2 months vs Me6 | 475 → 492 | 2022 SW 113 → 184; donor beats climatology for all variables (TA MAE 2.4 vs 4.1 °C, SW r 0.968); 2002 P 204 mm kept (no reference) |
+| US-Me6 | R1 8 | 320 → 347 (494) | |
+| US-MOz | R1 5 | 902 → 913 (986) | |
+| US-Mpj | R1 2, R3 1 | 361 → 364 (385) | |
+| US-MtB | R1 2 | 588 → 596 (790) | |
+| US-NC2 | R1 8 | 1226 → 1258 (1320) | 2022 569 → 954 |
+| US-NR1 | R1 2 | 684 → 688 (800) | |
+| US-NR3 | R2 × 0.3198 | 2764 → 884 (884) | no measured P at NR3 |
+
+Rules: R1 month with ≥ 90 % QC0, ERA > 25 mm, tower < 25 % of ERA → P_ERA; R2 no measured P and mean > 2 × MAP → scale to MAP; R3 SW month ≥ 90 % QC0, SW < 75 % of ERA → SW_ERA; HIGH months kept. Scripts: `B3_02` (audit), `B3_03` (R1–R3), `B3_04` (ERA alignment), `B3_05` (Me2).
+
+B3_01 check after repair: **PASS 10/10**. Prepare: 10/10 cases verified. Stack guard PASS (unlimited, PropagateResourceLimits=ALL). **Submitted 2026-10-29 ~09:05 UTC, FIXNC direct AD400 80 × 5 (RESUBMIT 79):**
+
+| site | case | first run / archive job | years |
+|---|---|---|---|
+| US-Kon | US-Kon_AMF_B03_FIXNC_AD400_DIRECT | 4758042 / 4758043 | 2004 → 2404 |
+| US-MMS | US-MMS_AMF_B03_FIXNC_AD400_DIRECT | 4758044 / 4758045 | 1999 → 2399 |
+| US-Me2 | US-Me2_AMF_B03_FIXNC_AD400_DIRECT | 4758046 / 4758047 | 2002 → 2402 |
+| US-Me6 | US-Me6_AMF_B03_FIXNC_AD400_DIRECT | 4758048 / 4758049 | 2010 → 2410 |
+| US-MOz | US-MOz_AMF_B03_FIXNC_AD400_DIRECT | 4758050 / 4758051 | 2004 → 2404 |
+| US-Mpj | US-Mpj_AMF_B03_FIXNC_AD400_DIRECT | 4758052 / 4758053 | 2008 → 2408 |
+| US-MtB | US-MtB_AMF_B03_FIXNC_AD400_DIRECT | 4758054 / 4758055 | 2009 → 2409 |
+| US-NC2 | US-NC2_AMF_B03_FIXNC_AD400_DIRECT | 4758056 / 4758057 | 2005 → 2405 |
+| US-NR1 | US-NR1_AMF_B03_FIXNC_AD400_DIRECT | 4758058 / 4758059 | 1999 → 2399 |
+| US-NR3 | US-NR3_AMF_B03_FIXNC_AD400_DIRECT | 4758060 / 4758061 | 2007 → 2407 |
+
+Next: `B3_01 audit-first5` after the first 5-year segment (restart at start+5, spinup_state=2), `status` while running, `audit-ad400` at the end, then Normal400.
