@@ -1,5 +1,10 @@
 # Fixed Biogeography & no competition FATES experiment
 
+## NL-Loo V3 three-phase figures
+
+[NL-Loo PRE50 → AD200 → POST300 convergence and EC plotting](docs/NL_LOO_THREE_PHASE_PLOTS.md) checks the actual V3 history, marks incomplete phases and PRE50-based EC comparisons as interim, and uses NT-first tower GPP. It does not infer that POST300 has run.
+
+
 ## Separate AmeriFlux ten-site AD400 planning (24 October 2026)
 
 The user-confirmed AmeriFlux Batch01 **Stage80 forcing selection**, **Stage81 213 annual NetCDF files**, and **Stage82 213/213 SHA audit** are complete. The original NL-Loo case recovery directory is **NOT** a verified full DATM stream template (`DATM_MODE=1PT`, `stream_mode=NOT_IDENTIFIED`), and all ten Stage81 NetCDF files intentionally omit `ZBOT`. **These are not yet scientifically or technically connected to CIME/FATES**; no AD400 run should be submitted just from the NetCDF build result.
@@ -124,4 +129,3 @@ The older [NL-Loo three-stage runbook](docs/NL_Loo_V3_550_pipeline.md) remains a
 Original site forcing preparation, 6/8/11/13-site experiment development, ICOS site PFT research and diagnostics are in [CLM-FATES-single-site-workflows](https://github.com/lyanyeung/CLM-FATES-single-site-workflows). This repository adds isolated **fixed-biogeography/no-competition** scientific cases. Never rewrite earlier experiments or infer a successful 800-year run from successful CIME submission. Site inventory, raw meteorological packages, generated NetCDF, restarts and binaries do not belong in this source-code GitHub repository.
 
 **Reference reading:** [FATES prescribed biogeography/no-competition](https://fates-users-guide.readthedocs.io/projects/tech-doc/en/stable/fates_tech_note.html), [HLM↔FATES PFT map](https://fates-users-guide.readthedocs.io/en/latest/user/HLM-FATES-PFT-map.html), [Flechard et al. 2020 site inventory supplement](https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-supplement.pdf).
-
