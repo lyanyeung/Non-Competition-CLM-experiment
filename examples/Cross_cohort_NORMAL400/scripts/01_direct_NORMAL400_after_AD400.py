@@ -9,6 +9,8 @@ Covers the AD400 cases that have no Normal stage of their own:
                      Stage44 DK-Sor / BE-Bra (ICOS basal-area PFT rebuild)
   AmeriFlux Batch04  <SITE>_AMF_B04_FIXNC_AD400_BASETA_V1 (10 sites, FIXNC arm)
   DE-Tha             DE-Tha_OBSPFT_NC_V1_AD400 (AD5 + AD395)
+  AmeriFlux Batch03  B3_01 <SITE>_AMF_B03_FIXNC_AD400_DIRECT (10 sites, metfix_v1 forcing, 2026-10-29)
+  AmeriFlux Batch05  B5_01 <SITE>_AMF_B05_FIXNC_AD400_DIRECT (10 sites, 2026-10-29)
 
 The Batch04 and DE-Tha cases have no machine-readable ledger in this repository, so the
 first job of the AD400 chain is taken from Slurm accounting instead: the 80th-last run job
@@ -100,6 +102,8 @@ STAGE43 = {"ES-LJu": "ES-LJu_B02_FIXNC_MET24_GPPNPP_HISTFIX_AD400",
 STAGE44 = {"DK-Sor": "DK-Sor_B02_FIXNC_ICOS_DBF100_AD400",
            "BE-Bra": "BE-Bra_B02_FIXNC_ICOS_ENF84_DBF16_AD400"}
 AMF_B04 = ("US-Rpf", "US-SP1", "US-SRG", "US-SRM", "US-Seg", "US-Ses", "US-Slt", "US-Syv", "US-Ton", "US-Uaf")
+AMF_B03 = ("US-Kon", "US-MMS", "US-Me2", "US-Me6", "US-MOz", "US-Mpj", "US-MtB", "US-NC2", "US-NR1", "US-NR3")
+AMF_B05 = ("US-UiD", "US-UMB", "US-UMd", "US-Var", "US-Vcm", "US-Vcp", "US-WCr", "US-Whs", "US-Wjs", "US-Wkg")
 
 
 def registry():
@@ -123,6 +127,11 @@ def registry():
         r[s] = dict(cohort="AmeriFlux Batch04 FIXNC arm", ad=f"{s}_AMF_B04_FIXNC_AD400_BASETA_V1",
                     ledger=None, phases=(), job=None)
     r["DE-Tha"] = dict(cohort="DE-Tha pilot", ad="DE-Tha_OBSPFT_NC_V1_AD400", ledger=None, phases=(), job=None)
+    for tag, sites, d in (("B03", AMF_B03, EXP22 / "AmeriFlux_Batch03_10/Stage01_direct_AD400"),
+                          ("B05", AMF_B05, EXP22 / "AmeriFlux_Batch05_10/Stage01_direct_AD400")):
+        for s in sites:
+            r[s] = dict(cohort=f"AmeriFlux Batch{tag[1:]} {tag}_01 direct AD400", ad=f"{s}_AMF_{tag}_FIXNC_AD400_DIRECT",
+                        ledger=d / f"{s}_AD400_DIRECT_state.json", phases=("AD400_SUBMITTED",), job="first_run_job")
     return r
 
 
@@ -595,7 +604,8 @@ def batch(label, sites, fn):
 
 
 def self_test():
-    assert len(REG) == 27 and len(set(n_name(s) for s in REG)) == 27
+    assert len(REG) == 47 and len(set(n_name(s) for s in REG)) == 47
+    assert n_name("US-Me2") == "US-Me2_AMF_B03_FIXNC_NORMAL400_DIRECT" and n_name("US-Wkg") == "US-Wkg_AMF_B05_FIXNC_NORMAL400_DIRECT"
     assert n_name("US-Syv") == "US-Syv_AMF_B04_FIXNC_NORMAL400_BASETA_V1"
     assert n_name("DE-Tha") == "DE-Tha_OBSPFT_NC_V1_NORMAL400"
     assert n_name("US-GLE") == "US-GLE_AMF_B02_FIXNC_NORMAL400_DIRECT"
