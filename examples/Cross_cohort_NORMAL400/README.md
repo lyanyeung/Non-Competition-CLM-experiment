@@ -1,5 +1,9 @@
 # Cross-cohort: verified AD400 → direct NORMAL400 (27 October 2026)
 
+## Login-node plotting and publishing
+
+[Login-node retry and publication runbook](LOGIN_PLOTS_AND_PUBLISH.md) reuses available results from jobs 4764252 and 4766277, completes the current analysis interactively, and uploads available PNGs from the login node without submitting Slurm jobs.
+
 ## Retry missing plots and publish figures
 
 [Retry and GitHub publication runbook](RETRY_AND_PUBLISH.md) waits for the existing batch job, reuses complete case figures, redraws missing cases, and publishes PNG figures and a missing-output index using a fresh clone.

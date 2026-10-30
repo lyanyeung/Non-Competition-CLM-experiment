@@ -55,9 +55,10 @@ def pngs(root, site, case):
 def inventory(run):
     run = run.resolve()
     info = json.loads((run / "RUN_INFO.json").read_text(encoding="utf-8"))
-    old = Path(info["previous_root"]).resolve()
+    fallback = [info["previous_root"]] if info.get("previous_root") else []
+    old_roots = [Path(x).resolve() for x in info.get("previous_roots", fallback)]
     sources = {}
-    for root in (old, run):
+    for root in (*old_roots, run):
         for row in read_rows(root):
             site, case, ad = row.get("Site", ""), row.get("Normal_case", ""), row.get("AD_case", "")
             check_name(site); check_name(case)
@@ -69,7 +70,7 @@ def inventory(run):
         if len(ad_names) > 1:
             raise ValueError(f"Conflicting AD cases for {key}: {sorted(ad_names)}")
         # Take all figures from one coherent run. Prefer the retry on a tie.
-        root, row, files = max(options, key=lambda x: (len(x[2]), x[0] == run))
+        root, row, files = max(enumerate(options), key=lambda x: (len(x[1][2]), x[0]))[1]
         selected.append(((key[0], key[1], next(iter(ad_names), "")), root, row, files))
     return info, selected
 
@@ -98,13 +99,19 @@ def require_job_finished(job):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--run", required=True, type=Path, help="Finished retry output directory")
-    ap.add_argument("--retry-job", required=True, help="Slurm ID of the finished retry job")
+    mode = ap.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--retry-job", help="Slurm ID of the finished retry job")
+    mode.add_argument("--login", action="store_true", help="Use a completed direct login-node retry")
     ap.add_argument("--publish", action="store_true", help="Clone, commit and push derived PNGs to main")
     args = ap.parse_args()
     run = args.run.expanduser().resolve()
-    state = require_job_finished(args.retry_job)
+    state = require_job_finished(args.retry_job) if args.retry_job else "LOGIN_COMPLETE"
     info, selected = inventory(run)
-    if info.get("retry_job") != str(args.retry_job):
+    if args.login:
+        complete = json.loads((run / "RUN_COMPLETE.json").read_text(encoding="utf-8"))
+        if info.get("run_mode") != "login" or not info.get("run_id") or complete.get("run_id") != info["run_id"]:
+            raise ValueError("Login retry does not have a matching completed-run marker")
+    elif info.get("retry_job") != str(args.retry_job):
         raise ValueError("Retry job ID does not match the job recorded in RUN_INFO.json")
     if not str(info.get("previous_job", "")).isdigit():
         raise ValueError("Previous job ID in run metadata is invalid")
@@ -113,7 +120,7 @@ def main():
         raise RuntimeError("No valid PNG figures found; nothing to publish")
     missing = sum(bool(x[3]) and len(x[3]) < len(SUFFIXES) for x in selected)
     nofig = sum(not x[3] for x in selected)
-    print(f"Retry job {args.retry_job}: {state}; inventory: {nfiles} PNGs, {missing} partial cases, {nofig} cases with no figure")
+    print(f"Retry {args.retry_job or 'login'}: {state}; inventory: {nfiles} PNGs, {missing} partial cases, {nofig} cases with no figure")
     for (site, case, ad), _, row, files in selected:
         print(f"{site:7} {case}: {len(files)}/3 PNGs; {row.get('Status', 'UNKNOWN')}")
     if not args.publish:

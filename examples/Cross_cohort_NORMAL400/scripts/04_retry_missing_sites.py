@@ -12,6 +12,7 @@ import json
 import os
 import subprocess
 import traceback
+import uuid
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -86,12 +87,17 @@ def find_previous(previous, job, base):
         else:
             candidates = [p for p in base.glob("All_completed_AD400_NORMAL400_*")
                           if (p / "all_sites_summary.csv").is_file()]
+            if not candidates:
+                return None
             if len(candidates) != 1:
                 raise ValueError("Cannot uniquely identify previous output. Pass --previous-run; candidates: " +
                                  ", ".join(map(str, sorted(candidates))))
             root = candidates[0].resolve()
     if not (root / "all_sites_summary.csv").is_file():
-        raise FileNotFoundError("Previous summary missing: " + str(root / "all_sites_summary.csv"))
+        if previous:
+            raise FileNotFoundError("Previous summary missing: " + str(root / "all_sites_summary.csv"))
+        print("Previous summary is absent; proceeding with fresh live discovery", flush=True)
+        return None
     return root
 
 
@@ -99,6 +105,24 @@ def load_previous(root):
     with (root / "all_sites_summary.csv").open(newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     return {(r.get("Site"), r.get("Normal_case"), r.get("AD_case")): r for r in rows}
+
+
+def find_retry_output(job, base, previous_root, previous_job):
+    """Locate a finished supplementary run by recorded job ID, never by recency."""
+    candidates = []
+    for p in base.glob("Missing_completed_AD400_NORMAL400_*"):
+        try:
+            info = json.loads((p / "RUN_INFO.json").read_text(encoding="utf-8"))
+            if (str(info.get("retry_job", "")) == str(job) and
+                    str(info.get("previous_job", "")) == str(previous_job) and
+                    (previous_root is None or Path(info["previous_root"]).resolve() == previous_root.resolve()) and
+                    (p / "all_sites_summary.csv").is_file()):
+                candidates.append(p.resolve())
+        except (OSError, ValueError, KeyError):
+            continue
+    if len(candidates) > 1:
+        raise ValueError(f"Multiple outputs claim retry job {job}: {candidates}")
+    return candidates[0] if candidates else None
 
 
 def reusable(previous, root, site, ad, normal):
@@ -132,6 +156,8 @@ def main():
                     help="New absolute output directory on Home or Research Filestore")
     ap.add_argument("--previous-job", required=True, help="The finished original plotting Slurm job ID")
     ap.add_argument("--previous-run", type=Path, help="Original output directory, if automatic identification is ambiguous")
+    ap.add_argument("--extra-job", help="Also reuse completed plots from this finished supplementary Slurm job")
+    ap.add_argument("--login", action="store_true", help="Run directly in the login shell, without Slurm")
     args = ap.parse_args()
     root = args.output_root.expanduser()
     if not root.is_absolute():
@@ -143,7 +169,16 @@ def main():
         ap.error("Output directory must be new or empty: " + str(root))
     job_state = previous_job_finished(args.previous_job)
     previous_root = find_previous(args.previous_run, args.previous_job, Path.home() / "CLM_FATES_PLOTS")
-    previous = load_previous(previous_root)
+    previous_roots = [previous_root] if previous_root is not None else []
+    if args.extra_job:
+        extra_state = previous_job_finished(args.extra_job)
+        extra = find_retry_output(args.extra_job, Path.home() / "CLM_FATES_PLOTS", previous_root, args.previous_job)
+        if extra:
+            previous_roots.append(extra)
+            print(f"SUPPLEMENTARY JOB {args.extra_job}: {extra_state}; OUTPUT: {extra}", flush=True)
+        else:
+            print(f"SUPPLEMENTARY JOB {args.extra_job}: {extra_state}; no matching saved summary, continuing", flush=True)
+    previous = [(p, load_previous(p)) for p in previous_roots]
     print(f"PREVIOUS JOB {args.previous_job}: {job_state}; PREVIOUS OUTPUT: {previous_root}", flush=True)
     here = Path(__file__).resolve().parent
     scan = load("progress_scan", here / "scan.py")
@@ -155,9 +190,12 @@ def main():
     normal = sorted((r for r in rows if r["mode"] == "NORMAL"),
                     key=lambda r: (r["site"], r["name"]))
     root.mkdir(parents=True, exist_ok=True)
+    run_id = uuid.uuid4().hex
     (root / "RUN_INFO.json").write_text(json.dumps({"previous_job": str(args.previous_job),
         "retry_job": os.environ.get("SLURM_JOB_ID", ""),
-        "previous_job_state": job_state, "previous_root": str(previous_root)}, indent=2) + "\n", encoding="utf-8")
+        "run_mode": "login" if args.login else "slurm", "run_id": run_id,
+        "previous_job_state": job_state, "previous_root": str(previous_root) if previous_root else "",
+        "previous_roots": [str(p) for p in previous_roots]}, indent=2) + "\n", encoding="utf-8")
     settings = SimpleNamespace(
         archive_root=scan.OUT / "archive", cases_root=scan.BASE / "cases",
         sites_root=scan.BASE / "sites/MY_EC_SITE", output_root=root,
@@ -180,7 +218,8 @@ def main():
                 raise ValueError("referenced AD phase not DONE in current scan")
             restart_check(scan, ad)
             restart_check(scan, r)
-            reused = reusable(previous, previous_root, r["site"], ad_name, r["name"])
+            reused = next((folder for p, old in reversed(previous)
+                           if (folder := reusable(old, p, r["site"], ad_name, r["name"])) is not None), None)
             if reused:
                 record.update(Status="REUSED", Output_directory=str(reused), Source="previous run")
                 print("  REUSED:", reused, flush=True)
@@ -212,6 +251,8 @@ def main():
     failures = [r for r in results if r["Normal_scan"] == "DONE" and r["Status"] not in ("OK", "REUSED")]
     print(f"\nCOMPLETE: {ok} fully plotted or reused; {len(failures)} DONE Normal cases need review.")
     print("Manifest:", root / "all_sites_summary.csv", flush=True)
+    (root / "RUN_COMPLETE.json").write_text(json.dumps({"run_id": run_id, "ok_or_reused": ok,
+        "completed_needing_review": len(failures)}, indent=2) + "\n", encoding="utf-8")
     return int(bool(failures) or not ok)
 
 

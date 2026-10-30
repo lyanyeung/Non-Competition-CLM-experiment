@@ -60,6 +60,19 @@ class RetryTests(unittest.TestCase):
             (root / "all_sites_123.log").write_text("Manifest: " + old.as_posix() + "/all_sites_summary.csv\n")
             self.assertEqual(retry.find_previous(None, "123", root), old.resolve())
 
+    def test_no_previous_summary_does_not_block_fresh_analysis(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as t:
+            self.assertIsNone(retry.find_previous(None, "123", Path(t)))
+
+    def test_locates_supplement_by_job_and_original_pair(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as t:
+            base = Path(t); old = base / "old"; old.mkdir()
+            extra = base / "Missing_completed_AD400_NORMAL400_test"
+            summary(extra, [])
+            (extra / "RUN_INFO.json").write_text(json.dumps({"retry_job": "456", "previous_job": "123", "previous_root": str(old)}))
+            self.assertEqual(retry.find_retry_output("456", base, old, "123"), extra.resolve())
+            self.assertIsNone(retry.find_retry_output("999", base, old, "123"))
+
     def test_only_missing_completed_cases_are_drawn(self):
         with tempfile.TemporaryDirectory(dir=HERE) as t:
             base = Path(t); old = base / "old"; out = base / "retry"
@@ -134,6 +147,21 @@ class PublicationTests(unittest.TestCase):
                 self.assertEqual(publish.main(), 0)
             self.assertEqual(sum(x.endswith(".png") for x in staged), 3)
             self.assertFalse(any(x.endswith(".csv") for x in staged))
+
+    def test_login_publication_requires_matching_completion_marker(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as t:
+            root = Path(t)
+            row = {"Site": "AA-X", "Normal_case": "AA-X_NORMAL", "AD_case": "AA-X_AD", "Status": "OK"}
+            summary(root, [row]); figures(root)
+            (root / "RUN_INFO.json").write_text(json.dumps({"previous_root": "", "previous_roots": [],
+                "previous_job": "123", "run_mode": "login", "run_id": "abc"}))
+            (root / "RUN_COMPLETE.json").write_text(json.dumps({"run_id": "bad"}))
+            with patch("sys.argv", ["publish", "--run", str(root), "--login"]):
+                with self.assertRaises(ValueError):
+                    publish.main()
+            (root / "RUN_COMPLETE.json").write_text(json.dumps({"run_id": "abc"}))
+            with patch("sys.argv", ["publish", "--run", str(root), "--login"]):
+                self.assertEqual(publish.main(), 0)
 
 
 if __name__ == "__main__":
