@@ -1,5 +1,9 @@
 # Cross-cohort: verified AD400 → direct NORMAL400 (27 October 2026)
 
+## Retry missing plots and publish figures
+
+[Retry and GitHub publication runbook](RETRY_AND_PUBLISH.md) waits for the existing batch job, reuses complete case figures, redraws missing cases, and publishes PNG figures and a missing-output index using a fresh clone.
+
 ## Plot all completed sites
 
 [All-completed AD400 + Normal400 plotting runbook](ALL_COMPLETED_PLOTS.md): live status and reference-pair selection, NT-first EC comparison, and separate per-case carbon diagnostics. The analysis runs as a read-only-input Slurm job and writes new derived files under Home. Completion is not convergence.
