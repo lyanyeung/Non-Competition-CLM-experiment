@@ -101,6 +101,9 @@ class RetryTests(unittest.TestCase):
 
 
 class PublicationTests(unittest.TestCase):
+    def test_repository_uses_github_ssh(self):
+        self.assertEqual(publish.REPO, "git@github.com:lyanyeung/Non-Competition-CLM-experiment.git")
+
     def test_inventory_reuses_more_complete_original_and_does_not_mix(self):
         with tempfile.TemporaryDirectory(dir=HERE) as t:
             base = Path(t); old = base / "old"; new = base / "new"
@@ -166,4 +169,3 @@ class PublicationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

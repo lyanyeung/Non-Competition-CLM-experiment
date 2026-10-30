@@ -9,7 +9,7 @@ summary, the analysis can still proceed from the live cases.
 
 Paste the complete block into the IRIDIS6 login shell. Keep the session open;
 the analysis may take time. On completion it automatically runs the publisher on
-the login node. The publisher uploads only the already-generated PNGs, a README
+the login node. The publisher uses GitHub SSH and uploads only the already-generated PNGs, a README
 index and SHA256SUMS, to a new directory in the GitHub repository. It lists
 missing/partial results and never uploads raw or derived data tables. If the
 plotting process is interrupted before its completion marker, it does not push.
@@ -49,13 +49,14 @@ GitHub index. Reaching 400+400 years is not an equilibrium certificate; missing
 carbon fields cannot be reconstructed, and NT GPP may fall back to DT when NT
 is unavailable. Check the clock and forcing provenance before interpretation.
 
-If the GitHub push fails because of credentials or a non-fast-forward update,
-the analysis outputs remain unchanged. After addressing Git authentication on
-the login node, repeat only the publisher command using the paths printed at
-the start:
+If the GitHub push fails because of SSH authentication or a non-fast-forward update,
+the analysis outputs remain unchanged. Fetch the latest publisher (older copies
+may still use HTTPS), then repeat only the upload with the analysis output path:
 
 ```bash
-"$HOME/.conda/envs/clm_fates_env/bin/python" -B '<Publish script>' \
+PUBLISH=$(mktemp "$HOME/CLM_FATES_PLOTS/publisher_ssh.XXXXXXXX.py")
+curl -fsSL 'https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/main/examples/Cross_cohort_NORMAL400/scripts/05_publish_completed_figures.py' -o "$PUBLISH"
+"$HOME/.conda/envs/clm_fates_env/bin/python" -B "$PUBLISH" \
   --login --run '<Analysis output>' --publish
 ```
 
@@ -63,4 +64,3 @@ Do not send passwords or access tokens in chat. This code update has synthetic
 unit tests; it has not yet been run against the actual IRIDIS files or GitHub
 credentials. The tail of the old job showing only Slurm resource usage does not
 explain why it exited 1; inspect the earlier log lines for the actual errors.
-

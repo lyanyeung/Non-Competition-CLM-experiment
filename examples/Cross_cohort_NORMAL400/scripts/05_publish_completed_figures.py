@@ -16,7 +16,7 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO = "https://github.com/lyanyeung/Non-Competition-CLM-experiment.git"
+REPO = "git@github.com:lyanyeung/Non-Competition-CLM-experiment.git"
 SAFE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 SUFFIXES = ("_01_carbon_pools_AD400_NORMAL400.png",
             "_02_carbon_pools_NORMAL400_panels.png", "_GPP_NEE_monthly_overview.png")
@@ -178,4 +178,3 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
