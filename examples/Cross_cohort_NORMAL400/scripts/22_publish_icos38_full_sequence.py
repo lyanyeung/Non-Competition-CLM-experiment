@@ -61,16 +61,19 @@ def main():
                  "Fresh plots; no reuse of earlier PNGs. Model data may be reused from the prior derived monthly CSV after pair and date validation; provenance records its SHA256.",
                  "Each day, GPP uses NT VUT, NT CUT, DT VUT, then DT CUT; NEE prefers VUT then CUT. NT and DT counts include both VUT and CUT, identified in each site's provenance.",
                  "NT/DT counts are valid observation days over the indicated forcing period, not sample counts or a guarantee of completeness.",
+                 "Carbon figures show the full AD/Normal sequence and Normal-only convergence diagnostics. AD exit may rescale soil carbon; metrics do not certify equilibrium.",
                  "Only verified completed AD400→Normal400 pairs are shown; other protocols and missing cases are not relabelled as 800-year runs.",
                  "EC range uses years with 12 months having at least 20 valid days; EC monthly min/max use monthly climatology.",
                  "The index does not upload raw model or observation files. Cases without plots require the local site_status.csv and analysis.log.",
                  f"Run: {a.run_id}; analysis exit status: {parts[1]}.", "",
                  "[GPP overview](ALL_38_GPP_full_sequence_overview.png) · [NEE overview](ALL_38_NEE_full_sequence_overview.png)", "",
-                 "| Site | Normal case | Status | Streams | NT days | DT days | Figure | Provenance |",
-                 "| --- | --- | --- | --- | ---: | ---: | --- | --- |"]
+                 "[Soil carbon AD + Normal overview](ALL_38_TOTSOMC_AD_NORMAL_overview.png) · [Soil carbon Normal overview](ALL_38_TOTSOMC_NORMAL_overview.png)", "",
+                 "| Site | Normal case | Flux status | Carbon status | Streams | NT days | DT days | Flux | Carbon full | Carbon Normal | Carbon metrics | Provenance |",
+                 "| --- | --- | --- | --- | --- | ---: | ---: | --- | --- | --- | --- | --- |"]
         sums = []
-        for name in ("GPP", "NEE"):
-            src = root / f"ALL_38_{name}_full_sequence_overview.png"
+        for filename in ("ALL_38_GPP_full_sequence_overview.png", "ALL_38_NEE_full_sequence_overview.png",
+                         "ALL_38_TOTSOMC_AD_NORMAL_overview.png", "ALL_38_TOTSOMC_NORMAL_overview.png"):
+            src = root / filename
             if not src.is_file() or src.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
                 raise ValueError("Missing or invalid 38-site overview: " + str(src))
             dst = target / src.name; shutil.copyfile(src, dst)
@@ -82,6 +85,7 @@ def main():
             status = row.get("Status", "MISSING")
             status = status if re.fullmatch(r"[A-Z_]+", status) else "UNKNOWN"
             figcell = metacell = "missing"
+            carboncells = ["missing", "missing", "missing"]
             if case:
                 folder = (root / site / case).resolve()
                 if root not in folder.parents:
@@ -107,9 +111,24 @@ def main():
                     mdest.write_text(json.dumps(obj, indent=2, allow_nan=True) + "\n", encoding="utf-8")
                     mi = mdest.relative_to(target).as_posix(); sums.append(f"{digest(mdest)}  {mi}")
                     metacell = f"[JSON]({mi})"
+                    for i, suffix in enumerate(("_01_carbon_pools_AD400_NORMAL400.png",
+                                                 "_02_carbon_pools_NORMAL400_panels.png",
+                                                 "_convergence_metrics.csv")):
+                        source = folder / (site + suffix)
+                        if not source.is_file():
+                            continue
+                        if source.resolve().parent != folder or source.stat().st_size > 95_000_000:
+                            raise ValueError("Invalid carbon output " + str(source))
+                        if suffix.endswith(".png") and source.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
+                            raise ValueError("Invalid carbon figure " + str(source))
+                        target_file = dest.with_name(source.name); shutil.copyfile(source, target_file)
+                        ci = target_file.relative_to(target).as_posix(); sums.append(f"{digest(target_file)}  {ci}")
+                        carboncells[i] = f"[{'CSV' if suffix.endswith('.csv') else 'PNG'}]({ci})"
             stream = row.get("Stream_comparison", "")
             stream = stream if stream in ("MATCH", "DIFFERENT", "UNVERIFIED") else "—"
-            lines.append(f"| {site} | {case or '—'} | {status} | {stream} | {row.get('NT_days', '')} | {row.get('DT_days', '')} | {figcell} | {metacell} |")
+            carbon_status = row.get("Carbon_status", "")
+            carbon_status = carbon_status if re.fullmatch(r"[A-Z_]+", carbon_status) else "—"
+            lines.append(f"| {site} | {case or '—'} | {status} | {carbon_status} | {stream} | {row.get('NT_days', '')} | {row.get('DT_days', '')} | {figcell} | " + " | ".join(carboncells) + f" | {metacell} |")
         if not sums:
             raise ValueError("No readable fresh images to publish")
         (target / "README.md").write_text("\n".join(lines) + "\n", encoding="utf-8")

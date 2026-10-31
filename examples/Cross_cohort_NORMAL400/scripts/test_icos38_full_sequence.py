@@ -77,6 +77,22 @@ class FullSequenceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "dates or phase"):
                 fig.load_cached_model(root, "DE-Hai", "ad", "normal", 2003)
 
+    def test_carbon_outputs_use_normal_only_for_convergence(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as tmp:
+            spin = np.arange(1, 801)
+            carbon = pd.DataFrame({"SpinupYear": spin, "ModelYear": 2001 + spin,
+                                   "Phase": np.where(spin <= 400, "AD", "NORMAL"),
+                                   "TOTSOMC": np.where(spin <= 400, 10., 1000.)})
+            meta = {"TOTSOMC": {"csv_units": "g C m-2", "plot_units": "g C m-2"}}
+            inv = {"forcing": (2002, 2011, 2002), "start": 2002}
+            with patch.object(core, "annual_carbon", return_value=(carbon, ["TOTSOMC"], meta)), \
+                 patch.object(core, "plot_overview") as whole, patch.object(core, "plot_panels") as normal:
+                result = fig.draw_carbon(core, [], inv, "DE-Hai", "ad", "normal", Path(tmp))
+            self.assertEqual(result["status"], "OK")
+            self.assertEqual(whole.call_count, 1); self.assertEqual(normal.call_count, 1)
+            metrics = pd.read_csv(Path(tmp) / "DE-Hai_convergence_metrics.csv")
+            self.assertAlmostEqual(metrics.Last100y_slope_per_year.iloc[0], 0., places=9)
+
     def test_all_38_in_manifest_with_unavailable_sites_and_nt_counts(self):
         import sys
         with tempfile.TemporaryDirectory(dir=HERE) as tmp:
@@ -93,6 +109,10 @@ class FullSequenceTests(unittest.TestCase):
             def model(core, year, spin, phase, paths):
                 return ([{"SpinupYear": spin, "ModelYear": year, "Phase": phase, "Month": m,
                           "GPP": 1., "NEE": 0., "NPP": 0.5, "LAI": 1.} for m in range(1, 13)], set())
+            def carbon(core, jobs, inv, site, ad, normal, dest):
+                pd.DataFrame({"SpinupYear": [1, 401], "Phase": ["AD", "NORMAL"], "TOTSOMC": [1., 10.]}).to_csv(
+                    dest / f"{site}_carbon_annual_means.csv", index=False)
+                return {"status": "OK", "available_variables": ["TOTSOMC"]}
             ref = {k: {"mean": 1.} for k in ("GPP", "NEE")}
             out = root / "out"
             recorded = []
@@ -100,7 +120,9 @@ class FullSequenceTests(unittest.TestCase):
                  patch.object(fig, "load", side_effect=[fake_core, scan, runner]), \
                  patch.object(fig, "model_year", side_effect=model), \
                  patch.object(fig, "ec_reference", return_value=(ref, [], {"GPP_NT_VUT_REF": 10})), \
+                 patch.object(fig, "draw_carbon", side_effect=carbon), \
                  patch.object(fig, "plot_overviews"), \
+                 patch.object(fig, "plot_carbon_overviews"), \
                  patch.object(fig, "save", side_effect=lambda path, entries: recorded.__setitem__(slice(None), [dict(x) for x in entries])), \
                  patch.object(fig, "plot_site", return_value=None):
                 self.assertEqual(fig.main(), 1)
@@ -110,6 +132,7 @@ class FullSequenceTests(unittest.TestCase):
             self.assertEqual(len(saved), 38)
             hai = next(x for x in saved if x["Site"] == "DE-Hai")
             self.assertEqual(hai["Status"], "OK")
+            self.assertEqual(hai["Carbon_status"], "OK")
             self.assertEqual(hai["NT_days"], "10")
             self.assertEqual(next(x for x in saved if x["Site"] == "NL-Loo")["Status"], "MISSING")
 

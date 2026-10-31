@@ -29,8 +29,13 @@ class PublishTests(unittest.TestCase):
                 w = csv.DictWriter(f, fieldnames=["Site", "Normal_case", "Status", "NT_days", "DT_days"])
                 w.writeheader(); w.writerows(rows)
             (folder / "DE-Hai_03_GPP_NEE_full_sequence_AD400_NORMAL400.png").write_bytes(b"\x89PNG\r\n\x1a\nmock")
+            (folder / "DE-Hai_01_carbon_pools_AD400_NORMAL400.png").write_bytes(b"\x89PNG\r\n\x1a\nmock")
+            (folder / "DE-Hai_02_carbon_pools_NORMAL400_panels.png").write_bytes(b"\x89PNG\r\n\x1a\nmock")
+            (folder / "DE-Hai_convergence_metrics.csv").write_text("Variable\nTOTSOMC\n")
             for name in ("GPP", "NEE"):
                 (root / f"ALL_38_{name}_full_sequence_overview.png").write_bytes(b"\x89PNG\r\n\x1a\nmock")
+            for filename in ("ALL_38_TOTSOMC_AD_NORMAL_overview.png", "ALL_38_TOTSOMC_NORMAL_overview.png"):
+                (root / filename).write_bytes(b"\x89PNG\r\n\x1a\nmock")
             (folder / "DE-Hai_metadata.json").write_text(json.dumps({"ec_sources": [{"path": "/private/dir/tower.csv", "gpp_column": "GPP_NT_VUT_REF"}]}))
             (folder / "raw.nc").write_text("never published")
             seen = {}
@@ -49,6 +54,9 @@ class PublishTests(unittest.TestCase):
             with patch.object(sys, "argv", argv), patch.object(mod, "git", fake_git):
                 mod.main()
             self.assertNotIn("raw.nc", seen)
+            self.assertIn("DE-Hai_01_carbon_pools_AD400_NORMAL400.png", seen)
+            self.assertIn("DE-Hai_02_carbon_pools_NORMAL400_panels.png", seen)
+            self.assertIn("DE-Hai_convergence_metrics.csv", seen)
             self.assertNotIn(b"/private/dir", seen["DE-Hai_provenance.json"])
             self.assertIn(b"tower.csv", seen["DE-Hai_provenance.json"])
             self.assertEqual(sum(line.startswith(b"| S") and b"| MISSING |" in line

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ICOS 38-site AD400/Normal400 GPP, NEE, NPP and LAI diagnostic plots.
+"""ICOS 38-site AD400/Normal400 carbon, GPP, NEE, NPP and LAI plots.
 
 This script reads model histories and tower files; it does not modify cases.
 Only genuine AD400->Normal400 reference pairs are drawn as 800-year sequences.
@@ -189,6 +189,40 @@ def plot_overviews(annual_by_site, ref_by_site, out):
         plt.close(fig)
 
 
+def plot_carbon_overviews(carbon_by_site, out):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    for normal_only in (False, True):
+        fig, axes = plt.subplots(8, 5, figsize=(20, 22), sharex=True, squeeze=False)
+        for ax, site in zip(axes.flat, SITES):
+            carbon = carbon_by_site.get(site)
+            if carbon is None:
+                ax.text(.5, .5, "Soil carbon unavailable", ha="center", va="center", transform=ax.transAxes, fontsize=8)
+                ax.set_yticks([])
+            else:
+                for phase, color in (("AD", "#ba514b"), ("NORMAL", "#246eaa")):
+                    if normal_only and phase == "AD": continue
+                    part = carbon[carbon.Phase == phase]
+                    ax.plot(part.SpinupYear, part.TOTSOMC, color=color, lw=.9)
+                if not normal_only: ax.axvline(400.5, color="0.5", lw=.6, ls=":")
+                ax.grid(alpha=.15)
+            ax.set_xlim((401, 800) if normal_only else (1, 800))
+            ax.set_title(site, fontsize=9)
+        for ax in list(axes.flat)[len(SITES):]: ax.set_visible(False)
+        if normal_only:
+            title = "Normal soil organic carbon, years 401–800"
+            filename = "ALL_38_TOTSOMC_NORMAL_overview.png"
+        else:
+            title = "Soil organic carbon: AD (red) and Normal (blue); rescaling may occur at the boundary"
+            filename = "ALL_38_TOTSOMC_AD_NORMAL_overview.png"
+        fig.suptitle("ICOS 38 | " + title, fontsize=13)
+        fig.supxlabel("Spin-up year"); fig.supylabel("TOTSOMC (g C m⁻²)")
+        fig.tight_layout(rect=(0.03, 0.02, 1, .96))
+        fig.savefig(out / filename, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+
+
 def load_cached_model(prev, site, ad_case, normal_case, start_year):
     prev_csv = prev / f"{site}_model_monthly_derived.csv"
     prev_meta = prev / f"{site}_metadata.json"
@@ -210,6 +244,22 @@ def load_cached_model(prev, site, ad_case, normal_case, start_year):
     return frame, set(old_meta.get("missing_model_fields", [])), source_hash
 
 
+def draw_carbon(core, jobs, inv, site, ad_case, normal_case, dest):
+    """Calculate carbon diagnostics from histories, with Normal-only metrics."""
+    carbon, names, meta = core.annual_carbon(jobs, site)
+    first, last, align = inv["forcing"]
+    conv = core.convergence(carbon, names, meta, last - first + 1, align)
+    carbon.to_csv(dest / f"{site}_carbon_annual_means.csv", index=False)
+    conv.to_csv(dest / f"{site}_convergence_metrics.csv", index=False)
+    cases = f"{ad_case} → {normal_case} | model years {inv['start']}–{inv['start'] + 799}"
+    core.plot_overview(carbon, names, meta, site, cases, dest, False)
+    core.plot_panels(carbon, names, meta, site, dest, False, conv, last - first + 1)
+    status = ("MISSING_TOTSOMC" if "TOTSOMC" not in names else
+              "OK" if meta["TOTSOMC"]["csv_units"] == "g C m-2" else "UNVERIFIED_UNITS")
+    return {"status": status,
+            "available_variables": names, "units": meta}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--output-root", required=True, type=Path)
@@ -228,7 +278,7 @@ def main():
     by_name = {r["name"]: r for r in rows}
     out.mkdir(parents=True, exist_ok=True)
     settings = SimpleNamespace(archive_root=scan.OUT / "archive", cases_root=scan.BASE / "cases")
-    results, annual_by_site, ref_by_site = [], {}, {}
+    results, annual_by_site, ref_by_site, carbon_by_site = [], {}, {}, {}
     for site in SITES:
         record = {"Site": site, "Status": "MISSING", "Normal_case": "", "AD_case": "", "Error": ""}
         print(f"\n== {site} ==", flush=True)
@@ -249,14 +299,14 @@ def main():
             if not inv["complete"]:
                 raise ValueError(f"Incomplete history: AD {len(inv['ad_years'])}/400; Normal {len(inv['normal_years'])}/400")
             model, missing, source_hash = [], set(), ""
+            jobs = [(i + 1, y, "AD", inv["fad"][y]) for i, y in enumerate(inv["ad_years"])]
+            jobs += [(401 + i, y, "NORMAL", inv["fno"][y]) for i, y in enumerate(inv["normal_years"])]
             prev = a.source_run / site / normal["name"] if a.source_run else None
             cached = load_cached_model(prev, site, ad["name"], normal["name"], inv["start"]) if prev else None
             if cached is not None:
                 frame, missing, source_hash = cached
                 print("  reused validated previous monthly model data; SHA256", source_hash, flush=True)
             else:
-                jobs = [(i + 1, y, "AD", inv["fad"][y]) for i, y in enumerate(inv["ad_years"])]
-                jobs += [(401 + i, y, "NORMAL", inv["fno"][y]) for i, y in enumerate(inv["normal_years"])]
                 for i, (spin, year, phase, paths) in enumerate(jobs):
                     block, absent = model_year(core, year, spin, phase, paths)
                     model.extend(block); missing.update(absent)
@@ -274,13 +324,25 @@ def main():
             dest = out / site / normal["name"]; dest.mkdir(parents=True)
             plot_site(frame, ref, counts, site, normal["name"], dest)
             frame.to_csv(dest / f"{site}_model_monthly_derived.csv", index=False)
+            carbon_info = {"status": "ERROR"}
+            try:
+                print("  reading carbon histories for AD + Normal plots", flush=True)
+                calculated = draw_carbon(core, jobs, inv, site, ad["name"], normal["name"], dest)
+                if calculated["status"] == "OK":
+                    carbon_by_site[site] = pd.read_csv(dest / f"{site}_carbon_annual_means.csv")
+                carbon_info = calculated
+                print("  carbon:", carbon_info["status"], flush=True)
+            except Exception as exc:
+                record["Carbon_error"] = f"{type(exc).__name__}: {exc}"
+                print("  carbon unavailable:", record["Carbon_error"], flush=True)
+            record["Carbon_status"] = carbon_info["status"]
             metadata = {"site": site, "ad_case": ad["name"], "normal_case": normal["name"],
                         "gpp_policy": "Each day across sources: NT VUT, NT CUT, DT VUT, DT CUT; NEE VUT before NEE CUT",
                         "gpp_valid_days_by_column": {k: v for k, v in counts.items() if k.startswith("GPP_")},
                         "nee_valid_days_by_column": {k: v for k, v in counts.items() if k.startswith("NEE_")},
                         "model_data_reused": bool(source_hash), "source_model_csv_sha256": source_hash,
                         "ec_sources": provenance,
-                        "ec_reference": ref, "missing_model_fields": sorted(missing),
+                        "ec_reference": ref, "missing_model_fields": sorted(missing), "carbon": carbon_info,
                         "stream_comparison": stream, "ec_error": record.get("EC_error", "")}
             (dest / f"{site}_metadata.json").write_text(json.dumps(metadata, indent=2, default=str) + "\n")
             ec_ok = all(k in ref and np.isfinite(ref[k]["mean"]) for k in ("GPP", "NEE"))
@@ -304,12 +366,14 @@ def main():
         results.append(record)
         save(out, results)
     plot_overviews(annual_by_site, ref_by_site, out)
+    plot_carbon_overviews(carbon_by_site, out)
     drawn = sum(r["Status"] in ("OK", "PARTIAL_MODEL", "MODEL_ONLY_OR_INCOMPLETE_EC") for r in results)
     ec = sum(int(r.get("NT_days", 0)) + int(r.get("DT_days", 0)) > 0 for r in results)
     print(f"\nFigures: {drawn}/{len(SITES)} sites; GPP observations: {ec}/{len(SITES)}; "
+          f"soil carbon plots: {sum(r.get('Carbon_status') == 'OK' for r in results)}; "
           f"partial model histories: {sum(r['Status'] == 'PARTIAL_MODEL' for r in results)}.")
     print("Manifest:", out / "site_status.csv")
-    return int(any(r["Status"] != "OK" for r in results))
+    return int(any(r["Status"] != "OK" or r.get("Carbon_status") != "OK" for r in results))
 
 
 def save(out, rows):
