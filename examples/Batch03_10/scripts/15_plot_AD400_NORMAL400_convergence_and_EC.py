@@ -14,8 +14,8 @@ therefore use the NORMAL phase only.
 
 EC comparison uses the LAST COMPLETE forcing cycle inside the Normal phase,
 mapped to observation years with the DATM year_first/year_last/year_align.
-GPP partition (corrected policy): GPP_NT_VUT_REF first; GPP_DT_VUT_REF only
-when a source file has no usable NT values. Model NEE = -FATES_NEP; EC NEE =
+GPP partition: GPP_NT_VUT_REF takes precedence on each day across all sources;
+GPP_DT_VUT_REF is used only on days without usable NT. Model NEE = -FATES_NEP; EC NEE =
 NEE_VUT_REF. Units g C m-2 d-1.
 
 Outputs (per site, under --output-root, never under scratch):
@@ -364,19 +364,13 @@ def ec_daily_one(path, first, last, min_hh):
         return mean * EC_TO_GCD
 
     nee = daily("NEE_VUT_REF")
-    gpp_col = None
-    if GPP_NT in raw.columns:
-        g = daily(GPP_NT)
-        if g.notna().any():
-            gpp_col = GPP_NT
-    if gpp_col is None and GPP_DT in raw.columns:
-        g = daily(GPP_DT)
-        if g.notna().any():
-            gpp_col = GPP_DT
-    if gpp_col is None:
-        g = pd.Series(np.nan, index=nee.index)
+    nt = daily(GPP_NT) if GPP_NT in raw.columns else pd.Series(np.nan, index=nee.index)
+    dt = daily(GPP_DT) if GPP_DT in raw.columns else pd.Series(np.nan, index=nee.index)
+    g = nt.combine_first(dt)
+    gpp_col = ("NT+DT" if nt.notna().any() and (nt.isna() & dt.notna()).any() else
+               GPP_NT if nt.notna().any() else GPP_DT if dt.notna().any() else None)
     df = pd.DataFrame({"EC_GPP": g, "EC_NEE": nee})
-    df["EC_GPP_column"] = np.where(df["EC_GPP"].notna(), gpp_col or "", "")
+    df["EC_GPP_column"] = np.where(nt.notna(), GPP_NT, np.where(dt.notna(), GPP_DT, ""))
     df["EC_GPP_source"] = np.where(df["EC_GPP"].notna(), path.name, "")
     df["EC_source"] = path.name
     return df, gpp_col, cadence
@@ -385,7 +379,11 @@ def ec_daily_one(path, first, last, min_hh):
 def ec_daily(paths, first, last, min_hh):
     combined, prov = None, []
     for p in paths:
-        d, col, cadence = ec_daily_one(p, first, last, min_hh)
+        try:
+            d, col, cadence = ec_daily_one(p, first, last, min_hh)
+        except (OSError, ValueError, KeyError) as exc:
+            prov.append({"path": str(p), "gpp_column": "NONE", "reason": f"{type(exc).__name__}: {exc}"})
+            continue
         if d is None:
             prov.append({"path": str(p), "gpp_column": "NONE", "reason": "no timestamps in forcing period"})
             continue
@@ -406,7 +404,8 @@ def ec_daily(paths, first, last, min_hh):
             combined["EC_NEE"] = combined["EC_NEE"].combine_first(d["EC_NEE"])
             combined["EC_source"] = combined["EC_source"].combine_first(d["EC_source"])
     if combined is None:
-        raise ValueError(f"No EC timestamps in forcing period {first}-{last}")
+        raise ValueError(f"No usable EC source in forcing period {first}-{last}: "
+                         + "; ".join(f"{Path(p['path']).name}: {p.get('reason', 'unusable')}" for p in prov))
     return combined.reset_index().rename(columns={"index": "date"}), prov
 
 
@@ -654,7 +653,7 @@ def process(pair, args):
                 "ad_years": [inv["ad_years"][0], inv["ad_years"][-1]] if inv["ad_years"] else [],
                 "normal_years": [inv["normal_years"][0], inv["normal_years"][-1]] if inv["normal_years"] else [],
                 "forcing_first_last_align": [first, last, align], "model_history_frequency": freq, "ec_cycle_model_years": [cycle[0], cycle[-1]] if cycle else [],
-                "gpp_policy": "NT takes priority across all sources; DT only when the source has no usable NT and no NT is available for that day",
+                "gpp_policy": "NT takes priority across all sources on each day; DT only if no usable NT is available for that day",
                 "ec_gpp_columns_used": gpp_cols, "ec_sources": prov, "ec_source_priority": SOURCE_PRIORITY,
                 "model_gpp": "FATES_GPP", "model_nee": "-FATES_NEP", "ec_nee": "NEE_VUT_REF",
                 "flux_units": "g C m-2 d-1", "carbon_variables": names, "carbon_units": meta,

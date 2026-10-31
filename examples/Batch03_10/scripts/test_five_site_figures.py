@@ -2,6 +2,7 @@ import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -27,6 +28,31 @@ class TestScienceGuards(unittest.TestCase):
             np.testing.assert_allclose(result.EC_GPP, [20 * figures.EC_TO_GCD, 10 * figures.EC_TO_GCD])
             self.assertEqual(len(prov), 2)
 
+    def test_nt_first_with_dt_fallback_in_same_source(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as tmp:
+            path = Path(tmp) / "ICOS_FULLSET_HH.csv"
+            ts = pd.date_range("2001-01-01", periods=96, freq="30min")
+            pd.DataFrame({"TIMESTAMP_START": ts.strftime("%Y%m%d%H%M"),
+                          "NEE_VUT_REF": np.ones(96),
+                          "GPP_NT_VUT_REF": [20.] * 48 + [-9999.] * 48,
+                          "GPP_DT_VUT_REF": [10.] * 96}).to_csv(path, index=False)
+            result, _ = figures.ec_daily([path], 2001, 2001, 40)
+            self.assertEqual(list(result.EC_GPP_column), [figures.GPP_NT, figures.GPP_DT])
+            np.testing.assert_allclose(result.EC_GPP, [20 * figures.EC_TO_GCD, 10 * figures.EC_TO_GCD])
+
+    def test_bad_source_is_recorded_and_does_not_hide_valid_nt_source(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as tmp:
+            bad, good = Path(tmp) / "bad.csv", Path(tmp) / "good.csv"
+            ts = pd.date_range("2001-01-01", periods=48, freq="30min")
+            row = {"TIMESTAMP_START": ts.strftime("%Y%m%d%H%M"),
+                   "NEE_VUT_REF": np.ones(48), "GPP_NT_VUT_REF": np.ones(48)}
+            pd.DataFrame(row).to_csv(good, index=False)
+            row["TIMESTAMP_START"] = ["200101010000"] * 48
+            pd.DataFrame(row).to_csv(bad, index=False)
+            result, provenance = figures.ec_daily([bad, good], 2001, 2001, 40)
+            self.assertEqual(result.EC_GPP_column.iloc[0], figures.GPP_NT)
+            self.assertIn("duplicated timestamps", provenance[0]["reason"])
+
     def test_phase_alignment_for_cycle_comparisons(self):
         years = np.arange(2400, 2410)
         # Alignment 2402, forcing length 3: 2402-04 and 2405-07.
@@ -35,6 +61,34 @@ class TestScienceGuards(unittest.TestCase):
         out = figures.convergence(df, ["x"], {"x": {"csv_units": "g C m-2"}}, 3, 2402)
         self.assertEqual(out.iloc[0].Normal_complete_cycles, 2)
         self.assertAlmostEqual(out.iloc[0].Last_two_aligned_cycles_mean_abs_change_pct, 50.)
+        self.assertAlmostEqual(out.iloc[0].Last_two_aligned_cycles_mean_change_pct, 50.)
+        self.assertEqual(out.iloc[0].Last_aligned_cycle_start_model_year, 2405)
+
+    def test_short_normal_phase_has_no_full_window_trend(self):
+        self.assertTrue(np.isnan(figures.trend(np.arange(99.), 100)[0]))
+        self.assertTrue(np.isnan(figures.trend(np.arange(29.), 30)[0]))
+
+    def test_normal_metrics_ignore_ad_and_plots_do_not_join_phases(self):
+        from matplotlib.axes import Axes
+        ad = pd.DataFrame({"Phase": "AD", "ModelYear": np.arange(2000, 2400),
+                           "SpinupYear": np.arange(1, 401), "TOTSOMC": np.full(400, 1.)})
+        normal = pd.DataFrame({"Phase": "NORMAL", "ModelYear": np.arange(2400, 2800),
+                               "SpinupYear": np.arange(401, 801), "TOTSOMC": np.arange(400.) + 1000})
+        df = pd.concat([ad, normal], ignore_index=True)
+        meta = {"TOTSOMC": {"csv_units": "g C m-2", "plot_units": "g C m-2"}}
+        conv = figures.convergence(df, ["TOTSOMC"], meta, 10, 2000)
+        self.assertAlmostEqual(conv.iloc[0].Last100y_slope_per_year, 1.)
+        original = Axes.plot
+        calls = []
+        def record(ax, x, y, *args, **kwargs):
+            calls.append((np.asarray(x), np.asarray(y)))
+            return original(ax, x, y, *args, **kwargs)
+        with tempfile.TemporaryDirectory(dir=HERE) as tmp, patch.object(Axes, "plot", record):
+            overview = figures.plot_overview(df, ["TOTSOMC"], meta, "TEST", "AD → Normal", Path(tmp), False)
+            panels = figures.plot_panels(df, ["TOTSOMC"], meta, "TEST", Path(tmp), False, conv, 10)
+            self.assertTrue(overview.is_file())
+            self.assertTrue(panels.is_file())
+        self.assertEqual([(x.min(), x.max()) for x, _ in calls], [(1, 400), (401, 800), (401, 800)])
 
     def test_latest_full_cycle_respects_phase(self):
         self.assertEqual(figures.last_complete_cycle(list(range(2400, 2410)), 2000, 2002, 2402), [2405, 2406, 2407])
