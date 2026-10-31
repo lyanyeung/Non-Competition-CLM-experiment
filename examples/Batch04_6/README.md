@@ -151,7 +151,25 @@ python3 -B "$SCRIPT" \
 ~~~
 
 Next after Stage02E: native CH-Aws original tower T/RH/VPD/QC plus ERA5 matched half-hours and effective DATM stream-binding forensic audit; also review actual GL-ZaH Arctic private FATES parameters, and the four provisional grass/shrub tower original input records. Still NO AD5/AD400 and no local git pull.
-## Stage02F: full native-source forcing / soil / PFT science release (future)
+## Stage02E verified CH-Aws QBOT differences — 31 October 2026
+
+[Actual operator Stage02E output and full yearwise maxima](docs/stage02e_operator_IRIDIS6_result_20261031.md): 19 years, seven distinct annual DATM candidate paths per year and 133 path-year comparisons, **zero alignment/comparison holds**. Fourteen years differed in QBOT against the arbitrary unapproved SPINUP500_11P numerical baseline; 2015 and 2021–2024 were identical. Largest maximum absolute QBOT change was **8.6460387 g/kg** (2007), corresponding to a maximum estimated vapour-pressure change **11.051293 hPa**; 2008 and 2016–2020 had other large episodic differences. Annual `MAX_CHANGED_HH` counts are per-year maxima across candidate variants, not additive to a single revision's total.
+
+## Stage02F — complete changed half-hour ledger and RH saturation physics
+
+[Stage02F read-only script](scripts/02f_CH_Aws_QBOT_saturation_and_event_ledger_readonly.py). Reads the same Stage02C case/path source register; loads **all 19×7 site-DATM annual inputs** with activated Python NumPy and netCDF4. Requires exactly aligned CF time and unchanged TBOT, PSRF and units when attributing differences to QBOT. Uses QBOT/P to obtain actual water vapour pressure, Buck saturation over *liquid water* and *ice*, diagnostic RH (%), water-reference VPD, and writes a new standalone CSV with every variant-vs-reference changed half hour plus a JSON summarizing physical flags for all records. Water vs ice RH must not be conflated, especially at this alpine site. A saturation flag or a large difference triggers scientific review, **not automatic replacement**.
+
+Run outside the dirty Git working tree, using a pinned source SHA and fresh empty HOME directory:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02c "$HOME/ICOS_Batch04_stage02c_sGTtt5pv/stage02c_report.json" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+Only JSON/CSV in `--out-dir` are created. No forcing/CIME/Slurm/ERA change, no source-case approval. After Stage02F event-level diagnostics, **separately** verify original tower TA/RH/VPD/QC, ERA5 reference values and actual DATM stream paths on the affected native half hours, then review source-specific reason for each repair before model-release decisions.
+## Stage02G: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
