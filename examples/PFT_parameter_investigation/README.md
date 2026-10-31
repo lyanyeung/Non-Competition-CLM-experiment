@@ -143,7 +143,7 @@ Initialisation: FATES now offers closed-canopy initialisation in nocomp mode (`u
 
 | # | Hypothesis | First test (cheap → expensive) |
 | --- | --- | --- |
-| H1 | PFT 2 leaf area per unit leaf C is too small (low SLA with broadleaf-like `d2bl1`), so the carbon balance is negative | Run `01` on the IRIDIS6 file; then one site (NL-Loo or FI-Hyy), 50-year Normal cold start, PFT 2 `slatop` 0.01 (pre-2022 value) **or** `d2bl1` scaled so leaf area matches the observed stand LAI |
+| H1 | PFT 2 leaf area per unit leaf C is too small (low SLA with broadleaf-like `d2bl1`), so the carbon balance is negative | ~~Run `01` on the IRIDIS6 file~~ (done, identical); one site (NL-Loo or FI-Hyy), 50-year Normal cold start, PFT 2 `slatop` 0.01 (pre-2022 value) **or** `d2bl1` scaled so leaf area matches the observed stand LAI |
 | H2 | Ryan-1991 leaf respiration penalises high-N-per-area needles | Same site, `fates_leafresp_model = 'atkin2017'` (namelist only, all PFTs) |
 | H3 | Fine-root cost (`l2fr` = 1 with 200 g C m⁻² leaves) adds to H1 | Read `FATES_FROOTC` / `FATES_MAINT_RESP` in the PRE50 history; sensitivity only after H1/H2 |
 | H4 | Grass dips: stress-deciduous leaf-off with a 100-day minimum | Map dip years to forcing years and check soil potential / precipitation in those years; then `mindaysoff` sensitivity |
