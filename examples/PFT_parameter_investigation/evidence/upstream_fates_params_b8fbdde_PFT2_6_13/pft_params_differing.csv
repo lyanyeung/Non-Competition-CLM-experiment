@@ -1,0 +1,65 @@
+category,parameter,sub,units,differs,suspect,pft2_needleleaf_evergreen_extratrop_tree,pft6_broadleaf_colddecid_extratrop_tree,pft13_cool_c3_grass,why_it_matters,long_name,all_pfts
+leaf/photosynthesis,fates_leaf_slamax,,m^2/gC,True,yes,0.0954,0.0954,0.05,SLA cap deeper in the canopy,"Maximum Specific Leaf Area (SLA), even if under a dense canopy",0.0954 0.0954 0.0954 0.0954 0.0954 0.0954 0.012 0.03 0.03 0.012 0.032 0.05 0.05 0.05
+leaf/photosynthesis,fates_leaf_slatop,,m^2/gC,True,yes,0.005,0.03,0.05,leaf area per unit leaf C; low SLA = little leaf area per kg leaf C,"Specific Leaf Area (SLA) at top of canopy, projected area basis",0.012 0.005 0.024 0.009 0.03 0.03 0.012 0.03 0.03 0.01 0.032 0.027 0.05 0.05
+leaf/photosynthesis,fates_leaf_vcmax25top,leafage_class0,umol CO2/m^2/s,True,yes,62.0,58.0,78.0,photosynthetic capacity per leaf area,"maximum carboxylation rate of Rub. at 25C, canopy top",50 62 39 61 58 58 62 54 54 38 54 86 78 78
+leaf/photosynthesis,fates_maintresp_leaf_atkin2017_baserate,,umol CO2/m^2/s,True,yes,1.4995,1.756,2.1956,leaf MR per leaf area (used with atkin2017),Leaf maintenance respiration base rate parameter (r0) per Atkin et al 2017,1.756 1.5 1.5 1.756 1.756 1.756 2.075 2.075 2.075 2.075 2.075 2.196 2.196 2.196
+leaf/photosynthesis,fates_leaf_stomatal_slope_medlyn,,KPa**0.5,True,,2.3,4.4,5.3,,"stomatal slope parameter, as per Medlyn",4.1 2.3 2.3 4.1 4.4 4.4 4.7 4.7 4.7 4.7 4.7 2.2 5.3 1.6
+allometry,fates_allom_blca_expnt_diff,,unitless,True,yes,-0.34,-0.35,-0.487,crown-area exponent offset,difference between allometric DBH bleaf and DBH crown area exponents,-0.12 -0.34 -0.32 -0.22 -0.12 -0.35 0 0 0 0 0 -0.487 -0.487 -0.259
+allometry,fates_allom_d2bl1,,variable,True,yes,0.07,0.07,0.0004,"leaf C vs DBH intercept (kg C, not area)",Parameter 1 for d2bl allometry,0.04 0.07 0.07 0.01 0.04 0.07 0.07 0.07 0.07 0.04819 0.04819 4.000e-04 4.000e-04 0.0012
+allometry,fates_allom_d2bl2,,variable,True,yes,1.5234373,1.3998939,1.7092,leaf C vs DBH exponent,Parameter 2 for d2bl allometry,1.602 1.523 1.305 1.962 1.602 1.4 1.3 1.3 1.3 1.06 1.718 1.709 1.709 1.588
+allometry,fates_allom_d2ca_coefficient_max,,m2 cm^(-1/beta),True,yes,0.3693718,1.1553612,0.0408,crown area vs DBH coefficient,max (savanna) dbh to area multiplier factor where  area  n*d2ca_coeff*dbh^beta,0.2716 0.3694 1.079 0.05793 0.2716 1.155 0.6568 0.6568 0.6568 0.4363 0.3166 0.0408 0.0408 0.0862
+allometry,fates_allom_d2ca_coefficient_min,,m2 cm^(-1/beta),True,yes,0.3693718,1.1553612,0.0408,crown area vs DBH coefficient,min (forest) dbh to area multiplier factor where  area  n*d2ca_coeff*dbh^beta,0.2716 0.3694 1.079 0.05793 0.2716 1.155 0.6568 0.6568 0.6568 0.4363 0.3166 0.0408 0.0408 0.0862
+allometry,fates_allom_l2fr,,gC/gC,True,yes,1.0,1.0,0.67,fine-root C per leaf C (root MR and turnover cost),Allocation parameter  fine root C per leaf C,1 1 1 1 1 1 1 1 1 1 1 0.67 0.67 1.41
+allometry,fates_allom_agb1,,variable,True,,0.3956093,0.0803825,0.001,,Parameter 1 for agb allometry,0.0673 0.3956 0.04219 0.1376 0.0673 0.08038 0.06896 0.06896 0.06896 0.06896 0.06896 0.001 0.001 0.003
+allometry,fates_allom_agb2,,variable,True,,0.8295028,1.0221543,1.6592,,Parameter 2 for agb allometry,0.976 0.8295 1.076 0.8957 0.976 1.022 0.572 0.572 0.572 0.529 0.6854 1.659 1.659 1.346
+allometry,fates_allom_agb3,,variable,True,,1.94,1.94,1.248,,Parameter 3 for agb allometry,1.94 1.94 1.94 1.94 1.94 1.94 1.94 1.94 1.94 2.101 1.763 1.248 1.248 1.869
+allometry,fates_allom_agb4,,variable,True,,0.931,0.931,-999.9,,Parameter 4 for agb allometry,0.931 0.931 0.931 0.931 0.931 0.931 0.931 0.931 0.931 0.931 0.931 -999.9 -999.9 -999.9
+allometry,fates_allom_agb_frac,,fraction,True,,0.6,0.6,1.0,,Fraction of woody biomass that is above ground,0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 0.6 1 1 1
+allometry,fates_allom_amode,,index,True,,3.0,3.0,5.0,,AGB allometry function index.,3 3 3 3 3 3 1 1 1 1 1 5 5 5
+allometry,fates_allom_d2bl3,,unitless,True,,0.55,0.55,0.3417,,Parameter 3 for d2bl allometry,0.55 0.55 0.55 0.55 0.55 0.55 0.55 0.55 0.55 0.55 0.55 0.3417 0.3417 0.9948
+allometry,fates_allom_d2h1,,variable,True,,306.842667,31.4557047,0.1812,,"Parameter 1 for d2h allometry (intercept, or c)",78.41 306.8 106.9 104.4 78.41 31.46 0.64 0.64 0.64 0.8166 0.7781 0.1812 0.1812 0.3353
+allometry,fates_allom_d2h2,,variable,True,,0.752377,0.9734088,0.6384,,"Parameter 2 for d2h allometry (slope, or m)",0.8124 0.7524 0.9471 1.115 0.8124 0.9734 0.37 0.37 0.37 0.2316 0.4027 0.6384 0.6384 0.4235
+allometry,fates_allom_d2h3,,variable,True,,196.6865691,16.5928174,-999.9,,Parameter 3 for d2h allometry (optional),47.67 196.7 93.98 160.7 47.67 16.59 -999.9 -999.9 -999.9 -999.9 -999.9 -999.9 -999.9 -999.9
+allometry,fates_allom_dbh_maxheight,,cm,True,,1000.0,1000.0,20.0,,"the diameter (if any) corresponding to maximum height, diameters may increase beyond this",1000 1000 1000 1000 1000 1000 3 3 2 2.4 1.9 20 20 30
+allometry,fates_allom_fnrt_prof_a,,unitless,True,,7.0,6.0,11.0,,"Fine root profile function, parameter a",7 7 7 7 6 6 7 7 7 7 7 11 11 11
+allometry,fates_allom_h2cd1,,variable,True,,0.5,0.5,1.0,,Parameter 1 for h2cd allometry (exp(log-intercept) or scaling). If allom_dmode1 this is the same as former crown_depth_frac parameter,0.5 0.5 0.5 0.5 0.5 0.5 0.95 0.95 0.95 0.95 0.95 1 1 1
+allometry,fates_allom_hmode,,index,True,,5.0,5.0,3.0,,height allometry function index.,5 5 5 5 5 5 1 1 1 1 1 3 3 3
+allometry,fates_allom_lmode,,index,True,,2.0,2.0,5.0,,leaf biomass allometry function index.,2 2 2 2 2 2 1 1 1 1 1 5 5 5
+allometry,fates_allom_smode,,index,True,,1.0,1.0,2.0,,sapwood allometry function index.,1 1 1 1 1 1 1 1 1 1 1 2 2 2
+allometry,fates_allom_zroot_max_dbh,,cm,True,,100.0,100.0,2.0,,dbh at which a plant reaches the maximum value for its maximum rooting depth,100 100 100 100 100 100 2 2 2 2 2 2 2 2
+allometry,fates_allom_zroot_min_dbh,,cm,True,,1.0,2.5,0.1,,dbh at which the maximum rooting depth for a recruit is defined,1 1 1 2.5 2.5 2.5 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1
+turnover,fates_turnover_fnrt,,yr,True,yes,2.0,1.0,1.0,fine-root longevity (yr),"root longevity (alternatively, turnover time)",1 2 1 1.5 1 1 1.5 1 1 1.5 1 1 1 1
+turnover,fates_turnover_leaf_canopy,leafage_class0,yr,True,yes,4.0,1.0,1.0,leaf longevity in canopy (yr),"Leaf longevity (ie turnover timescale) of canopy plants. For drought-deciduous PFTs, this also indicates the maximum length of the growing (i.e., leaves on) season.",1.5 4 1 1.5 1 1 1.5 1 1 1.5 1 1 1 1
+turnover,fates_turnover_leaf_ustory,leafage_class0,yr,True,yes,4.0,1.0,1.0,leaf longevity in understory (yr),Leaf longevity (ie turnover timescale) of understory plants.,1.5 4 1 1.5 1 1 1.5 1 1 1.5 1 1 1 1
+turnover,fates_turnover_branch,,yr,True,,150.0,150.0,0.0,,turnover time of branches,150 150 150 150 150 150 150 150 150 150 150 0 0 0
+stoichiometry,fates_stoich_nitr,leaf,gN/gC,True,yes,0.029,0.04,0.04,leaf/root N per C -> maintenance respiration (Ryan 1991 is per g N),target nitrogen concentration (ratio with carbon) of organs,0.033 0.029 0.04 0.033 0.04 0.04 0.033 0.04 0.04 0.033 0.04 0.04 0.04 0.04
+stoichiometry,fates_stoich_phos,leaf,gP/gC,True,,0.0029,0.004,0.004,,target phosphorus concentration (ratio with carbon) of organs,0.0033 0.0029 0.004 0.0033 0.004 0.004 0.0033 0.004 0.004 0.0033 0.004 0.004 0.004 0.004
+phenology,fates_phen_leaf_habit,,flag,True,yes,1.0,2.0,3.0,"1 evergreen, 2 cold-deciduous, 3 stress(drought)-deciduous",Flag for leaf phenology habit. 1 - evergreen 2 - season (cold) deciduous 3 - stress (hydro) deciduous 4 - stress (hydro) semi-deciduous,1 1 2 1 3 2 1 3 2 1 2 2 3 3
+mortality,fates_mort_freezetol,,degrees C,True,yes,-55.0,-80.0,-20.0,freezing mortality threshold (degC),minimum temperature tolerance,2.5 -55 -80 -30 2.5 -80 -60 -10 -80 -71 -95 -89 -20 2.5
+recruitment/seed,fates_recruit_height_min,,m,True,yes,1.3,1.3,0.2,recruit height,the minimum height (ie starting height) of a newly recruited plant,1.3 1.3 1.3 1.3 1.3 1.3 0.2 0.2 0.2 0.8 0.8 0.11 0.2 0.2
+recruitment/seed,fates_recruit_init_dbh,,cm,True,yes,1.0,1.0,0.1,nocomp closed-canopy init DBH (only with use_fates_dbh_init),initial seedling dbh for a cold-start near-bare-ground simulation. Can only to be used in nocomp mode. To use it set use_dbh_init to true,1 1 1 1 1 1 0.5 0.5 0.5 0.5 0.5 0.1 0.1 0.1
+recruitment/seed,fates_recruit_seed_alloc,,fraction,True,yes,0.1,0.1,0.0,seed allocation,fraction of available carbon balance allocated to seeds,0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.07 0.1 0 0 0
+recruitment/seed,fates_recruit_seed_alloc_mature,,fraction,True,yes,0.0,0.0,0.25,seed allocation of mature plants,fraction of available carbon balance allocated to seeds in mature plants (adds to fates_seed_alloc),0 0 0 0 0 0 0.9 0.9 0.9 0.9 0.9 0.25 0.25 0.2
+recruitment/seed,fates_recruit_seed_dbh_repro_threshold,,cm,True,yes,80.0,80.0,3.0,DBH at which mature seed allocation starts,the diameter where the plant will increase allocation to the seed pool by fraction  fates_recruit_seed_alloc_mature,90 80 80 80 90 80 3 3 2 2.4 1.9 3 3 3
+radiation,fates_rad_leaf_clumping_index,,fraction (0-1),True,,0.85,0.9,0.75,,factor describing how much self-occlusion of leaf scattering elements decreases light interception,0.85 0.85 0.8 0.85 0.85 0.9 0.85 0.9 0.9 0.85 0.9 0.75 0.75 0.75
+radiation,fates_rad_leaf_rhonir,,fraction,True,,0.41,0.41,0.28,,Leaf reflectance  near-IR,0.46 0.41 0.39 0.46 0.41 0.41 0.46 0.41 0.41 0.46 0.41 0.28 0.28 0.28
+radiation,fates_rad_leaf_rhovis,,fraction,True,,0.09,0.08,0.05,,Leaf reflectance  visible,0.11 0.09 0.08 0.11 0.08 0.08 0.11 0.08 0.08 0.11 0.08 0.05 0.05 0.05
+radiation,fates_rad_leaf_taunir,,fraction,True,,0.32,0.43,0.4,,Leaf transmittance  near-IR,0.33 0.32 0.42 0.33 0.43 0.43 0.33 0.43 0.43 0.33 0.43 0.4 0.4 0.4
+radiation,fates_rad_leaf_tauvis,,fraction,True,,0.04,0.06,0.05,,Leaf transmittance  visible,0.06 0.04 0.06 0.06 0.06 0.06 0.06 0.06 0.06 0.06 0.06 0.05 0.05 0.05
+radiation,fates_rad_leaf_xl,,unitless,True,,0.01,0.59,-0.23,,Leaf/stem orientation index,0.32 0.01 0.01 0.32 0.2 0.59 0.32 0.59 0.59 0.32 0.59 -0.23 -0.23 -0.23
+radiation,fates_rad_stem_rhonir,,fraction,True,,0.36,0.49,0.53,,Stem reflectance  near-IR,0.49 0.36 0.36 0.49 0.49 0.49 0.49 0.49 0.49 0.49 0.49 0.53 0.53 0.53
+radiation,fates_rad_stem_rhovis,,fraction,True,,0.12,0.21,0.31,,Stem reflectance  visible,0.21 0.12 0.12 0.21 0.21 0.21 0.21 0.21 0.21 0.21 0.21 0.31 0.31 0.31
+radiation,fates_rad_stem_taunir,,fraction,True,,0.001,0.001,0.25,,Stem transmittance  near-IR,0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.25 0.25 0.25
+radiation,fates_rad_stem_tauvis,,fraction,True,,0.001,0.001,0.12,,Stem transmittance  visible,0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.12 0.12 0.12
+other,fates_hlm_pft_map,hlm1,area fraction,True,,1.0,0.0,0.0,,"In fixed biogeog mode, fraction of HLM area associated with each FATES PFT",0 1 0 0 0 0 0 0 0 0 0 0 0 0
+other,fates_hlm_pft_map,hlm13,area fraction,True,,0.0,0.0,1.0,,"In fixed biogeog mode, fraction of HLM area associated with each FATES PFT",0 0 0 0 0 0 0 0 0 0 0 0 1 0
+other,fates_hlm_pft_map,hlm2,area fraction,True,,1.0,0.0,0.0,,"In fixed biogeog mode, fraction of HLM area associated with each FATES PFT",0 1 0 0 0 0 0 0 0 0 0 0 0 0
+other,fates_hlm_pft_map,hlm7,area fraction,True,,0.0,1.0,0.0,,"In fixed biogeog mode, fraction of HLM area associated with each FATES PFT",0 0 0 0 0 1 0 0 0 0 0 0 0 0
+other,fates_hlm_pft_map,hlm8,area fraction,True,,0.0,1.0,0.0,,"In fixed biogeog mode, fraction of HLM area associated with each FATES PFT",0 0 0 0 0 1 0 0 0 0 0 0 0 0
+other,fates_landuse_grazing_palatability,,unitless 0-1,True,,0.0,0.0,1.0,,Relative intensity of leaf grazing/browsing per PFT,0 0 0 0 0 0 0 0 0 0 0 1 1 1
+other,fates_landuse_harvest_pprod10,,fraction,True,,0.75,0.75,1.0,,fraction of harvest wood product that goes to 10-year product pool (remainder goes to 100-year pool),1 0.75 0.75 0.75 1 0.75 1 1 1 1 1 1 1 1
+other,fates_landuse_luc_frac_exported,,fraction,True,,0.4,0.4,0.0,,fraction of land use change-generated wood material that is exported to wood product (the remainder is either burned or goes to litter),0.4 0.4 0.4 0.4 0.4 0.4 0.2 0.2 0.2 0.2 0.2 0 0 0
+other,fates_landuse_luc_pprod10,,fraction,True,,0.75,0.75,1.0,,fraction of land use change wood product that goes to 10-year product pool (remainder goes to 100-year pool),1 0.75 0.75 0.75 1 0.75 1 1 1 1 1 1 1 1
+other,fates_turb_z0mr,,unitless,True,,0.055,0.055,0.12,,Ratio of momentum roughness length to canopy top height,0.075 0.055 0.055 0.075 0.055 0.055 0.12 0.12 0.12 0.12 0.12 0.12 0.12 0.12
+other,fates_wood_density,,g/cm3,True,,0.44235,0.566452,0.7,,mean density of woody tissue in plant,0.5483 0.4424 0.4548 0.7543 0.5483 0.5665 0.7 0.7 0.7 0.7 0.7 0.7 0.7 0.7
+other,fates_woody,,logical flag,True,,1.0,1.0,0.0,,Binary woody lifeform flag,1 1 1 1 1 1 1 1 1 1 1 0 0 0

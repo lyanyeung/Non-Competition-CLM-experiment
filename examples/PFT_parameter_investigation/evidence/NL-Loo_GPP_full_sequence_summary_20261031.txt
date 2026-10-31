@@ -1,0 +1,21 @@
+# Output of scripts/17_plot_NL_Loo_GPP_full_sequence.py on IRIDIS6 (31 Oct 2026)
+NL-Loo V3 full-sequence GPP diagnostic
+PRE50 50/50y | AD200 200/200y | POST300 0/300y — INTERIM
+
+Variables used (first present wins):
+  PRE50   GPP  <- FATES_GPP [kg m-2 s-1]
+  PRE50   LAI  <- TLAI [m^2/m^2]
+  PRE50   NPP  <- FATES_NPP [kg m-2 s-1]
+  PRE50   VEGC <- FATES_VEGC [kg m-2]
+  AD200   GPP  <- FATES_GPP [kg m-2 s-1]
+  AD200   LAI  <- TLAI [m^2/m^2]
+  AD200   NPP  <- FATES_NPP [kg m-2 s-1]
+  AD200   not in history: VEGC
+
+Phase boundaries (vegetation should be continuous):
+PRE50 -> AD200  GPP : last 5y    0.3606  first 5y    0.3659  change    +1.5%
+PRE50 -> AD200  NPP : last 5y    0.2609  first 5y    0.2706  change    +3.7%
+PRE50 -> AD200  LAI : last 5y    0.2079  first 5y    0.2034  change    -2.1%
+AD200 -> POST300: not enough complete years on both sides
+PRE50   GPP last 30y: mean 0.4013 g C m-2 d-1, trend -88.3% per 100y
+AD200   GPP last 30y: mean 0.3262 g C m-2 d-1, trend -1.0% per 100y
