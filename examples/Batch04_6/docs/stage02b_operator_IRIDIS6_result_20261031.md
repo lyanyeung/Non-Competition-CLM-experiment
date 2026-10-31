@@ -30,3 +30,14 @@ The first path printed in each CIME input list is **not necessarily the site's D
 4. Keep GL-ZaH private Arctic host-to-FATES mapping requirement, CH-Aws RH/HumanIndexMod HOLD, and ES-Agu uncertain cover denominator. All six remain **HOLD_NO_AD5_AD400**.
 
 Next tool: [Stage02C no-NumPy environment/DATM-reference audit](../scripts/02c_batch04_python_env_and_datm_reference_readonly.py).
+
+## Follow-up after activating the correct Python environment (same day)
+
+The operator reran the **same Stage02B source SHA** in an environment with working `numpy` and `netCDF4`. The new run preserved the same 15+2 **historical Stage02A errors**, but crucially reported **`NC_PROBE ... OPEN PASS TIME_KEYS time`** for all four sampled files:
+
+- CH-Aws: `CH-Aws_DATM_2006.nc` and `CH-Aws_DATM_2024.nc` — both NetCDF4/HDF5 OPEN PASS.
+- GL-ZaH: `GL-ZaH_DATM_2000.nc` and `GL-ZaH_DATM_2025.nc` — both NetCDF4/HDF5 OPEN PASS.
+
+New report: `/home/ly3n24/ICOS_Batch04_stage02b_qRFrYeC1/stage02b_diagnostics.json` (not uploaded). **The original Stage02A errors remain historical counts in that input JSON; they are not new Stage02B read failures**. This resolves the narrow library/openability blocker for four probe files, but it does NOT prove their full climate physics or the correctness of other annual files.
+
+Next: use the activated environment to perform a bounded read-only audit of the actual site annual DATM NC references across all six original source cases; record per-year source coverage, mismatched case references and numerical QC, while preserving source-versus-ERA and active-stream HOLDs.
