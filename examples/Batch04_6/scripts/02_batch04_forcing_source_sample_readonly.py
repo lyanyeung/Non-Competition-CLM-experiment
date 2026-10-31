@@ -208,7 +208,7 @@ def sample_netcdf(path):
                 result["meteorology"][key] = info
             if not result["meteorology"]:
                 result["warning"] = "NO_RECOGNISED_MET_VARIABLES_CHECK_SOURCE"
-    except (OSError, ValueError, RuntimeError) as exc:
+    except Exception as exc:
         result["read_error"] = type(exc).__name__ + ": " + str(exc)
     return result
 
@@ -230,8 +230,11 @@ def audit_site(base, row, max_sample):
             raise ValueError("Invalid Stage01 forcing directory name: " + dirname)
         folder = root / dirname
         paths, cut = walk_netcdf(folder)
-        indices = sorted(set((0, len(paths)//2, len(paths)-1))) if paths else []
-        selected = [paths[i] for i in indices[:max_sample]] if max_sample > 0 else []
+        indices = ([0] if max_sample == 1 else
+                   [0, len(paths)-1] if max_sample == 2 else
+                   [0, len(paths)//2, len(paths)-1] if max_sample == 3
+                   else []) if paths else []
+        selected = [paths[i] for i in dict.fromkeys(indices)]
         candidate_dirs.append({
             "name": dirname, "path": str(folder),
             "nc_file_count_discovered": len(paths), "listing_truncated": cut,
@@ -302,10 +305,31 @@ def main():
         print(row["site"], "CASE_CANDIDATES", row["source_case_count"],
               "FORCING_DIRS", row["candidate_forcing_folder_count"],
               "HOLD_ACTIVE_STREAM_AND_FULL_HH_QC")
+        for case in row["case_provenance"]:
+            print("  CASE", case["case"], "POINT", case.get("point_check_stage01"),
+                  "DATM_REF_LINES", case["datm_list"].get("reference_lines_total", "NA"))
         for folder in row["forcing_folders"]:
-            print(" ", folder["name"], "NC", folder["nc_file_count_discovered"],
+            print("  FORCING", folder["name"], "NC", folder["nc_file_count_discovered"],
                   "SAMPLED", len(folder["sampled_netcdf"]),
                   "TRUNCATED", folder["listing_truncated"])
+            for sampled in folder["sampled_netcdf"]:
+                flags = []
+                if sampled.get("read_error"):
+                    flags.append("READ_ERROR")
+                t = sampled.get("time", {})
+                if t.get("nonincreasing_steps", 0):
+                    flags.append("NONMONOTONIC_TIME")
+                for met, info in sampled.get("meteorology", {}).items():
+                    if info.get("missing_percent", 0):
+                        flags.append(met + "_MISSING=" + str(info["missing_percent"]) + "%")
+                    for key in ("negative_count", "outside_0_100_count",
+                                "outside_180_340K_count"):
+                        if info.get(key, 0):
+                            flags.append(met + "_" + key + "=" + str(info[key]))
+                print("    SAMPLE", Path(sampled["path"]).name,
+                      "TIME_COUNT", t.get("elements", "NA"),
+                      "FLAGS", ",".join(flags[:15]) if flags else "NO_CHECKED_FLAGS")
+
     if args.report:
         output = args.report.expanduser().resolve()
         if not output.parent.is_dir():
