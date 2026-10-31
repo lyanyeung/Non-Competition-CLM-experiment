@@ -88,7 +88,27 @@ python3 -B "$ROOT/examples/Batch04_6/scripts/02b_batch04_explain_readerrors_and_
   --max-probes-per-site 2 \
   --report "$ROOT/stage02b_error_and_references.json"
 ~~~
-## Stage02C: full forcing/soil/PFT science release (future)
+## Stage02B update — working NetCDF Python environment (31 October 2026)
+
+[Stage02B operator evidence and corrected environment result](docs/stage02b_operator_IRIDIS6_result_20261031.md): the earlier Stage02A READ_ERROR messages were dependency imports (`numpy` missing); after activation, **CH-Aws DATM 2006/2024 and GL-ZaH DATM 2000/2025 all opened successfully** through `netCDF4`. The old Stage02A 15+2 error counts are *historical source JSON fields*, not fresh failures. CIME input lists contain 25/28/21/24/25/32 candidate absolute NC references, including non-meteorological global aerosol/deposition files. Site-specific DATM NC locations for DE-Gri, DE-RuR, IT-Tor and ES-Agu occur under the FLUXNET_13 experiment DATM annual directories. No annual numerical science-QC pass is established by the four successful opens.
+
+## Stage02C — exact site DATM source years and bounded numeric checks
+
+[Stage02C code](scripts/02c_batch04_site_DATM_reference_years_sample_QC_readonly.py). Use the activated `clm_fates_env` Python and the most recent Stage02B JSON. This script uses the input list's **exact `<site>_DATM_<YYYY>` filename** to exclude unrelated aerosol and land files; compares source paths and year gaps among every case, then uses `netCDF4`/`numpy` to inspect a few years per distinct forcing directory (earliest and latest by filename, by default). It displays time-coordinate length, non-monotonic numeric time, missing/nonfinite meteorological values and unit-conditioned basic physical flags, with the full data and source stream remaining HOLD. To examine every candidate annual NC rather than two per directory, use `--samples-per-directory 0` only after reviewing the source inventory and expected compute cost.
+
+Standalone after downloading the immutable GitHub script and verifying its blob SHA:
+
+~~~bash
+ROOT="$HOME/ICOS_Batch04_stage02b_qRFrYeC1"
+python3 -B "$ROOT/02c_batch04_site_DATM_reference_years_sample_QC_readonly.py" --self-test
+python3 -B "$ROOT/02c_batch04_site_DATM_reference_years_sample_QC_readonly.py" \
+  --stage02b "$ROOT/stage02b_diagnostics.json" \
+  --samples-per-directory 2 \
+  --report "$ROOT/stage02c_site_DATM_sample.json"
+~~~
+
+All six sites remain pending native-tower QC, actual active DATM-stream binding, soil evidence, PFT science and GL-ZaH private Arctic mapping. No git pull, CIME or Slurm required.
+## Stage02D: full forcing/soil/PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
