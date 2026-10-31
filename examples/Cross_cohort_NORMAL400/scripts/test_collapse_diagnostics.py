@@ -87,7 +87,19 @@ def write_nc(path, year, month, values):
     ds.close()
 
 
-def site_values(spin, month):
+AD_MINIMAL = {"FATES_GPP", "FATES_NPP", "TLAI"}   # what the real AD400 cases wrote
+
+
+def site_values(spin, month, minimal=False, all_dead=False):
+    v = _site_values(spin, month)
+    if all_dead:
+        for k in ("FATES_VEGC_PF", "FATES_NPLANT_PF", "FATES_RECRUITMENT_PF", "FATES_NPP_PF"):
+            d, a, u = v[k]; v[k] = (d, np.zeros_like(np.asarray(a, dtype=float)), u)
+        v["FATES_VEGC"] = ((), [0.0], "kg m-2")
+    return {k: x for k, x in v.items() if k in AD_MINIMAL} if minimal else v
+
+
+def _site_values(spin, month):
     """Needleleaf PFT2 starves: storage and density decline to ~0 by year 8; PFT3 tiny but alive."""
     alive = max(0.0, 1.0 - (spin - 1) / 8.0) if spin <= 400 else 0.0
     winter = month in (12, 1, 2)
@@ -121,6 +133,7 @@ def site_values(spin, month):
 
 class CollapseDiagnosticsTest(unittest.TestCase):
     AD_YEARS, NO_YEARS = 40, 6
+    AD_MINIMAL = False
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -136,11 +149,11 @@ class CollapseDiagnosticsTest(unittest.TestCase):
             hist = self.archive / case / "lnd" / "hist"; hist.mkdir(parents=True)
         for y in range(1, self.AD_YEARS + 1):
             for m in range(1, 13):
-                write_nc(self.archive / ad / "lnd" / "hist" / f"{ad}.clm2.h0.{y:04d}-{m:02d}.nc", y, m, site_values(y, m))
+                write_nc(self.archive / ad / "lnd" / "hist" / f"{ad}.clm2.h0.{y:04d}-{m:02d}.nc", y, m, site_values(y, m, self.AD_MINIMAL))
         for k in range(self.NO_YEARS):
             y = 401 + k
             for m in range(1, 13):
-                write_nc(self.archive / no / "lnd" / "hist" / f"{no}.clm2.h0.{y:04d}-{m:02d}.nc", y, m, site_values(y, m))
+                write_nc(self.archive / no / "lnd" / "hist" / f"{no}.clm2.h0.{y:04d}-{m:02d}.nc", y, m, site_values(y, m, all_dead=self.AD_MINIMAL))
         spec = importlib.util.spec_from_file_location("diag08", HERE / "08_diagnose_collapse_mortality.py")
         self.mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.mod)
@@ -165,7 +178,8 @@ class CollapseDiagnosticsTest(unittest.TestCase):
                               "--archive-root", str(self.archive), "--cases-root", str(self.cases)])
         err = out / "FI-Sod" / "ERROR.txt"
         self.assertEqual(code, 0, err.read_text() if err.exists() else "")
-        rows = list(csv.DictReader((out / "collapse_summary.csv").open()))
+        with (out / "collapse_summary.csv").open() as f:
+            rows = list(csv.DictReader(f))
         r = rows[0]
         self.assertEqual(r["Status"], "OK")
         self.assertTrue(r["Focal_PFT"].startswith("2 needleleaf"), r["Focal_PFT"])
@@ -187,6 +201,28 @@ class CollapseDiagnosticsTest(unittest.TestCase):
             self.assertTrue(p.is_file() and p.read_bytes()[:4] == b"\x89PNG", tag)
         self.assertTrue((out / "RUN_COMPLETE.json").is_file())
         self.assertIn("FATES_MORTALITY_CSTARV_SZPF", (out / "FI-Sod" / "FI-Sod_history_inventory.txt").read_text())
+
+
+class MinimalADHistoryTest(CollapseDiagnosticsTest):
+    """Real layout: AD wrote only GPP/NPP/TLAI; Normal has full output but all plants are dead."""
+    AD_MINIMAL = True
+
+    def test_units(self):
+        pass
+
+    def test_end_to_end(self):
+        out = Path(self.tmp.name) / "out"
+        code = self.mod.main(["--output-root", str(out), "--sites", "FI-Sod", "--workers", "1", "--first-years", "12",
+                              "--archive-root", str(self.archive), "--cases-root", str(self.cases)])
+        err = out / "FI-Sod" / "ERROR.txt"
+        self.assertEqual(code, 0, err.read_text() if err.exists() else "")
+        with (out / "collapse_summary.csv").open() as f:
+            r = list(csv.DictReader(f))[0]
+        self.assertEqual(r["Collapse_year"], "")                       # not determinable, not "1"
+        self.assertIn("written only for spin-up years 401-406", r["Output_note"])
+        self.assertIn("zero in all of them", r["Output_note"])
+        self.assertGreater(float(r["GPP_year1_gC_m-2_d-1"]), 0)
+        self.assertEqual(int(r["GPP_max_year"]), 1)
 
 
 if __name__ == "__main__":

@@ -322,7 +322,11 @@ def mort_series(df, t, focal):
 
 
 def choose_focal(mon, names):
-    first = mon[mon.SpinupYear == mon.SpinupYear.min()]
+    pcols = [c for c in mon.columns if re.match(r"FATES_(VEGC|NPLANT)_PF__pft\d+$", c)]
+    have = mon[mon[pcols].notna().any(axis=1)] if pcols else mon.iloc[:0]
+    if have.empty:
+        return None
+    first = have[have.SpinupYear == have.SpinupYear.min()]
     size = {}
     for c in first.columns:
         m = re.match(r"FATES_(VEGC|NPLANT)_PF__pft(\d+)$", c)
@@ -339,6 +343,21 @@ def choose_focal(mon, names):
     return max(pool, key=key) if pool else None
 
 
+def output_note(ann, focal):
+    """Plain statement of which years carry vegetation-state output and whether it is all zero."""
+    c = f"FATES_VEGC_PF__pft{focal}" if focal else "FATES_VEGC"
+    if c not in ann:
+        return "no vegetation-carbon output in any year"
+    v = ann[c].to_numpy(float); ok = np.isfinite(v)
+    if not ok.any():
+        return "no vegetation-carbon output in any year"
+    yrs = ann.SpinupYear.to_numpy()[ok]
+    span = f"{c} written only for spin-up years {yrs.min()}-{yrs.max()}" if ok.sum() < len(v) else f"{c} written for all years"
+    if np.nanmax(v) <= 1e-6:
+        return span + "; it is zero in all of them (vegetation already gone)"
+    return span
+
+
 def collapse_year(ann, focal):
     """First spin-up year after which focal-PFT VEGC stays below 1 % of its maximum (tail >= 30 y)."""
     c = f"FATES_VEGC_PF__pft{focal}" if focal else None
@@ -346,9 +365,13 @@ def collapse_year(ann, focal):
         c = "FATES_VEGC" if "FATES_VEGC" in ann else None
     if c is None:
         return None, None
-    v = ann[c].to_numpy(float)
-    if not np.isfinite(v).any() or np.nanmax(v) <= 0:
-        return int(ann.SpinupYear.iloc[0]), c
+    sub = ann[np.isfinite(ann[c].to_numpy(float))]
+    v = sub[c].to_numpy(float)
+    if not len(v) or np.nanmax(v) <= 1e-6:
+        return None, c          # no usable output, or already zero wherever written: see Output_note
+    if sub.SpinupYear.iloc[0] != ann.SpinupYear.iloc[0]:
+        return None, c          # output starts late: the true maximum may be unrecorded
+    ann = sub
     low = v < 0.01 * np.nanmax(v)
     if len(v) < 30 or not low[-30:].all():
         return None, c
@@ -360,6 +383,8 @@ def collapse_year(ann, focal):
 
 def attribution(mon, ann, focal, cy):
     """Mean deaths by type in the window before collapse (or the last 100 years if no collapse)."""
+    if focal is None:
+        return {"Attribution_window": "none", "Dominant_mortality": "n/a: no living plants in any year with per-PFT output"}
     if cy is None:
         win = mon[mon.SpinupYear > mon.SpinupYear.max() - 100]
         label = "last 100 years"
@@ -462,6 +487,8 @@ def plot_site(site, pair, df, names, focal, cy, att, dest, monthly, first_years)
                            else bool(ax.plot(x, df[c], color=cmap(i % 10), lw=lw, label=pname(k))))
             if log and ok:
                 ax.set_yscale("log")
+            if not ok and any(f"{prefix}__pft{k}" in df and df[f"{prefix}__pft{k}"].notna().any() for k in pfts):
+                ok = None
             return ok, unit, title
         return f
     panels.append(p_pft("FATES_VEGC_PF", "Vegetation carbon by PFT (log)", "g C m-2"))
@@ -492,6 +519,8 @@ def plot_site(site, pair, df, names, focal, cy, att, dest, monthly, first_years)
                 ok |= _logplot(ax, x, s, color=cmap(i % 10), lw=1, label=t.lower() + " (deaths ha-1 yr-1)")
         if ok:
             ax.set_yscale("log")
+        elif any(c.startswith("MORT_") and df[c].notna().any() for c in df.columns):
+            ok = None
         unit = "% of plants yr-1" if (focal and dens is not None) else "% yr-1 / deaths"
         return ok, unit, "Mortality rate by type (focal PFT, log)"
     panels.append(p_mort)
@@ -524,7 +553,9 @@ def plot_site(site, pair, df, names, focal, cy, att, dest, monthly, first_years)
             ax.axvline(cy - (1 if monthly else 0), color="#b00000", ls=":", lw=1.2)
         ok, unit, title = fn(ax)
         if not ok:
-            ax.text(0.5, 0.5, "not in history output", transform=ax.transAxes, ha="center", va="center", color="0.5")
+            msg = ("written, but zero in every year that has output (no living plants)" if ok is None
+                   else "not in history output")
+            ax.text(0.5, 0.5, msg, transform=ax.transAxes, ha="center", va="center", color="0.5")
             ax.set_yticks([])
         else:
             shown += 1
@@ -538,7 +569,8 @@ def plot_site(site, pair, df, names, focal, cy, att, dest, monthly, first_years)
     fig.suptitle(f"{site} | collapse diagnostics ({'monthly, first %d y' % first_years if monthly else 'annual, 800 y'})\n"
                  f"{pair['ad']} → {pair['normal']}\n"
                  f"focal PFT: {pname(focal) if focal else 'n/a'} | collapse (VEGC<1% of max): "
-                 f"{'year %d' % cy if cy else 'none'} (red dotted)\n"
+                 f"{'year %d' % cy if cy else 'not determinable'} (red dotted)\n"
+                 f"{output_note(df if not monthly else annual_from_monthly(df), focal)}\n"
                  f"mortality in {att.get('Attribution_window', '')}: {top}", fontsize=11)
     fig.tight_layout()
     tag = f"_05_collapse_diagnostics_first{first_years}y.png" if monthly else "_04_collapse_diagnostics_full800.png"
@@ -594,6 +626,12 @@ def process(task):
         rec["Focal_PFT"] = f"{focal} {names[focal - 1]}" if focal and focal - 1 < len(names) else str(focal)
         rec["Collapse_year"] = cy if cy is not None else ""
         rec["Collapse_based_on"] = cy_col or ""
+        rec["Output_note"] = output_note(ann, focal)
+        g = ann["FATES_GPP"] if "FATES_GPP" in ann else None
+        if g is not None and g.notna().any():
+            rec["GPP_year1_gC_m-2_d-1"] = float(g.iloc[0])
+            rec["GPP_max_annual_gC_m-2_d-1"] = float(g.max())
+            rec["GPP_max_year"] = int(ann.SpinupYear[g.idxmax()])
         att = attribution(mon, ann, focal, cy)
         rec.update(att)
         mon.to_csv(dest / f"{site}_collapse_monthly.csv", index=False)
@@ -610,7 +648,8 @@ def process(task):
 
 
 def save_summary(root, rows):
-    first = ["Site", "Status", "Focal_PFT", "Collapse_year", "Attribution_window", "Dominant_mortality",
+    first = ["Site", "Status", "Focal_PFT", "Collapse_year", "Output_note", "GPP_year1_gC_m-2_d-1",
+             "GPP_max_annual_gC_m-2_d-1", "GPP_max_year", "Attribution_window", "Dominant_mortality",
              "Dominant_share_pct", "Top3_mortality", "Focal_NPP_mean_gC_m-2_d-1", "Focal_GPP_mean_gC_m-2_d-1",
              "Focal_density_mean_ha-1", "Storage_fraction_of_target_mean", "Storage_fraction_of_target_min",
              "BTRAN_min_month", "TSA_min_month_C", "Mortality_types_found", "Missing_suggested_vars",
@@ -637,8 +676,11 @@ def run(a):
         rows = [process(t) for t in tasks]
     save_summary(a.output_root, rows)
     for r in rows:
-        print(f"== {r['Site']}: {r['Status']} | focal {r.get('Focal_PFT', '')} | collapse {r.get('Collapse_year') or 'none'} | "
+        print(f"== {r['Site']}: {r['Status']} | focal {r.get('Focal_PFT', '')} | collapse {r.get('Collapse_year') or 'n/a'} | "
               f"{r.get('Top3_mortality') or r.get('Dominant_mortality', '')} {r.get('Error', '')}", flush=True)
+        if r.get("Output_note"):
+            print(f"   {r['Site']}: {r['Output_note']}; GPP year 1 = {r.get('GPP_year1_gC_m-2_d-1', float('nan')):.3g}, "
+                  f"max annual = {r.get('GPP_max_annual_gC_m-2_d-1', float('nan')):.3g} g C m-2 d-1 (year {r.get('GPP_max_year', '?')})", flush=True)
     ok = sum(r["Status"] == "OK" for r in rows)
     (a.output_root / "RUN_COMPLETE.json").write_text(json.dumps(
         {"ok": ok, "total": len(rows), "sites": a.sites, "finished_utc": datetime.now(timezone.utc).isoformat()}, indent=2) + "\n")
@@ -683,7 +725,8 @@ def publish(run_dir, repo):
                 shutil.copyfile(inv, out / s / inv.name)
                 links.append(f"[variables]({s}/{inv.name})")
             top = (r.get("Top3_mortality") or r.get("Dominant_mortality") or r.get("Error", "")[:80]).replace("|", "/")
-            lines.append(f"| {s} | {r.get('Focal_PFT', '')} | {r.get('Collapse_year') or 'none'} | {r.get('Attribution_window', '')} | "
+            note = (r.get("Output_note") or "").replace("|", "/")
+            lines.append(f"| {s} | {r.get('Focal_PFT', '')} | {r.get('Collapse_year') or 'n/a'} {('(' + note + ')') if note else ''} | {r.get('Attribution_window', '')} | "
                          f"{top} | {fmt(r.get('Focal_NPP_mean_gC_m-2_d-1'))} | {fmt(r.get('Storage_fraction_of_target_min'))} | "
                          f"{fmt(r.get('BTRAN_min_month'))} | {' '.join(links) or 'missing'} |")
         (out / "README.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
