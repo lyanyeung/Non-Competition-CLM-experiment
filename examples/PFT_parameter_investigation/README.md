@@ -1,6 +1,6 @@
 # PFT parameter investigation: needleleaf evergreen (FATES PFT 2) and C3 grass (PFT 13)
 
-Opened 31 October 2026. **Status: evidence collected; parameters on IRIDIS6 not yet checked; no parameter change made.**
+Opened 31 October 2026. **Status: evidence collected; IRIDIS6 parameter file checked (identical to the upstream default for PFT 2, 6, 13); no parameter change made.**
 
 Under fixed biogeography + no competition (FIXNC), GPP is far below the EC towers at almost every
 needleleaf site, and grassland sites show repeated die-back episodes. This document collects the evidence,
@@ -98,16 +98,15 @@ Figures in [`evidence/grassland_old_vs_new/`](evidence/grassland_old_vs_new) (to
 - In the same months NEE shows large positive spikes, of up to +7–8 g C m⁻² d⁻¹.
 - The competition runs (broadleaf forest at three of these sites) have smooth cycles and no gaps.
 
-## 3 Parameter analysis so far (upstream FATES default, not yet the IRIDIS6 file)
+## 3 Parameter analysis (IRIDIS6 file = upstream FATES default for PFT 2, 6, 13)
 
 [`evidence/upstream_fates_params_b8fbdde_PFT2_6_13/summary.md`](evidence/upstream_fates_params_b8fbdde_PFT2_6_13/summary.md)
 was produced with [`scripts/01_compare_fates_pft_parameters.py`](scripts/01_compare_fates_pft_parameters.py) from NGEET/fates
-master `b8fbdde` (25 Oct 2026). The values that NL-Loo's report printed from the IRIDIS6 file agree with it:
-- SLA 0.005 / 0.03 / 0.05;
-- Vcmax25 62 / 58 / 78;
-- `smpsc` / `smpso`, `cstarvation`, `recruit_init_density` and `storage_cushion`.
-
-The full IRIDIS6 file still has to be run (section 5).
+master `b8fbdde` (25 Oct 2026). The same script run on IRIDIS6 against the file the runs use
+(`CTSM/src/fates/parameter_files/fates_params_default.json`, history attribute "05/11/25, First instantation"),
+[`evidence/IRIDIS6_fates_params_PFT2_6_13_summary_20261031T175705Z.md`](evidence/IRIDIS6_fates_params_PFT2_6_13_summary_20261031T175705Z.md),
+gives identical values: all 64 differing rows, all suspect rows and all derived quantities for PFT 2, 6, 13
+match the upstream file, so the analysis below applies to these runs.
 
 **Needleleaf vs broadleaf, derived from the parameters** (canopy-top SLA; 2-power leaf and crown allometry):
 
@@ -189,8 +188,9 @@ Related scripts:
 | `evidence/competition_vs_nocomp_GPP_NEE_monthly_metrics.csv` | 30 paired sites, both runs, IGBP, old dominant PFT |
 | `evidence/grassland_old_vs_new/*.png` | AT-Neu, CH-Cha, CH-Fru, IT-MBo EC overviews, competition above FIXNC |
 | `evidence/upstream_fates_params_b8fbdde_PFT2_6_13/` | output of script 01 on the upstream default file |
+| `evidence/IRIDIS6_fates_params_PFT2_6_13_summary_20261031T175705Z.md` | output of script 01 on IRIDIS6 (the file the runs use) |
 
 Limitations:
-- **Parameter values and file versions.** All parameter values are from the upstream file until script 01 is run on IRIDIS6. The archive history refers to the CDL defaults, which may differ from the JSON in the CTSM checkout used here.
+- **Parameter values and file versions.** Parameter values are checked against the IRIDIS6 file for PFT 2, 6 and 13 only. The archive history (SLA 0.01 → 0.005 in API 24.1) refers to the CDL defaults that preceded the JSON file.
 - **Missing history fields.** The AD400 → Normal400 histories hold only seven fields (`TOTSOMC`, `TOTSOMN`, `TLAI`, `FATES_GPP`, `FATES_NPP`, `TWS`, `H2OSNO`), so per-PFT mechanisms come only from NL-Loo PRE50.
 - **Monthly mean, not daily.** Monthly EC metrics hide daily errors.
