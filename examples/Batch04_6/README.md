@@ -172,7 +172,26 @@ Only JSON/CSV in `--out-dir` are created. No forcing/CIME/Slurm/ERA change, no s
 ## Stage02F initial-run code bug and corrected retry (31 October 2026)
 
 [Actual IRIDIS6 traceback and correction](docs/stage02f_parser_crash_and_fix_20261031.md). The original Stage02F SHA-pinned version was self-tested but main() then passed a decoded JSON dict to a parse function expecting a Path, triggering `AttributeError: 'dict' object has no attribute 'read_text'`. This was a **script error before NetCDF reads**; no Stage02F scientific results exist from the failed run. The script is corrected so parse_input accepts a dict, and its self-test executes an eight-case/seven-source-path in-memory regression check. Download the corrected pinned code to a **new standalone HOME folder** and use a new empty `--out-dir`. The original failed folder may be preserved for provenance. No Git pull, case changes or Slurm actions.
-## Stage02G: full native-source forcing / soil / PFT science release (future)
+## Stage02F complete (31 October 2026): common inherited humidity flags
+
+[Operator Stage02F year-by-year evidence](docs/stage02f_operator_IRIDIS6_result_20261031.md) shows the corrected script successfully compared all 19 × 7 CH-Aws candidate annual inputs, **0 comparison holds**, and wrote **5278 candidate-variant × changed-half-hour CSV rows**. A count of rows across variants is NOT a count of independent tower half-hours. Derived `RH_water >100%` occurred in multiple years, with major **2021–2024 shared-source** flag counts: 7826, 2835, 658 and 217 across seven identical candidate annual variants per year. Since Stage02E recorded no QBOT differences among those variants, the corresponding unique flagged half-hours are **1118, 405, 94 and 31** (2021–2024 total **1648**). These are physics-screen indicators, not proof of invalid observations.
+
+## Stage02G — deduplicated seven-variant RH saturation event triage
+
+[Read-only Stage02G Python](scripts/02g_CH_Aws_RH_supersaturation_unique_events_readonly.py) reads the actual saved Stage02C source register and Stage02F summary; it checks time, TBOT and PSRF alignment, scans all 7 candidate paths for each of the 19 years, compares the previous Stage02F summed flag counts, and computes **unique HH union and seven-way intersection** for RH_water>100. Adds thresholds 101, 105, 110, 120 and 150%; ice-relative RH for below-freezing values; maximal RH, common-source agreement, consecutive run duration and top episodes. An optional fresh empty output directory receives one JSON and a CSV with one row per unique flagged year-HH (not seven copies).
+
+Run with a source-pinned SHA and the activated `clm_fates_env`; never modify the original working tree:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02c "$HOME/ICOS_Batch04_stage02c_sGTtt5pv/stage02c_report.json" \
+  --stage02f "$HOME/ICOS_Batch04_stage02f_fixed_ynHMlvrA/results/stage02f_summary.json" \
+  --out-dir "$NEW_EMPTY_REPORT_DIR"
+~~~
+
+The Stage02G data checker has **not yet been executed on IRIDIS6**; all candidate science remains HOLD. After Stage02G, assess extreme individual and sustained events against native tower TA/RH/VPD/QC and collocated ERA5 evidence with unit/calendar verification. Do not cap RH or release an AD5/AD400 case based on a numerical screen.
+## Stage02H: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
