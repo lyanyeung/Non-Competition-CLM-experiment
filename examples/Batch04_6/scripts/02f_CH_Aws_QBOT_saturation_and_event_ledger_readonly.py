@@ -38,8 +38,10 @@ COLUMNS = [
 ]
 
 
-def parse_input(path):
-    data = json.loads(path.read_text(encoding="utf-8"))
+def parse_input(data):
+    """Validate an already-decoded Stage02C JSON dict; do not re-read a path."""
+    if not isinstance(data, dict):
+        raise TypeError("parse_input expects a decoded Stage02C JSON dict")
     if data.get("stage") != "STAGE02C_SITE_DATM_CANDIDATE_YEAR_AND_SAMPLE_QC":
         raise ValueError("Wrong Stage02C report marker")
     if data.get("read_only") is not True or data.get("science_release") is not False:
@@ -263,7 +265,35 @@ def selftest():
     assert abs(b[0] - 6.1115) < 0.001
     assert a[1] > b[1]  # saturation over supercooled water > ice
     assert 5 < float(vapor_pressure_hpa(np.array([.004]), np.array([80000]), np)[0]) < 6
-    print("STAGE02F SELF-TEST PASS: water/ice saturation, HH event ledger schema; no files written")
+    # Regression: main() loads JSON to a dict before calling parse_input().
+    # Construct an entirely in-memory register of 8 cases / 7 forcing path sets.
+    fake_cases = []
+    for k in range(8):
+        path_variant = min(k, 6)
+        fake_cases.append({
+            "case": REFERENCE if k == 0 else "CH-Aws_FATES_TEST_VARIANT_" + str(k),
+            "site_datm": [
+                {"year": year, "path": (
+                    "/audit-only/variant_" + str(path_variant) +
+                    "/CH-Aws_DATM_" + str(year) + ".nc")}
+                for year in YEARS
+            ],
+        })
+    fake_json = {
+        "stage": "STAGE02C_SITE_DATM_CANDIDATE_YEAR_AND_SAMPLE_QC",
+        "read_only": True, "science_release": False,
+        "sites": [{"site": "CH-Aws", "cases": fake_cases}],
+    }
+    groups, baseline = parse_input(fake_json)
+    assert len(groups) == 7 and len(baseline) == 19
+    assert baseline[2006].endswith("CH-Aws_DATM_2006.nc")
+    try:
+        parse_input(Path("/should-not-read-stage02c.json"))
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("parse_input incorrectly accepted a Path")
+    print("STAGE02F SELF-TEST PASS: decoded Stage02C dict, 8 cases, 7 path sets, water/ice saturation; no writes")
 
 
 def main():

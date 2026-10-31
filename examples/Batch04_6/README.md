@@ -169,6 +169,9 @@ python3 -B "$SCRIPT" \
 ~~~
 
 Only JSON/CSV in `--out-dir` are created. No forcing/CIME/Slurm/ERA change, no source-case approval. After Stage02F event-level diagnostics, **separately** verify original tower TA/RH/VPD/QC, ERA5 reference values and actual DATM stream paths on the affected native half hours, then review source-specific reason for each repair before model-release decisions.
+## Stage02F initial-run code bug and corrected retry (31 October 2026)
+
+[Actual IRIDIS6 traceback and correction](docs/stage02f_parser_crash_and_fix_20261031.md). The original Stage02F SHA-pinned version was self-tested but main() then passed a decoded JSON dict to a parse function expecting a Path, triggering `AttributeError: 'dict' object has no attribute 'read_text'`. This was a **script error before NetCDF reads**; no Stage02F scientific results exist from the failed run. The script is corrected so parse_input accepts a dict, and its self-test executes an eight-case/seven-source-path in-memory regression check. Download the corrected pinned code to a **new standalone HOME folder** and use a new empty `--out-dir`. The original failed folder may be preserved for provenance. No Git pull, case changes or Slurm actions.
 ## Stage02G: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
