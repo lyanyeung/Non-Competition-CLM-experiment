@@ -139,7 +139,12 @@ def surface_info(path):
                 if key not in ds.variables:
                     result["fields"][key] = {"status": "MISSING"}
                     continue
-                data = np.ma.asarray(ds.variables[key][:])
+                var = ds.variables[key]
+                if var.size > 50000:
+                    result["fields"][key] = {"shape": list(var.shape),
+                                             "status": "SKIPPED_NOT_SITE_POINT_SIZE"}
+                    continue
+                data = np.ma.asarray(var[:])
                 array = np.ma.filled(data.astype(float), np.nan)
                 finite = array[np.isfinite(array)]
                 item = {"shape": list(array.shape), "elements": int(array.size)}
