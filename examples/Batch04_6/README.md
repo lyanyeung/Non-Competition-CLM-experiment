@@ -210,7 +210,25 @@ python3 -B "$SCRIPT" \
 ~~~
 
 Next, after discovering the original source product and QC columns, perform native tower/ERA/selected-DATM event-level **matched-time** verification for selected large-change half hours, including pressure units, time zone/calendar and source confidence. Still no automatic RH cap, DATM replacement, FATES parameter edits, case generation, AD5/AD400 or Slurm.
-## Stage02I: full native-source forcing / soil / PFT science release (future)
+## Stage02H operator outcome — 31 October 2026
+
+[Actual IRIDIS6 Stage02H terminal findings](docs/stage02h_operator_IRIDIS6_result_20261031.md): 164 files inventoried in CH-Aws forcing (19 CSV, 11 JSON, 134 NC). The 559-RH trial ledger, 33 high-uncertainty ledger, Stage21/25/28/29/34/38/42 revision manifests and ledgers, and four large (61–72 MB) candidate merged-multisource half-hour CSV files were located. Ranked forcing-QBOT events include 2007-07-22 07:30 (11.051 hPa difference), 2008-06-27 06:30 (9.548 hPa), 2020-07-17 10:00 (9.785 hPa), and 2019-07-29 07:30 (9.284 hPa). These are **variant-vs-arbitrary-baseline differences**, not validated tower/ERA observation discrepancies.
+
+## Stage02I — original candidate CSV column/time/event forensic read (no edits)
+
+[Stage02I read-only tool](scripts/02i_CH_Aws_revision_source_event_csv_readonly.py) reads the saved Stage02H JSON, verifies the declared CH-Aws forcing root, opens the **19 candidate local CSVs and 11 small JSON manifests**, collects original timestamp/QC/TA/RH/VPD/ERA field names and looks for the highest-ranked QBOT events within ±60 minutes, retaining whether the match arose from TIME/TIMESTAMP_START/TIMESTAMP_END and its relative offset. The four merged candidate half-hour CSVs are streamed row by row without loading a ~70 MB file into memory. No timestamp-zone or start/end adjustment is assumed. Every result remains a **candidate** until the true native source/QC/ERA and time convention are confirmed.
+
+Run from a newly downloaded SHA-pinned script into a standalone HOME directory with activated `clm_fates_env`. No git pull or input-file modifications:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02h "$HOME/ICOS_Batch04_stage02h_UsOLvU01/results/stage02h_source_event_manifest.json" \
+  --event-limit 20 --max-csv-mb 90 --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+Stage02I cannot approve a humidity fix. It is a schema and raw-candidate time-match stage, not final validation of measured tower RH, ERA5-Land, data-processing source QC, physical units or actual CIME DATM stream. Only a subsequent source-specific evidence audit can lift that HOLD.
+## Stage02J: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
