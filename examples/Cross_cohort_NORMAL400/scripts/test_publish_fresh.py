@@ -49,6 +49,22 @@ class FreshPublishTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "differs from the version"):
                     module.main()
 
+    def test_login_requires_matching_marker_before_accessing_results(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as tmp:
+            root = Path(tmp) / "fresh"
+            root.mkdir()
+            plotter = Path(tmp) / "plot.py"
+            plotter.write_text("# plotter\n", encoding="utf-8")
+            run_id = "login-" + "a" * 32
+            sha = hashlib.sha256(plotter.read_bytes()).hexdigest()
+            marker = Path(str(root) + ".analysis_exit_status")
+            marker.write_text(f"login-{'b' * 32}|0|{sha}\n")
+            argv = ["publish.py", "--run", str(root), "--login", run_id, "--plotter", str(plotter)]
+            with patch.object(sys, "argv", argv), patch.object(module.subprocess, "run") as subprocess_run:
+                with self.assertRaisesRegex(ValueError, "marker"):
+                    module.main()
+                subprocess_run.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

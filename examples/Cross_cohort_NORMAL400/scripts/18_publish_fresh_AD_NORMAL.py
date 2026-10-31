@@ -27,23 +27,31 @@ def git(*args, cwd=None):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--run", required=True, type=Path)
-    ap.add_argument("--job", required=True)
+    mode = ap.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--job")
+    mode.add_argument("--login", help="Unique login run ID printed by the runner")
     ap.add_argument("--plotter", required=True, type=Path)
     args = ap.parse_args()
-    if not args.job.isdigit():
+    if args.job and not args.job.isdigit():
         raise ValueError("Job ID must be numeric")
+    if args.login and not re.fullmatch(r"login-[0-9a-f]{32}", args.login):
+        raise ValueError("Invalid login run ID")
+    run_id = args.job or args.login
     root = args.run.expanduser().resolve(strict=True)
     marker = Path(str(root) + ".analysis_exit_status")
     parts = marker.read_text(encoding="utf-8").strip().split("|")
-    if (len(parts) != 3 or parts[0] != args.job or not parts[1].isdigit()
+    if (len(parts) != 3 or parts[0] != run_id or not parts[1].isdigit()
             or not re.fullmatch(r"[0-9a-f]{64}", parts[2])):
         raise ValueError("Completion marker missing or does not match job")
-    p = subprocess.run(["sacct", "-n", "-P", "-j", args.job, "--format=JobIDRaw,State"],
-                       capture_output=True, text=True, timeout=60, check=True)
-    states = [s.split("|")[1].strip().split()[0].rstrip("+") for s in p.stdout.splitlines()
-              if "|" in s and s.split("|")[0].strip() == args.job]
-    if len(states) != 1 or states[0] not in {"COMPLETED", "FAILED"}:
-        raise ValueError("Job not confirmed finished by sacct: " + repr(states))
+    if args.job:
+        p = subprocess.run(["sacct", "-n", "-P", "-j", args.job, "--format=JobIDRaw,State"],
+                           capture_output=True, text=True, timeout=60, check=True)
+        states = [s.split("|")[1].strip().split()[0].rstrip("+") for s in p.stdout.splitlines()
+                  if "|" in s and s.split("|")[0].strip() == args.job]
+        if len(states) != 1 or states[0] not in {"COMPLETED", "FAILED"}:
+            raise ValueError("Job not confirmed finished by sacct: " + repr(states))
+    else:
+        states = ["LOGIN_FINISHED"]
     with (root / "all_sites_summary.csv").open(newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     if not rows:
@@ -73,7 +81,7 @@ def main():
     if hashlib.sha256(plotter.read_bytes()).hexdigest() != parts[2]:
         raise ValueError("Plotter differs from the version recorded by the analysis job")
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    rel = Path("figures/AD400_NORMAL400") / (stamp + "_fresh_job" + args.job)
+    rel = Path("figures/AD400_NORMAL400") / (stamp + "_fresh_" + run_id)
     with tempfile.TemporaryDirectory(prefix="publish_fresh_", dir=root.parent) as tmp:
         checkout = Path(tmp) / "repo"
         git("clone", "--depth", "1", "--branch", "main", REPO, checkout)
@@ -85,7 +93,7 @@ def main():
                  "The carbon plots are freshly generated for this run; none are reused from an earlier run.",
                  "Convergence metrics use the Normal phase only and do not constitute a pass/fail verdict.",
                  "Only PNGs and derived convergence metrics are included, no raw model or observation data.",
-                 f"Slurm job: {args.job}; analysis exit status: {parts[1]}; scheduler state: {states[0]}.",
+                 f"Run: {run_id}; analysis exit status: {parts[1]}; state: {states[0]}.",
                  "Missing plots or metrics are listed below. Review local all_sites_summary.csv for errors and stream warnings.",
                  "", "| Site | Normal case | Status | Full carbon | Normal carbon | EC | Metrics |",
                  "| --- | --- | --- | --- | --- | --- | --- |"]
