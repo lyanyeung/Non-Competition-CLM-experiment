@@ -108,7 +108,27 @@ python3 -B "$ROOT/02c_batch04_site_DATM_reference_years_sample_QC_readonly.py" \
 ~~~
 
 All six sites remain pending native-tower QC, actual active DATM-stream binding, soil evidence, PFT science and GL-ZaH private Arctic mapping. No git pull, CIME or Slurm required.
-## Stage02D: full forcing/soil/PFT science release (future)
+## Stage02C operator results — 31 October 2026
+
+[Recorded IRIDIS6 Stage02C console outcome](docs/stage02c_operator_IRIDIS6_result_20261031.md): six station year ranges with no missing case-referenced annual NC paths or filename-year gaps; 24 sampled annual files open successfully with 17520 time values. **CH-Aws has 133 unique annual forcing file paths in 7 distinct 19-year candidate path sets**, across 8 original cases. Other station year spans are DE-Gri 2004–2025, DE-RuR 2011–2025, IT-Tor 2008–2025, ES-Agu 2006–2024 and GL-ZaH 2000–2025. Candidate input-path equivalence is not proof of S30SHARED/EXCL case equivalence or active stream binding.
+
+## Stage02D — all-year DATM internal QC, time joins and CH-Aws variant differences
+
+[Read-only script](scripts/02d_batch04_all_annual_DATM_QC_and_variant_diff_readonly.py). Takes the existing Stage02C JSON and scans **all distinct candidate annual NetCDF files** for each requested site, not only first/last year. It checks CF time metadata where decodable, 17520 annual half-hour records, non-monotonic/irregular steps, year-token matching, within-folder year seams, missing/nonfinite meteorology, basic physical warnings (TBOT, QBOT, precipitation aliases including `PRECTmms`, radiation, pressure, wind and ZBOT), and exact per-variable signatures to identify CH-Aws humidity/other differences. Files that fail to open or lack calendar are reported as unresolved, not silently passed.
+
+**Important:** Numeric scans are exhaustive for candidate DATM annual point files only; they still do not compare tower native QC, ERA5, scientific forcing provenance, active DATM binding, PFT/site surface/soil or model convergence. No automatic source-case choice, repairs, CIME runs, Slurm or Git pull.
+
+After downloading the source-pinned Stage02D script to a separate HOME directory and verifying its SHA, run:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" --stage02c "$HOME/ICOS_Batch04_stage02c_sGTtt5pv/stage02c_report.json" \
+  --sites DE-Gri DE-RuR IT-Tor ES-Agu \
+  --report "$NEW_DIR/stage02d_four_grass_shrub.json"
+~~~
+
+Check these four simpler stations first before the seven-variant CH-Aws 133-file comparison or GL-ZaH. All site gates remain HOLD until actual source/physics review.
+## Stage02E: full forcing/soil/PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
