@@ -50,7 +50,27 @@ The script checks the exact 6-site operator CSV against known 15-element HOST NA
 
 **Important limitation:** Stage01 does *not* check all source half-hourly meteorological rows or annual NC files, does *not* verify true source QC0/QC1, does *not* resolve CIME runtime conditional XML, and does *not* automatically choose a template based on its name. Its status is always HOLD, even if the numeric fields look plausible. No automatic Slurm query or model submission is made.
 
-## Stage 02: full forcing/soil/PFT science release (future)
+## Stage01 operator result — 31 October 2026
+
+[Actual IRIDIS6 Stage01 console evidence](docs/stage01_operator_IRIDIS6_result_20261031.md): six source-site folders present; 17 original case candidates and 27 forcing directories; 17/17 static XML/surface point checks matched. These do not establish science acceptance, active stream correctness or model restart completion.
+
+## Stage02A — sample candidate DATM source/forcing and compare cases (read-only)
+
+[Script: Stage02A source/forcing sample auditor](scripts/02_batch04_forcing_source_sample_readonly.py). Takes Stage01 JSON, reviews case input-data lists and CaseDocs stream documentation, enumerates source forcing NetCDF directories, and samples earliest and latest lexicographic NetCDF filenames in each forcing directory. Reports meteorological variable availability, missing/nonfinite rates, numeric time monotonicity and selected nonphysical-value flags. All candidate folders and case variants remain UNSELECTED; no automatic preference for S30SHARED or an RH variant.
+
+**Scope limitations:** The scanned forcing folders are not necessarily the active CIME DATM streams. The sample is NOT exhaustive forcing QC. Unit-based physical flags are indicators, not replacement rules. Nothing in this stage authorizes surface/case creation, forcing substitution or Slurm submission.
+
+Standalone IRIDIS6 usage (without modifying the local Git working tree):
+
+~~~bash
+python3 -B "$ROOT/examples/Batch04_6/scripts/02_batch04_forcing_source_sample_readonly.py" --self-test
+python3 -B "$ROOT/examples/Batch04_6/scripts/02_batch04_forcing_source_sample_readonly.py" \
+  --stage01 "$ROOT/stage01_report.json" \
+  --report "$ROOT/stage02_source_forcing_samples.json"
+~~~
+
+Here ROOT is the original Stage01 standalone audit directory; download the Stage02 script there from the immutable GitHub merge commit, verifying its git blob SHA before invoking. The only permitted new file is the optional JSON report with exclusive-create semantics. Stage02B, after confirming actual streams and source-case provenance, will check all selected per-year/half-hourly records against original tower QC and ERA.
+## Stage 02B: full forcing/soil/PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
