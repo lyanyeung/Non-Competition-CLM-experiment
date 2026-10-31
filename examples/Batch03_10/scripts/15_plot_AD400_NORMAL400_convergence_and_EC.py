@@ -206,6 +206,11 @@ def annual_carbon(files, site):
                 for n in chosen:
                     if n not in ds.variables:
                         raise RuntimeError(f"{path.name} lacks {n} (history fields changed between cases?)")
+                    u = str(getattr(ds.variables[n], "units", ""))
+                    f, _, cu = unit_factor(u)
+                    if f != meta[n]["factor"] or cu != meta[n]["csv_units"]:
+                        raise ValueError(f"{path.name}: {n} units {u!r} differ from first history file "
+                                         f"({meta[n]['original_units']!r})")
                     vals.setdefault(n, []).append(point_series(ds.variables[n]))
         row = {"Site": site, "SpinupYear": spin, "ModelYear": model_year, "Phase": phase}
         w = np.concatenate(weights)
@@ -447,7 +452,7 @@ def paired_monthly(model, obs, freq, min_days):
 # ------------------------------------------------------------------ convergence
 def trend(v, w):
     a = np.asarray(v[-w:], float); ok = np.isfinite(a)
-    if ok.sum() < max(15, int(0.8 * w)):
+    if len(a) < w or ok.sum() < max(15, int(0.8 * w)):
         return np.nan, np.nan
     s = float(np.polyfit(np.arange(len(a))[ok], a[ok], 1)[0]); mu = float(np.nanmean(a))
     return s, (np.nan if abs(mu) < 1e-8 else 100 * s * 100 / abs(mu))
@@ -481,6 +486,9 @@ def convergence(carbon, names, meta, n_force, align):
             "Abs_last100y_slope_lt_1gC_m2_yr": (bool(abs(s100) < 1.0) if np.isfinite(s100) and meta[name]["csv_units"] == "g C m-2" else ""),
             "Normal_complete_cycles": k,
             "Last_two_aligned_cycles_mean_abs_change_pct": cyc,
+            "Last_two_aligned_cycles_mean_change_pct": pct(np.nanmean(last), np.nanmean(prev)) if k >= 2 else np.nan,
+            "Last_aligned_cycle_start_model_year": int(years[starts[-1]]) if k >= 1 else np.nan,
+            "Previous_aligned_cycle_start_model_year": int(years[starts[-2]]) if k >= 2 else np.nan,
             "First_vs_last_aligned_Normal_cycle_mean_change_pct": pct(np.nanmean(last), np.nanmean(first)) if k >= 2 else np.nan,
         })
     return pd.DataFrame(recs)
@@ -489,41 +497,57 @@ def convergence(carbon, names, meta, n_force, align):
 # ------------------------------------------------------------------ plots
 def plot_overview(carbon, names, meta, site, title_cases, dest, interim):
     import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
-    show = [n for n in ("TOTECOSYSC", "TOTSOMC", "FATES_VEGC") if n in names] or names[:3]
-    fig, ax = plt.subplots(figsize=(16, 5.9))
-    x = carbon.SpinupYear.to_numpy()
-    for n in show:
-        ax.plot(x, carbon[n].to_numpy(float), lw=1.4, label=LABELS.get(n, n))
-    ax.axvline(PHASE + 0.5, color="0.35", ls="--", lw=1.1, label="AD → Normal (pool rescaling expected)")
-    ax.axvspan(max(x.max() - 99, PHASE + 1), x.max(), color="0.8", alpha=0.18)
-    ax.set_xlim(1, max(800, x.max())); ax.set_xlabel("Spin-up year (1–400 AD, 401–800 Normal)")
-    ax.set_ylabel(f"Annual mean stock ({meta[show[0]]['plot_units']})")
-    ax.grid(alpha=0.25); ax.legend(frameon=False, loc="upper left")
+    nrow = math.ceil(len(names) / 2)
+    fig, axs = plt.subplots(nrow, 2, figsize=(16, 3.5 * nrow), sharex=True, squeeze=False)
+    ad = carbon[carbon.Phase == "AD"]
+    nor = carbon[carbon.Phase == "NORMAL"]
+    xmax = max(800, int(carbon.SpinupYear.max()))
+    for ax, n in zip(axs.flat, names):
+        ax.plot(ad.SpinupYear, ad[n], lw=1.15, color="#2878b5", label="AD")
+        ax.plot(nor.SpinupYear, nor[n], lw=1.15, color="#db7b2b", label="Normal")
+        ax.axvline(PHASE + 0.5, color="0.35", ls="--", lw=1.0)
+        ax.set(xlim=(1, xmax), title=f"{n} ({LABELS.get(n, n)})")
+        ax.set_ylabel(meta[n]["plot_units"]); ax.grid(alpha=0.22)
+    for ax in list(axs.flat)[len(names):]:
+        ax.set_visible(False)
+    for ax in axs[-1]:
+        if ax.get_visible(): ax.set_xlabel("Spin-up year (1–400 AD; 401–800 Normal)")
+    axs.flat[0].legend(frameon=False, loc="best")
     tag = " — INTERIM (incomplete)" if interim else ""
-    ax.set_title(f"{site} | FIXNC AD400 + NORMAL400 FATES spin-up: annual mean C pools{tag}\n{title_cases}", fontsize=12.5)
-    fig.tight_layout(); p = dest / f"{site}_01_carbon_pools_AD400_NORMAL400.png"
+    fig.suptitle(f"{site} | AD400 + NORMAL400: annual mean carbon pools{tag}\n{title_cases}\n"
+                 "Dashed line: AD → Normal; accelerated pools may be rescaled, not a physical annual gain", fontsize=12)
+    fig.tight_layout(rect=(0, 0, 1, 0.94)); p = dest / f"{site}_01_carbon_pools_AD400_NORMAL400.png"
     fig.savefig(p, dpi=200, bbox_inches="tight"); plt.close(fig); return p
 
 
-def plot_panels(carbon, names, meta, site, dest, interim):
+def plot_panels(carbon, names, meta, site, dest, interim, conv, n_force):
     import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
-    nor = carbon[carbon.Phase == "NORMAL"]; sel = names[:6]
-    nrow = math.ceil(len(sel) / 2)
-    fig, axs = plt.subplots(nrow, 2, figsize=(16, 4 * nrow), sharex=True, squeeze=False)
+    nor = carbon[carbon.Phase == "NORMAL"]
+    nrow = math.ceil(len(names) / 2)
+    fig, axs = plt.subplots(nrow, 2, figsize=(16, 4.2 * nrow), sharex=True, squeeze=False)
     x = nor.SpinupYear.to_numpy()
-    for ax, n in zip(axs.flat, sel):
+    for ax, n in zip(axs.flat, names):
         ax.plot(x, nor[n].to_numpy(float), lw=1.35)
-        ax.axvspan(max(x.max() - 99, PHASE + 1), x.max(), color="0.8", alpha=0.15)
-        ax.set(xlim=(PHASE + 1, max(800, x.max())), title=f"{n} ({LABELS.get(n, n)})")
+        if len(nor) >= 100:
+            ax.axvspan(x[-100], x[-1], color="0.8", alpha=0.22)
+        r = conv.loc[conv.Variable == n].iloc[0]
+        def fmt(v, suffix, signed=True):
+            return (f"{v:+.2f}" if signed else f"{v:.2f}") + suffix if np.isfinite(v) else "N/A"
+        txt = (f"Last 100 y trend: {fmt(r.Last100y_trend_pct_per_100y, '% / 100 y')}\n"
+               f"Last two aligned {n_force}-y cycles: {fmt(r.Last_two_aligned_cycles_mean_change_pct, '% mean change')}\n"
+               f"Mean absolute paired-year change: {fmt(r.Last_two_aligned_cycles_mean_abs_change_pct, '%', False)}  "
+               f"(complete cycles: {int(r.Normal_complete_cycles)})")
+        ax.set(xlim=(PHASE + 1, max(800, x.max())))
+        ax.set_title(f"{n} ({LABELS.get(n, n)})\n{txt}", fontsize=9.5)
         ax.set_ylabel(meta[n]["plot_units"]); ax.grid(alpha=0.22)
-    for ax in list(axs.flat)[len(sel):]:
+    for ax in list(axs.flat)[len(names):]:
         ax.set_visible(False)
     for ax in axs[-1]:
-        ax.set_xlabel("Spin-up year (Normal phase)")
+        if ax.get_visible(): ax.set_xlabel("Spin-up year (Normal phase: 401–800)")
     tag = " — INTERIM" if interim else ""
-    fig.suptitle(f"{site} | NORMAL400 phase carbon pools (spin-up years 401–800){tag}\n"
-                 "Final 100 years shaded; reaching year 800 is not proof of equilibrium", fontsize=14)
-    fig.tight_layout(); p = dest / f"{site}_02_carbon_pools_NORMAL400_panels.png"
+    fig.suptitle(f"{site} | NORMAL phase: annual mean carbon pools and diagnostics{tag}\n"
+                 "Final 100 years shaded when available; metrics describe drift, not an automatic convergence verdict", fontsize=12)
+    fig.tight_layout(rect=(0, 0, 1, 0.94)); p = dest / f"{site}_02_carbon_pools_NORMAL400_panels.png"
     fig.savefig(p, dpi=200, bbox_inches="tight"); plt.close(fig); return p
 
 
@@ -598,7 +622,7 @@ def process(pair, args):
     cases = f"{pair['ad']} → {pair['normal']} | model years {inv['start']}–{inv['start'] + len(files) - 1}"
     plot_overview(carbon, names, meta, s, cases, dest, interim)
     if inv["normal_years"]:
-        plot_panels(carbon, names, meta, s, dest, interim)
+        plot_panels(carbon, names, meta, s, dest, interim, conv, n)
     status, err, prov, scores, cycle, gpp_cols, freq = "CARBON_ONLY", "", [], None, [], [], ""
     if not args.carbon_only:
         try:
