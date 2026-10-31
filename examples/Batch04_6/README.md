@@ -70,7 +70,25 @@ python3 -B "$ROOT/examples/Batch04_6/scripts/02_batch04_forcing_source_sample_re
 ~~~
 
 Here ROOT is the original Stage01 standalone audit directory; download the Stage02 script there from the immutable GitHub merge commit, verifying its git blob SHA before invoking. The only permitted new file is the optional JSON report with exclusive-create semantics. Stage02B, after confirming actual streams and source-case provenance, will check all selected per-year/half-hourly records against original tower QC and ERA.
-## Stage 02B: full forcing/soil/PFT science release (future)
+## Stage02A operator outcome — 31 October 2026
+
+[Actual operator console record](docs/stage02a_operator_IRIDIS6_result_20261031.md): 6/6 sites, 17 CIME cases, 27 forcing subdirectories; CH-Aws and GL-ZaH sample NetCDF scans reported READ_ERROR. Four other site forcing trees contained only source packages/raw folders with no discovered NC. These outcomes **do not prove corrupt files or missing DATM input**. The complete Stage02A JSON is available only on IRIDIS6, not in GitHub.
+
+## Stage02B — explain READ_ERROR and trace actual CIME input references
+
+[Stage02B read-only script](scripts/02b_batch04_explain_readerrors_and_datm_paths_readonly.py): reads Stage02A JSON, displays exact Python exceptions, probes 0–3 representative NC headers/metadata/two-record reads per site, and inspects each original case's Buildconf/datm.input_data_list to identify absolute NetCDF input paths, existence and candidate source references. Stream-binding and native tower QC remain unverified even when a path exists. The script writes only a new optional report with exclusive-create, never overwrites; it does not change CIME, surfaces, forcing, Git worktree or Slurm jobs.
+
+Run on IRIDIS6 from the existing standalone Batch04 Stage01 directory after downloading the SHA-pinned Stage02B script; no git pull:
+
+~~~bash
+ROOT="$HOME/ICOS_Batch04_stage01_Dy3qIRjj"
+python3 -B "$ROOT/examples/Batch04_6/scripts/02b_batch04_explain_readerrors_and_datm_paths_readonly.py" --self-test
+python3 -B "$ROOT/examples/Batch04_6/scripts/02b_batch04_explain_readerrors_and_datm_paths_readonly.py" \
+  --stage02 "$ROOT/stage02_forcing_20261031T003910Z.json" \
+  --max-probes-per-site 2 \
+  --report "$ROOT/stage02b_error_and_references.json"
+~~~
+## Stage02C: full forcing/soil/PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
