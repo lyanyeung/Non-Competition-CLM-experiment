@@ -19,7 +19,7 @@ SITES = ("CH-Aws", "DE-Gri", "DE-RuR", "IT-Tor", "ES-Agu", "GL-ZaH")
 EXPECTED_CASES = {"CH-Aws": 8, "DE-Gri": 2, "DE-RuR": 2,
                   "IT-Tor": 2, "ES-Agu": 2, "GL-ZaH": 1}
 MAX_LINES = 30000
-NC_PATTERN = re.compile(r"/[A-Za-z0-9_.+~:%@/=-]+\.nc(?:4)?(?=$|[\s'\"<>,;])", re.I)
+NC_PATTERN = re.compile(r"(?<![A-Za-z0-9_.])/[A-Za-z0-9_.+~:%@/=-]+\.nc(?:4)?(?=$|[\s'\"<>,;])", re.I)
 MET_KEYS = {"TBOT", "QBOT", "PRECTMMS", "FSDS", "FLDS", "WIND", "PSRF",
             "RH", "TA", "VPD"}
 
