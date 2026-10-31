@@ -18,6 +18,7 @@ Steps (login node):
   python -B 09_...py prepare [--sites DE-Obe FI-Sod] [--years 50]   # clone + verify, NO Slurm
   python -B 09_...py submit  [--sites ...]                          # case.submit --skip-preview-namelist
   python -B 09_...py status  [--sites ...]
+  python -B 09_...py reset   --sites X    # only removes a FAILED prepare that never ran
 Afterwards: 08_diagnose_collapse_mortality.py --ad-only SITE:CASE ...
 """
 from __future__ import annotations
@@ -166,6 +167,48 @@ def fates_has(srcroot, names):
     return [n for n in names if f"'{n}'" in blob or f'"{n}"' in blob]
 
 
+def overlay_for(ad_lnd):
+    """The private overlay this AD case's namelist was generated with (it shows in default paths)."""
+    used = sorted(set(re.findall(r"(/[^'\"\s]*?/_private_ctsm_FATES_AD400_namelist_overlay)/", ad_lnd)))
+    if len(used) > 1:
+        fail("AD lnd_in refers to more than one overlay: " + ", ".join(used))
+    cands = [Path(used[0])] if used else OVERLAYS
+    o = next((c for c in cands if (c / "bld" / "CLMBuildNamelist.pm").is_file()), None)
+    if o is None:
+        fail("private FATES-AD namelist overlay not found: " + ", ".join(map(str, cands)))
+    return o
+
+
+def reset(site, F7, P, years):
+    """Remove a FAILED prepare (state PREPARE_ATTEMPTED) that never ran: case dir, empty run dir, no archive."""
+    i = ident(site, F7, P, years)
+    case, st = i["case"], i["case"] / STATE
+    if not case.exists():
+        print(f"{site}: nothing to reset ({case} absent)", flush=True)
+        return
+    phase = json.loads(st.read_text()).get("phase") if st.is_file() else None
+    if phase != "PREPARE_ATTEMPTED":
+        fail(f"refusing: state is {phase!r}; only a failed prepare (PREPARE_ATTEMPTED) is reset")
+    cs = (case / "CaseStatus").read_text(errors="replace") if (case / "CaseStatus").is_file() else ""
+    if re.search(r"case\.submit starting|case\.run starting", cs) or queued(i["new"]):
+        fail("refusing: this case was submitted or has jobs")
+    if i["archive"].exists() and any(i["archive"].iterdir()):
+        fail(f"refusing: archive not empty {i['archive']}")
+    rd = i["rundir"]
+    if rd.exists():
+        bad = [p.name for p in rd.iterdir() if re.search(r"\.(clm2|cpl|datm)\.(h|r)", p.name)]
+        if bad:
+            fail(f"refusing: model output in {rd}: {bad[:3]}")
+    import shutil
+    if not str(case).startswith(str(CASES) + "/") or not case.name.endswith(f"_DIAG{years}"):
+        fail(f"refusing: unexpected case path {case}")
+    shutil.rmtree(case)
+    for d in (i["rundir"].parent, i["archive"]):
+        if d.exists() and d.name == i["new"] and str(d).startswith(str(OUT) + "/"):
+            shutil.rmtree(d)
+    print(f"{site}: failed prepare removed ({case.name}); run prepare again", flush=True)
+
+
 def queued(name):
     out = cmd(["squeue", "-u", USER, "-h", "-o", "%i|%j|%T"], timeout=45)
     return [r for r in (ln.split("|") for ln in out.splitlines()) if len(r) >= 3 and name in r[1]]
@@ -194,10 +237,8 @@ def prepare(site, F7, P, years):
     wall = cmd(["./xmlquery", "JOB_WALLCLOCK_TIME", "--subgroup", "case.run", "--value"], cwd=ad, timeout=90).strip()
     found = fates_has(srcroot, DIAG_FIELDS)
     dropped = [n for n in DIAG_FIELDS if n not in found]
-    overlay = next((o for o in OVERLAYS if (o / "bld" / "CLMBuildNamelist.pm").is_file()), None)
-    if overlay is None:
-        fail("private FATES-AD namelist overlay not found: " + ", ".join(map(str, OVERLAYS)))
     ad_lnd = (ad / "CaseDocs" / "lnd_in").read_text()
+    overlay = overlay_for(ad_lnd)
     ad_streams = (ad / "CaseDocs" / "datm.streams.xml").read_bytes()
     new_nl, old_hist, fields = edit_user_nl((ad / "user_nl_clm").read_text(), found)
 
@@ -318,7 +359,7 @@ def status(site, F7, P, years):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("action", choices=("prepare", "submit", "status"))
+    ap.add_argument("action", choices=("prepare", "submit", "status", "reset"))
     ap.add_argument("--sites", nargs="+", default=DEFAULT_SITES)
     ap.add_argument("--years", type=int, default=50)
     a = ap.parse_args(argv)
@@ -331,7 +372,7 @@ def main(argv=None):
     bad = 0
     for s in a.sites:
         try:
-            {"prepare": prepare, "submit": submit, "status": status}[a.action](s, F7, P, a.years)
+            {"prepare": prepare, "submit": submit, "status": status, "reset": reset}[a.action](s, F7, P, a.years)
         except Exception as exc:
             bad += 1
             print(f"{s}: HOLD {exc}", flush=True)

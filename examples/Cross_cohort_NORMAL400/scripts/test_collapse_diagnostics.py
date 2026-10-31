@@ -251,6 +251,16 @@ class CloneNamelistTest(unittest.TestCase):
         self.assertEqual(again["clm_inparm.hist_empty_htapes"], ".false.")
         self.assertIn("'FATES_MORTALITY_CSTARV_SZPF'", again["clm_inparm.hist_fincl1"])
 
+    def test_overlay_from_ad_namelist(self):
+        with tempfile.TemporaryDirectory() as d:
+            o3 = Path(d) / "Batch03_10" / "_private_ctsm_FATES_AD400_namelist_overlay"
+            (o3 / "bld").mkdir(parents=True); (o3 / "bld" / "CLMBuildNamelist.pm").write_text("x")
+            lnd = f"&clm_inparm\n fates_paramfile = '{o3}/src/fates/parameter_files/fates_params_default.json'\n/\n"
+            self.assertEqual(self.m.overlay_for(lnd), o3)
+            o1 = Path(d) / "Batch01_10" / "_private_ctsm_FATES_AD400_namelist_overlay"
+            with self.assertRaises(RuntimeError):
+                self.m.overlay_for(lnd + f" x = '{o1}/a'\n")
+
     def test_namelist_compare(self):
         ad = ("&clm_inparm\n fsurdat = '/x/surf.nc'\n hist_empty_htapes = .true.\n"
               " hist_fincl1 = 'TLAI','FATES_GPP',\n   'FATES_NPP'\n spinup_state = 2\n/\n&fates_inparm\n fates_paramfile = '/p.nc'\n/\n")
