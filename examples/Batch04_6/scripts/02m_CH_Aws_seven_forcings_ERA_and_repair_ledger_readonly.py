@@ -107,7 +107,7 @@ def collect_ledgers(matches, event_ids):
     return result
 
 
-def analyse(events, matches):
+def analyse(events, matches, verbose=True):
     grouped=collect_ledgers(matches,{e["event_id"] for e in events})
     result=[]
     rows=[]
@@ -201,7 +201,7 @@ def analyse(events, matches):
             "decision":"HOLD_NATIVE_TOWER_RH_ERA_AND_REPAIR_JUSTIFICATION",
         }
         per_event.append(summary)
-        print("EVENT",eid,event["event_time_DATM"],
+        if verbose: print("EVENT",eid,event["event_time_DATM"],
               "SRC_VPD_F",vpd_f,"SRC_VPD_ERA",era,"SRC_RH_PRESENT",raw_rh is not None,
               "SRC_VPD_F_QC_RAW",raw_qc,
               "LEDGER_EXACT",len(exact),"LEDGER_NEAR",len(near),
@@ -220,7 +220,7 @@ def analyse(events, matches):
             "max_abs_diff_ERA_hPa":a["max_delta_ERA"],
             "scientific_approval":False,
         }
-        print("VERSION",key,
+        if verbose: print("VERSION",key,
               "N",a["events"],"MAE_GAPFILLED_F",
               round(bycase[key]["MAE_vs_F_gapfilled_START_hPa_HYPOTHESIS"],6)
               if a["F_valid"] else "NA",
@@ -251,19 +251,13 @@ def selftest():
           "source_csv":"/mock/stage34_27_QC1_sensitivity_ledger.csv",
           "matched_offset_minutes":0,"candidate_record_fields":{"QC":"UNVERIFIED"}}]}
     actual,matches=read_inputs(l,i)
-    rows,report,by=analyse(actual,matches,quiet=True) if False else analyse_core(actual,matches)
+    rows,report,by=analyse(actual,matches,verbose=False)
     assert len(rows)==140 and len(report)==20 and len(by)==7
     assert report[0]["source_RH_numeric_present"] is False
     assert len(report[0]["matched_revision_ledger_exact_time"])==1
     assert by[REFERENCE]["source_ERA_n"]==20
     assert all(x["scientific_release"]=="HOLD" for x in rows)
     print("STAGE02M SELF-TEST PASS: 20 events x 7 variants, raw gapfilled VPD vs ERA, exact ledger QC HOLD; no writes")
-
-
-def analyse_core(events,matches):
-    # The same production analysis, with test stdout suppressed by caller when
-    # needed. It deliberately does not write any files.
-    return analyse(events,matches)
 
 
 def main():
