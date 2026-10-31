@@ -285,7 +285,26 @@ python3 -B "$SCRIPT" \
 ~~~
 
 These are **diagnostics**, not a seven-version preference ranking. No forcing/NC/case/FATES edits or Slurm, and no AD5/AD400 science release. Subsequently validate the original raw tower RH, actual ERA source and UTC/time-index provenance, plus exact ledger decisions and final active DATM streams.
-## Stage02N: full native-source forcing / soil / PFT science release (future)
+## Stage02M operator-run source diagnostics (31 October 2026)
+
+[Stage02M actual operator output and limitations](docs/stage02m_operator_IRIDIS6_result_20261031.md): 20 high-QBOT-difference events × 7 distinct DATM case forcing path sets = 140 source-relative comparisons. Mean absolute VPD difference from the **gap-filled** START-indexed FLUXMET VPD_F is approximately **0.0034 hPa** for the original numerical reference/RH21A/RH25A/RH29A at these events, compared with 3.2546/4.7913/7.7622 hPa for RH34A/RH38A/RH42A. Conversely vs the processed-product `VPD_ERA` field, MAE is 6.5714 hPa for the original group, and **4.2316/3.2722/1.1942 hPa** for RH34A/RH38A/RH42A. These do NOT constitute a scientific accuracy ranking: 20 events are deliberately selected for large variant disagreements, original `RH` is missing at each, `VPD_F_QC=1` (gap-filled) and `VPD_ERA` is not independently site-validated. Stage02M reported **20 exact-time ledger candidate matches and 17 ±30/60 min contextual matches** across Stage34/38/42. No model source was approved.
+
+## Stage02N — verify original Stage34/38/42 ledger rows, source metadata and SHA256
+
+[Stage02N read-only forensic script](scripts/02n_CH_Aws_revision_ledger_sha_QC_forensic_readonly.py) takes the actual saved Stage02M and Stage02I JSONs to locate exactly three small original revision ledgers and adjacent manifests under the CH-Aws forcing directory. Reads **every original CSV column/row** (small bounded files), verifies exact event ID + source row number + original CSV time value, computes ledger SHA256 and compares the declared manifest SHA if present. It prints real QC/source/provenance-related fields and reports mismatches as science holds, preserving original manifest `scientific_status` and source/dependency hashes. A matching SHA proves file integrity only, **not science approval**. This stage never changes input data or submits Slurm.
+
+Download pinned code into a new HOME directory, activate `clm_fates_env`, verify its Git blob SHA and run:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02m "$HOME/ICOS_Batch04_stage02m_WIktbwfu/results/stage02m_ERA_gapfill_revision_evidence.json" \
+  --stage02i "$HOME/ICOS_Batch04_stage02i_lcZXq0Ls/results/stage02i_source_event_matches.json" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+After Stage02N, determine whether original measured `RH` or another independently supported humidity source exists and what quality/time metadata the original repair ledgers actually establish; if not, keep the associated humidity selection on HOLD. Do not infer that ERA agreement alone makes RH42A valid, and do not authorise AD5/AD400 or modify effective FATES, surface or soil maps.
+## Stage02O: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
