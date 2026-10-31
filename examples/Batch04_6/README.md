@@ -248,7 +248,25 @@ Do not conflate **FLUXMET processed fields** (e.g. `TA_F`, `VPD_F`, gap-filled) 
 [Stage02K read-only source-event code](scripts/02k_CH_Aws_FLUXMET_DATM_event_physics_readonly.py) uses operator-saved Stage02C + Stage02E + Stage02J JSONs. Each of 20 ranked QBOT events is mapped back to its **exact Stage02E half-hour index**, then the seven distinct candidate source paths are opened read-only to extract netCDF QBOT/TBOT/PSRF and derived water-reference RH/VPD with the same event timestamp and units verified. For original FLUXMET events, the script retains exactly the **two separate offset-zero alternatives** from `TIMESTAMP_START` and `TIMESTAMP_END`, with the original raw `RH`, `TA_F`, `TA_ERA`, `VPD_F`, `VPD_F_QC`, `VPD_ERA`, `PA` and `PA_F` fields. It inventories the BIFVARINFO_HH metadata file if present. Any source-derived QBOT numerical comparisons are tagged **units/clock/QC hypotheses**, not scientific approvals.
 
 Only a new standalone HOME output JSON/CSV is written; input forcing NC, original distributed FLUXMET_HH and working Git tree are untouched, no Slurm. Next evidence task: validate the source-specific time basis and native tower RH/VPD QC, then trace Stage34/38/42 ledger rows and ERA5 values to the selected event and decide case/source holds. Do not bulk repair low-level RH>100% or submit AD5/AD400.
-## Stage02L: full native-source forcing / soil / PFT science release (future)
+## Stage02K operator results — 20 exact event-index comparisons, 31 October 2026
+
+[Actual Stage02K IRIDIS6 evidence](docs/stage02k_operator_IRIDIS6_result_20261031.md): `SOURCE VERIFIED`, self-test PASS, **20 events × 7 distinct DATM forcing paths**, `MODEL_READ_HOLDS 0`, 40 exact START/END source clock candidates, FLUXMET BIFVARINFO_HH `READ_METADATA` with 34 relevant metadata rows. For all 20 printed events, reference DATM derived VPD-water is within **0.007 hPa** of the same-label FLUXMET **TIMESTAMP_START VPD_F**, but END often differs by multiple hPa. This strongly suggests the arbitrary original reference was generated from the **START-indexed, processed/gap-filled `VPD_F` field**, NOT a proof that it is superior meteorologically. Stage02J original product examples report `VPD_F_QC=1` for all 20 anchors; under standard FLUXNET conventions this means gapfilled VPD, not measured native VPD. Time-zone, tower raw RH QC and ERA evidence still remain HOLD.
+
+## Stage02L — quantify the seven DATM versions relative to two FLUXMET clocks and RH/ERA candidates
+
+[Stage02L source-pinned read-only comparison](scripts/02l_CH_Aws_event_QC_source_comparison_readonly.py) takes the saved Stage02K JSON **only**; performs guarded source-provenance checks, uses all **20 × 7 model version event values**, computes numerical VPD comparisons separately against FLUXMET START and END, and retains raw FLUXMET `RH`, `TA_F_QC`, `VPD_F_QC`, `VPD_ERA`, `TA_ERA` and `PA_F`. It labels any reconstructed source vapour pressure, QBOT or RH as **unit assumptions, not proven native tower observations**, and never chooses a candidate solely for matching an MDS-filled `VPD_F`. Output: one JSON with per-event source and model details, one 140-row CSV matrix (20 events × seven model path sets), in a new empty standalone HOME folder. No forcing/CIME/Slurm/git modifications.
+
+After downloading and verifying source hash, run:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02k "$HOME/ICOS_Batch04_stage02k_dbo0MGh4/results/stage02k_CH_Aws_source_DATM_event_physics.json" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+Next assess matched original unfilled tower RH/VPD availability, stage34/38/42 amendment QC, ERA5 reference and actual CIME DATM stream choice. All six Batch04 stations remain scientific HOLD pending those and the separate PFT/soil/surface gates; do not submit AD5/AD400.
+## Stage02M: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
