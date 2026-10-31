@@ -191,7 +191,26 @@ python3 -B "$SCRIPT" \
 ~~~
 
 The Stage02G data checker has **not yet been executed on IRIDIS6**; all candidate science remains HOLD. After Stage02G, assess extreme individual and sustained events against native tower TA/RH/VPD/QC and collocated ERA5 evidence with unit/calendar verification. Do not cap RH or release an AD5/AD400 case based on a numerical screen.
-## Stage02H: full native-source forcing / soil / PFT science release (future)
+## Stage02G CH-Aws verified (31 October 2026): tiny RH-water exceedances
+
+[Operator's 19-year Stage02G evidence](docs/stage02g_operator_IRIDIS6_result_20261031.md) shows **1667 unique RH-water>100% half-hours**, equal to seven-way intersection (every flagged HH affected all seven candidate variants). 2021–2024 account for **1648 unique HH**, max RH-water **100.071%** in 2021 and **100.069%** in 2022. **No half-hour exceeded 105%** among all compared paths. Stage02F counts matched in each year; the apparent 7× multiplication must not be interpreted as independent observations. Ice saturation exceeded 100% below freezing in many instances; ice supersaturation is not automatically invalid. Neither minor water-saturation exceedances nor seven-way common forcing justify a bulk humidity repair.
+
+## Stage02H — CH-Aws original source discovery and prioritized episode manifest
+
+[Stage02H read-only source-manifest script](scripts/02h_CH_Aws_tower_ERA_source_manifest_readonly.py) uses existing Stage02E and Stage02G JSONs to rank severe earlier-period QBOT changes and RH episode timings, and discovers *candidate* tower/ERA archives/CSV and source metadata within the original CH-Aws forcing tree. ZIP/TAR archive member names and small CSV headers are inspected **without extraction or file modification**; only path, size, name and header provenance is catalogued, not raw measurement science. Output JSON and top event CSV are written only in a NEW empty standalone HOME directory. This step deliberately **does not** claim that a file is the actual native RH/QC source on a given timestamp.
+
+Run after downloading and verifying the SHA-pinned script in the activated `clm_fates_env`:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02e "$HOME/ICOS_Batch04_stage02e_ltWaEE72/stage02e_CH_Aws_QBOT.json" \
+  --stage02g "$HOME/ICOS_Batch04_stage02g_BOTDZjEh/results/stage02g_unique_RH_events.json" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+Next, after discovering the original source product and QC columns, perform native tower/ERA/selected-DATM event-level **matched-time** verification for selected large-change half hours, including pressure units, time zone/calendar and source confidence. Still no automatic RH cap, DATM replacement, FATES parameter edits, case generation, AD5/AD400 or Slurm.
+## Stage02I: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
