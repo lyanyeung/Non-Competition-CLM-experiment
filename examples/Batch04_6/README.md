@@ -133,7 +133,25 @@ Check these four simpler stations first before the seven-variant CH-Aws 133-file
 [Actual operator console record](docs/stage02d_first4_operator_IRIDIS6_result_20261031.md): Stage02D ran successfully in the activated `clm_fates_env` (NumPy 2.2.6/netCDF4 1.7.4). DE-Gri 22 annual files (2004–2025), DE-RuR 15 (2011–2025), IT-Tor 18 (2008–2025) and ES-Agu 19 (2006–2024): **74 unique annual forcing NC, `FLAGS {}` on all four sites, no reported failed annual joins or numeric QC flags**. `SCIENCE_RELEASE HOLD` remains for all. This is a limited internal candidate-DATM audit, **not** tower-versus-ERA QC or confirmation of effective runtime DATM stream.
 
 Next run the **same immutable Stage02D script**, without git pull or new source-code changes, for `--sites CH-Aws GL-ZaH` against the saved Stage02C JSON. CH-Aws has 133 distinct candidate annual files across seven path sets; GL-ZaH has 26. Compare RH-variant numerical digests and check yearly calendar joins before selecting anything. **No AD5/AD400 submission**.
-## Stage02E: full forcing/soil/PFT science release (future)
+## Stage02D all-six complete: CH-Aws and GL-ZaH (31 October 2026)
+
+[Operator IRIDIS6 result](docs/stage02d_remaining2_operator_IRIDIS6_result_20261031.md): CH-Aws scanned 133 unique annual candidate NC paths (7 distinct 19-year path sets, 8 source cases), **14 years differed only in QBOT**: 2006–2014 and 2016–2020. All candidate years 2006–2024 passed the implemented internal Stage02D checks (`FLAGS {}`). GL-ZaH scanned 26 annual files 2000–2025 with `FLAGS {}`, still requiring private Arctic FATES mapping. With previous four sites, 233 annual DATM candidate NC files were screened across six sites. These are *model-forcing internal* checks, NOT raw tower/ERA QC nor model-run approval.
+
+## Stage02E — quantify CH-Aws QBOT forcing revision at 30-minute resolution
+
+[Stage02E source-pinned read-only comparison](scripts/02e_CH_Aws_QBOT_19y_version_diff_readonly.py): reads previously recorded Stage02C 8-case/7-path source register and compares each year's QBOT, TBOT, PSRF and time axes across alternative CH-Aws DATM paths. Default **SPINUP500_11P baseline is arbitrary and unapproved**: it is used only as a consistent reference, not a recommended forcing. Quantifies changed half-hour counts, maximum and mean absolute QBOT difference in g/kg, and equivalent vapour-pressure / inverse VPD difference in hPa if temperature/pressure stay fixed; records top five timestamps in the JSON report. Any inconsistent units, missing data or time alignment is marked HOLD, not silently repaired.
+
+After fixed GitHub code download and blob SHA validation into a separate HOME folder:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02c "$HOME/ICOS_Batch04_stage02c_sGTtt5pv/stage02c_report.json" \
+  --report "$RUN/stage02e_CH_Aws_QBOT_variants.json"
+~~~
+
+Next after Stage02E: native CH-Aws original tower T/RH/VPD/QC plus ERA5 matched half-hours and effective DATM stream-binding forensic audit; also review actual GL-ZaH Arctic private FATES parameters, and the four provisional grass/shrub tower original input records. Still NO AD5/AD400 and no local git pull.
+## Stage02F: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
