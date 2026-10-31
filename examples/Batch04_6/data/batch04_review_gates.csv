@@ -1,0 +1,7 @@
+site,scientific_hold,technical_hold,next_review
+CH-Aws,Herbaceous proxy not measured tower footprint and historical RH source anomalies,Unstable original CIME template and negative RH forcing need correction,Verify source RH and VPD and stable original case before any AD5
+DE-Gri,Grass forb legume and bare cover unknown at EC footprint,Original case DATM year coverage soil and point surface require provenance,Review half hourly forcing QC time seams measured soil and landunits
+DE-RuR,Lysimeter plant group survey is not whole tower area,Original case meteorology and surface provenance not yet selected,Review management seasonality forcing and measured soil
+IT-Tor,Alpine grassland proxy lacks measured bare fraction,Source climate snow soil and site point remain to verify,Audit forcing seasons and alpine PFT sensitivity
+ES-Agu,Macrochloa 57 percent denominator biocrust and bare cover unresolved,Conditional sparse shrub grass bare proxy is not science released,Recheck primary source denominators and bare ground physics
+GL-ZaH,Cassiope heath plot is not measured EC footprint,Private GL-only host9 and host11 Arctic shrub FATES map mandatory,Verify site only FATES mapping tundra forcing and bare patch
