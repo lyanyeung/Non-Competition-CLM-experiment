@@ -128,6 +128,11 @@ python3 -B "$SCRIPT" --stage02c "$HOME/ICOS_Batch04_stage02c_sGTtt5pv/stage02c_r
 ~~~
 
 Check these four simpler stations first before the seven-variant CH-Aws 133-file comparison or GL-ZaH. All site gates remain HOLD until actual source/physics review.
+## Stage02D first-four IRIDIS6 verification (31 October 2026)
+
+[Actual operator console record](docs/stage02d_first4_operator_IRIDIS6_result_20261031.md): Stage02D ran successfully in the activated `clm_fates_env` (NumPy 2.2.6/netCDF4 1.7.4). DE-Gri 22 annual files (2004–2025), DE-RuR 15 (2011–2025), IT-Tor 18 (2008–2025) and ES-Agu 19 (2006–2024): **74 unique annual forcing NC, `FLAGS {}` on all four sites, no reported failed annual joins or numeric QC flags**. `SCIENCE_RELEASE HOLD` remains for all. This is a limited internal candidate-DATM audit, **not** tower-versus-ERA QC or confirmation of effective runtime DATM stream.
+
+Next run the **same immutable Stage02D script**, without git pull or new source-code changes, for `--sites CH-Aws GL-ZaH` against the saved Stage02C JSON. CH-Aws has 133 distinct candidate annual files across seven path sets; GL-ZaH has 26. Compare RH-variant numerical digests and check yearly calendar joins before selecting anything. **No AD5/AD400 submission**.
 ## Stage02E: full forcing/soil/PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
