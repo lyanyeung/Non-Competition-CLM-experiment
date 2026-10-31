@@ -21,6 +21,7 @@ largest PFT).  Attribution window = the 20 years up to the focal PFT's collapse
 
 Usage
   python -B 08_...py --output-root DIR [--sites DE-Obe FI-Sod] [--first-years 30]
+  python -B 08_...py --output-root DIR --ad-only DE-Obe:<DIAG case> FI-Sod:<DIAG case> --first-years 50
   python -B 08_...py --publish-run DIR        # login node, SSH push like 07
 """
 from __future__ import annotations
@@ -453,6 +454,10 @@ def plot_site(site, pair, df, names, focal, cy, att, dest, monthly, first_years)
         df = df[df.SpinupYear <= first_years]
         x = (df.SpinupYear - 1 + (df.Month - 0.5) / 12.0).to_numpy(float)
         xlim, xlab = (0, first_years), f"Spin-up year (AD; monthly, first {first_years} years)"
+    elif pair.get("ad_only"):
+        x = df.SpinupYear.to_numpy(float)
+        n = int(df.SpinupYear.max()) if len(df) else 1
+        xlim, xlab = (0.5, n + 0.5), f"AD spin-up year (diagnostic re-run, {n} years)"
     else:
         x = df.SpinupYear.to_numpy(float)
         xlim, xlab = (0.5, 2 * phase + 0.5), "Spin-up year (1–400 AD, shaded | 401–800 Normal)"
@@ -546,10 +551,10 @@ def plot_site(site, pair, df, names, focal, cy, att, dest, monthly, first_years)
     fig, axs = plt.subplots(len(panels), 1, figsize=(15, 2.6 * len(panels)), sharex=True)
     shown = 0
     for ax, fn in zip(axs, panels):
-        if not monthly:
+        if not monthly and not pair.get("ad_only"):
             ax.axvspan(0.5, phase + 0.5, color="0.94", zorder=0)
             ax.axvline(phase + 0.5, color="0.3", ls="--", lw=1)
-        if cy is not None and cy <= (first_years if monthly else 2 * phase):
+        if cy is not None and cy <= (first_years if monthly else xlim[1]):
             ax.axvline(cy - (1 if monthly else 0), color="#b00000", ls=":", lw=1.2)
         ok, unit, title = fn(ax)
         if not ok:
@@ -566,14 +571,16 @@ def plot_site(site, pair, df, names, focal, cy, att, dest, monthly, first_years)
     axs[-1].set_xlim(*xlim)
     axs[-1].set_xlabel(xlab)
     top = att.get("Top3_mortality") or att.get("Dominant_mortality", "")
-    fig.suptitle(f"{site} | collapse diagnostics ({'monthly, first %d y' % first_years if monthly else 'annual, 800 y'})\n"
-                 f"{pair['ad']} → {pair['normal']}\n"
+    span = "monthly, first %d y" % first_years if monthly else ("annual, AD re-run" if pair.get("ad_only") else "annual, 800 y")
+    fig.suptitle(f"{site} | collapse diagnostics ({span})\n"
+                 f"{pair['ad'] if pair.get('ad_only') else pair['ad'] + ' → ' + pair['normal']}\n"
                  f"focal PFT: {pname(focal) if focal else 'n/a'} | collapse (VEGC<1% of max): "
                  f"{'year %d' % cy if cy else 'not determinable'} (red dotted)\n"
                  f"{output_note(df if not monthly else annual_from_monthly(df), focal)}\n"
                  f"mortality in {att.get('Attribution_window', '')}: {top}", fontsize=11)
     fig.tight_layout()
-    tag = f"_05_collapse_diagnostics_first{first_years}y.png" if monthly else "_04_collapse_diagnostics_full800.png"
+    tag = (f"_05_collapse_diagnostics_first{first_years}y.png" if monthly else
+           "_04_collapse_diagnostics_ADrerun.png" if pair.get("ad_only") else "_04_collapse_diagnostics_full800.png")
     p = dest / f"{site}{tag}"
     fig.savefig(p, dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -581,21 +588,35 @@ def plot_site(site, pair, df, names, focal, cy, att, dest, monthly, first_years)
 
 
 # ------------------------------------------------------------------ driver
+def ad_only_inventory(case, args):
+    """Inventory of a single AD case (e.g. the 09 diagnostic re-run): no Normal phase."""
+    y0 = int(P.env_value(args.cases_root / case, "RUN_STARTDATE")[:4])
+    fad = P.history_index(args.archive_root, case)
+    return {"fad": fad, "fno": {}, "ad_years": P.contiguous(fad, y0, F7.PHASE), "normal_years": []}
+
+
 def process(task):
-    site, normal, args = task
+    site, normal, args = task[:3]
+    ad_only = len(task) > 3 and task[3]
     if F7 is None:
         load_modules(args.module07)
-    rec = {"Site": site, "Normal_case": normal, "Status": "FAILED", "Error": ""}
+    rec = {"Site": site, "Normal_case": "" if ad_only else normal, "Status": "FAILED", "Error": ""}
     dest = args.output_root / site
     dest.mkdir(parents=True, exist_ok=True)
     try:
-        ndir = args.cases_root / normal
-        if not ndir.is_dir():
-            raise FileNotFoundError(f"Normal case dir missing: {ndir}")
-        ad = P.env_value(ndir, "RUN_REFCASE")
-        rec["AD_case"] = ad
-        pair = {"site": site, "ad": ad, "normal": normal, "ad_case_dir": args.cases_root / ad}
-        inv = P.inventory(pair, args)
+        if ad_only:
+            ad = normal
+            rec["AD_case"] = ad
+            pair = {"site": site, "ad": ad, "normal": ad, "ad_case_dir": args.cases_root / ad, "ad_only": True}
+            inv = ad_only_inventory(ad, args)
+        else:
+            ndir = args.cases_root / normal
+            if not ndir.is_dir():
+                raise FileNotFoundError(f"Normal case dir missing: {ndir}")
+            ad = P.env_value(ndir, "RUN_REFCASE")
+            rec["AD_case"] = ad
+            pair = {"site": site, "ad": ad, "normal": normal, "ad_case_dir": args.cases_root / ad}
+            inv = P.inventory(pair, args)
         if not inv["ad_years"]:
             raise RuntimeError("no AD history years")
         rec["AD_years"], rec["Normal_years"] = len(inv["ad_years"]), len(inv["normal_years"])
@@ -617,7 +638,7 @@ def process(task):
         rec["Missing_suggested_vars"] = ", ".join(missing)
         print(f"[{site}] AD {len(inv['ad_years'])}y + Normal {len(inv['normal_years'])}y; "
               f"{len(spec)} variables; mortality types: {rec['Mortality_types_found']}", flush=True)
-        names, src = pft_names(normal, args)
+        names, src = pft_names(pair["normal"], args)
         rec["PFT_names_from"] = src
         mon, units = read_series(inv, spec)
         ann = annual_from_monthly(mon)
@@ -664,11 +685,14 @@ def save_summary(root, rows):
 
 def run(a):
     cases = dict(F7.JOB_CASES)
-    unknown = [s for s in a.sites if s not in cases]
+    unknown = [] if a.ad_only else [s for s in a.sites if s not in cases]
     if unknown:
         raise SystemExit("not in the 07 case list: " + ", ".join(unknown))
     a.output_root.mkdir(parents=True, exist_ok=True)
     tasks = [(s, cases[s], a) for s in a.sites]
+    if a.ad_only:
+        tasks = [(s, c, a, True) for s, c in (x.split(":", 1) for x in a.ad_only)]
+        a.sites = [t[0] for t in tasks]
     if a.workers > 1 and len(tasks) > 1:
         with ProcessPoolExecutor(max_workers=min(a.workers, len(tasks))) as ex:
             rows = list(ex.map(process, tasks))
@@ -718,7 +742,7 @@ def publish(run_dir, repo):
                 if F7.is_png(p):
                     (out / s).mkdir(exist_ok=True)
                     shutil.copyfile(p, out / s / p.name)
-                    links.append(f"[{'800 y' if 'full800' in p.name else 'first years'}]({s}/{p.name})")
+                    links.append(f"[{'800 y' if 'full800' in p.name else 'AD re-run' if 'ADrerun' in p.name else 'first years'}]({s}/{p.name})")
             inv = run_dir / s / f"{s}_history_inventory.txt"
             if inv.is_file():
                 (out / s).mkdir(exist_ok=True)
@@ -746,6 +770,8 @@ def main(argv=None):
     ap.add_argument("--output-root", type=Path, help="new or empty directory (Home/RFS, not scratch)")
     ap.add_argument("--publish-run", type=Path, help="publish PNGs + summary of a finished run to GitHub (login node)")
     ap.add_argument("--sites", nargs="+", default=DEFAULT_SITES)
+    ap.add_argument("--ad-only", nargs="+", metavar="SITE:CASE",
+                    help="read a single AD case (e.g. the 09 diagnostic re-run) instead of the 07 AD/Normal pair")
     ap.add_argument("--first-years", type=int, default=30, help="years shown in the monthly zoom figure")
     ap.add_argument("--workers", type=int, default=2)
     ap.add_argument("--module07", help="path to 07_plot_full_sequence_GPP_NEE_with_EC.py (default: fullseq.py beside this file)")

@@ -203,6 +203,67 @@ class CollapseDiagnosticsTest(unittest.TestCase):
         self.assertIn("FATES_MORTALITY_CSTARV_SZPF", (out / "FI-Sod" / "FI-Sod_history_inventory.txt").read_text())
 
 
+class ADOnlyRerunTest(CollapseDiagnosticsTest):
+    """08 --ad-only on a single AD case with full output (the 09 diagnostic re-run)."""
+
+    def test_units(self):
+        pass
+
+    def test_end_to_end(self):
+        out = Path(self.tmp.name) / "out"
+        code = self.mod.main(["--output-root", str(out), "--ad-only", "FI-Sod:FI-Sod_AD", "--workers", "1", "--first-years", "20",
+                              "--archive-root", str(self.archive), "--cases-root", str(self.cases)])
+        err = out / "FI-Sod" / "ERROR.txt"
+        self.assertEqual(code, 0, err.read_text() if err.exists() else "")
+        with (out / "collapse_summary.csv").open() as f:
+            r = list(csv.DictReader(f))[0]
+        self.assertEqual(r["Normal_years"], "0")
+        self.assertEqual(int(r["AD_years"]), self.AD_YEARS)
+        self.assertEqual(int(r["Collapse_year"]), 9)
+        self.assertEqual(r["Dominant_mortality"], "CSTARV")
+        for tag in ("_04_collapse_diagnostics_ADrerun.png", "_05_collapse_diagnostics_first20y.png"):
+            self.assertTrue((out / "FI-Sod" / f"FI-Sod{tag}").is_file(), tag)
+
+
+class CloneNamelistTest(unittest.TestCase):
+    def setUp(self):
+        spec = importlib.util.spec_from_file_location("clone09", HERE / "09_clone_AD_diag_rerun.py")
+        self.m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.m)
+
+    def test_edit_user_nl(self):
+        src = ("fsurdat = '/x/surf.nc'\n"
+               "hist_empty_htapes = .true.\n"
+               "hist_fincl1 = 'TOTSOMC','TOTSOMN',\n   'TLAI','FATES_GPP',\n  'FATES_NPP','TWS','H2OSNO'\n"
+               "hist_mfilt = 12\n"
+               "spinup_state = 2\n")
+        new, old, fields = self.m.edit_user_nl(src, ["FATES_MORTALITY_CSTARV_SZPF", "TLAI"])
+        self.assertEqual(fields, ["TOTSOMC", "TOTSOMN", "TLAI", "FATES_GPP", "FATES_NPP", "TWS", "H2OSNO",
+                                  "FATES_MORTALITY_CSTARV_SZPF"])
+        self.assertIn("hist_empty_htapes = .false.", new)
+        self.assertNotIn(".true.", new)
+        self.assertEqual(new.count("hist_fincl1"), 1)
+        for keep in ("fsurdat = '/x/surf.nc'", "hist_mfilt = 12", "spinup_state = 2"):
+            self.assertIn(keep, new)
+        self.assertNotIn("'TLAI','FATES_GPP',\n  'FATES_NPP'", new)
+        self.assertEqual(set(old), {"hist_empty_htapes", "hist_fincl1"})
+        again = self.m.parse_nml("&clm_inparm\n" + new.replace("!", "! ") + "/\n")
+        self.assertEqual(again["clm_inparm.hist_empty_htapes"], ".false.")
+        self.assertIn("'FATES_MORTALITY_CSTARV_SZPF'", again["clm_inparm.hist_fincl1"])
+
+    def test_namelist_compare(self):
+        ad = ("&clm_inparm\n fsurdat = '/x/surf.nc'\n hist_empty_htapes = .true.\n"
+              " hist_fincl1 = 'TLAI','FATES_GPP',\n   'FATES_NPP'\n spinup_state = 2\n/\n&fates_inparm\n fates_paramfile = '/p.nc'\n/\n")
+        new = ad.replace(".true.", ".false.").replace("'FATES_NPP'", "'FATES_NPP','FATES_MORTALITY_CSTARV_SZPF'")
+        a, n = self.m.parse_nml(ad), self.m.parse_nml(new)
+        diff = sorted(k for k in set(a) | set(n) if a.get(k) != n.get(k))
+        self.assertEqual(diff, ["clm_inparm.hist_empty_htapes", "clm_inparm.hist_fincl1"])
+        self.assertTrue(all(self.m.is_hist(k) for k in diff))
+        bad = self.m.parse_nml(new.replace("spinup_state = 2", "spinup_state = 0"))
+        self.assertFalse(all(self.m.is_hist(k) for k in set(a) | set(bad) if a.get(k) != bad.get(k)))
+        self.assertTrue(self.m.is_hist("clm_inparm.fates_history_dimlevel"))
+
+
 class MinimalADHistoryTest(CollapseDiagnosticsTest):
     """Real layout: AD wrote only GPP/NPP/TLAI; Normal has full output but all plants are dead."""
     AD_MINIMAL = True

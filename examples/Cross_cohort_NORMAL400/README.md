@@ -14,6 +14,8 @@
 
 Collapse diagnostics (`scripts/08_diagnose_collapse_mortality.py`): for a few sites whose GPP goes to ~0, read-only plots of mortality rate by type (carbon starvation, freezing, hydraulic, background, …), carbon fluxes, storage, plant density and recruitment over the full 800 years and monthly for the first AD years, plus an inventory of the FATES history variables actually written.
 
+Diagnostic AD re-run (`scripts/09_clone_AD_diag_rerun.py`): the AD400 cases saved only seven history fields, so the cause of the needleleaf collapse is not recorded. This clones a site's own AD case (same executable, inputs, parameters and AD settings), switches on full FATES history plus per-PFT mortality by type, and runs the first years again in the same 5-year segments. The regenerated land namelist must equal the AD one except for history settings, or nothing is submitted. Read the result with `08_... --ad-only SITE:CASE`.
+
 [All-completed AD400 + Normal400 plotting runbook](ALL_COMPLETED_PLOTS.md): live status and reference-pair selection, NT-first EC comparison, and separate per-case carbon diagnostics. The analysis runs as a read-only-input Slurm job and writes new derived files under Home. Completion is not convergence.
 
 
