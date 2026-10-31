@@ -28,6 +28,10 @@ Console source examples from **TIMESTAMP_END** candidate context (not yet establ
 
 **These are only displayed examples** (one of ten alternative source temporal matches per event). No unit conversion, native time-zone assumption, tower QC0 determination, ERA5 assignment, source-vs-candidate moisture verdict or active case approval has been made.
 
+### FLUXNET field definitions (official reference, conditional on this EUF product following FLUXNET conventions)
+
+Official FLUXNET2015 field list: [FULLSET data product variable definitions](https://fluxnet.org/data/fluxnet2015-dataset/fullset-data-product/) and [variables quick-start](https://fluxnet.org/data/fluxnet2015-dataset/variables-quick-start-guide/). At half-hour resolution, `TA_F` is °C, `VPD_F` hPa, `PA_F` kPa; for `TA_F_QC` and `VPD_F_QC`, **0 = measured, 1 = good-quality MDS/gap-filled, 2 = downscaled ERA**. The user's 20 printed contexts all show **`TA_F_QC=0`** and **`VPD_F_QC=1`**: under these product conventions, the temperatures are labelled measured and VPD has been high-quality gap-filled, NOT directly observed VPD (though its original native source and spatial/time provenance must still be reviewed). This is a significant reason not to trust a variant simply because it matches `VPD_F`; investigate `RH` (where valid), native tower RH/TA QC and `VPD_F_MDS`/ERA source. Confirm the EUF variable/product definitions from its own metadata before treating these semantics as authoritative for this archive.
+
 ### Scientific next steps
 
 Read the saved Stage02J report, inspect actual metadata on units where available, then compare START and END at offset=0 separately against same-datetime DATM TBOT/PSRF/QBOT by named event, reporting original `RH`, original/filled `TA_F` and `VPD_F`, `TA_ERA`/`VPD_ERA`, `PA`/`PA_F` and the actual QC/MDS fields. Diagnose only conditional/metadata-backed specific-humidity reconstructions from VPD or RH. **Do not conclude VPD_F_QC=1 is accepted observed tower data without authoritative definitions.** Event-specific source provenance and pressure/time conversions must be evidence-backed.
