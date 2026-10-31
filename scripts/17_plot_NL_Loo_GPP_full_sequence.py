@@ -6,7 +6,7 @@ Design (V3, legacy NL-Loo exception, not the AD400 -> Normal400 standard):
   spin-up years  51-250  AD200    AD      model years 2047-2246
   spin-up years 251-550  POST300  Normal  model years 2247-2546
 
-Reads the CLM h0 history files of the three V3 cases and draws one 550-year axis
+Reads the CLM history files (h0a, or h0 in older CTSM) of the three V3 cases and draws one 550-year axis
 with annual-mean GPP (plus the peak-month GPP), NPP, LAI and, where written,
 FATES vegetation carbon.
 
@@ -139,16 +139,42 @@ def stock_factor(units, name):
     raise ValueError(f"{name}: unknown carbon stock units {units!r}")
 
 
-def history_files(archive_root, case, include_run):
-    found = {}
-    dirs = [archive_root / case / "lnd" / "hist"]
+# Recent CTSM: <case>.clm2.h0a.<date>.nc (time-averaged) and .h0i. (instantaneous);
+# older CTSM: <case>.clm2.h0.<date>.nc. GPP/NPP/LAI/VEGC are averaged fields -> h0a or h0.
+H0_PATTERNS = ("{case}.clm2.h0a.*.nc", "{case}.clm2.h0.*.nc")
+
+
+def search_dirs(archive_root, case, include_run):
+    dirs = [archive_root / case / "lnd" / "hist", archive_root / case]
     if include_run:
         dirs.append(archive_root.parent / case / "run")
-    for d in dirs:
-        if d.is_dir():
-            for p in sorted(d.glob(f"{case}.clm2.h0.*.nc")):
+    return dirs
+
+
+def history_files(archive_root, case, include_run):
+    found = {}
+    for d in search_dirs(archive_root, case, include_run):
+        if not d.is_dir():
+            continue
+        for pat in H0_PATTERNS:
+            for p in sorted(d.glob(pat.format(case=case))):
                 found.setdefault(p.name, p)  # archived copy wins over RUNDIR copy
     return [found[k] for k in sorted(found)]
+
+
+def explain_missing(archive_root, case, include_run):
+    """Show what is actually there when no h0/h0a file matched."""
+    lines = []
+    for d in search_dirs(archive_root, case, include_run):
+        if not d.is_dir():
+            lines.append(f"    {d}: not a directory")
+            continue
+        nc = sorted(p.name for p in d.glob("*.nc"))
+        lines.append(f"    {d}: {len(nc)} .nc files" + (f", e.g. {nc[0]} ... {nc[-1]}" if nc else ""))
+    if not (archive_root / case).is_dir():
+        sub = sorted(p.name for p in archive_root.glob("NL-Loo*")) if archive_root.is_dir() else []
+        lines.append(f"    NL-Loo entries under {archive_root}: {', '.join(sub) or 'none'}")
+    return lines
 
 
 def read_file(path, phase, used):
@@ -309,7 +335,10 @@ def main(argv=None):
     for p, mode, first, stop in PHASES:
         files = history_files(a.archive_root, CASE[p], a.include_run)
         counts[p] = len(files)
-        print(f"{p:7} {CASE[p]}: {len(files)} h0 files", flush=True)
+        kinds = sorted({f.name.split(".clm2.")[1].split(".")[0] for f in files})
+        print(f"{p:7} {CASE[p]}: {len(files)} history files {kinds or ''}", flush=True)
+        if not files:
+            print("\n".join(explain_missing(a.archive_root, CASE[p], a.include_run)), flush=True)
         for f in files:
             try:
                 for r in read_file(f, p, used):
