@@ -27,7 +27,7 @@ CSV_FIELDS = (
     "year", "HH_index", "time", "candidate_versions_above_100",
     "maximum_RH_water_pct", "minimum_RH_water_pct",
     "max_RH_candidate_cases", "reference_RH_water_pct",
-    "reference_RH_ice_pct", "reference_T_C", "reference_PSFR_Pa",
+    "reference_RH_ice_pct", "reference_T_C", "reference_PSRF_Pa",
     "reference_QBOT_kgkg", "reference_ice_saturation_over100_if_subzero",
     "ERA5_source_verified", "native_tower_RH_QC_verified",
 )
@@ -232,7 +232,7 @@ def analyse_year(year, groups, basepaths, np, Dataset, nc):
             "reference_RH_water_pct":float(ref_rh["water"][k]),
             "reference_RH_ice_pct":float(ref_rh["ice"][k]),
             "reference_T_C":float(baset[k]-273.15),
-            "reference_PSFR_Pa":float(basep[k]),
+            "reference_PSRF_Pa":float(basep[k]),
             "reference_QBOT_kgkg":float(baseq[k]),
             "reference_ice_saturation_over100_if_subzero":bool(
                 ref_rh["ice"][k]>100+1e-8 and cold[k]),
