@@ -228,7 +228,16 @@ python3 -B "$SCRIPT" \
 ~~~
 
 Stage02I cannot approve a humidity fix. It is a schema and raw-candidate time-match stage, not final validation of measured tower RH, ERA5-Land, data-processing source QC, physical units or actual CIME DATM stream. Only a subsequent source-specific evidence audit can lift that HOLD.
-## Stage02J: full native-source forcing / soil / PFT science release (future)
+## Stage02I operator result — source candidate matches, raw FLUXMET_HH still unexamined
+
+[Operator IRIDIS6 Stage02I output](docs/stage02i_operator_IRIDIS6_result_20261031.md): 19 CSV and 11 JSON manifests examined; 437 candidate time-matched rows, of which 400 belong to four *alternative processed* multisource forcing products (100 each) and 37 to stage34/38/42 revision ledgers. The original `EUF_CH-Aws_FLUXNET_FLUXMET_HH_2006-2024_v1.3_r2.csv` was **SKIP_OVER_MAX_MB** due to a 90 MB bound. `NO_RECOGNISED_TIME_COLUMN ROWS 1` on separate ledger/metadata CSVs is not evidence that those files contain only one record; the scanner stopped after its first row because it did not identify a half-hour timestamp field. The matched records remain **candidate evidence only**: no native tower QC, ERA5 comparison or time-reference validation.
+
+## Stage02J — stream the original >90 MB FLUXMET_HH source at flagged events
+
+[Stage02J read-only script](scripts/02j_CH_Aws_original_FLUXMET_HH_event_evidence_readonly.py) takes the actual saved Stage02I JSON, verifies the exact previously skipped CH-Aws EUF product path, and streams the original half-hour FLUXMET CSV row by row with bounded memory, with **no 90 MB skip**. It records `TIMESTAMP_START` and `TIMESTAMP_END` *separately*, and matches top 20 Stage02I high-QBOT event timestamps and ±30/60-minute context. It reports the actual columns present for TA/RH/VPD/PA and any `_QC` fields as **raw strings**; source missing-value codes and QC semantics are not guessed. The output JSON also associates these records with Stage02I processed/revision candidates by event ID, and a new CSV carries original source rows; neither authorizes a QC approval or source replacement.
+
+Do not conflate **FLUXMET processed fields** (e.g. `TA_F`, `VPD_F`, gap-filled) with native unfilled tower observations, nor treat equality of timestamps under different START/END conventions as verified UTC alignment. This stage creates only JSON/CSV reports under a fresh EMPTY HOME report directory, never modifying the original product, forcing, CIME, FATES, Git working tree or Slurm. Subsequent science work must prove true tower RH/TA/VPD QC and separate ERA5 provenance.
+## Stage02K: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
