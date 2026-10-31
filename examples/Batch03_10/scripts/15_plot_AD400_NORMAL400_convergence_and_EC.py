@@ -14,9 +14,9 @@ therefore use the NORMAL phase only.
 
 EC comparison uses the LAST COMPLETE forcing cycle inside the Normal phase,
 mapped to observation years with the DATM year_first/year_last/year_align.
-GPP partition: GPP_NT_VUT_REF takes precedence on each day across all sources;
-GPP_DT_VUT_REF is used only on days without usable NT. Model NEE = -FATES_NEP; EC NEE =
-NEE_VUT_REF. Units g C m-2 d-1.
+GPP partition: NT VUT, NT CUT, DT VUT, then DT CUT on each day across sources.
+NEE prefers VUT, then CUT; every chosen column is recorded. Model NEE = -FATES_NEP.
+Units g C m-2 d-1.
 
 Outputs (per site, under --output-root, never under scratch):
   <site>_01_carbon_pools_AD400_NORMAL400.png
@@ -53,6 +53,8 @@ LABELS = {"TOTECOSYSC": "Total ecosystem carbon", "TOTSOMC": "Soil organic carbo
           "FATES_VEGC": "FATES vegetation carbon", "TOTVEGC": "Total vegetation carbon",
           "TOTLITC": "Litter carbon", "TLAI": "Total LAI"}
 GPP_NT, GPP_DT = "GPP_NT_VUT_REF", "GPP_DT_VUT_REF"
+GPP_CHOICES = (GPP_NT, "GPP_NT_CUT_REF", GPP_DT, "GPP_DT_CUT_REF")
+NEE_CHOICES = ("NEE_VUT_REF", "NEE_CUT_REF")
 SOURCE_PRIORITY = {"ICOS": 0, "ICOSETC": 1, "EUF": 2, "FLX": 3, "AMF": 4}
 
 
@@ -329,16 +331,16 @@ def ec_sources(forcing_dir, override=None):
                 cols = header(p)
             except (OSError, UnicodeError, StopIteration):
                 continue
-            if {"TIMESTAMP_START", "NEE_VUT_REF"} <= cols and (GPP_NT in cols or GPP_DT in cols):
+            if "TIMESTAMP_START" in cols and any(c in cols for c in (*GPP_CHOICES, *NEE_CHOICES)):
                 cands.append((SOURCE_PRIORITY.get(up.split("_", 1)[0], 9), str(p), p))
     if not cands:
-        raise FileNotFoundError(f"No HH/HR EC file with NEE_VUT_REF and GPP NT/DT under {forcing_dir}/raw*")
+        raise FileNotFoundError(f"No HH/HR EC file with supported GPP or NEE reference under {forcing_dir}/raw*")
     return [p for _, _, p in sorted(cands)]
 
 
 def ec_daily_one(path, first, last, min_hh):
     cols = pd.read_csv(path, nrows=0, encoding="latin-1").columns
-    use = ["TIMESTAMP_START", "NEE_VUT_REF"] + [c for c in (GPP_NT, GPP_DT) if c in cols]
+    use = ["TIMESTAMP_START"] + [c for c in (*GPP_CHOICES, *NEE_CHOICES) if c in cols]
     raw = pd.read_csv(path, usecols=use, dtype={"TIMESTAMP_START": str}, low_memory=False, encoding="latin-1")
     ts = raw["TIMESTAMP_START"].str.strip().str.replace(r"\.0$", "", regex=True)
     raw["date"] = pd.to_datetime(ts, format="%Y%m%d%H%M", errors="raise")
@@ -363,16 +365,21 @@ def ec_daily_one(path, first, last, min_hh):
         mean[cnt < minimum] = np.nan
         return mean * EC_TO_GCD
 
-    nee = daily("NEE_VUT_REF")
-    nt = daily(GPP_NT) if GPP_NT in raw.columns else pd.Series(np.nan, index=nee.index)
-    dt = daily(GPP_DT) if GPP_DT in raw.columns else pd.Series(np.nan, index=nee.index)
-    g = nt.combine_first(dt)
-    gpp_col = ("NT+DT" if nt.notna().any() and (nt.isna() & dt.notna()).any() else
-               GPP_NT if nt.notna().any() else GPP_DT if dt.notna().any() else None)
-    df = pd.DataFrame({"EC_GPP": g, "EC_NEE": nee})
-    df["EC_GPP_column"] = np.where(nt.notna(), GPP_NT, np.where(dt.notna(), GPP_DT, ""))
-    df["EC_GPP_source"] = np.where(df["EC_GPP"].notna(), path.name, "")
-    df["EC_source"] = path.name
+    idx = raw.resample("D").size().index
+    df = pd.DataFrame(index=idx)
+    for flux, choices in (("GPP", GPP_CHOICES), ("NEE", NEE_CHOICES)):
+        value, column = f"EC_{flux}", f"EC_{flux}_column"
+        df[value] = np.nan; df[column] = ""
+        for name in choices:
+            if name in raw.columns:
+                x = daily(name)
+                take = df[value].isna() & x.notna()
+                df.loc[take, value] = x.loc[take]
+                df.loc[take, column] = name
+        df[f"EC_{flux}_source"] = np.where(df[value].notna(), path.name, "")
+    used = sorted(set(df["EC_GPP_column"]) - {""})
+    gpp_col = "+".join(used) if used else None
+    df["EC_source"] = df["EC_NEE_source"]
     return df, gpp_col, cadence
 
 
@@ -394,15 +401,14 @@ def ec_daily(paths, first, last, min_hh):
         else:
             combined = combined.reindex(combined.index.union(d.index)).sort_index()
             d = d.reindex(combined.index)
-            # An NT value from any source outranks a DT value from an earlier
-            # source. Within the same partition, the original source order wins.
-            take = d["EC_GPP"].notna() & (
-                combined["EC_GPP"].isna() |
-                ((d["EC_GPP_column"] == GPP_NT) & (combined["EC_GPP_column"] == GPP_DT)))
-            fields = ["EC_GPP", "EC_GPP_column", "EC_GPP_source"]
-            combined.loc[take, fields] = d.loc[take, fields]
-            combined["EC_NEE"] = combined["EC_NEE"].combine_first(d["EC_NEE"])
-            combined["EC_source"] = combined["EC_source"].combine_first(d["EC_source"])
+            for flux, choices in (("GPP", GPP_CHOICES), ("NEE", NEE_CHOICES)):
+                val, col, source = f"EC_{flux}", f"EC_{flux}_column", f"EC_{flux}_source"
+                rank = {name: i for i, name in enumerate(choices)}
+                new_rank = d[col].map(rank).fillna(len(choices))
+                old_rank = combined[col].map(rank).fillna(len(choices))
+                take = d[val].notna() & (combined[val].isna() | (new_rank < old_rank))
+                combined.loc[take, [val, col, source]] = d.loc[take, [val, col, source]]
+            combined["EC_source"] = combined["EC_NEE_source"]
     if combined is None:
         raise ValueError(f"No usable EC source in forcing period {first}-{last}: "
                          + "; ".join(f"{Path(p['path']).name}: {p.get('reason', 'unusable')}" for p in prov))
@@ -550,7 +556,7 @@ def plot_panels(carbon, names, meta, site, dest, interim, conv, n_force):
     fig.savefig(p, dpi=200, bbox_inches="tight"); plt.close(fig); return p
 
 
-def plot_flux(mon, site, cycle, first, last, gpp_label, dest, interim):
+def plot_flux(mon, site, cycle, first, last, gpp_label, dest, interim, nee_label="NEE_VUT_REF"):
     import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt, matplotlib.dates as mdates
     fig, axs = plt.subplots(2, 1, figsize=(16, 8), sharex=True)
     stats = []
@@ -558,7 +564,7 @@ def plot_flux(mon, site, cycle, first, last, gpp_label, dest, interim):
         o, m = f"EC_{flux}", f"FATES_{flux}"
         sc = metrics(mon[o], mon[m])
         stats.append({"Site": site, "Scale": "monthly", "Flux": flux, **sc})
-        ax.plot(mon.date, mon[o], lw=1.45, label="EC tower" + (f" ({gpp_label})" if flux == "GPP" else " (NEE_VUT_REF)"))
+        ax.plot(mon.date, mon[o], lw=1.45, label="EC tower" + (f" ({gpp_label})" if flux == "GPP" else f" ({nee_label})"))
         ax.plot(mon.date, mon[m], lw=1.45, label="FATES")
         if flux == "NEE":
             ax.axhline(0, ls="--", lw=0.8, color="0.5")
@@ -569,7 +575,7 @@ def plot_flux(mon, site, cycle, first, last, gpp_label, dest, interim):
     axs[-1].set_xlim(pd.Timestamp(first, 1, 1), pd.Timestamp(last + 1, 1, 1)); axs[-1].set_xlabel("EC observation year")
     tag = " — INTERIM" if interim else ""
     fig.suptitle(f"{site}: EC tower vs FATES (monthly means, {first}-{last}){tag}\n"
-                 f"Last complete Normal-phase model cycle {cycle[0]}-{cycle[-1]}; GPP: NT preferred, DT only if NT unavailable", fontsize=13)
+                 f"Last complete Normal-phase model cycle {cycle[0]}-{cycle[-1]}; GPP: NT before DT, VUT before CUT", fontsize=13)
     fig.tight_layout(); p = dest / f"{site}_GPP_NEE_monthly_overview.png"
     fig.savefig(p, dpi=200, bbox_inches="tight"); plt.close(fig)
     return pd.DataFrame(stats), p
@@ -622,7 +628,7 @@ def process(pair, args):
     plot_overview(carbon, names, meta, s, cases, dest, interim)
     if inv["normal_years"]:
         plot_panels(carbon, names, meta, s, dest, interim, conv, n)
-    status, err, prov, scores, cycle, gpp_cols, freq = "CARBON_ONLY", "", [], None, [], [], ""
+    status, err, prov, scores, cycle, gpp_cols, nee_cols, freq = "CARBON_ONLY", "", [], None, [], [], [], ""
     if not args.carbon_only:
         try:
             cycle = last_complete_cycle(inv["normal_years"], first, last, align)
@@ -630,6 +636,7 @@ def process(pair, args):
             srcs = ec_sources(args.sites_root / s / "forcing", args.obs_csv.get(s))
             obs, prov = ec_daily(srcs, first, last, args.min_halfhour)
             gpp_cols = sorted({c for c in obs["EC_GPP_column"].dropna() if c})
+            nee_cols = sorted({c for c in obs["EC_NEE_column"].dropna() if c})
             daily, mon = paired_monthly(model, obs, freq, args.min_days)
             for flux in ("GPP", "NEE"):
                 matched = mon[[f"EC_{flux}", f"FATES_{flux}"]].dropna()
@@ -637,7 +644,8 @@ def process(pair, args):
                     raise ValueError(f"{flux}: fewer than two matched monthly observations")
             mon.to_csv(dest / f"{s}_monthly_FATES_vs_EC.csv", index=False)
             label = " + ".join(gpp_cols) if gpp_cols else "no GPP"
-            scores, _ = plot_flux(mon, s, cycle, first, last, label, dest, interim)
+            scores, _ = plot_flux(mon, s, cycle, first, last, label, dest, interim,
+                                  nee_label=" + ".join(nee_cols) if nee_cols else "no NEE")
             if daily is not None:
                 daily.to_csv(dest / f"{s}_daily_FATES_vs_EC.csv", index=False)
                 daily_sc = pd.DataFrame([{"Site": s, "Scale": "daily", "Flux": f,
@@ -653,9 +661,9 @@ def process(pair, args):
                 "ad_years": [inv["ad_years"][0], inv["ad_years"][-1]] if inv["ad_years"] else [],
                 "normal_years": [inv["normal_years"][0], inv["normal_years"][-1]] if inv["normal_years"] else [],
                 "forcing_first_last_align": [first, last, align], "model_history_frequency": freq, "ec_cycle_model_years": [cycle[0], cycle[-1]] if cycle else [],
-                "gpp_policy": "NT takes priority across all sources on each day; DT only if no usable NT is available for that day",
+                "gpp_policy": "Each day across sources: NT VUT, NT CUT, DT VUT, DT CUT; NEE VUT before NEE CUT",
                 "ec_gpp_columns_used": gpp_cols, "ec_sources": prov, "ec_source_priority": SOURCE_PRIORITY,
-                "model_gpp": "FATES_GPP", "model_nee": "-FATES_NEP", "ec_nee": "NEE_VUT_REF",
+                "model_gpp": "FATES_GPP", "model_nee": "-FATES_NEP", "ec_nee_columns_used": nee_cols,
                 "flux_units": "g C m-2 d-1", "carbon_variables": names, "carbon_units": meta,
                 "missing_primary_carbon_variables": [n for n in ("TOTECOSYSC", "TOTSOMC", "FATES_VEGC") if n not in names],
                 "caveat": "AD/Normal transition may include pool rescaling. 800 years is not proof of equilibrium. EC/model day alignment uses native timestamps without a timezone conversion; verify the clock basis, especially for UTC-shifted AmeriFlux forcing.",
@@ -713,8 +721,8 @@ def main():
                     cols = []
                     for sp in srcs:
                         c = pd.read_csv(sp, nrows=0, encoding="latin-1").columns
-                        have = "+".join(k for k, col in (("NT", GPP_NT), ("DT", GPP_DT)) if col in c)
-                        cols.append(f"{sp.name}[cols {have}; NT used if it has valid days]")
+                        have = "+".join(col for col in (*GPP_CHOICES, *NEE_CHOICES) if col in c)
+                        cols.append(f"{sp.name}[cols {have}; NT takes priority over DT]")
                     line += "  EC: " + ", ".join(cols)
                 except Exception as e:
                     issues += 1

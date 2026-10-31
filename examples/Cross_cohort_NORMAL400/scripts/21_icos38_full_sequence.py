@@ -7,6 +7,7 @@ All 38 requested sites get a manifest row, including missing and ambiguous cases
 """
 import argparse
 import csv
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -109,8 +110,11 @@ def ec_reference(core, site, sites_root, first, last):
                         "low": min(whole) if whole else np.nan,
                         "high": max(whole) if whole else np.nan,
                         "complete_years": len(whole), "months": len(monthly_clim)}
-    counts = obs.loc[obs.EC_GPP.notna(), "EC_GPP_column"].value_counts().to_dict()
-    return result, provenance, {str(k): int(v) for k, v in counts.items()}
+    counts = {}
+    for flux in ("GPP", "NEE"):
+        for k, v in obs.loc[obs[f"EC_{flux}"].notna(), f"EC_{flux}_column"].value_counts().items():
+            counts[str(k)] = int(v)
+    return result, provenance, counts
 
 
 def plot_site(frame, ref, counts, site, case, out):
@@ -123,6 +127,9 @@ def plot_site(frame, ref, counts, site, case, out):
             part = frame[frame.Phase == phase]
             if part.empty:
                 continue
+            if part[name].notna().sum() == 0:
+                ax.plot([], [], color=color, label=phase + " unavailable in history")
+                continue
             xx = part.SpinupYear.to_numpy() - 1 + (part.Month.to_numpy() - 0.5) / 12
             ax.plot(xx, part[name], lw=.35, color=color, alpha=.5)
             annual = pd.Series({int(y): np.average(g[name], weights=MONTH_DAYS)
@@ -131,9 +138,10 @@ def plot_site(frame, ref, counts, site, case, out):
             ax.plot(annual.index - .5, annual, lw=1.15, color=color, label=phase + " annual mean")
         if name in ref and np.isfinite(ref[name]["mean"]):
             t = ref[name]
-            partition = "NT" if counts.get("GPP_NT_VUT_REF", 0) and not counts.get("GPP_DT_VUT_REF", 0) else (
-                "NT+DT" if counts.get("GPP_NT_VUT_REF", 0) else "DT")
-            lab = f"EC {partition} reference" if name == "GPP" else "EC NEE reference"
+            used = [k for k, v in counts.items() if v and k.startswith("GPP_")]
+            nee_used = [k for k, v in counts.items() if v and k.startswith("NEE_")]
+            lab = ("EC " + "+".join(k.replace("GPP_", "").replace("_REF", "") for k in used)
+                   if name == "GPP" else "EC " + "+".join(k.replace("_REF", "") for k in nee_used))
             ax.axhline(t["mean"], color="black", lw=1, ls="--", label=lab)
             ax.axhline(t["monthly_min"], color="0.35", lw=.7, ls="-.", label="EC climatological month min/max")
             ax.axhline(t["monthly_max"], color="0.35", lw=.7, ls="-.")
@@ -181,9 +189,31 @@ def plot_overviews(annual_by_site, ref_by_site, out):
         plt.close(fig)
 
 
+def load_cached_model(prev, site, ad_case, normal_case, start_year):
+    prev_csv = prev / f"{site}_model_monthly_derived.csv"
+    prev_meta = prev / f"{site}_metadata.json"
+    if not prev_csv.is_file() or not prev_meta.is_file():
+        return None
+    old_meta = json.loads(prev_meta.read_text(encoding="utf-8"))
+    if (old_meta.get("site"), old_meta.get("ad_case"), old_meta.get("normal_case")) != (site, ad_case, normal_case):
+        raise ValueError("Previous model CSV provenance does not match the selected pair")
+    source_hash = hashlib.sha256(prev_csv.read_bytes()).hexdigest()
+    frame = pd.read_csv(prev_csv).sort_values(["SpinupYear", "Month"]).reset_index(drop=True)
+    expected_spin = np.repeat(np.arange(1, 801), 12)
+    expected_month = np.tile(np.arange(1, 13), 800)
+    if (len(frame) != 9600 or not np.array_equal(frame.SpinupYear, expected_spin)
+        or not np.array_equal(frame.Month, expected_month)
+        or not np.array_equal(frame.ModelYear, start_year + expected_spin - 1)
+        or not np.array_equal(frame.Phase, np.where(expected_spin <= 400, "AD", "NORMAL"))):
+        raise ValueError("Previous monthly model CSV has inconsistent dates or phase")
+    for n in VARIABLES: frame[n] = pd.to_numeric(frame[n], errors="raise")
+    return frame, set(old_meta.get("missing_model_fields", [])), source_hash
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--output-root", required=True, type=Path)
+    ap.add_argument("--source-run", type=Path, help="Reuse verified per-case monthly model CSV from a previous run")
     a = ap.parse_args()
     out = a.output_root.expanduser().resolve()
     if any(out == p or p in out.parents for p in (Path("/scratch"), Path("/iridisfs/scratch"))):
@@ -218,14 +248,20 @@ def main():
             inv = core.inventory(pair, settings)
             if not inv["complete"]:
                 raise ValueError(f"Incomplete history: AD {len(inv['ad_years'])}/400; Normal {len(inv['normal_years'])}/400")
-            model, missing = [], set()
-            jobs = [(i + 1, y, "AD", inv["fad"][y]) for i, y in enumerate(inv["ad_years"])]
-            jobs += [(401 + i, y, "NORMAL", inv["fno"][y]) for i, y in enumerate(inv["normal_years"])]
-            for i, (spin, year, phase, paths) in enumerate(jobs):
-                block, absent = model_year(core, year, spin, phase, paths)
-                model.extend(block); missing.update(absent)
-                if (i + 1) % 100 == 0: print(f"  model years {i + 1}/800", flush=True)
-            frame = pd.DataFrame(model)
+            model, missing, source_hash = [], set(), ""
+            prev = a.source_run / site / normal["name"] if a.source_run else None
+            cached = load_cached_model(prev, site, ad["name"], normal["name"], inv["start"]) if prev else None
+            if cached is not None:
+                frame, missing, source_hash = cached
+                print("  reused validated previous monthly model data; SHA256", source_hash, flush=True)
+            else:
+                jobs = [(i + 1, y, "AD", inv["fad"][y]) for i, y in enumerate(inv["ad_years"])]
+                jobs += [(401 + i, y, "NORMAL", inv["fno"][y]) for i, y in enumerate(inv["normal_years"])]
+                for i, (spin, year, phase, paths) in enumerate(jobs):
+                    block, absent = model_year(core, year, spin, phase, paths)
+                    model.extend(block); missing.update(absent)
+                    if (i + 1) % 100 == 0: print(f"  model years {i + 1}/800", flush=True)
+                frame = pd.DataFrame(model)
             if not frame.GPP.notna().any() and not frame.NEE.notna().any():
                 raise ValueError("No model GPP or NEE history")
             ref, provenance, counts = {}, [], {}
@@ -239,16 +275,23 @@ def main():
             plot_site(frame, ref, counts, site, normal["name"], dest)
             frame.to_csv(dest / f"{site}_model_monthly_derived.csv", index=False)
             metadata = {"site": site, "ad_case": ad["name"], "normal_case": normal["name"],
-                        "gpp_policy": "NT preferred each day across sources; DT only on days with no valid NT",
-                        "gpp_valid_days_by_partition": counts, "ec_sources": provenance,
+                        "gpp_policy": "Each day across sources: NT VUT, NT CUT, DT VUT, DT CUT; NEE VUT before NEE CUT",
+                        "gpp_valid_days_by_column": {k: v for k, v in counts.items() if k.startswith("GPP_")},
+                        "nee_valid_days_by_column": {k: v for k, v in counts.items() if k.startswith("NEE_")},
+                        "model_data_reused": bool(source_hash), "source_model_csv_sha256": source_hash,
+                        "ec_sources": provenance,
                         "ec_reference": ref, "missing_model_fields": sorted(missing),
                         "stream_comparison": stream, "ec_error": record.get("EC_error", "")}
             (dest / f"{site}_metadata.json").write_text(json.dumps(metadata, indent=2, default=str) + "\n")
             ec_ok = all(k in ref and np.isfinite(ref[k]["mean"]) for k in ("GPP", "NEE"))
             core_model_ok = frame.GPP.notna().all() and frame.NEE.notna().all()
             status = "PARTIAL_MODEL" if not core_model_ok else ("OK" if ec_ok else "MODEL_ONLY_OR_INCOMPLETE_EC")
-            record.update(Status=status, NT_days=counts.get(core.GPP_NT, 0),
-                          DT_days=counts.get(core.GPP_DT, 0), Output_directory=str(dest),
+            record.update(Status=status, NT_days=sum(v for k, v in counts.items() if k.startswith("GPP_NT_")),
+                          DT_days=sum(v for k, v in counts.items() if k.startswith("GPP_DT_")),
+                          NT_VUT_days=counts.get("GPP_NT_VUT_REF", 0), NT_CUT_days=counts.get("GPP_NT_CUT_REF", 0),
+                          NEE_VUT_days=counts.get("NEE_VUT_REF", 0), NEE_CUT_days=counts.get("NEE_CUT_REF", 0),
+                          Model_source="previous derived CSV" if source_hash else "model histories",
+                          Output_directory=str(dest),
                           Missing_model_fields="+".join(sorted(missing)))
             annual_by_site[site] = pd.DataFrame([{"SpinupYear": int(y), "Phase": g.Phase.iloc[0],
                 **{n: float(np.average(g[n], weights=MONTH_DAYS)) if len(g) == 12 and np.isfinite(g[n]).all() else np.nan
@@ -261,7 +304,10 @@ def main():
         results.append(record)
         save(out, results)
     plot_overviews(annual_by_site, ref_by_site, out)
-    print(f"\nCompleted {sum(r['Status'] == 'OK' for r in results)} with EC out of {len(SITES)} sites.")
+    drawn = sum(r["Status"] in ("OK", "PARTIAL_MODEL", "MODEL_ONLY_OR_INCOMPLETE_EC") for r in results)
+    ec = sum(int(r.get("NT_days", 0)) + int(r.get("DT_days", 0)) > 0 for r in results)
+    print(f"\nFigures: {drawn}/{len(SITES)} sites; GPP observations: {ec}/{len(SITES)}; "
+          f"partial model histories: {sum(r['Status'] == 'PARTIAL_MODEL' for r in results)}.")
     print("Manifest:", out / "site_status.csv")
     return int(any(r["Status"] != "OK" for r in results))
 

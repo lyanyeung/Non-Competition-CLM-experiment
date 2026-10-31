@@ -53,6 +53,36 @@ class TestScienceGuards(unittest.TestCase):
             self.assertEqual(result.EC_GPP_column.iloc[0], figures.GPP_NT)
             self.assertIn("duplicated timestamps", provenance[0]["reason"])
 
+    def test_nt_cut_outweighs_dt_vut_across_sources_and_nee_vut_wins(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as tmp:
+            folder = Path(tmp) / "raw" / "package"; folder.mkdir(parents=True)
+            a = folder / "EUF_X_FLUXMET_HH.csv"
+            b = folder / "FLX_X_FULLSET_HH.csv"
+            ts = pd.date_range("2001-01-01", periods=48, freq="30min")
+            base = {"TIMESTAMP_START": ts.strftime("%Y%m%d%H%M")}
+            pd.DataFrame({**base, "GPP_DT_VUT_REF": np.full(48, 10.),
+                          "NEE_VUT_REF": np.full(48, 3.)}).to_csv(a, index=False)
+            pd.DataFrame({**base, "GPP_NT_CUT_REF": np.full(48, 20.),
+                          "NEE_CUT_REF": np.full(48, 4.)}).to_csv(b, index=False)
+            sources = figures.ec_sources(Path(tmp))
+            self.assertEqual(len(sources), 2)
+            obs, _ = figures.ec_daily(sources, 2001, 2001, 40)
+            self.assertEqual(obs.EC_GPP_column.iloc[0], "GPP_NT_CUT_REF")
+            self.assertEqual(obs.EC_NEE_column.iloc[0], "NEE_VUT_REF")
+            self.assertAlmostEqual(obs.EC_GPP.iloc[0], 20 * figures.EC_TO_GCD)
+            self.assertAlmostEqual(obs.EC_NEE.iloc[0], 3 * figures.EC_TO_GCD)
+
+    def test_cut_only_source_is_not_excluded(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as tmp:
+            folder = Path(tmp) / "raw" / "release"; folder.mkdir(parents=True)
+            path = folder / "EUF_DE-Lnf_FLUXMET_HH.csv"
+            ts = pd.date_range("2001-01-01", periods=48, freq="30min")
+            pd.DataFrame({"TIMESTAMP_START": ts.strftime("%Y%m%d%H%M"),
+                          "NEE_CUT_REF": np.ones(48), "GPP_NT_CUT_REF": np.ones(48)}).to_csv(path, index=False)
+            obs, _ = figures.ec_daily(figures.ec_sources(Path(tmp)), 2001, 2001, 40)
+            self.assertEqual(obs.EC_GPP_column.iloc[0], "GPP_NT_CUT_REF")
+            self.assertEqual(obs.EC_NEE_column.iloc[0], "NEE_CUT_REF")
+
     def test_phase_alignment_for_cycle_comparisons(self):
         years = np.arange(2400, 2410)
         # Alignment 2402, forcing length 3: 2402-04 and 2405-07.

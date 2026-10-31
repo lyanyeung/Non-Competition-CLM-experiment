@@ -58,7 +58,8 @@ def main():
             raise ValueError("GitHub plotting code changed since the run; review before publishing")
         target = checkout / rel; target.mkdir(parents=True, exist_ok=False)
         lines = ["# ICOS 38 sites: AD400 → Normal400 full-sequence diagnostics", "",
-                 "Fresh plots; no reuse of earlier PNGs. Each day uses valid NT GPP in preference to DT across sources; DT is used only when NT is unavailable that day.",
+                 "Fresh plots; no reuse of earlier PNGs. Model data may be reused from the prior derived monthly CSV after pair and date validation; provenance records its SHA256.",
+                 "Each day, GPP uses NT VUT, NT CUT, DT VUT, then DT CUT; NEE prefers VUT then CUT. NT and DT counts include both VUT and CUT, identified in each site's provenance.",
                  "NT/DT counts are valid observation days over the indicated forcing period, not sample counts or a guarantee of completeness.",
                  "Only verified completed AD400→Normal400 pairs are shown; other protocols and missing cases are not relabelled as 800-year runs.",
                  "EC range uses years with 12 months having at least 20 valid days; EC monthly min/max use monthly climatology.",

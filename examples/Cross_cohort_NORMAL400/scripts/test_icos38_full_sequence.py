@@ -1,5 +1,6 @@
 import csv
 import importlib.util
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -7,6 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import numpy as np
+import pandas as pd
 from netCDF4 import Dataset
 
 HERE = Path(__file__).resolve().parent
@@ -16,6 +18,7 @@ def load(name, path):
     return module
 
 fig = load("icos38", HERE / "21_icos38_full_sequence.py")
+ad_audit = load("ad_audit", HERE / "24_audit_ad_nee_histories.py")
 core_path = HERE / "15_plot_AD400_NORMAL400_convergence_and_EC.py"
 if not core_path.exists():
     core_path = HERE.parents[1] / "Batch03_10/scripts/15_plot_AD400_NORMAL400_convergence_and_EC.py"
@@ -27,6 +30,10 @@ class FullSequenceTests(unittest.TestCase):
         self.assertEqual(len(fig.SITES), 38)
         self.assertEqual(len(set(fig.SITES)), 38)
         self.assertTrue({"DE-Hai", "NL-Loo", "CH-Aws", "GL-ZaH"}.issubset(fig.SITES))
+
+    def test_ad_history_audit_finds_nee_and_respiration_fields(self):
+        self.assertEqual(ad_audit.candidates(["FATES_NEP", "FATES_GPP", "SOIL_RESP", "TLAI"]),
+                         ["FATES_GPP", "FATES_NEP", "SOIL_RESP"])
 
     def test_model_history_flux_conversion_and_missing_fields(self):
         with tempfile.TemporaryDirectory(dir=HERE) as tmp:
@@ -49,6 +56,26 @@ class FullSequenceTests(unittest.TestCase):
                 ds.variables["time_bounds"][0, 1] = 30
             with self.assertRaisesRegex(ValueError, "durations"):
                 fig.model_year(core, 2400, 401, "NORMAL", [path])
+
+    def test_cached_data_pair_year_phase_and_hash(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as tmp:
+            root = Path(tmp); spin = np.repeat(np.arange(1, 801), 12)
+            df = pd.DataFrame({"SpinupYear": spin, "Month": np.tile(np.arange(1, 13), 800),
+                               "ModelYear": 2002 + spin - 1, "Phase": np.where(spin <= 400, "AD", "NORMAL"),
+                               "GPP": 1., "NEE": np.nan, "NPP": .5, "LAI": 2.})
+            csv_path = root / "DE-Hai_model_monthly_derived.csv"
+            df.to_csv(csv_path, index=False)
+            meta_path = root / "DE-Hai_metadata.json"
+            meta_path.write_text(json.dumps({"site": "DE-Hai", "ad_case": "ad", "normal_case": "normal",
+                                             "missing_model_fields": ["NEE"]}), encoding="utf-8")
+            frame, missing, checksum = fig.load_cached_model(root, "DE-Hai", "ad", "normal", 2002)
+            self.assertEqual(len(frame), 9600)
+            self.assertEqual(missing, {"NEE"})
+            self.assertEqual(len(checksum), 64)
+            with self.assertRaisesRegex(ValueError, "provenance"):
+                fig.load_cached_model(root, "DE-Hai", "wrong", "normal", 2002)
+            with self.assertRaisesRegex(ValueError, "dates or phase"):
+                fig.load_cached_model(root, "DE-Hai", "ad", "normal", 2003)
 
     def test_all_38_in_manifest_with_unavailable_sites_and_nt_counts(self):
         import sys
