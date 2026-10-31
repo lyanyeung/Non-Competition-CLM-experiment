@@ -266,7 +266,26 @@ python3 -B "$SCRIPT" \
 ~~~
 
 Next assess matched original unfilled tower RH/VPD availability, stage34/38/42 amendment QC, ERA5 reference and actual CIME DATM stream choice. All six Batch04 stations remain scientific HOLD pending those and the separate PFT/soil/surface gates; do not submit AD5/AD400.
-## Stage02M: full native-source forcing / soil / PFT science release (future)
+## Stage02L validated operator outcome (31 October 2026)
+
+[Actual Stage02L console evidence](docs/stage02l_operator_IRIDIS6_result_20261031.md) found that the old unapproved reference DATM water-VPD closely matches the original-distribution FLUXMET **TIMESTAMP_START VPD_F** for **20/20 high-QBOT-difference events**, with mean absolute deviation **0.0033948 hPa**, vs **1.9789035 hPa** relative to TIMESTAMP_END. START was closer for 19 events, END for zero and one tie. In these selected events, START `VPD_F_QC=1` and `TA_F_QC=0` throughout, numeric original `RH` is absent **20/20**, and `VPD_ERA` is present **20/20**. Under standard FLUXNET variable definitions, these are gap-filled VPD values, not native measured VPD; similarity to the old reference indicates derivation/processing, NOT accuracy or an approved source.
+
+## Stage02M — seven forcing choices vs gap-filled VPD, ERA VPD, and revised-ledger evidence
+
+[Stage02M source-pinned read-only workflow](scripts/02m_CH_Aws_seven_forcings_ERA_and_repair_ledger_readonly.py) reads the saved **Stage02L and Stage02I JSON reports only**. It checks 20 shared event IDs/times and seven candidate DATM forcing groups, creates a **140-row seven-model event matrix**, and reports numerical differences to START-indexed `VPD_F` and `VPD_ERA`, independently per candidate. It joins any Stage34/38/42 candidate revision ledger matches by the existing event ID, distinguishing exact 0-minute evidence from ±30/60-minute context. It never equates a ledger match, gap-filled VPD or ERA source similarity with original tower QC0 or actual independent ERA validation. The source `RH` is missing at all 20 selected events; original/native tower moisture measurement provenance remains a science HOLD.
+
+Download the immutably pinned code into a new HOME directory, verify exact Git blob SHA, and run:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02l "$HOME/ICOS_Batch04_stage02l_PDjpMDmW/results/stage02l_source_clock_QC_matrix.json" \
+  --stage02i "$HOME/ICOS_Batch04_stage02i_lcZXq0Ls/results/stage02i_source_event_matches.json" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+These are **diagnostics**, not a seven-version preference ranking. No forcing/NC/case/FATES edits or Slurm, and no AD5/AD400 science release. Subsequently validate the original raw tower RH, actual ERA source and UTC/time-index provenance, plus exact ledger decisions and final active DATM streams.
+## Stage02N: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
