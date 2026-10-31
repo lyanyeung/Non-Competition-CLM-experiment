@@ -174,10 +174,11 @@ def nc_sample(path,index,Dataset,nc):
             if len(keys)!=1:raise ValueError("Missing DATM variable "+name)
             v=ds.variables[keys[0]]
             if v.size!=17520:raise ValueError("DATM annual point size not 17520")
-            raw=v[index]
-            if hasattr(raw,"mask") and bool(getattr(raw,"mask",False)):
-                raise ValueError("Masked DATM source value "+name)
-            values=float(raw)
+            import numpy as np
+            raw=np.ma.asarray(v[index]).reshape(-1)
+            if raw.size!=1 or bool(np.ma.getmaskarray(raw)[0]):
+                raise ValueError("Masked or non-singleton DATM site value "+name)
+            values=float(raw.data[0])
             if not math.isfinite(values):raise ValueError("Nonfinite DATM "+name)
             vals[name]=values
             vals[name+"_units"]=str(getattr(v,"units","")).lower().strip()
