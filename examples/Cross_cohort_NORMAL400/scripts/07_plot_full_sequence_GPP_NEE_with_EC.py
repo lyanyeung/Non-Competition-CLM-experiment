@@ -133,6 +133,9 @@ QUANT = {
     "NPP": [("FATES_NPP", 1.0), ("NPP", 1.0)],
     "LAI": [("TLAI", 1.0), ("FATES_LAI", 1.0)],
     "VEGC": [("FATES_VEGC", 1.0)],
+    # written to the monthly/annual CSVs only (drought / snow context for die-back episodes)
+    "TWS": [("TWS", 1.0)],
+    "H2OSNO": [("H2OSNO", 1.0)],
 }
 UNITS = {"GPP": "g C m$^{-2}$ d$^{-1}$", "NEE": "g C m$^{-2}$ d$^{-1}$", "NPP": "g C m$^{-2}$ d$^{-1}$",
          "LAI": "m$^2$ m$^{-2}$", "VEGC": "g C m$^{-2}$"}
