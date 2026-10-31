@@ -1,0 +1,48 @@
+{
+  "site": "FR-Pue",
+  "ad_case": "FR-Pue_B01_FIXNC_AD400",
+  "normal_case": "FR-Pue_B01_FIXNC_NORMAL400",
+  "gpp_policy": "Each day across sources: NT VUT, NT CUT, DT VUT, DT CUT; NEE VUT before NEE CUT",
+  "gpp_valid_days_by_column": {
+    "GPP_NT_VUT_REF": 9323
+  },
+  "nee_valid_days_by_column": {
+    "NEE_VUT_REF": 9323
+  },
+  "model_data_reused": true,
+  "source_model_csv_sha256": "19a889313250e8f5da2b2db1802823677c172f0c72911fcfa715979bb1e24e7a",
+  "ec_sources": [
+    {
+      "source_file": "ICOS_FR-Pue_FLUXNET_FLUXMET_HH_2000-2026_v1.3_r1.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "valid_GPP_days": 9323,
+      "valid_NEE_days": 9323,
+      "sample_interval_seconds": 1800,
+      "source_error": false
+    }
+  ],
+  "ec_reference": {
+    "GPP": {
+      "mean": 3.6666323594130037,
+      "monthly_min": 1.8393083153391034,
+      "monthly_max": 6.664465768430512,
+      "low": 1.7324653567729864,
+      "high": 4.739733988975383,
+      "complete_years": 25,
+      "months": 12
+    },
+    "NEE": {
+      "mean": -0.6149440603789897,
+      "monthly_min": -1.9439546580338134,
+      "monthly_max": 0.40634262330756693,
+      "low": -1.0533408191376186,
+      "high": 0.1379878458800159,
+      "complete_years": 25,
+      "months": 12
+    }
+  },
+  "missing_model_fields": [
+    "NEE"
+  ],
+  "stream_comparison": "MATCH"
+}
