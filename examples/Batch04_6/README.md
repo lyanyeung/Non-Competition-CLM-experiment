@@ -575,6 +575,23 @@ python3 -B "$SCRIPT" \
 
 The earlier proposed redundant wide FLUXMET Stage03B full scan is **superseded and not approved**. Existing PFT choices and 4 new point surfaces remain validated; original S30 variants not modified. No case creation or AD5/AD400 submitted. IT-Tor soil ORGANIC=0 is a distinct review gate.
 
+## Stage03B-REUSE operator PASS; Stage03C extracts only the old outstanding science holds (1 November 2026)
+
+Stage03B-REUSE has **actually passed on IRIDIS6**: `STAGE28_MET_SHA PASS` at **4/4** sites, exact old Stage30 vs present DATM annual source paths **22/22 DE-Gri, 15/15 DE-RuR, 18/18 IT-Tor, 19/19 ES-Agu** (= **74/74**), and representative original yearly NetCDF SHA256 **3/3** per site (= **12/12**). The current Batch04 forcing **IS** the previous [FLUXNET13 selected Stage28/29b/30 version](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/tree/main/examples/FLUXNET_MultiSite_13). **Do not repeat the general FLUXMET HH/QCv5/ERA scan or rebuild the 74 NC files**; the previous selected numerical QC is inherited. This does NOT grant scientific approval for original tower/ERA input.
+
+[Detailed Stage03B operator result and narrowly targeted Stage03C plan](docs/stage03b_actual_pass_stage03c_legacy_targeted_QC_plan_20261101.md) records explicit historical unresolved questions: DE-Gri **49** old MDS/QC1 blocks; DE-RuR **2012-07-27** rain and **dated dynamic TA-height ZBOT (initial 2.58m)**; IT-Tor **2025 Oct/Nov 1,458-HH QC1/QC2 fill/source change**, intense rain and independently unverified all-zero soil ORGANIC; ES-Agu **2018-09-15** rain timing/amount and previously selected Stage12/15 changes. The old Stage28 seven-site heavy-rain file is NOT a complete 13-site rain ledger: prefer original Stage22 `06_all_precip_gt18mm_source_timing_review.csv`, and explicitly report its absence or any targeted event not covered by that >18mm threshold.
+
+[Stage03C read-only historical issue extraction](scripts/03c_reuse_FLUXNET13_old_MDS_rain_BIF_hold_episode_register_READONLY.py) inputs the original operator Stage03B report plus the **exact old Stage22, Stage28, Stage29b reports**, checks original 82-block set and 69/49 pending-decision counts, extracts only four-site old source review actions into *new* JSON + 2 CSV files in an empty HOME directory. Preserves QC0/QC1 native records and all prior scientist/operator HOLD; does not re-run numeric QC or source CSV comparisons, does not edit original forcing, DATM, candidate point surfaces, CIME, FATES or Slurm.
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+ --stage03b "$HOME/ICOS_Batch04_stage03b_reuse_PbMYw9CH/results/stage03b_four_site_reused_stage28_DATM_lineage.json" \
+ --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+After this episode-index is confirmed, **Stage03D** should inspect ONLY the scoped original tower QC, source-processing/ERA alternatives, source rain P units/accumulation windows and dated BIF context needed to settle retained HOLDs, using the first five AmeriFlux cohort methods already summarized in [the inheritance report](docs/stage03b_reuse_FLUXNET13_legacy_QC_and_AmeriFlux_delta_method_20261101.md). No automatic ERA replacement, rainfall clipping or a new AD5/AD400 case on Stage03C alone.
+
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
