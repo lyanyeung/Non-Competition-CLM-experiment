@@ -74,6 +74,10 @@ def audit(site,h,lane,gate):
 def prepare(site,info,h,lane):
     name=lane.n_name(site)
     if lane.queued(name) or lane.sacct_name(name): raise ValueError(site+': matching Normal job already exists')
+    # Stage36/helper.ad400_one serializes restart paths as strings; Lane A
+    # stage_normal_one expects pathlib.Path objects for each restart triplet.
+    info=dict(info)
+    info['files']={k:Path(v) for k,v in info['files'].items()}
     lane.stage_normal_one(site,info)
     case=lane.n_case(site); ledger=lane.n_ledger(site); record=lane.load(ledger)
     if record.get('phase')!='PREPARED_NOT_SUBMITTED': raise ValueError(site+': Normal stage did not pass validation')
