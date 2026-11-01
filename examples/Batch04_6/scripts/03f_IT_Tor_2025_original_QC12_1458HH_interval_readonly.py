@@ -209,8 +209,8 @@ def self_test():
           "P_F_QC":0} for i,t in enumerate(times)}
     runs=segment(times,x,"PAIR_QC1_OR_QC2")
     assert len(runs)==1 and runs[0]["half_hours"]==5
-    assert runs[0]["both_sides_QC0"] and
-           runs[0]["start"]=="2025-10-01 00:30:00"
+    assert (runs[0]["both_sides_QC0"] and
+            runs[0]["start"]=="2025-10-01 00:30:00")
     assert not segment(times,x,"PAIR_QC1_ONLY")
     assert time_val("202510010000",True)==times[0]
     assert time_val("2025-10-01 00:00:00",False)==times[0]
