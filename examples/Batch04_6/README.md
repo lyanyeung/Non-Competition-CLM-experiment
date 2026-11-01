@@ -637,6 +637,21 @@ python3 -B "$SCRIPT" \
 
 All previous scientific HOLDs preserved; IT-Tor all 10 soil ORGANIC layers remain zero and independent; CH-Aws original RH/ERA and GL-ZaH Arctic private-map are separate. PFT choice 6/6, new verified point surfaces 4/6, new isolated CIME/AD5 submissions 0/6.
 
+## Stage03D successful actual IRIDIS6 audit; Stage03E PRIVATE existing-result summary
+
+**Actual source-verified Stage03D PASS (2026-11-01):** `FULL PYTHON SYNTAX PASS`, `STAGE03D SELF-TEST PASS` and complete read-only target-source event audit. **Both original Stage21 and inherited Stage22 precipitation ledgers exist**: the old Stage03C `OLD_RAIN_LEDGER MISSING` status was a path-lookup false-negative. The recovered **20 historical >18 mm/30-min rain review rows** comprise **DE-Gri 12, DE-RuR 1, IT-Tor 2, ES-Agu 5**; **3** ES-Agu rows occurred on **2018-09-15** and **1** DE-RuR row on **2012-07-27**. Historical exceeded rainfall is a source science-review flag, NOT a confirmed observation error or 30-minute gauge-accumulation proof. DE-Gri **49/49** MDS HOLD windows were located in original source plus Stage28 selected forcing. IT-Tor **2025 Oct/Nov** full 2,928 HH had source TA/VPD QC0/1/2 **1,441/587/900**, while original `P_F_QC` was QC0/QC2 **1,440/1,488**; these 2,928 HH are NOT the old exact **1,458 HH** source-transition subinterval.
+
+[Results, source limitation and private report paths](docs/stage03d_success_four_site_rain_MDS_QC_and_Stage03E_private_summary_20261101.md). Next [Stage03E](scripts/03e_summarize_existing_Stage03D_private_rain_MDS_QC_no_reread.py) reads the already-created private Stage03D **JSON only** and produces a condensed private decision-ready summary, DE-RuR/ES-Agu focus-date original P_F/P_F_QC vs Stage28 PRECTmms×1800 per-HH rows, and a ranked list of the 49 DE-Gri pending QC1 MDS contexts. **No repeated full meteorological input scan or NetCDF read**, no automated science decisions or model runs. Raw licensed tower measurements remain in the operator's PRIVATE IRIDIS6 HOME reports, never added to this public GitHub repo.
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage03d "$HOME/ICOS_Batch04_stage03d_v3_olZidJdj/results/stage03d_four_site_targeted_original_met_rain_MDS_source_review_PRIVATE.json" \
+  --out-dir "$NEW_EMPTY_PRIVATE_HOME_DIR"
+~~~
+
+All science/QC decisions remain HOLD, including IT-Tor ten 0.0 original soil ORGANIC layers, exact 1,458-HH source transition, DE-RuR dated BIF TA height and original rain-gauge accumulation timing. Stage03B had proved 4/4 selected MET SHA, 74/74 legacy DATM paths and 12/12 sampled yearly NC SHA; do not redo. Batch04 PFT scenarios 6/6, new surface SHA 4/6, newly isolated CIME/AD5 cases 0/6.
+
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
