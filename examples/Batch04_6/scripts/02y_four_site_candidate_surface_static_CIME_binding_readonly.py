@@ -237,6 +237,9 @@ def self_test():
     assert target_vec("ES-Agu")[9]==22
     assert target_vec("ES-Agu")[13]==29
     assert sum(target_vec("IT-Tor"))==100
+    toy="first='/tmp/DE-Gri_DATM_2004.nc'\nsecond=/tmp/DE-Gri_DATM_2005.nc4\nother=/tmp/ES-Agu_DATM_2004.nc"
+    assert len(actual_site_input_paths(toy,"DE-Gri"))==2
+    assert not actual_site_input_paths(toy,"IT-Tor")
     print("STAGE02Y SELF-TEST PASS: four fixed SHA surfaces, receipts, 8 original-case static CIME streams and soil QC HOLD; NO WRITES")
 
 def main():
