@@ -21,6 +21,7 @@ import re
 from pathlib import Path
 
 STAGE_V="STAGE02V_BATCH04_FOUR_SITE_DATM_PATH_PARSER_AND_LANDUNIT_TRIAGE"
+STAGE_C="STAGE02C_SITE_DATM_CANDIDATE_YEAR_AND_SAMPLE_QC"
 SITES=("DE-Gri","DE-RuR","IT-Tor","ES-Agu")
 COUNT={"DE-Gri":22,"DE-RuR":15,"IT-Tor":18,"ES-Agu":19}
 PFT={"DE-Gri":{13:100.0},"DE-RuR":{13:100.0},
@@ -41,6 +42,7 @@ FIELDS=("site","original_case","candidate_SHA256_verified",
         "source_soil_science_HOLD","native_tower_source_QC_HOLD",
         "runtime_binding_VERIFIED","new_case_created","AD5_authorized")
 SITE_ROOT="/iridisfs/scratch/ly3n24/CLM_FATES"
+CIME_NC_RE=re.compile(r"(?<![A-Za-z0-9_.])/[A-Za-z0-9_.+~:%@/=-]+\.nc(?:4)?(?=$|[\s'\"<>,;])",re.I)
 
 def sha(path):
     h=hashlib.sha256()
@@ -76,6 +78,35 @@ def require_stage(v):
            for site in SITES):
         raise ValueError("Missing/duplicate S30EXCL-S30SHARED case pair")
     return bysite
+
+def require_stage02c(c):
+    if c.get("stage")!=STAGE_C or c.get("read_only") is not True or \
+       c.get("science_release") is not False:
+        raise ValueError("Saved original Stage02C all-six source register required")
+    bysite={r.get("site"):r for r in c.get("sites",[])}
+    if len(bysite)!=6:
+        raise ValueError("Stage02C original inventory not six sites")
+    records={}
+    for site in SITES:
+        rows=bysite[site].get("cases",[])
+        if len(rows)!=2 or bysite[site].get("distinct_site_datm_files")!=COUNT[site]:
+            raise ValueError(site+" source Stage02C years/cases changed")
+        reg={}
+        for x in rows:
+            vals={e.get("path") for e in x.get("site_datm",[])}
+            if len(vals)!=COUNT[site] or any(not isinstance(q,str) for q in vals):
+                raise ValueError(site+" source original file paths missing")
+            reg[x["case"]]=vals
+        if len(reg)!=2:
+            raise ValueError(site+" duplicate original CIME case")
+        records[site]=reg
+    return records
+
+def actual_site_input_paths(content,site):
+    names=re.compile("^"+re.escape(site)+r"_DATM_(?:19|20)\d{2}(?:[_.-]|$)",re.I)
+    return {m.group(0) for line in content.splitlines()
+            for m in CIME_NC_RE.finditer(line)
+            if names.match(Path(m.group(0)).name)}
 
 def require_surface(site,root):
     import numpy as np
@@ -145,7 +176,7 @@ def assignments(path):
                  if any(word in x.lower() for word in ("streams","taxmode","year_first",
                      "year_last","year_align","fsurdat","fates_paramfile"))][:20]}
 
-def one_case(base,site,entry,surface):
+def one_case(base,site,entry,surface,expected_paths):
     name=entry["case"]
     case=base/"cases"/name
     if case.name!=name or case.is_symlink() or not case.is_dir():
@@ -165,6 +196,10 @@ def one_case(base,site,entry,surface):
        inputfile.stat().st_size>4_000_000:
         raise ValueError(name+" original source DATM input list missing")
     datm_input=inputfile.read_text(encoding="utf-8",errors="replace")
+    found=actual_site_input_paths(datm_input,site)
+    if found!=expected_paths or len(found)!=COUNT[site] or \
+       any(not Path(q).is_file() for q in found):
+        raise ValueError(name+" current original DATM source list diverged from Stage02C")
     count=sum(1 for line in datm_input.splitlines() if site+"_DATM_" in line)
     streamfiles=sorted(p for p in docs.glob("*stream*") if p.is_file() and not p.is_symlink())[:24]
     stream_records=[]
@@ -208,13 +243,15 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--self-test",action="store_true")
     p.add_argument("--stage02v",type=Path)
+    p.add_argument("--stage02c",type=Path)
     p.add_argument("--candidate-dir",type=Path)
     p.add_argument("--base",type=Path,default=Path(SITE_ROOT))
     p.add_argument("--out-dir",type=Path)
     args=p.parse_args()
     if args.self_test:self_test();return
-    if not args.stage02v or not args.stage02v.is_file():
-        p.error("Original saved Stage02V JSON required")
+    if not args.stage02v or not args.stage02v.is_file() or \
+       not args.stage02c or not args.stage02c.is_file():
+        p.error("Original saved Stage02V and Stage02C JSONs required")
     if args.candidate_dir is None or not args.candidate_dir.is_dir() or \
        args.candidate_dir.name!="Batch04_GitHub_PFT_Gz7kLAkn":
         p.error("Use exact operator-verified Stage02X four-surface output directory")
@@ -225,6 +262,7 @@ def main():
         p.error("Original case root not CLM_FATES")
     v=json.loads(args.stage02v.read_text(encoding="utf-8"))
     original=require_stage(v)
+    registered=require_stage02c(json.loads(args.stage02c.read_text(encoding="utf-8")))
     report=[]
     matrix=[]
     for site in SITES:
@@ -233,7 +271,7 @@ def main():
               "ORIGINAL_SOIL_UNCHANGED",surface["source_soil_unchanged"],
               "ORGANIC_RANGE",[surface["soil_organic_min"],surface["soil_organic_max"]],
               "SOIL_GATE",surface["soil_flag"])
-        cases=[one_case(args.base,site,row,surface) for row in original[site]]
+        cases=[one_case(args.base,site,row,surface,registered[site][row["case"]]) for row in original[site]]
         if len(cases)!=2:
             raise ValueError("Missing original pair for "+site)
         for case in cases:
@@ -274,6 +312,7 @@ def main():
         "stage":"STAGE02Y_BATCH04_FOUR_SITE_CANDIDATE_SURFACE_STATIC_CIME_BINDING_AUDIT",
         "read_only":True,"science_release":False,
         "source_stage02v":str(args.stage02v),
+        "source_stage02c":str(args.stage02c),
         "candidate_directory":str(args.candidate_dir),
         "source_or_case_modified":False,"slurm_submitted":False,
         "sites":report,
