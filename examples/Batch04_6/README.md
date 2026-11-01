@@ -556,6 +556,25 @@ Run the exact blob-pinned script once:
 
 All six Batch04 sites remain non-submitted; four GitHub PFT point surfaces were already created and SHA256-verified. CH-Aws humidity/source and GL-ZaH Arctic-map gates are separate. No AD5/AD400 by this step.
 
+## Stage03B-REUSE — do not repeat original FLUXNET13 already completed MET QC
+
+**Operator strategy correction (1 Nov 2026):** These four Batch04 sites are **not a new source forcing cohort**. All four DE-Gri/DE-RuR/IT-Tor/ES-Agu were already included in [earlier FLUXNET_MultiSite_13](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/tree/main/examples/FLUXNET_MultiSite_13). Reuse its **Stage28 selected 13-site MET forcing (inherits Stage22 whole MDS envelope QC and Stage26), Stage29b/30 BIF ZBOT + annual DATM SHA manifests** rather than again running generic full FLUXMET HH source QC. Stage28 **13/13 numerical PASS** does not approve source meteorological science; **DE-Gri 49 original flagged MDS blocks**, DE-RuR 2012-07-27 measured rainfall, IT-Tor extreme rain and ES-Agu 2018-09-15 extreme rainfall remain targeted provenance questions. DE-RuR's BIF TA sensor reference height is **time dependent** (first 2.58m), other three DE-Gri 2m, IT-Tor 1.8m, ES-Agu 2.7m static.
+
+[Full scientific historical source review, exact Stage28/29b paths, remaining site-specific issues and five AmeriFlux cohort lessons](docs/stage03b_reuse_FLUXNET13_legacy_QC_and_AmeriFlux_delta_method_20261101.md). The five AmeriFlux batches contribute a **delta-science QC** protocol: QC0 physical-event protection, raw versus consolidated MDS/ERA source semantics, complete QC1 fill intervals and source QC0 anchors, independent ERA vs packaged downscale distinction, native precipitation interval/UTC/BIF-ZBOT, contiguous HOLD episodes and manual approvals. Do NOT automatically apply five AmeriFlux site-level repair decisions to these four ICOS sites.
+
+[Stage03B-REUSE read-only lineage script](scripts/03b_reuse_FLUXNET13_stage28_stage29b_source_lineage_readonly.py) checks historical Stage28 selected meteorological source paths/SHAs, Stage29b/30 271-year manifest against the four actual Stage02C CIME annual DATM path sets (74 names) and 12 representative original annual NC SHA/provenance attributes. **It does not rerun 74 full numeric files or 4 wide FLUXMET source series.** Only a new JSON/CSV report; all source/site/provisional scientific HOLDs retained. If lineage agrees, next Stage03C-DELTA should audit only unresolved recorded original QC0/QC1/VPD/precip and BIF instrument-time events. If it differs, hold and investigate exact alternate source-version years without rebuilding.
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02c "$HOME/ICOS_Batch04_stage02c_sGTtt5pv/stage02c_report.json" \
+  --stage02d "$HOME/ICOS_Batch04_stage02d_Pq6if8IH/stage02d_first4.json" \
+  --stage03a "$HOME/ICOS_Batch04_stage03a_8CKHbzkE/results/stage03a_four_site_original_met_source_QC_inventory.json" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+The earlier proposed redundant wide FLUXMET Stage03B full scan is **superseded and not approved**. Existing PFT choices and 4 new point surfaces remain validated; original S30 variants not modified. No case creation or AD5/AD400 submitted. IT-Tor soil ORGANIC=0 is a distinct review gate.
+
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
