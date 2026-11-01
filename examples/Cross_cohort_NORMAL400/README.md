@@ -18,6 +18,8 @@ Diagnostic AD re-run (`scripts/09_clone_AD_diag_rerun.py`): the AD400 cases save
 
 BTRAN / soil diagnostics (`scripts/10_diagnose_btran_soil.py`): for the re-runs and living reference sites, layer-by-layer liquid water, ice, soil temperature and fine-root distribution, with BTRAN recomputed from the FATES/CLM non-hydro formula (root fraction × water-potential factor × temperature gate) and checked against the model's BTRAN, to show whether low BTRAN comes from dry soil, frozen soil, shallow roots or site-average dilution by patch area.
 
+Carbon budget diagnostics (`scripts/11_diagnose_carbon_budget.py`): per-plant and per-leaf GPP, maintenance respiration, NPP and storage, the share of GPP going to each respiration and allocation term, the winter reserve (storage / winter deficit), the cold-start settings of each case (`use_fates_dbh_init`, initial density), and every FATES PFT parameter that differs between the needleleaf PFT and the broadleaf comparator, ranked.
+
 [All-completed AD400 + Normal400 plotting runbook](ALL_COMPLETED_PLOTS.md): live status and reference-pair selection, NT-first EC comparison, and separate per-case carbon diagnostics. The analysis runs as a read-only-input Slurm job and writes new derived files under Home. Completion is not convergence.
 
 
