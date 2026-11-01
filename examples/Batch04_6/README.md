@@ -428,7 +428,27 @@ python3 -B "$SCRIPT" \
 
 Output `stage02t_CH_Aws_ERA5_original_source_location.json` and `stage02t_CH_Aws_archive_source_candidates.csv` under the new empty HOME folder only. No source, case/NetCDF, Git working tree, or Slurm changes. If the original product is genuinely unavailable under these bounded roots, document that gap and prioritize independent source/PFT/soil validation at the four other non-Arctic sites rather than repeatedly optimizing RH34A/38A/42A against non-independent ERA data. **All six Batch04 sites remain science HOLD**.
 
-## Stage02U: full native-source forcing / soil / PFT science release (future)
+## Stage02T completed — original CH-Aws EUF ERA5 source not found under scoped roots (1 Nov 2026)
+
+[Actual Stage02T operator record](docs/stage02t_operator_IRIDIS6_result_20261101.md): SHA-verified code/self-test PASS, exactly 169 CH-Aws site-tree filenames and 252 historical `FLUXNET_MultiSite_11` filenames scanned, **0 candidate files/ZIP source members** under these two explicit limited roots; both `TRUNCATED False`. `EXACT_CSV_FOUND False`, `EXACT_ZIP_MEMBER_FOUND False`. This means the Stage03-registered independent distributed EUF `ERA5_HH_1981-2025` CSV was **not recovered in this search**, not that ERA fields or actual original sensor observations do not exist elsewhere. CH-Aws humidity, clock and ERA representativeness gates remain scientific HOLD. Pause duplicate RH/ERA comparison loops; recover original archive only with verified provenance if it becomes available.
+
+## Stage02U — four-site original-case DATM/surface/soil/PFT static preflight
+
+[Read-only Stage02U script](scripts/02u_four_site_case_DATM_surface_soil_PFT_static_readonly.py) and [scope/checklist](docs/stage02u_four_site_static_gate_plan_20261101.md) move the separate four-site cohort **DE-Gri, DE-RuR, IT-Tor, ES-Agu** forward, reusing the existing Stage02C and **74-file successful Stage02D** JSON reports. It does **not** rerun all numerical forcing checks. Instead it audits eight unselected original S30EXCL/SHARED cases: exact source annual DATM references vs case `Buildconf/datm.input_data_list`, generated static CaseDocs `datm_in`/`lnd_in` and stream documents, original surface NetCDF point/landunit/PFT/soil fractions and FATES parameter paths, and case-pair configuration differences. All results remain static and observationally unverified; original source tower QC and actual runtime DATM binding are still HOLD. It does not change cases, soil, FATES, surfaces or Slurm.
+
+Run a SHA-pinned downloaded Stage02U script in the existing `clm_fates_env`:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02c "$HOME/ICOS_Batch04_stage02c_sGTtt5pv/stage02c_report.json" \
+  --stage02d "$HOME/ICOS_Batch04_stage02d_Pq6if8IH/stage02d_first4.json" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+Only outputs a new JSON plus eight-row CSV under a standalone EMPTY HOME directory. Inspect site/CIME/surface/soil/PFT exceptions in those reports before separate source-QC and actual FATES mapping science decisions. ES-Agu's conditional bare 49/shrub 22/C3-grass 29 proxy is **not measured ground cover**; GL-ZaH private Arctic map and CH-Aws source QC are separate unresolved tracks. No AD5/AD400 submission.
+
+## Stage02V: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
