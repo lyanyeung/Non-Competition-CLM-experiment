@@ -592,6 +592,17 @@ python3 -B "$SCRIPT" \
 
 After this episode-index is confirmed, **Stage03D** should inspect ONLY the scoped original tower QC, source-processing/ERA alternatives, source rain P units/accumulation windows and dated BIF context needed to settle retained HOLDs, using the first five AmeriFlux cohort methods already summarized in [the inheritance report](docs/stage03b_reuse_FLUXNET13_legacy_QC_and_AmeriFlux_delta_method_20261101.md). No automatic ERA replacement, rainfall clipping or a new AD5/AD400 case on Stage03C alone.
 
+## Stage03D Python parse correction — original run did not start (1 November 2026)
+
+Operator's IRIDIS6 SHA-verified Stage03D download failed **before self-test or science audit**, at line 146:
+
+```
+SyntaxError: positional argument follows keyword argument
+report.update(status=..., selected_source=str(use), "selected_sha256":digest(use), ...)
+```
+
+This was a **Python source syntax bug** in the new Stage03D script, not an original sensor, rain-source, CIME, DATM or model problem. No original source/NetCDF/case/Slurm was modified and **no Stage03D science conclusion was made**. Fixed the source by using `selected_sha256=digest(use)` and `historical_total_events=len(ledger)` as real keyword arguments inside `report.update`. New IRIDIS6 command must first call `python3 -B -m py_compile "$SCRIPT"` and `python3 -B "$SCRIPT" --self-test`, then execute the original Stage03D read-only targeted science audit only if both gates pass. Previous Stage03B/03C reports are preserved and should not be rerun.
+
 ## Stage03C actual result and Stage03D original Stage21 rain recovery (1 November 2026)
 
 **Actual source-verified Stage03C PASS (HOLD index, NOT meteorological science release):** DE-Gri **49** pending original MDS/QC1 blocks and 14 residual Stage28 flags, DE-RuR 1 residual flag plus 2012-07-27 precipitation/dynamic BIF TA height, IT-Tor 7 residual flags and historical 2025 Oct–Nov 1,458-HH QC1/QC2 discontinuity, ES-Agu 5 flags plus 2018-09-15 rain/earlier repairs; **95 HOLD action rows** across four sites are not 95 proven distinct numerical errors. Stage03B-REUSE previously confirmed 4/4 Stage28 selected met SHA, 74/74 Stage30 annual DATM paths, and 12/12 representative yearly NC SHA matches. Neither the source nor existing cases have been rewritten.
