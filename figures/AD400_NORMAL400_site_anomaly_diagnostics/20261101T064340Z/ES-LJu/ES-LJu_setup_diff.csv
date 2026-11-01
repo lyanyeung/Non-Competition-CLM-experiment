@@ -1,0 +1,49 @@
+section,key,target,reference,differs,note
+lnd_in_AD,fates_paramfile,'/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/src/fates/parameter_files/fates_params_default.json','/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/AmeriFlux_Batch04_10/direct_AD400_case_recor...,True,path (site-specific name)
+lnd_in_AD,fsurdat,'/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/Batch02_10/stage12_remaining6_bare_shrub_can...,'/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/AmeriFlux_Batch04_10/PFT_surface_candidate_r...,True,path (site-specific name)
+env_AD,RUN_REFCASE,case.std,case.std,False,site-specific
+env_AD,CLM_USRDAT_NAME,UNSET,UNSET,False,site-specific
+env_AD,DATM_YR_ALIGN,$DATM_YR_START,2004,True,
+env_AD,DATM_YR_START,2018,2004,True,
+env_AD,DATM_YR_END,2019,2025,True,
+env_AD,PTS_LAT,36.926594,31.8214,True,site-specific
+env_AD,PTS_LON,357.247885,249.13389999999998,True,site-specific
+env_AD,RUNDIR,/scratch/ly3n24/CTSM_FATES_OUTPUTS/ES-LJu_B02_FIXNC_MET24_GPPNPP_HISTFIX_AD400/run,/scratch/ly3n24/CTSM_FATES_OUTPUTS/US-SRM_AMF_B04_FIXNC_AD400_BASETA_V1/run,False,site-specific
+user_nl_AD,user_nl_clm,"fates_paramfile = fates_params_default.json | fsurdat = surfdata_<SITE>_B02_BARESHRUB_PFT_proxy_v1.nc | hist_fincl1 = 'TOTSOMC', 'TOTSOMN', 'TLAI', 'FATES_GPP', 'FATES_NPP', 'TWS', 'H2OSNO'","fates_paramfile = <SITE>_FATES_DEFAULT14_params.json | fsurdat = <SITE>_AMF_B04_SHARED_PFT_START_RESEARCH.nc | hist_fincl1 = 'TOTSOMC','TOTSOMN','TLAI','FATES_GPP','FATES_NPP','TWS','H2OSNO' | use_cn = .false.",True,lines only in target | only in reference
+user_nl_AD,user_nl_datm_streams,<SITE>_DATM_2004_PROVISIONAL.nc \ | <SITE>_DATM_2005_PROVISIONAL.nc \ | <SITE>_DATM_2006_PROVISIONAL.nc \ | <SITE>_DATM_2007_PROVISIONAL.nc \ | <SITE>_DATM_2008_PROVISIONAL.nc \ | <SITE>_DATM_2009_PROVISIONAL.nc \ | <SITE>_DATM_2010_PROVISIONAL.nc \ | <SITE>_DATM_2011_PROVISIONAL.nc \ | <SITE>_DA...,CLM_USRDAT.UNSET:datafiles = 2004.nc 2005.nc 2006.nc 2007.nc 2008.nc 2009.nc 2010.nc 2011.nc 2012.nc 2013.nc 2014.nc 2015.nc 2016.nc 2017.nc 2018.nc 2019.nc 2020.nc 2021.nc 2022.nc 2023.nc 2024.nc 2025.nc | CLM_USRDAT.UNSET:offset = 0 | CLM_USRDAT.UNSET:year_last = 2025,True,lines only in target | only in reference
+lnd_in_NORMAL,fates_paramfile,'/iridisfs/scratch/ly3n24/CLM_FATES/CTSM/src/fates/parameter_files/fates_params_default.json','/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/AmeriFlux_Batch04_10/direct_AD400_case_recor...,True,path (site-specific name)
+lnd_in_NORMAL,finidat,'/scratch/ly3n24/CTSM_FATES_OUTPUTS/ES-LJu_B02_FIXNC_MET24_GPPNPP_HISTFIX_NORMAL400/run/ES-LJu_B02_FIXNC_MET24_GPPNPP...,'/scratch/ly3n24/CTSM_FATES_OUTPUTS/US-SRM_AMF_B04_FIXNC_NORMAL400_BASETA_V1/run/US-SRM_AMF_B04_FIXNC_AD400_BASETA_V1...,True,path (site-specific name)
+lnd_in_NORMAL,fsurdat,'/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/Batch02_10/stage12_remaining6_bare_shrub_can...,'/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/AmeriFlux_Batch04_10/PFT_surface_candidate_r...,True,path (site-specific name)
+env_NORMAL,RUN_REFCASE,ES-LJu_B02_FIXNC_MET24_GPPNPP_HISTFIX_AD400,US-SRM_AMF_B04_FIXNC_AD400_BASETA_V1,True,site-specific
+env_NORMAL,CLM_USRDAT_NAME,UNSET,UNSET,False,site-specific
+env_NORMAL,DATM_YR_ALIGN,$DATM_YR_START,2004,True,
+env_NORMAL,DATM_YR_START,2018,2004,True,
+env_NORMAL,DATM_YR_END,2019,2025,True,
+env_NORMAL,PTS_LAT,36.926594,31.8214,True,site-specific
+env_NORMAL,PTS_LON,357.247885,249.13389999999998,True,site-specific
+env_NORMAL,RUNDIR,/scratch/ly3n24/CTSM_FATES_OUTPUTS/ES-LJu_B02_FIXNC_MET24_GPPNPP_HISTFIX_NORMAL400/run,/scratch/ly3n24/CTSM_FATES_OUTPUTS/US-SRM_AMF_B04_FIXNC_NORMAL400_BASETA_V1/run,False,site-specific
+user_nl_NORMAL,user_nl_clm,"fates_paramfile = fates_params_default.json | finidat = <SITE>_B02_FIXNC_MET24_GPPNPP_HISTFIX_AD400.clm2.r.2404-01-01-00000.nc | fsurdat = surfdata_<SITE>_B02_BARESHRUB_PFT_proxy_v1.nc | hist_fincl1 = 'TOTSOMC', 'TOTSOMN', 'TLAI', 'FATES_GPP', 'FATES_NPP', 'TWS', 'H2OSNO'","fates_paramfile = <SITE>_FATES_DEFAULT14_params.json | finidat = <SITE>_AMF_B04_FIXNC_AD400_BASETA_V1.clm2.r.2404-01-01-00000.nc | fsurdat = <SITE>_AMF_B04_SHARED_PFT_START_RESEARCH.nc | hist_fincl1 = 'TOTSOMC','TOTSOMN','TLAI','FATES_GPP','FATES_NPP','TWS','H2OSNO' | use_cn = .false.",True,lines only in target | only in reference
+user_nl_NORMAL,user_nl_datm_streams,<SITE>_DATM_2004_PROVISIONAL.nc \ | <SITE>_DATM_2005_PROVISIONAL.nc \ | <SITE>_DATM_2006_PROVISIONAL.nc \ | <SITE>_DATM_2007_PROVISIONAL.nc \ | <SITE>_DATM_2008_PROVISIONAL.nc \ | <SITE>_DATM_2009_PROVISIONAL.nc \ | <SITE>_DATM_2010_PROVISIONAL.nc \ | <SITE>_DATM_2011_PROVISIONAL.nc \ | <SITE>_DA...,CLM_USRDAT.UNSET:datafiles = 2004.nc 2005.nc 2006.nc 2007.nc 2008.nc 2009.nc 2010.nc 2011.nc 2012.nc 2013.nc 2014.nc 2015.nc 2016.nc 2017.nc 2018.nc 2019.nc 2020.nc 2021.nc 2022.nc 2023.nc 2024.nc 2025.nc | CLM_USRDAT.UNSET:offset = 0 | CLM_USRDAT.UNSET:year_last = 2025,True,lines only in target | only in reference
+surface,LATIXY,36.9266,31.8214,True,
+surface,LONGXY,357.2479,249.1339,True,
+surface,PCT_NATVEG,100.0,100.0,False,
+surface,PCT_CROP,0.0,0.0,False,
+surface,PCT_LAKE,0.0,0.0,False,
+surface,PCT_WETLAND,0.0,0.0,False,
+surface,PCT_GLACIER,0.0,0.0,False,
+surface,PCT_URBAN,"[0.0, 0.0, 0.0]","[0.0, 0.0, 0.0]",False,
+surface,PCT_NAT_PFT,"[49.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 20.0, 0.0, 0.0, 0.0, 31.0, 0.0]","[45.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 35.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 20.0]",True,
+surface,PCT_SAND,"[66.0, 66.0, 66.0, 66.0, 66.0, 64.0, 61.0, 58.0, 56.0, 56.0]","[64.0, 64.0, 64.0, 64.0, 59.0, 60.0, 61.0, 61.0, 58.0, 58.0]",True,
+surface,PCT_CLAY,"[14.0, 14.0, 14.0, 14.0, 15.0, 16.0, 17.0, 19.0, 20.0, 20.0]","[16.0, 16.0, 16.0, 16.0, 22.0, 22.0, 20.0, 20.0, 21.0, 21.0]",True,
+surface,ORGANIC,"[11.808, 11.808, 11.808, 11.808, 5.857, 4.704, 3.12, 2.572, 2.559, 2.559]","[14.44, 14.44, 14.44, 14.44, 9.457, 6.906, 4.347, 3.226, 3.0, 3.0]",True,
+surface,zbedrock,2.7284,9.2759,True,
+surface,FMAX,0.3714,0.4323,True,
+surface,SLOPE,4.4184,2.2511,True,
+surface,STD_ELEV,476.0045,250.6796,True,
+surface,SOIL_COLOR,15.0,16.0,True,
+surface,LANDFRAC_PFT,0.9424,1.0,True,
+surface,PFTDATA_MASK,absent,absent,False,
+surface,AREA,absent,absent,False,
+parameters,fates_paramfile,fates_params_default.json,US-SRM_FATES_DEFAULT14_params.json,True,SHA-256 compared
+init_AD,finidat,(cold start),(cold start),False,
+init_NORMAL,finidat,/scratch/ly3n24/CTSM_FATES_OUTPUTS/ES-LJu_B02_FIXNC_MET24_GPPNPP_HISTFIX_NORMAL400/run/ES-LJu_B02_FIXNC_MET24_GPPNPP_HISTFIX_AD400.clm2.r.2404-01-01-00000.nc,/scratch/ly3n24/CTSM_FATES_OUTPUTS/US-SRM_AMF_B04_FIXNC_NORMAL400_BASETA_V1/run/US-SRM_AMF_B04_FIXNC_AD400_BASETA_V1.clm2.r.2404-01-01-00000.nc,False,

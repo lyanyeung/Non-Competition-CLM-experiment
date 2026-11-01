@@ -1,0 +1,43 @@
+US-Seg (US-Seg_AMF_B04_FIXNC_NORMAL400_BASETA_V1; AD US-Seg_AMF_B04_FIXNC_AD400_BASETA_V1) vs reference US-SRM (US-SRM_AMF_B04_FIXNC_NORMAL400_BASETA_V1; AD US-SRM_AMF_B04_FIXNC_AD400_BASETA_V1)
+EC: {'EC_sources': 'AMF_US-Seg_FLUXNET_FLUXMET_HH_2007-2025_v1.3_r1.csv', 'EC_met_source': "AMF_US-Seg_FLUXNET_FLUXMET_HH_2007-2025_v1.3_r1.csv: {'TA': 'TA_F', 'SW_IN': 'SW_IN_F', 'P': 'P_F', 'VPD': 'VPD_F', 'LE': 'LE_F_MDS', 'WS': 'WS_F', 'PA': 'PA_F'}"}
+
+SETUP: 22 set-up differences vs US-SRM that are not just site names (lnd_in/env/user_nl/surface/parameters); 1 site-specific file paths differ (expected).
+   lnd_in_AD co2_ppmv: target=382.9 | reference=376.95 
+   env_AD RUN_STARTDATE: target=2007-01-01 | reference=2004-01-01 
+   env_AD CCSM_CO2_PPMV: target=382.9 | reference=376.95 
+   env_AD DATM_YR_ALIGN: target=2007 | reference=2004 
+   env_AD DATM_YR_START: target=2007 | reference=2004 
+   user_nl_AD user_nl_datm_streams: target=CLM_USRDAT.UNSET:datafiles = 2007.nc 2008.nc 2009.nc 2010.nc 2011.nc 2012.nc 2013.nc 2014.nc 2015.nc 2016.nc 2017.nc 2018.nc 2019.nc 2020.nc 2021.nc 2022.nc 2023.nc 2024.nc 2025.nc | CLM_USRDAT.UNSET:year_align = 2007 | CLM_USRDAT.UNSET:year_first = 2007 | reference=CLM_USRDAT.UNSET:datafiles = 2004.nc 2005.nc 2006.nc 2007.nc 2008.nc 2009.nc 2010.nc 2011.nc 2012.nc 2013.nc 2014.nc 2015.nc 2016.nc 2017.nc 2018.nc 2019.nc 2020.nc 2021.nc 2022.nc 2023.nc 2024.nc 2025.nc | CLM_USRDAT.UNSET:year_align = 2004 | CLM_USRDAT.UNSET:year_first = 2004 (lines only in target | only in reference)
+   lnd_in_NORMAL co2_ppmv: target=382.9 | reference=376.95 
+   env_NORMAL RUN_STARTDATE: target=2407-01-01 | reference=2404-01-01 
+   env_NORMAL RUN_REFDATE: target=2407-01-01 | reference=2404-01-01 
+   env_NORMAL CCSM_CO2_PPMV: target=382.9 | reference=376.95 
+   env_NORMAL DATM_YR_ALIGN: target=2007 | reference=2004 
+   env_NORMAL DATM_YR_START: target=2007 | reference=2004 
+   user_nl_NORMAL user_nl_clm: target=finidat = <SITE>_AMF_B04_FIXNC_AD400_BASETA_V1.clm2.r.2407-01-01-00000.nc | reference=finidat = <SITE>_AMF_B04_FIXNC_AD400_BASETA_V1.clm2.r.2404-01-01-00000.nc (lines only in target | only in reference)
+   user_nl_NORMAL user_nl_datm_streams: target=CLM_USRDAT.UNSET:datafiles = 2007.nc 2008.nc 2009.nc 2010.nc 2011.nc 2012.nc 2013.nc 2014.nc 2015.nc 2016.nc 2017.nc 2018.nc 2019.nc 2020.nc 2021.nc 2022.nc 2023.nc 2024.nc 2025.nc | CLM_USRDAT.UNSET:year_align = 2007 | CLM_USRDAT.UNSET:year_first = 2007 | reference=CLM_USRDAT.UNSET:datafiles = 2004.nc 2005.nc 2006.nc 2007.nc 2008.nc 2009.nc 2010.nc 2011.nc 2012.nc 2013.nc 2014.nc 2015.nc 2016.nc 2017.nc 2018.nc 2019.nc 2020.nc 2021.nc 2022.nc 2023.nc 2024.nc 2025.nc | CLM_USRDAT.UNSET:year_align = 2004 | CLM_USRDAT.UNSET:year_first = 2004 (lines only in target | only in reference)
+   surface LATIXY: target=34.3623 | reference=31.8214 
+   surface LONGXY: target=253.298 | reference=249.1339 
+   surface PCT_NAT_PFT: target=[40.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 60.0] | reference=[45.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 35.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 20.0] 
+   surface zbedrock: target=15.9713 | reference=9.2759 
+   surface FMAX: target=0.379 | reference=0.4323 
+   surface SLOPE: target=1.2625 | reference=2.2511 
+   surface STD_ELEV: target=212.0404 | reference=250.6796 
+   surface SOIL_COLOR: target=13.0 | reference=16.0 
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [40.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 60.0]
+INIT: AD finidat = (cold start); reference AD finidat = (cold start)
+FORCING (19 files): all checks ok
+FORCING vs EC met (target US-Seg): paired_months 228, T_forcing_minus_EC_C -0.00, P_forcing_over_EC 1.00, SW_forcing_over_EC 1.00
+FORCING vs EC met (reference US-SRM): paired_months 264, T_forcing_minus_EC_C -0.00, P_forcing_over_EC 1.00, SW_forcing_over_EC 1.00
+FORCING climate: target T 14.0 C, P 224 mm/yr, SW 232 W/m2 | reference T 19.7 C, P 354 mm/yr, SW 241 W/m2
+AD first 60 years (target US-Seg): peak LAI 0.74, GPP years 1-5 1.29 g C m-2 d-1, vegetation persists; TWS change -975 mm
+AD first 60 years (reference US-SRM): peak LAI 0.56, GPP years 1-5 1.13 g C m-2 d-1, vegetation persists; TWS change -199 mm
+WATER (target US-Seg, last cycle, mm/yr): model P 224, model ET 213, EC ET 223, EC P 225
+   model water table depth 8.6 m; soil water 0-0.1m 0.154, soil water 0.1-0.5m 0.186, soil water 0.5-1m 0.165, soil water 1-3m 0.141
+   GPP share by PFT: pft14 100%
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 56 86 115 146 176 207 237 268 299 329 228 32; FATES_DAYSINCE_COLDLEAFON 318 339 59 42 73 103 134 165 195 226 256 287; FATES_GDD 30 131 27 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 46 66 73 74 74 74 74 74 64 0 3 20; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0
+WATER (reference US-SRM, last cycle, mm/yr): model P 354, model ET 326, EC ET 333, EC P 354
+   model water table depth 8.6 m; soil water 0-0.1m 0.165, soil water 0.1-0.5m 0.207, soil water 0.5-1m 0.207, soil water 1-3m 0.225
+   month  8: EC GPP 3.01, model 1.26, LAI 0.19, BTRAN 0.19 -> leaves present but water-stressed (BTRAN < 0.3)
+   GPP share by PFT: pft14 100%
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 284160 284189 284218 284249 284280 284310 284340 284372 284402 284432 284463 284494; FATES_DAYSINCE_COLDLEAFON 284470 284499 284528 284559 284590 284620 284650 284682 284712 284742 284773 284804; FATES_GDD 0 0 0 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 3 4 4 4 4 4 4 4 3 0 0 1; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0

@@ -1,0 +1,46 @@
+US-Whs (US-Whs_AMF_B05_FIXNC_NORMAL400_DIRECT; AD US-Whs_AMF_B05_FIXNC_AD400_DIRECT) vs reference US-SRM (US-SRM_AMF_B04_FIXNC_NORMAL400_BASETA_V1; AD US-SRM_AMF_B04_FIXNC_AD400_BASETA_V1)
+EC: {'EC_sources': 'FAILED No HH/HR EC file with NEE_VUT_REF and GPP NT/DT under /iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/US-Whs/forcing/raw*'}
+
+SETUP: 27 set-up differences vs US-SRM that are not just site names (lnd_in/env/user_nl/surface/parameters); 5 site-specific file paths differ (expected).
+   lnd_in_AD co2_ppmv: target=382.9 | reference=376.95 
+   lnd_in_AD finidat: target=' ' | reference='' 
+   env_AD RUN_STARTDATE: target=2007-01-01 | reference=2004-01-01 
+   env_AD CCSM_CO2_PPMV: target=382.9 | reference=376.95 
+   env_AD DATM_YR_ALIGN: target=2007 | reference=2004 
+   env_AD DATM_YR_START: target=2007 | reference=2004 
+   user_nl_AD user_nl_clm: target=fates_paramfile = fates_params_HYDRO_SHRUB_b05_v1.json | fsurdat = surfdata_<SITE>_FIXNC_PFT_soil10_b05_v1.nc | reference=fates_paramfile = <SITE>_FATES_DEFAULT14_params.json | finidat = '' | fsurdat = <SITE>_AMF_B04_SHARED_PFT_START_RESEARCH.nc (lines only in target | only in reference)
+   user_nl_AD user_nl_datm_streams: target=CLM_USRDAT.UNSET:datafiles = 2007.nc 2008.nc 2009.nc 2010.nc 2011.nc 2012.nc 2013.nc 2014.nc 2015.nc 2016.nc 2017.nc 2018.nc 2019.nc 2020.nc 2021.nc 2022.nc 2023.nc 2024.nc 2025.nc | CLM_USRDAT.UNSET:year_align = 2007 | CLM_USRDAT.UNSET:year_first = 2007 | reference=CLM_USRDAT.UNSET:datafiles = 2004.nc 2005.nc 2006.nc 2007.nc 2008.nc 2009.nc 2010.nc 2011.nc 2012.nc 2013.nc 2014.nc 2015.nc 2016.nc 2017.nc 2018.nc 2019.nc 2020.nc 2021.nc 2022.nc 2023.nc 2024.nc 2025.nc | CLM_USRDAT.UNSET:year_align = 2004 | CLM_USRDAT.UNSET:year_first = 2004 (lines only in target | only in reference)
+   lnd_in_NORMAL co2_ppmv: target=382.9 | reference=376.95 
+   env_NORMAL RUN_STARTDATE: target=2407-01-01 | reference=2404-01-01 
+   env_NORMAL RUN_REFDATE: target=2407-01-01 | reference=2404-01-01 
+   env_NORMAL CCSM_CO2_PPMV: target=382.9 | reference=376.95 
+   env_NORMAL DATM_YR_ALIGN: target=2007 | reference=2004 
+   env_NORMAL DATM_YR_START: target=2007 | reference=2004 
+   user_nl_NORMAL user_nl_clm: target=fates_paramfile = fates_params_HYDRO_SHRUB_b05_v1.json | finidat = <SITE>_AMF_B05_FIXNC_AD400_DIRECT.clm2.r.2407-01-01-00000.nc | fsurdat = surfdata_<SITE>_FIXNC_PFT_soil10_b05_v1.nc | reference=fates_paramfile = <SITE>_FATES_DEFAULT14_params.json | finidat = <SITE>_AMF_B04_FIXNC_AD400_BASETA_V1.clm2.r.2404-01-01-00000.nc | fsurdat = <SITE>_AMF_B04_SHARED_PFT_START_RESEARCH.nc (lines only in target | only in reference)
+   user_nl_NORMAL user_nl_datm_streams: target=CLM_USRDAT.UNSET:datafiles = 2007.nc 2008.nc 2009.nc 2010.nc 2011.nc 2012.nc 2013.nc 2014.nc 2015.nc 2016.nc 2017.nc 2018.nc 2019.nc 2020.nc 2021.nc 2022.nc 2023.nc 2024.nc 2025.nc | CLM_USRDAT.UNSET:year_align = 2007 | CLM_USRDAT.UNSET:year_first = 2007 | reference=CLM_USRDAT.UNSET:datafiles = 2004.nc 2005.nc 2006.nc 2007.nc 2008.nc 2009.nc 2010.nc 2011.nc 2012.nc 2013.nc 2014.nc 2015.nc 2016.nc 2017.nc 2018.nc 2019.nc 2020.nc 2021.nc 2022.nc 2023.nc 2024.nc 2025.nc | CLM_USRDAT.UNSET:year_align = 2004 | CLM_USRDAT.UNSET:year_first = 2004 (lines only in target | only in reference)
+   surface LATIXY: target=31.7438 | reference=31.8214 
+   surface LONGXY: target=249.9478 | reference=249.1339 
+   surface PCT_NAT_PFT: target=[57.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 20.0, 20.0, 0.0, 0.0, 0.0, 3.0] | reference=[45.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 35.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 20.0] 
+   surface PCT_SAND: target=[66.6, 66.6, 65.7, 65.7, 65.7, 65.7, 65.7, 44.8, 61.0, 61.0] | reference=[64.0, 64.0, 64.0, 64.0, 59.0, 60.0, 61.0, 61.0, 58.0, 58.0] 
+   surface PCT_CLAY: target=[10.0, 10.0, 11.5, 11.5, 11.5, 11.5, 11.5, 14.0, 17.1, 17.1] | reference=[16.0, 16.0, 16.0, 16.0, 22.0, 22.0, 20.0, 20.0, 21.0, 21.0] 
+   surface zbedrock: target=13.535 | reference=9.2759 
+   surface FMAX: target=0.3976 | reference=0.4323 
+   surface SLOPE: target=1.879 | reference=2.2511 
+   surface STD_ELEV: target=182.521 | reference=250.6796 
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [57.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 20.0, 20.0, 0.0, 0.0, 0.0, 3.0]
+INIT: AD finidat = (cold start); reference AD finidat = (cold start)
+FORCING (19 files): all checks ok
+FORCING vs EC met (reference US-SRM): paired_months 264, T_forcing_minus_EC_C -0.00, P_forcing_over_EC 1.00, SW_forcing_over_EC 1.00
+FORCING climate: target T 17.8 C, P 294 mm/yr, SW 247 W/m2 | reference T 19.7 C, P 354 mm/yr, SW 241 W/m2
+AD first 60 years (target US-Whs): peak LAI 1.43, GPP years 1-5 0.51 g C m-2 d-1, vegetation persists; TWS change -1037 mm
+AD first 60 years (reference US-SRM): peak LAI 0.56, GPP years 1-5 1.13 g C m-2 d-1, vegetation persists; TWS change -199 mm
+WATER (target US-Whs, last cycle, mm/yr): model P 294, model ET 280, EC ET nan, EC P nan
+   model water table depth 8.6 m; soil water 0-0.1m 0.123, soil water 0.1-0.5m 0.138, soil water 0.5-1m 0.123, soil water 1-3m 0.134
+   GPP share by PFT: pft7 45%, pft8 41%, pft14 14%
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 270092 270122 270151 270182 270212 270242 270273 270304 270334 270365 270396 270426; FATES_DAYSINCE_COLDLEAFON 270402 270432 270461 270492 270522 270552 270583 270614 270644 270675 270706 270736; FATES_GDD 0 0 0 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 8 12 13 13 13 13 13 13 11 0 0 2; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0
+WATER (reference US-SRM, last cycle, mm/yr): model P 354, model ET 326, EC ET 333, EC P 354
+   model water table depth 8.6 m; soil water 0-0.1m 0.165, soil water 0.1-0.5m 0.207, soil water 0.5-1m 0.207, soil water 1-3m 0.225
+   month  8: EC GPP 3.01, model 1.26, LAI 0.19, BTRAN 0.19 -> leaves present but water-stressed (BTRAN < 0.3)
+   GPP share by PFT: pft14 100%
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 284160 284189 284218 284249 284280 284310 284340 284372 284402 284432 284463 284494; FATES_DAYSINCE_COLDLEAFON 284470 284499 284528 284559 284590 284620 284650 284682 284712 284742 284773 284804; FATES_GDD 0 0 0 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 3 4 4 4 4 4 4 4 3 0 0 1; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0
+ERROR (target): EC: No HH/HR EC file with NEE_VUT_REF and GPP NT/DT under /iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/US-Whs/forcing/raw*
