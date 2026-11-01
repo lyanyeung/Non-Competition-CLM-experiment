@@ -592,6 +592,24 @@ python3 -B "$SCRIPT" \
 
 After this episode-index is confirmed, **Stage03D** should inspect ONLY the scoped original tower QC, source-processing/ERA alternatives, source rain P units/accumulation windows and dated BIF context needed to settle retained HOLDs, using the first five AmeriFlux cohort methods already summarized in [the inheritance report](docs/stage03b_reuse_FLUXNET13_legacy_QC_and_AmeriFlux_delta_method_20261101.md). No automatic ERA replacement, rainfall clipping or a new AD5/AD400 case on Stage03C alone.
 
+## Stage03C actual result and Stage03D original Stage21 rain recovery (1 November 2026)
+
+**Actual source-verified Stage03C PASS (HOLD index, NOT meteorological science release):** DE-Gri **49** pending original MDS/QC1 blocks and 14 residual Stage28 flags, DE-RuR 1 residual flag plus 2012-07-27 precipitation/dynamic BIF TA height, IT-Tor 7 residual flags and historical 2025 Oct–Nov 1,458-HH QC1/QC2 discontinuity, ES-Agu 5 flags plus 2018-09-15 rain/earlier repairs; **95 HOLD action rows** across four sites are not 95 proven distinct numerical errors. Stage03B-REUSE previously confirmed 4/4 Stage28 selected met SHA, 74/74 Stage30 annual DATM paths, and 12/12 representative yearly NC SHA matches. Neither the source nor existing cases have been rewritten.
+
+**Stage03C `OLD_RAIN_LEDGER MISSING` is a path-lookup false negative, not evidence rain QC was absent.** The [old FLUXNET13 Stage21](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/FLUXNET_MultiSite_13/scripts/stage21/21_onepass_13site_meteorology_remaining_preBIF.py) wrote `06_all_precip_gt18mm_source_timing_review.csv` to its own Stage21 reports; [old Stage22](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/FLUXNET_MultiSite_13/scripts/stage22/22_onepass_full_QC1_envelopes_preBIF.py) copied it into its own reports as **`INHERITED_STAGE21_06_all_precip_gt18mm_source_timing_review.csv`**. Stage03C erroneously checked the unprefixed Stage22 filename. This next stage inspects actual file existence and SHA rather than merely inferring that outputs remain on scratch.
+
+[Stage03D source-scoped historical rain recovery and targeted four-site old QC windows](scripts/03d_recover_Stage21_rain_and_targeted_4site_source_event_context_READONLY.py) uses the saved Stage03B and Stage03C original evidence, checks both legacy rain report names, then streams the **source-manifest-pinned** original product and **already SHA-verified Stage28 selected** forcing once per site, extracting only 49 DE-Gri original HOLD intervals, DE-RuR 2012-07-27 rainfall +/-1 day, IT-Tor 2025 Oct/Nov source QC1/QC2 context, ES-Agu 2018-09-15 rainfall +/-1 day. The two rain focus dates get matched `P_F`/`P_F_QC` and Stage28 `PRECTmms*1800` event-day records (numeric equality does **not** prove 30-min accumulation clock). No ERA download, no 74-year re-audit, no broad new source QC, no edits or jobs. **The output contains licensed original half-hourly values; keep it in a PRIVATE HOME folder, never commit its JSON/CSV to public GitHub.** [Exact Stage03C outcomes and Stage03D science scope](docs/stage03c_operator_pass_stage03d_recover_legacy_rain_and_targeted_events_20261101.md).
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+ --stage03b "$HOME/ICOS_Batch04_stage03b_reuse_PbMYw9CH/results/stage03b_four_site_reused_stage28_DATM_lineage.json" \
+ --stage03c "$HOME/ICOS_Batch04_stage03c_hONXeEmQ/results/stage03c_four_site_inherited_science_HOLD_episode_index.json" \
+ --out-dir "$NEW_EMPTY_PRIVATE_HOME_DIR"
+~~~
+
+All previous scientific HOLDs preserved; IT-Tor all 10 soil ORGANIC layers remain zero and independent; CH-Aws original RH/ERA and GL-ZaH Arctic private-map are separate. PFT choice 6/6, new verified point surfaces 4/6, new isolated CIME/AD5 submissions 0/6.
+
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
