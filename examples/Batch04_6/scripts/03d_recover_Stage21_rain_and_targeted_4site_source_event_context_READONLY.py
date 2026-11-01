@@ -246,18 +246,51 @@ def stream_relevant(path,time_field,mode,events,keep):
     return stats,{"file":str(path),"rows_scanned_streaming_not_numerically_rechecked":total_rows,
                    "event_rows_selected":matched,"fields":selected}
 
+def focus_rain_records(site,site_rain):
+    """Only DE-RuR and ES-Agu have a preselected focus rain date.
+
+    DE-Gri's 49 MDS events and IT-Tor's QC1/QC2 long-fill event are NOT
+    specified single-day rain events. Preserve their full old rain ledger
+    separately and avoid trying to match a None date against CSV strings.
+    """
+    if site not in SITES:
+        raise ValueError("Unknown Stage03D site "+str(site))
+    focus_date={"DE-RuR":"2012-07-27","ES-Agu":"2018-09-15"}.get(site)
+    if focus_date is None:
+        return None,[]
+    matched=[r for r in site_rain
+             if focus_date in str(r.get("time") or "")]
+    return focus_date,matched
+
+
 def self_test():
     assert len(SITES)==4
     assert at("202510011030","source")==datetime(2025,10,1,10,30)
     assert at("2025-10-01 10:30:00","selected")==datetime(2025,10,1,10,30)
     assert num("-9999") is None and num("2.5")==2.5
     assert RAIN_INHERITED.startswith("INHERITED_STAGE21_")
+    # Regression: all FOUR sites pass focus-date selection; two intentionally
+    # have NO single-date rain focus, even if rain rows exist in their ledger.
+    toy_rain=[
+        {"site":"DE-Gri","time":"2012-07-27 10:00:00"},
+        {"site":"DE-RuR","time":"2012-07-27 10:00:00"},
+        {"site":"IT-Tor","time":"2018-09-15 10:00:00"},
+        {"site":"ES-Agu","time":"2018-09-15 10:00:00"},
+        {"site":"DE-RuR","time":None},
+    ]
+    actual={site:focus_rain_records(
+        site,[r for r in toy_rain if r["site"]==site])
+        for site in SITES}
+    assert actual["DE-Gri"]==(None,[])
+    assert actual["IT-Tor"]==(None,[])
+    assert actual["DE-RuR"][0]=="2012-07-27" and len(actual["DE-RuR"][1])==1
+    assert actual["ES-Agu"][0]=="2018-09-15" and len(actual["ES-Agu"][1])==1
     fake=[{"start_or_time":f"2015-01-{i:02d}","end":f"2015-01-{i:02d}"}
           for i in range(1,29)]
     fake += [{"start_or_time":f"2015-02-{i:02d}","end":f"2015-02-{i:02d}"}
              for i in range(1,22)]
     assert len(scopes(fake)["DE-Gri"])==49
-    print("STAGE03D SELF-TEST PASS: Stage21->Stage22 inherited rain path, event-scoped source/Stage28 stream, original 49 MDS and no writes")
+    print("STAGE03D SELF-TEST PASS: Stage21/22 rain provenance, four-site focus-date regression (including None), 49 original MDS, no writes")
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
@@ -296,10 +329,7 @@ def main():
         forcing_stats,forcing_read=stream_relevant(
             selected[site],"time","selected",windows[site],FIELD_MET)
         site_rain=[r for r in rain if r["site"]==site]
-        focus=[r for r in windows[site] if site!="DE-Gri"]
-        target_rain_date=("2012-07-27" if site=="DE-RuR" else
-                          "2018-09-15" if site=="ES-Agu" else None)
-        matching_old_rain=[r for r in site_rain if target_rain_date in r["time"]]
+        target_rain_date,matching_old_rain=focus_rain_records(site,site_rain)
         matched_keys=0
         for w in windows[site]:
             key=w["id"];a=source_stats[key];b=forcing_stats[key]

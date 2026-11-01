@@ -592,6 +592,22 @@ python3 -B "$SCRIPT" \
 
 After this episode-index is confirmed, **Stage03D** should inspect ONLY the scoped original tower QC, source-processing/ERA alternatives, source rain P units/accumulation windows and dated BIF context needed to settle retained HOLDs, using the first five AmeriFlux cohort methods already summarized in [the inheritance report](docs/stage03b_reuse_FLUXNET13_legacy_QC_and_AmeriFlux_delta_method_20261101.md). No automatic ERA replacement, rainfall clipping or a new AD5/AD400 case on Stage03C alone.
 
+## Stage03D second operator execution: Stage21 rain ledger recovered, None-date selection fix
+
+The operator ran Python AST syntax PASS and Stage03D self-test PASS on source SHA `c66878e80ee62e13a0793f0db3daecf1a4dfc637`, then actually reached the inherited precipitation report audit. This time **both historical reports were found**, and Stage03D recorded:
+
+```
+STAGE21_RAIN_LEDGER FOUND_ACTUAL_STAGE21_OR_INHERITED_RAIN_LEDGER
+STAGE21_FOUND True STAGE22_INHERITED_FOUND True
+SCOPED_FOUR_SITE_EVENTS 20
+```
+
+After recovery, a **code bug** stopped the first site: `TypeError: 'in <string>' requires string as left operand, not NoneType` at `target_rain_date in r['time']`. The focus date is defined only for DE-RuR (2012-07-27) and ES-Agu (2018-09-15), **not** DE-Gri (49 MDS blocks) or IT-Tor (2025 Oct/Nov long QC1/QC2 interval). Those latter sites still have old rain-ledger rows but **should not** be searched against a nonexistent single target date. This is a program selection bug, not a meteorological QC anomaly.
+
+Fix: central `focus_rain_records(site, site_rain)` returns `(None, [])` safely for DE-Gri and IT-Tor, and explicitly matches the designated dates for DE-RuR and ES-Agu. Self-test now covers **all four sites and a missing row timestamp**. Use newly SHA-pinned version only after AST syntax check and full `--self-test`; the actual scientific Stage03D stage remains **not completed** until IRIDIS6 run succeeds. The recovered 20 rows are historical rainfall **review candidates**, not 20 independently verified bad rain observations.
+
+**No reprocessing of Stage03B/C, no edits to 74 DATM NC, old Stage28 MET, 4 approved PFT point surfaces or CIME/Slurm.** Retain native tower/ERA/precipitation clock uncertainty and IT-Tor soil zero ORGANIC source HOLD.
+
 ## Stage03D Python parse correction — original run did not start (1 November 2026)
 
 Operator's IRIDIS6 SHA-verified Stage03D download failed **before self-test or science audit**, at line 146:
