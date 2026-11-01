@@ -107,7 +107,7 @@ def describe(site, left, right):
 
 
 def run_site(site, years, sources, writer):
-    prev = None; total = 0; flags = Counter(); max_step = 0.; skipped_noleap = 0
+    prev = None; total = 0; flags = Counter(); evidence = Counter(); max_step = 0.; skipped_noleap = 0
     for key, chosen, raw, era in observe(*sources, *years):
         row = (key, chosen, raw, era)
         if prev is not None:
@@ -118,9 +118,16 @@ def run_site(site, years, sources, writer):
                 if abs(t1-t0) > 8:
                     event = describe(site, prev, row); writer.writerow(event); total += 1
                     flags[event['qc_pair']] += 1; max_step = max(max_step, abs(event['selected_step_C']))
+                    if event['source_switch']: evidence['qc_source_switch'] += 1
+                    if any(event[f'tower_{side}_TA_QC'] == '0' and event[f'era_{side}_C'] is not None and
+                           event[f'tower_{side}_C'] is not None and
+                           abs(event[f'tower_{side}_C'] - event[f'era_{side}_C']) > 10
+                           for side in ('left', 'right')):
+                        evidence['qc0_endpoint_vs_era_gt10_C'] += 1
             else: skipped_noleap += 1
         prev = row
     return {'site': site, 'local_jumps_gt8_C': total, 'qc_pairs': dict(flags),
+            'review_counts': dict(evidence),
             'largest_jump_C': round(max_step, 4), 'non_30min_edges_excluded': skipped_noleap,
             'scope': 'chronological source; forcing-cycle wrap excluded'}
 
