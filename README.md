@@ -1,5 +1,9 @@
 # Fixed Biogeography & no competition FATES experiment
 
+## Needleleaf collapse diagnosis (1 November 2026)
+
+[Diagnosis log](docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md): needleleaf-dominated sites lose their vegetation in AD400 through FATES carbon-starvation mortality (storage falls below 1 × leaf carbon every winter with the default needleleaf parameters), not water stress — the history BTRAN ≈ 0.05 is canopy-cover dilution. Figures, numbers, source-code references, corrections and the fix plan are in the log.
+
 ## NL-Loo V3 three-phase figures
 
 [NL-Loo PRE50 → AD200 → POST300 convergence and EC plotting](docs/NL_LOO_THREE_PHASE_PLOTS.md) checks the actual V3 history, marks incomplete phases and PRE50-based EC comparisons as interim, and uses NT-first tower GPP. It does not infer that POST300 has run.
