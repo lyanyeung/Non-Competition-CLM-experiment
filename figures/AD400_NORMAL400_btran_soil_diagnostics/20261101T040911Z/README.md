@@ -1,0 +1,13 @@
+# BTRAN and soil diagnostics: collapsing needleleaf re-runs vs living references
+
+BTRAN is recomputed per layer with the FATES/CLM non-hydro formula from liquid water, ice, soil temperature,
+fine-root distribution (FATES_FROOTC_SL) and the PFT's smpso/smpsc. JJA = growing season. Screening numbers.
+
+- [All cases comparison](ALL_CASES_08_btran_soil_comparison.png)
+
+| Case | Years | PFT | BTRAN JJA model | estimate (plants) | canopy cover | estimate × cover | roots 90% above (m) | most limiting (JJA) | check | Figures |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |
+| DE-Obe (DE-Obe_B03_FIXNC_AD400_DIAG50) | 2008-2057 | 2 needleleaf_evergreen_extratrop_tree | 0.0504 | 1 | 0.0504 | 0.0504 | 0.92 | no soil limitation in rooted layers (all factors >= 0.95) | estimate x canopy cover matches model BTRAN: plants are not water-limited; history BTRAN is diluted by bare soil between crowns (BTRAN=0 there) | [time series](DE-Obe/DE-Obe_06_btran_soil_timeseries.png) [profiles](DE-Obe/DE-Obe_07_btran_soil_profiles.png) [inventory](DE-Obe/DE-Obe_inventory.txt) |
+| FI-Sod (FI-Sod_B01_FIXNC_AD400_DIAG50) | 2001-2050 | 2 needleleaf_evergreen_extratrop_tree | 0.00814 | 0.999 | 0.0082 | 0.00816 | 0.92 | no soil limitation in rooted layers (all factors >= 0.95) | estimate x canopy cover matches model BTRAN: plants are not water-limited; history BTRAN is diluted by bare soil between crowns (BTRAN=0 there) | [time series](FI-Sod/FI-Sod_06_btran_soil_timeseries.png) [profiles](FI-Sod/FI-Sod_07_btran_soil_profiles.png) [inventory](FI-Sod/FI-Sod_inventory.txt) |
+| DE-Hai_ref (DE-Hai_B01_FIXNC_NORMAL400) | 2750-2799 | 6 broadleaf_colddecid_extratrop_tree | 0.975 | 0.984 | 0.996 | 0.98 | 0.92 | no soil limitation in rooted layers (all factors >= 0.95) | estimate x canopy cover matches model BTRAN: plants are not water-limited; history BTRAN is diluted by bare soil between crowns (BTRAN=0 there) | [time series](DE-Hai_ref/DE-Hai_ref_06_btran_soil_timeseries.png) [profiles](DE-Hai_ref/DE-Hai_ref_07_btran_soil_profiles.png) [inventory](DE-Hai_ref/DE-Hai_ref_inventory.txt) |
+| FI-Hyy_ref (FI-Hyy_B02_FIXNC_NORMAL400) | 2747-2796 | 6 broadleaf_colddecid_extratrop_tree | 0.0489 | 1 | 0.049 | 0.049 | 0.92 | no soil limitation in rooted layers (all factors >= 0.95) | estimate x canopy cover matches model BTRAN: plants are not water-limited; history BTRAN is diluted by bare soil between crowns (BTRAN=0 there) | [time series](FI-Hyy_ref/FI-Hyy_ref_06_btran_soil_timeseries.png) [profiles](FI-Hyy_ref/FI-Hyy_ref_07_btran_soil_profiles.png) [inventory](FI-Hyy_ref/FI-Hyy_ref_inventory.txt) |
