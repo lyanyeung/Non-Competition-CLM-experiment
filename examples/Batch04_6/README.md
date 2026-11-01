@@ -466,7 +466,27 @@ python3 -B "$SCRIPT" \
 
 All four stations remain HOLD. If Stage02V verifies original CIME source list paths, that alone does **not** approve active DATM stream binding or a crop/natural-area transformation, and must not trigger AD5/AD400.
 
-## Stage02W: full native-source forcing / soil / PFT science release (future)
+## Stage02V verified on IRIDIS6 — all eight CIME DATM static input paths match
+
+[Stage02V operator result and requested GitHub PFT manual-review register](docs/stage02v_operator_GitHub_authoritative_PFT_manual_review_20261101.md): both cases at each of DE-Gri, DE-RuR, IT-Tor, ES-Agu returned `OLD_PARSE 0`, but the original Stage02B parser found exactly **22/15/18/19** annual NC references with `PATH_EXACT True`, `PATH_CANON True`, `NC_EXIST True` (**8/8** case sets). The earlier Stage02U `DATM_STATIC_LIST_MATCH False` was a parser false negative. **Do not re-write, rename or resubmit the 74 original annual DATM files**; active runtime stream remains a separate science gate.
+
+## Stage02W — current authoritative GitHub PFT register and human decision gate
+
+By explicit operator instruction, use the [current 26 October 2026 official 38-site GitHub PFT registry](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/FINAL_38_SITE_FIXNC_PFT_20261026_ICOS.csv), not the mismatched old gridded surface vector, as the **proposed station model PFT**. The source 24 Oct MASTER and the [six-site bare-ground evidence report](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/SIX_SITE_BARE_GROUND_PFT_EVIDENCE_20261025.md) are complementary evidence, not equivalent cover-area observations. Formal registry site statuses are **CANDIDATE (qualitative)** for DE-Gri, DE-RuR, IT-Tor: **HLM 13 C3 grass 100%** each. ES-Agu is **PROPOSED**, **HLM 0 bare 49% / HLM 13 cool C3 grass 29% / HLM 9 evergreen shrub 22%**. All four have `fixnc_cohort=Not assigned`: **none has been granted approval for a replacement Batch04 surface**. Existing static cases still referenced original CLM surface: NATVEG%/CROP% DE-Gri **62.674/37.326**, DE-RuR **78.891/21.109**, IT-Tor **89.915/10.085**, ES-Agu **71.461/28.539**. These differ strongly from proposed **conditional NATPFT**, but they have different landunit bases and the comparison alone cannot falsify site studies. **IT-Tor original 10 soil-layer ORGANIC values all 0** require separate source review. The older ES-Agu `~65% vegetation` plot evidence and newer `51% vegetation/49% nonvegetated` ground survey need **manual confirmation of denominator/footprint**.
+
+[Read-only Stage02W official PFT gate](scripts/02w_four_site_official_GitHub_PFT_manual_gate_readonly.py) reads the saved Stage02V and **SHA-checked** downloaded official PFT CSV to verify the registry strings, source ecology evidence statuses and original surface-vs-proxy discrepancies, and produces 8 evidence rows with **PFT MANUAL REVIEW** on every site. It does not choose or write new surface/landunit/FATES parameters or submit cases.
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02v "$HOME/ICOS_Batch04_stage02v_9MKZUOLs/results/stage02v_four_site_DATM_parser_landunit_review.json" \
+  --pft-register "$PINNED_GITHUB_FINAL_38_CSV" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+If the operator approves a proposed site PFT, construct a **new isolated site-specific model surface**, making explicit that `PCT_NAT_PFT` percentages are conditional on `PCT_NATVEG` rather than the original full-gridcell crop share. Verify effective runtime FATES HLM mapping and original tower source/soil QC before AD5/AD400. No automatic PFT overwrite.
+
+## Stage02X: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
