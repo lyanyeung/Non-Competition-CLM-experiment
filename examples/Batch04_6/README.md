@@ -541,6 +541,21 @@ Run the exact blob-pinned script once:
       --stage02y "$HOME/ICOS_Batch04_stage02y_pT2JPSjW/results/stage02y_four_site_candidate_surface_case_binding_audit.json" \
       --out-dir "$NEW_EMPTY_DIR"
 
+## Stage02Z completed and Stage03A original meteorology QC source discovery
+
+[Actual Stage02Z eight-case source-stream finding and Stage03A plan](docs/stage02z_operator_result_stage03a_original_met_QC_plan_20261101.md): all eight original Batch04 S30EXCL/SHARED cases have DATM_MODE=1PT and a generated CaseDocs/datm.streams.xml containing station-specific annual NC filenames, CLM_USRDAT.UNSET, taxmode=cycle and the correct site years (DE-Gri 2004–2025, DE-RuR 2011–2025, IT-Tor 2008–2025, ES-Agu 2006–2024). The absent literal streams assignment inside datm_in is not itself an error; it is stored in a separate CIME stream XML. Stage02D previously found no internal numeric flags in the 74 referenced annual NCs, but **native station-source met QC, exact observation-versus-MDS/ERA provenance, local UTC clocks and replacement proportions have NOT been verified**.
+
+[Stage03A read-only original HH source/QC candidate inventory](scripts/03a_four_site_original_HH_tower_QC_provenance_discovery_readonly.py) consumes saved Stage02C, Stage02D first-four and Stage02Z report JSONs; scans only the four station source directories with strict file/count/depth limits; inspects candidate ICOS/FLUXNET BASE/BIF/FLUXMET_HH/ERA_HH source filenames and bounded CSV/ZIP/GZIP/NC headers for half-hourly time, native/QC and ERA fields. It does not make scientific conclusions from filenames, decompress full products, reprocess 74 NCs, modify case/surface or submit Slurm. Produces JSON/CSV in new empty HOME folder. The next data QC stage can then choose exactly source-pinned original sensor/processed products and compare timestamps/QC/values with DATM, while IT-Tor soil ORGANIC=0 is separately held.
+
+    python3 -B "$SCRIPT" --self-test
+    python3 -B "$SCRIPT" \
+      --stage02c "$HOME/ICOS_Batch04_stage02c_sGTtt5pv/stage02c_report.json" \
+      --stage02d "$HOME/ICOS_Batch04_stage02d_Pq6if8IH/stage02d_first4.json" \
+      --stage02z "$HOME/ICOS_Batch04_stage02z_bTwLfYMG/results/stage02z_eight_original_DATM_stream_document_audit.json" \
+      --out-dir "$NEW_EMPTY_DIR"
+
+All six Batch04 sites remain non-submitted; four GitHub PFT point surfaces were already created and SHA256-verified. CH-Aws humidity/source and GL-ZaH Arctic-map gates are separate. No AD5/AD400 by this step.
+
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
