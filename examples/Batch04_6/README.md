@@ -304,6 +304,12 @@ python3 -B "$SCRIPT" \
 ~~~
 
 After Stage02N, determine whether original measured `RH` or another independently supported humidity source exists and what quality/time metadata the original repair ledgers actually establish; if not, keep the associated humidity selection on HOLD. Do not infer that ERA agreement alone makes RH42A valid, and do not authorise AD5/AD400 or modify effective FATES, surface or soil maps.
+## Stage02N verified: CH-Aws source repairs remain exploratory (1 November 2026)
+
+[Latest six-site status and operator Stage02N evidence](docs/stage02n_operator_and_six_site_science_status_20261101.md). Original CH-Aws repair ledgers Stage34 (27 rows), Stage38 (21), Stage42 (23) all **SHA256 MATCH**, their 20 high-impact original CSV rows also **MATCH** (`SOURCE_ROW_HOLDS 0`, `LEDGER_SHA_UNVERIFIED NONE`). Crucially, their original `scientific_status` labels are `EXPLORATORY_NOT_OBSERVATION_QC_APPROVED`, `EXPLORATORY_NOT_TOWER_VALIDATED`, and `EXPLORATORY_REANALYSIS_SENSITIVITY`. These integrity checks DO NOT grant observation QC acceptance. At selected 2007–2020 times, gap-filled VPD_F (QC1) implies very low RH (as low as ~0.013%), while ledger ERA5/ERA5-Land RH is ~80–99%. No independent measured native RH is available in the selected distributed records. Do not treat low old-RH values or higher ERA similarity as conclusive without native source/time/site-grid validation.
+
+**Priorities:** (1) CH-Aws verify original unfilled tower humidity and QC, independent ERA reference/height/clock, then science-review repair versions; (2) run read-only final original meteorology/active DATM stream/soil/PFT checks in parallel for DE-Gri, DE-RuR, IT-Tor, ES-Agu; (3) separate private site-only Arctic FATES map for GL-ZaH plus soil/point QC. All six sites remain **HOLD**, and no AD5/AD400, file editing or Slurm submission is authorised.
+
 ## Stage02O: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
