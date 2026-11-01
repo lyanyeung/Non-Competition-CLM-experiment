@@ -167,6 +167,38 @@ forcing, CIME cases, or Slurm jobs. Only after science review should a
 separately named fully checksummed detached final forcing selection be planned;
 never overwrite the Stage23 source.
 
+### Stage57 boundary science audit — operator-confirmed 1 Nov 2026 (UK)
+
+Stage57 passed its self-test and completed for all **7 annual detached candidate
+files / 64 approved half-hour edits**, with no data/case/Slurm writes.
+Its `flagged counts=73` combines individual edit diagnostic flags and
+boundary types: **it is not 73 independent bad records or events**.
+
+Flagged candidate-boundary results (30-minute increments, diagnostic
+threshold |dT|>4 C or |dVPD|>4 hPa):
+
+- CA-Cbo 2018 July ID04: repaired VPD boundary **+4.373 hPa**
+  (both edges); separate other CA-Cbo repairs improved and flagged none.
+- CA-Man 1994: repaired temperature edge **+4.165 / +4.166 C**;
+  CA-Man 2005: 45 edited local half-hours mapped to UTC index 0–44,
+  with **prior-year NC boundary not inspected** by Stage57, and **all
+  45 original tower TA codes QC0**; its ERA replacement remains SCIENCE HOLD.
+  CA-Man 2007 ID13/14 boundary checks flagged none.
+- US-Aud 2012: repaired right boundary **+7.983 C / +20.014 hPa**.
+- US-Aud 2019: left repaired boundary VPD **+4.694 hPa**.
+- US-Aud 2023 spring: right repaired boundary **−13.762 C /
+  −23.636 hPa**. Winter: right edge **−4.550 C /
+  −4.544 hPa**. The substantial discontinuities after replacement
+  require reassessment of tower QC and NOAA proxy applicability.
+
+The next checkpoint is
+[Stage58 flagged-boundary source forensics](scripts/58_three_site_flagged_boundary_source_forensics.py),
+a **read-only** exact local-time comparison of original and candidate
+NC, original tower TA/VPD and QC, ERA5 companion and Stage80 selected
+forcing. It also inspects the preceding 2004 year file across CA-Man 2005
+UTC index zero. No further changes to production or candidate forcing
+are authorized by Stage57's diagnostic completion.
+
 ### Reproducible Stage45/Stage55 Normal400 operation
 
 The original `45_prepare_six_normal400.py` was incompatible with Stage36's
