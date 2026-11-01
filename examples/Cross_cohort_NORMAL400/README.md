@@ -20,6 +20,8 @@ BTRAN / soil diagnostics (`scripts/10_diagnose_btran_soil.py`): for the re-runs 
 
 Carbon budget diagnostics (`scripts/11_diagnose_carbon_budget.py`): per-plant and per-leaf GPP, maintenance respiration, NPP and storage, the share of GPP going to each respiration and allocation term, the winter reserve (storage / winter deficit), the cold-start settings of each case (`use_fates_dbh_init`, initial density), and every FATES PFT parameter that differs between the needleleaf PFT and the broadleaf comparator, ranked.
 
+Carbon-starvation check (`scripts/12_check_cstarvation.py`): month-by-month comparison of the FATES carbon-starvation mortality in the history output with the model's own formula, cmort = scalar × max(0, (upthresh − storage/leafC)/upthresh), plus the namelist settings actually used (`fates_cstarvation_model`, `fates_leafresp_model`, `use_fates_dbh_init`) and the PFT's storage, mortality and leaf parameters. Full write-up: [docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md](../../docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md) (on `main`).
+
 [All-completed AD400 + Normal400 plotting runbook](ALL_COMPLETED_PLOTS.md): live status and reference-pair selection, NT-first EC comparison, and separate per-case carbon diagnostics. The analysis runs as a read-only-input Slurm job and writes new derived files under Home. Completion is not convergence.
 
 
