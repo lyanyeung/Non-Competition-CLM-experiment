@@ -390,7 +390,25 @@ python3 -B "$SCRIPT" \
 
 All six Batch04 stations remain **scientific HOLD**. No automatic RH34A/RH38A/RH42A release or AD5/AD400 submission based on MDS vs ERA similarity.
 
-## Stage02S: full native-source forcing / soil / PFT science release (future)
+## Stage02R successful original QC definitions and earlier alignment evidence (1 November 2026)
+
+[Stage02R actual IRIDIS6 result](docs/stage02r_operator_IRIDIS6_result_20261101.md) has a complete original BIF/BIFVARINFO RH/VPD/QC group reconstruction: `VPD_F` consolidates MDS plus downscaled `VPD_ERA`; `VPD_F_QC=1` explicitly means **good-quality gapfilled** for this site's source product, rather than directly measured humidity. `RH` is listed at 1.5 m in BIFVARINFO, but has **no numeric original native RH for the 20 high-contrast events**. BIF `UTC_OFFSET=1`, yet the earlier Stage09 model-offset tests on 57,581 QC0/QC1 temperature points had stronger numerical ERA5 agreement at their tested 0-hour offset (r=0.88405, RMSE 3.1953°C) than tested +1 hour (r=0.86479, RMSE 3.4145°C). Stage09 used Open-Meteo historical ERA5 and ERA5-Land products, which are **related reanalyses, not independent tower observations**, and retained manual clock verification. Earlier Stage03 had 559 invalid original candidate humidity pairs, 77 priority fallback events and 86 pair-source changes; source candidate status `REVIEW_REQUIRED`. Stage03's input register identified the *independently distributed but related processed* `EUF_ERA5_HH_1981-2025` input path alongside FLUXMET_HH; Stage03's path metadata **does not prove the ERA5 file still exists now**.
+
+## Stage02S — original EUF ERA5 product vs FLUXMET clock/VPD cross-check
+
+[Stage02S read-only source alignment code](scripts/02s_CH_Aws_original_EUF_ERA5_to_FLUXMET_clock_readonly.py) reads the operator-saved Stage02R and Stage02L JSONs and attempts to verify the **exact on-disk Stage03-listed EUF_ERA5_HH input**. If present, it streams only that original ERA5 source once (<2 GB, <=1m rows) using fast exact timestamp-label lookup, comparing 20 selected event `FLUXMET TIMESTAMP_START/TIMESTAMP_END VPD_ERA` and `TA_ERA` with the original separate EUF ERA-source `TIMESTAMP_START/TIMESTAMP_END` under literal **-120 to +120 minute** clock-label hypotheses. This identifies possible source timing/processing discrepancies **without approving a UTC conversion or ranking forcing**. If absent, writes a verified **SOURCE_HOLD** report rather than inventing an ERA substitute.
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02r "$HOME/ICOS_Batch04_stage02r_2zMBe7n8/results/stage02r_CH_Aws_original_metadata_legacy_clock_review.json" \
+  --stage02l "$HOME/ICOS_Batch04_stage02l_PDjpMDmW/results/stage02l_source_clock_QC_matrix.json" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+Only new JSON/CSV in a standalone empty HOME directory; the large FLUXMET product is **not** reread, no source changes/Slurm. All six Batch04 site science releases remain HOLD, including CH-Aws native tower RH/ERA/clock and GL-ZaH site-only Arctic map. Do not submit AD5/AD400 until independent station-specific science gates pass.
+
+## Stage02T: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
