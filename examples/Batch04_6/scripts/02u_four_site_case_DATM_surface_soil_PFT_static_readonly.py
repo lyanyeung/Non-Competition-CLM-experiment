@@ -287,6 +287,9 @@ def compare_pair(cases):
         "different_xml_values":{k:[a.get("xml",{}).get(k),b.get("xml",{}).get(k)]
                                 for k in XML_KEYS
                                 if a.get("xml",{}).get(k)!=b.get("xml",{}).get(k)},
+        "different_xml_science_values":{k:[a.get("xml",{}).get(k),b.get("xml",{}).get(k)]
+                                for k in XML_KEYS if k not in ("CASE","CASEROOT","RUNDIR")
+                                and a.get("xml",{}).get(k)!=b.get("xml",{}).get(k)},
         "different_land_values":{k:[a.get("land_config",{}).get(k),b.get("land_config",{}).get(k)]
                                  for k in LAND_KEYS
                                  if a.get("land_config",{}).get(k)!=b.get("land_config",{}).get(k)},
@@ -353,6 +356,20 @@ def main():
                   "SURFACE_STATUS",case.get("surface_original",{}).get("status"),
                   "POINT",case.get("point_check"),
                   "PARAM_EXISTS",case.get("fates_param",{}).get("exists"))
+            fields=case.get("surface_original",{}).get("fields",{})
+            print("  LANDUNITS",site,case["case"],
+                  "PCT_NATVEG",fields.get("PCT_NATVEG",{}).get("values"),
+                  "PCT_CROP",fields.get("PCT_CROP",{}).get("values"),
+                  "PFT_NONZERO",[(i,round(x,3))
+                    for i,x in enumerate(fields.get("PCT_NAT_PFT",{}).get("HOST_PFT_vector") or [])
+                    if x is not None and x>0])
+            print("  SOIL",site,case["case"],
+                  "SAND_SHAPE",fields.get("PCT_SAND",{}).get("shape"),
+                  "SAND_MINMAX",[fields.get("PCT_SAND",{}).get("min"),fields.get("PCT_SAND",{}).get("max")],
+                  "CLAY_SHAPE",fields.get("PCT_CLAY",{}).get("shape"),
+                  "CLAY_MINMAX",[fields.get("PCT_CLAY",{}).get("min"),fields.get("PCT_CLAY",{}).get("max")],
+                  "ORGANIC_SHAPE",fields.get("ORGANIC",{}).get("shape"),
+                  "ORGANIC_MINMAX",[fields.get("ORGANIC",{}).get("min"),fields.get("ORGANIC",{}).get("max")])
             simple.append({
                 "site":site,"case":case["case"],
                 "candidate_DATM_years":case.get("datm_expected_year_paths"),
@@ -373,7 +390,7 @@ def main():
             })
         print(" PAIR",site,"SAME_SURFACE",pair.get("same_original_surface_path"),
               "SAME_FATES_PARAM",pair.get("same_FATES_param_path"),
-              "XML_DIFF_KEYS",",".join(pair.get("different_xml_values",{})),
+              "XML_SCIENCE_DIFF_KEYS",",".join(pair.get("different_xml_science_values",{})),
               "LAND_DIFF_KEYS",",".join(pair.get("different_land_values",{})))
         print(" SOURCE_TOWER_QC/PFT/SOIL/ACTUAL_RUNTIME_BINDING HOLD")
     report={
