@@ -40,7 +40,7 @@ def setup(stage, helper, root, data):
     helper.name=lambda site: f'{site}_AMF_B01SIX_FIXNC_AD400_DIRECT'
 
 
-def preflight(helper, data, co2_file, sites):
+def preflight(helper, data, co2_file, sites, input_label='unmodified Stage23'):
     template=helper.template_info()
     co2, co2_src, co2_sha=helper.co2_table(co2_file)
     matrix=helper._json_map(__import__('json').loads(template['paramfile'].read_text()))
@@ -64,7 +64,7 @@ def preflight(helper, data, co2_file, sites):
         ctx['clock'][site]={'utc_offset_h':float(obj['UTC_offset_hours']),'zbot_m':float(pol['baseline_m']),
                             'height_policy':pol,'zbot_note':'baseline; forcing may have dynamic ZBOT',
                             'source_receipt_sha256':helper.digest(item['manifest'])}
-        print('CHECK PASS',site,'DIRECT AD400 80x5; unmodified Stage23; flagged=',site in FLAGGED,flush=True)
+        print('CHECK PASS',site,'DIRECT AD400 80x5;',input_label,'; flagged=',site in FLAGGED,flush=True)
     return ctx
 
 
