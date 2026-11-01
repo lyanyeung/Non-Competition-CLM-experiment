@@ -109,6 +109,34 @@ instrument measurements. **Do not launch AD400 before outstanding flagged
 observations, 2005 CA-Man QC0 replacement, and forcing source provenance have
 been reviewed.** The audit does not modify original NetCDF or CIME cases.
 
+### Stage54 merged detached candidates — operator-confirmed 1 Nov 2026 (UK)
+
+The operator ran `54_approved_q1_and_cbo_login.sh` from commit
+`dec30ebbc0530a723b53f674d6fabd7e63a0181a` with the freshly generated
+Stage51 `JOINT` manifest and got **COMPLETE**. Final detached files are in:
+
+`/iridisfs/home/ly3n24/CLM_FATES_PLOTS/approved_q1_cbo.QeDyqeSz/result/manifest.json`
+
+- **CA-Cbo 2018:** `CA-CBO MERGED 5 records`, bringing the original
+  June 28 isolated candidate together with the four July ID02/03/04 edits.
+- **US-Aud 2019:** `US-AUD MERGED 2019 3 records`; original prior
+  reviewed center plus two new adjacent Q1 half-hours.
+- **US-Aud 2023:** `US-AUD MERGED 2023 6 records`; two previously reviewed
+  centers plus four newly approved adjacent Q1 half-hours. The six new
+  Q1 edits used fixed-SHA NOAA USCRN AZ Elgin 5 S five-minute temperature
+  and humidity source data.
+- `NO ORIGINAL INPUT OR CASE MODIFIED; NO JOBS` was reported.
+
+**Stage56 next:** [read-only union audit](scripts/56_three_site_candidate_union_audit.py)
+combines the Stage43 / Stage51 / Stage54 lineage including CA-Man 1994,
+2005 and 2007, US-Aud 2012/2019/2023, CA-Cbo 2018. It verifies seven
+canonical annual NC candidates, 64 *selected* approved half-hour changes,
+original SHA256, candidate SHA256, unchanged non-selected variables/times,
+and inheritance from earlier approved candidates. This is still a detached
+sensitivity-science inventory, not a CIME forcing activation or clearance of
+all meteorological event flags. Maintain science HOLD where original QC0
+temperatures are overwritten or distant weather stations are used as proxies.
+
 ### Reproducible Stage45/Stage55 Normal400 operation
 
 The original `45_prepare_six_normal400.py` was incompatible with Stage36's
