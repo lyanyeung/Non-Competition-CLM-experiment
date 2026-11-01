@@ -314,6 +314,32 @@ Next steps:
 - Hypothesis to test: water stress on the coarse template soil (and shallow bedrock) leads to carbon-starvation or hydraulic
   mortality.
 
+## 12. Typical GPP and NEE error at the remaining sites (2026-11-01)
+
+Sample: 40 sites. Excluded are sites with needleleaf ≥ 50 % of the vegetation, CZ-Stn, DE-Lnf, US-CMW (groundwater) and US-NR3
+(EC GPP ≈ 0). Statistics come from the monthly paired figure titles (bias = mean(model − EC), g C m⁻² d⁻¹; annual = × 365). The
+per-site values are added to `gpp_vs_ec_all_sites.csv` (`NEE_*`, `GPP_RMSE`).
+
+| Group | n | GPP FATES/EC median (IQR) | within ±20 % | GPP R² median | NEE bias median | NEE > 0 (weaker sink) | NEE R² median |
+|---|---:|---|---:|---:|---:|---:|---:|
+| All 40 | 40 | 1.08 (0.88–1.80) | 20/40 | 0.30 | +0.23 (+84 g C m⁻² yr⁻¹) | 29/40 | −0.96 |
+| Broadleaf / mixed forest | 18 | 1.02 (0.87–1.09) | 13/18 | 0.81 | +0.75 (+272) | 16/18 | 0.49 |
+| Grassland | 8 | 0.98 (0.88–1.18) | 6/8 | 0.27 | +0.14 (+49) | 5/8 | −2.88 |
+| Dryland / shrub | 8 | 1.88 (1.66–3.04) | 1/8 | −2.25 | +0.02 (+8) | 5/8 | −10.8 |
+| Arctic tundra | 4 | 3.33 (2.13–4.07) | 0/4 | −3.24 | −0.03 (−11) | 1/4 | −1.56 |
+| Tropical EBF (deferred) | 2 | 0.62 | 0/2 | −5.5 | +0.89 (+326) | 2/2 | −1.53 |
+
+Reading:
+- **Broadleaf / mixed forests: GPP is good.** The median ratio is 1.02, 13 of 18 are within ±20 %, and the seasonal R² is 0.81.
+- **Forest NEE: the model is a weaker sink in 16 of 18 sites, by ≈ 270 g C m⁻² yr⁻¹.** This is largely by construction. After
+  an 800-year spin-up with fixed vegetation and cycled forcing, the model ecosystem is near steady state (NEE ≈ 0). The towers
+  measure real sinks (stand age and management, CO₂ and N deposition). The NEE bias therefore mostly equals the observed sink,
+  not a flux-process error. The seasonal NEE timing is reasonable (R² 0.49).
+- **Grasslands: annual GPP is right (0.98), but the seasonal shape is poor.** R² is 0.27 for GPP and negative for NEE at every
+  site, consistent with mowing and grazing not being simulated.
+- **Drylands (× 1.9) and arctic tundra (× 3.3) over-estimate GPP and have the wrong timing.** Absolute NEE errors there are
+  small only because the fluxes are small.
+
 ## Scripts (branch `full-sequence-gpp-nee-ec`, commit 80ec742)
 
 | Script | Purpose |
