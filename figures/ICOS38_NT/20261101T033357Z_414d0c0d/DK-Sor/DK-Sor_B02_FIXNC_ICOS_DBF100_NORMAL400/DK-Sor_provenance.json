@@ -1,0 +1,78 @@
+{
+  "site": "DK-Sor",
+  "ad_case": "DK-Sor_B02_FIXNC_ICOS_DBF100_AD400",
+  "normal_case": "DK-Sor_B02_FIXNC_ICOS_DBF100_NORMAL400",
+  "gpp_policy": "Each day across sources: NT VUT, NT CUT, DT VUT, DT CUT; NEE VUT before NEE CUT",
+  "gpp_valid_days_by_column": {
+    "GPP_NT_VUT_REF": 10733
+  },
+  "nee_valid_days_by_column": {
+    "NEE_VUT_REF": 10733
+  },
+  "model_data_reused": true,
+  "source_model_csv_sha256": "9bb0fc56fc55414ad715c58d7708ca09c3bf9c641449a51562e74012bc47b77e",
+  "ec_sources": [
+    {
+      "source_file": "ICOS_DK-Sor_FLUXNET_FLUXMET_HH_1996-2024_v1.3_r1.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "valid_GPP_days": 10368,
+      "valid_NEE_days": 10368,
+      "sample_interval_seconds": 1800,
+      "source_error": false
+    },
+    {
+      "source_file": "ICOS_DK-Sor_FLUXNET_FLUXMET_HH_1996-2024_v1.3_r1.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "valid_GPP_days": 10368,
+      "valid_NEE_days": 10368,
+      "sample_interval_seconds": 1800,
+      "source_error": false
+    },
+    {
+      "source_file": "ICOSETC_DK-Sor_FLUXNET_FLUXMET_HH_2021-2026_v1.3_r1.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "valid_GPP_days": 1522,
+      "valid_NEE_days": 1522,
+      "sample_interval_seconds": 1800,
+      "source_error": false
+    }
+  ],
+  "ec_reference": {
+    "GPP": {
+      "mean": 5.712120204621316,
+      "monthly_min": 0.2501469046122062,
+      "monthly_max": 16.28821212922101,
+      "low": 4.2956909636712295,
+      "high": 6.759755801189576,
+      "complete_years": 28,
+      "months": 12
+    },
+    "NEE": {
+      "mean": -0.6566689891565156,
+      "monthly_min": -6.4114795791976835,
+      "monthly_max": 2.3368693138183585,
+      "low": -1.401983531010872,
+      "high": 0.22894490484569532,
+      "complete_years": 28,
+      "months": 12
+    }
+  },
+  "missing_model_fields": [
+    "NEE"
+  ],
+  "carbon": {
+    "status": "OK",
+    "available_variables": [
+      "TOTSOMC"
+    ],
+    "units": {
+      "TOTSOMC": {
+        "factor": 1.0,
+        "plot_units": "g C m$^{-2}$",
+        "csv_units": "g C m-2",
+        "original_units": "gC/m^2"
+      }
+    }
+  },
+  "stream_comparison": "MATCH"
+}

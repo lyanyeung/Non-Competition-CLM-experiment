@@ -1,0 +1,62 @@
+{
+  "site": "CH-Lae",
+  "ad_case": "CH-Lae_B02_FIXNC_MET36_GPPNPP_HISTFIX_AD400",
+  "normal_case": "CH-Lae_B02_FIXNC_MET36_GPPNPP_HISTFIX_NORMAL400",
+  "gpp_policy": "Each day across sources: NT VUT, NT CUT, DT VUT, DT CUT; NEE VUT before NEE CUT",
+  "gpp_valid_days_by_column": {
+    "GPP_NT_VUT_REF": 7592
+  },
+  "nee_valid_days_by_column": {
+    "NEE_VUT_REF": 7592
+  },
+  "model_data_reused": true,
+  "source_model_csv_sha256": "169a91453fece6a9a518f4adbe4f160ffb7f5d8c8e697b31a309bd90b5206fb0",
+  "ec_sources": [
+    {
+      "source_file": "EUF_CH-Lae_FLUXNET_FLUXMET_HH_2004-2024_v1.3_r1.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "valid_GPP_days": 7592,
+      "valid_NEE_days": 7592,
+      "sample_interval_seconds": 1800,
+      "source_error": false
+    }
+  ],
+  "ec_reference": {
+    "GPP": {
+      "mean": 4.637595634583409,
+      "monthly_min": 0.44667418243511997,
+      "monthly_max": 10.061921887966463,
+      "low": 3.4127185643554627,
+      "high": 5.805162437622884,
+      "complete_years": 20,
+      "months": 12
+    },
+    "NEE": {
+      "mean": -0.5634464540823201,
+      "monthly_min": -4.20213011214868,
+      "monthly_max": 1.92795646277718,
+      "low": -1.8705435607721748,
+      "high": 0.9650177507795037,
+      "complete_years": 20,
+      "months": 12
+    }
+  },
+  "missing_model_fields": [
+    "NEE"
+  ],
+  "carbon": {
+    "status": "OK",
+    "available_variables": [
+      "TOTSOMC"
+    ],
+    "units": {
+      "TOTSOMC": {
+        "factor": 1.0,
+        "plot_units": "g C m$^{-2}$",
+        "csv_units": "g C m-2",
+        "original_units": "gC/m^2"
+      }
+    }
+  },
+  "stream_comparison": "MATCH"
+}

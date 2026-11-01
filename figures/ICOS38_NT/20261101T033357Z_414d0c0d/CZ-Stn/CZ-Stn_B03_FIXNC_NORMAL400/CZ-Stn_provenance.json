@@ -1,0 +1,62 @@
+{
+  "site": "CZ-Stn",
+  "ad_case": "CZ-Stn_B03_FIXNC_AD400",
+  "normal_case": "CZ-Stn_B03_FIXNC_NORMAL400",
+  "gpp_policy": "Each day across sources: NT VUT, NT CUT, DT VUT, DT CUT; NEE VUT before NEE CUT",
+  "gpp_valid_days_by_column": {
+    "GPP_NT_VUT_REF": 5475
+  },
+  "nee_valid_days_by_column": {
+    "NEE_VUT_REF": 5475
+  },
+  "model_data_reused": true,
+  "source_model_csv_sha256": "ad13a874372cda7933e6f51ad3b008bb99cd82eb4a6ccb17f40f4a725ca45ca5",
+  "ec_sources": [
+    {
+      "source_file": "EUF_CZ-Stn_FLUXNET_FLUXMET_HH_2010-2024_v1.3_r1.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "valid_GPP_days": 5475,
+      "valid_NEE_days": 5475,
+      "sample_interval_seconds": 1800,
+      "source_error": false
+    }
+  ],
+  "ec_reference": {
+    "GPP": {
+      "mean": 4.366082995573271,
+      "monthly_min": 0.06137360891980855,
+      "monthly_max": 11.785466691084453,
+      "low": 3.7560922911037733,
+      "high": 4.965809816727194,
+      "complete_years": 15,
+      "months": 12
+    },
+    "NEE": {
+      "mean": -0.8480495219597217,
+      "monthly_min": -5.369208268501017,
+      "monthly_max": 2.2353873793360086,
+      "low": -1.6054169475956075,
+      "high": -0.2459781692821204,
+      "complete_years": 15,
+      "months": 12
+    }
+  },
+  "missing_model_fields": [
+    "NEE"
+  ],
+  "carbon": {
+    "status": "OK",
+    "available_variables": [
+      "TOTSOMC"
+    ],
+    "units": {
+      "TOTSOMC": {
+        "factor": 1.0,
+        "plot_units": "g C m$^{-2}$",
+        "csv_units": "g C m-2",
+        "original_units": "gC/m^2"
+      }
+    }
+  },
+  "stream_comparison": "MATCH"
+}

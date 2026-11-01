@@ -1,0 +1,62 @@
+{
+  "site": "DE-Obe",
+  "ad_case": "DE-Obe_B03_FIXNC_AD400",
+  "normal_case": "DE-Obe_B03_FIXNC_NORMAL400",
+  "gpp_policy": "Each day across sources: NT VUT, NT CUT, DT VUT, DT CUT; NEE VUT before NEE CUT",
+  "gpp_valid_days_by_column": {
+    "GPP_NT_VUT_REF": 6570
+  },
+  "nee_valid_days_by_column": {
+    "NEE_VUT_REF": 6570
+  },
+  "model_data_reused": true,
+  "source_model_csv_sha256": "8279548fd6bb184b746502bf27704da57ac6ec3780f67473cdbde19c458c5589",
+  "ec_sources": [
+    {
+      "source_file": "EUF_DE-Obe_FLUXNET_FLUXMET_HH_2008-2025_v1.3_r1.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "valid_GPP_days": 6570,
+      "valid_NEE_days": 6570,
+      "sample_interval_seconds": 1800,
+      "source_error": false
+    }
+  ],
+  "ec_reference": {
+    "GPP": {
+      "mean": 4.896077885440817,
+      "monthly_min": 0.3123116795669584,
+      "monthly_max": 10.472167132457072,
+      "low": 4.066336516176564,
+      "high": 6.008848375857567,
+      "complete_years": 18,
+      "months": 12
+    },
+    "NEE": {
+      "mean": -0.6138036312905272,
+      "monthly_min": -2.9651163688599422,
+      "monthly_max": 1.6758968878393927,
+      "low": -1.2181505525995178,
+      "high": -0.055830277332246894,
+      "complete_years": 18,
+      "months": 12
+    }
+  },
+  "missing_model_fields": [
+    "NEE"
+  ],
+  "carbon": {
+    "status": "OK",
+    "available_variables": [
+      "TOTSOMC"
+    ],
+    "units": {
+      "TOTSOMC": {
+        "factor": 1.0,
+        "plot_units": "g C m$^{-2}$",
+        "csv_units": "g C m-2",
+        "original_units": "gC/m^2"
+      }
+    }
+  },
+  "stream_comparison": "MATCH"
+}

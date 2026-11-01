@@ -1,0 +1,64 @@
+{
+  "site": "DE-Hai",
+  "ad_case": "DE-Hai_B01_FIXNC_AD400",
+  "normal_case": "DE-Hai_B01_FIXNC_NORMAL400",
+  "gpp_policy": "Each day across sources: NT VUT, NT CUT, DT VUT, DT CUT; NEE VUT before NEE CUT",
+  "gpp_valid_days_by_column": {
+    "GPP_NT_VUT_REF": 9356,
+    "GPP_NT_CUT_REF": 2
+  },
+  "nee_valid_days_by_column": {
+    "NEE_VUT_REF": 9356,
+    "NEE_CUT_REF": 2
+  },
+  "model_data_reused": true,
+  "source_model_csv_sha256": "6af71a23b27b494d01652e860d27ea8d3bfb0993f54cee5f3bf2b9999f509879",
+  "ec_sources": [
+    {
+      "source_file": "ICOS_DE-Hai_FLUXNET_FLUXMET_HH_2000-2025_v1.3_r1.csv",
+      "gpp_column": "GPP_NT_CUT_REF+GPP_NT_VUT_REF",
+      "valid_GPP_days": 9358,
+      "valid_NEE_days": 9358,
+      "sample_interval_seconds": 1800,
+      "source_error": false
+    }
+  ],
+  "ec_reference": {
+    "GPP": {
+      "mean": 4.256388667703301,
+      "monthly_min": 0.027431087780294197,
+      "monthly_max": 11.53943031847922,
+      "low": 3.022361823205048,
+      "high": 5.039157226586366,
+      "complete_years": 23,
+      "months": 12
+    },
+    "NEE": {
+      "mean": -1.3731304081881321,
+      "monthly_min": -6.84252579925854,
+      "monthly_max": 2.182996648014804,
+      "low": -1.8836336626297863,
+      "high": -0.9245092760050564,
+      "complete_years": 23,
+      "months": 12
+    }
+  },
+  "missing_model_fields": [
+    "NEE"
+  ],
+  "carbon": {
+    "status": "OK",
+    "available_variables": [
+      "TOTSOMC"
+    ],
+    "units": {
+      "TOTSOMC": {
+        "factor": 1.0,
+        "plot_units": "g C m$^{-2}$",
+        "csv_units": "g C m-2",
+        "original_units": "gC/m^2"
+      }
+    }
+  },
+  "stream_comparison": "MATCH"
+}

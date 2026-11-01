@@ -1,0 +1,70 @@
+{
+  "site": "FR-Fon",
+  "ad_case": "FR-Fon_B01_FIXNC_AD400",
+  "normal_case": "FR-Fon_B01_FIXNC_NORMAL400",
+  "gpp_policy": "Each day across sources: NT VUT, NT CUT, DT VUT, DT CUT; NEE VUT before NEE CUT",
+  "gpp_valid_days_by_column": {
+    "GPP_NT_VUT_REF": 7665
+  },
+  "nee_valid_days_by_column": {
+    "NEE_VUT_REF": 7665
+  },
+  "model_data_reused": true,
+  "source_model_csv_sha256": "cb5b956be1390f9cb43c2fc8eb9e2a2b402696c9d6f6aa2a1c545d21df2c886a",
+  "ec_sources": [
+    {
+      "source_file": "ICOS_FR-Fon_FLUXNET_FLUXMET_HH_2019-2026_v1.3_r1.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "valid_GPP_days": 2272,
+      "valid_NEE_days": 2272,
+      "sample_interval_seconds": 1800,
+      "source_error": false
+    },
+    {
+      "source_file": "FLX_FR-Fon_FLUXNET2015_FULLSET_HH_2005-2020_beta-3.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "valid_GPP_days": 5840,
+      "valid_NEE_days": 5840,
+      "sample_interval_seconds": 1800,
+      "source_error": false
+    }
+  ],
+  "ec_reference": {
+    "GPP": {
+      "mean": 4.990289739658665,
+      "monthly_min": 0.2624160585803943,
+      "monthly_max": 12.671354260573532,
+      "low": 4.311493306621367,
+      "high": 5.914568934129247,
+      "complete_years": 21,
+      "months": 12
+    },
+    "NEE": {
+      "mean": -1.6100679210965523,
+      "monthly_min": -6.9201943302707365,
+      "monthly_max": 1.4820202809220238,
+      "low": -2.5072906047535746,
+      "high": -0.369072804229605,
+      "complete_years": 21,
+      "months": 12
+    }
+  },
+  "missing_model_fields": [
+    "NEE"
+  ],
+  "carbon": {
+    "status": "OK",
+    "available_variables": [
+      "TOTSOMC"
+    ],
+    "units": {
+      "TOTSOMC": {
+        "factor": 1.0,
+        "plot_units": "g C m$^{-2}$",
+        "csv_units": "g C m-2",
+        "original_units": "gC/m^2"
+      }
+    }
+  },
+  "stream_comparison": "MATCH"
+}

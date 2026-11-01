@@ -1,0 +1,63 @@
+{
+  "site": "IL-Yat",
+  "ad_case": "IL-Yat_B03_FIXNC_BARE52_AD400",
+  "normal_case": "IL-Yat_B03_FIXNC_BARE52_NORMAL400",
+  "gpp_policy": "Each day across sources: NT VUT, NT CUT, DT VUT, DT CUT; NEE VUT before NEE CUT",
+  "gpp_valid_days_by_column": {
+    "GPP_NT_VUT_REF": 8374,
+    "GPP_DT_VUT_REF": 365
+  },
+  "nee_valid_days_by_column": {
+    "NEE_VUT_REF": 8739
+  },
+  "model_data_reused": true,
+  "source_model_csv_sha256": "edd5f8cdcf227e39f76ee4635197f90879dfd3b70903edbfd910d378da989d6e",
+  "ec_sources": [
+    {
+      "source_file": "EUF_IL-Yat_FLUXNET_FLUXMET_HH_2000-2024_v1.3_r1.csv",
+      "gpp_column": "GPP_DT_VUT_REF+GPP_NT_VUT_REF",
+      "valid_GPP_days": 8739,
+      "valid_NEE_days": 8739,
+      "sample_interval_seconds": 1800,
+      "source_error": false
+    }
+  ],
+  "ec_reference": {
+    "GPP": {
+      "mean": 1.5883190730121224,
+      "monthly_min": 0.49012850573275896,
+      "monthly_max": 4.070290119869838,
+      "low": 0.8742921734335233,
+      "high": 2.202801481758106,
+      "complete_years": 22,
+      "months": 12
+    },
+    "NEE": {
+      "mean": -0.2533358191871327,
+      "monthly_min": -1.8238436862860785,
+      "monthly_max": 0.5447504676413715,
+      "low": -0.7031172964983083,
+      "high": 0.1373830412976234,
+      "complete_years": 22,
+      "months": 12
+    }
+  },
+  "missing_model_fields": [
+    "NEE"
+  ],
+  "carbon": {
+    "status": "OK",
+    "available_variables": [
+      "TOTSOMC"
+    ],
+    "units": {
+      "TOTSOMC": {
+        "factor": 1.0,
+        "plot_units": "g C m$^{-2}$",
+        "csv_units": "g C m-2",
+        "original_units": "gC/m^2"
+      }
+    }
+  },
+  "stream_comparison": "MATCH"
+}
