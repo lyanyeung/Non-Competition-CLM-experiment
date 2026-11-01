@@ -649,6 +649,23 @@ def normal_seasonal(normal_case, args):
     return pd.DataFrame(out), (first, last, align), units
 
 
+def pft_status(c):
+    """One line per FATES PFT with patch area: area, canopy crown area, leaf C, GPP (last-cycle means)."""
+    out = []
+    area = {int(k.rsplit("pft", 1)[1]): float(np.nanmean(c[k])) for k in c if k.startswith("FATES_NOCOMP_PATCHAREA_PF_pft")}
+    for pft, a in sorted(area.items()):
+        if not np.isfinite(a) or a < 1e-3:
+            continue
+        g = lambda pre: float(np.nanmean(c[f"{pre}_pft{pft}"])) if f"{pre}_pft{pft}" in c else np.nan
+        leaf, gpp, crown = g("FATES_LEAFC_PF"), g("FATES_GPP_PF"), g("FATES_CANOPYCROWNAREA_PF")
+        leaf_max = float(np.nanmax(c[f"FATES_LEAFC_PF_pft{pft}"])) if f"FATES_LEAFC_PF_pft{pft}" in c else np.nan
+        state = ("leafless all year" if np.isfinite(leaf_max) and leaf_max <= 1e-6 else
+                 "no canopy (plants gone)" if np.isfinite(crown) and crown < 1e-3 else "alive")
+        out.append(f"PFT {pft}: patch area {a:.2f}, canopy crown area {crown:.3f}, leaf C mean {leaf:.3g} max {leaf_max:.3g}, "
+                   f"GPP {gpp:.3f} g C m-2 d-1 -> {state}")
+    return out
+
+
 def classify_months(clim):
     """Months with EC GPP > 1 g C m-2 d-1 and model < 50% of EC."""
     rows = []
@@ -660,7 +677,9 @@ def classify_months(clim):
         if not (np.isfinite(ec) and ec > 1 and np.isfinite(mo) and mo < 0.5 * ec):
             continue
         lai, bt = r.get("TLAI", np.nan), r.get("BTRAN", np.nan)
-        if np.isfinite(lai_max) and lai_max > 0 and np.isfinite(lai) and lai < 0.3 * lai_max:
+        if not np.isfinite(lai_max) or lai_max < 0.05:
+            why = "no vegetation (LAI ~ 0 all year: vegetation dead)"
+        elif np.isfinite(lai) and lai < 0.3 * lai_max:
             why = "no leaves (model leaf-off: phenology or drought deciduousness)"
         elif np.isfinite(bt) and bt < 0.3:
             why = "leaves present but water-stressed (BTRAN < 0.3)"
@@ -821,10 +840,17 @@ def findings(label, t, r, diff_rows):
                      + ", ".join(f"{k.replace('H2OSOI_', 'soil water ')} {np.nanmean(c[k]):.3f}" for k in c if k.startswith("H2OSOI_")))
         for mo, ec, md, lai, bt, why in classify_months(c):
             F.append(f"   month {mo:2d}: EC GPP {ec:.2f}, model {md:.2f}, LAI {lai:.2f}, BTRAN {bt:.2f} -> {why}")
+        for line in pft_status(c):
+            F.append("   " + line)
         pf = [k for k in c if k.startswith("FATES_GPP_PF_pft") and np.nansum(c[k]) > 0]
         if pf:
             tot = sum(np.nansum(c[k]) for k in pf)
             F.append("   GPP share by PFT: " + ", ".join(f"{k.split('_')[-1]} {100 * np.nansum(c[k]) / tot:.0f}%" for k in pf))
+        on = c.get("FATES_DAYSINCE_COLDLEAFON")
+        if on is not None and np.isfinite(on).any() and np.nanmin(on) > 730:
+            F.append(f"   !! no cold-deciduous leaf-on event for {np.nanmin(on) / 365:.0f} years (FATES_DAYSINCE_COLDLEAFON): "
+                     "either all vegetation is dead or the site is in FATES' 'never cold' state, in which cold-deciduous "
+                     "PFTs drop their leaves and never flush again")
         ph = [k for k in c if PHEN_RE.search(k) and not k.startswith("FATES_GPP")]
         if ph:
             F.append("   phenology variables (monthly mean Jan..Dec): " +
@@ -908,7 +934,9 @@ def plots(label, t, r, dest):
             ax[1, 2].plot(mon, ct["EC_GPP"], color="k", ls="--", label="EC")
     for a, tt in zip(ax.ravel(), ["GPP (g C m$^{-2}$ d$^{-1}$)", "Water (mm d$^{-1}$)", "LAI", "BTRAN",
                                   "Soil water (m$^3$ m$^{-3}$)", f"{t['label']} GPP by PFT"]):
-        a.set_title(tt); a.set_xticks(mon); a.grid(alpha=0.3); a.legend(fontsize=7)
+        a.set_title(tt); a.set_xticks(mon); a.grid(alpha=0.3)
+        if a.get_legend_handles_labels()[0]:
+            a.legend(fontsize=7)
     fig.suptitle(f"{label}: last complete Normal forcing cycle, monthly climatology (reference {r['label']} in grey)")
     fig.savefig(dest / f"{label}_03_seasonal_water_carbon.png", dpi=130); plt.close(fig)
 
@@ -936,6 +964,9 @@ def process(spec, args, cache):
         c = seasonal_clim(t)
         if not c.empty:
             c.to_csv(dest / f"{label}_normal_seasonal.csv", index=False)
+        cr = seasonal_clim(r)
+        if not cr.empty:
+            cr.to_csv(dest / f"{label}_reference_{rlabel}_normal_seasonal.csv", index=False)
         F = findings(label, t, r, diff)
         head = [f"{label} ({case}; AD {t['ad_case']}) vs reference {rlabel} ({rcase}; AD {r['ad_case']})",
                 f"EC: {t.get('ec_note', {})}", ""]
@@ -999,6 +1030,8 @@ def publish(run_dir, repo):
                 if F7.is_png(p):
                     shutil.copyfile(p, out / lab / p.name); links.append(f"[{p.stem.split('_', 2)[-1]}]({lab}/{p.name})")
             for p in sorted((run_dir / lab).glob(f"{lab}_*.csv")) + sorted((run_dir / lab).glob(f"{lab}_findings.txt")):
+                if p.name.endswith("_forcing_monthly.csv"):
+                    continue
                 if p.stat().st_size < 5_000_000:
                     shutil.copyfile(p, out / lab / p.name)
             if (out / lab / f"{lab}_findings.txt").is_file():
@@ -1011,8 +1044,16 @@ def publish(run_dir, repo):
         (out / "SHA256SUMS").write_text("\n".join(sums) + "\n", encoding="utf-8")
         F7.git("add", "--", rel.as_posix(), cwd=co)
         F7.git("commit", "-m", f"Add site anomaly diagnostics ({len(rows)} sites)", cwd=co)
+        for attempt in range(5):          # main moves while other jobs publish: rebase and retry
+            try:
+                F7.git("push", "origin", "HEAD:main", cwd=co)
+                break
+            except RuntimeError as exc:
+                if attempt == 4:
+                    raise
+                print(f"push rejected ({str(exc).splitlines()[-1][:120]}); rebasing on origin/main and retrying", flush=True)
+                F7.git("pull", "--rebase", "origin", "main", cwd=co)
         sha = F7.git("rev-parse", "HEAD", cwd=co)
-        F7.git("push", "origin", "HEAD:main", cwd=co)
     print("PUSH SUCCESS", sha)
     print("https://github.com/lyanyeung/Non-Competition-CLM-experiment/tree/main/" + rel.as_posix())
     return 0

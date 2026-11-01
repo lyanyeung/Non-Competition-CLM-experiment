@@ -127,9 +127,13 @@ class SiteAnomalyTest(unittest.TestCase):
                      {"FATES_GPP": ((1.0 if (summer and not bad) else 0.3) / 86400000, "kg m-2 s-1"),
                       "TLAI": (2.0 if summer else 0.2, "m2/m2"), "BTRAN": (0.1 if bad else 0.8, "unitless"),
                       "RAIN": (1.0 / 86400, "mm/s"), "SNOW": (0.0, "mm/s"), "QVEGT": (0.6 / 86400, "mm/s"),
-                      "QVEGE": (0.1 / 86400, "mm/s"), "QSOIL": (0.2 / 86400, "mm/s"), "ZWT": (8.0, "m")},
+                      "QVEGE": (0.1 / 86400, "mm/s"), "QSOIL": (0.2 / 86400, "mm/s"), "ZWT": (8.0, "m"),
+                      "FATES_DAYSINCE_COLDLEAFON": ((150000.0 + 30 * m) if bad else 30.0 * m, "days")},
                      lay={"H2OSOI": ([0.1, 0.12, 0.15, 0.2], "mm3/mm3")},
-                     pft={"FATES_GPP_PF": ([0.0, 0.0, 1e-8], "kg m-2 s-1")})
+                     pft={"FATES_GPP_PF": ([0.0, 0.0, 1e-8], "kg m-2 s-1"),
+                          "FATES_NOCOMP_PATCHAREA_PF": ([0.0, 0.7, 0.3], "m2 m-2"),
+                          "FATES_CANOPYCROWNAREA_PF": ([0.0, 0.5, 0.3], "m2 m-2"),
+                          "FATES_LEAFC_PF": ([0.0, 0.0 if bad else 0.1, 0.05], "kg m-2")})
         raw = self.sites / site / "forcing" / "raw"; raw.mkdir(parents=True)
         with (raw / f"AMF_{site}_FLUXNET_FULLSET_HH_2001-2002.csv").open("w", newline="") as f:
             w = csv.writer(f)
@@ -162,6 +166,10 @@ class SiteAnomalyTest(unittest.TestCase):
         self.assertIn("vegetation persists", txt)
         self.assertIn("EC ET exceeds precipitation", txt)
         self.assertIn("water-stressed", txt)
+        self.assertIn("PFT 2: patch area 0.70", txt)
+        self.assertIn("leafless all year", txt)
+        self.assertIn("never cold", txt)
+        self.assertTrue((out / "TGT" / "TGT_reference_REF_normal_seasonal.csv").is_file())
         diff = list(csv.DictReader((out / "TGT" / "TGT_setup_diff.csv").open()))
         real = {(d["section"], d["key"]) for d in diff if d["differs"] == "True" and not d["note"].startswith(("site", "path"))}
         self.assertIn(("lnd_in_AD", "fates_cstarvation_model"), real)
@@ -178,6 +186,13 @@ class SiteAnomalyTest(unittest.TestCase):
         self.assertAlmostEqual(float(seas[5]["EC_P_mm_day"]), 1.0, places=2)
         for k in ("01_forcing_vs_EC", "02_AD_first_years", "03_seasonal_water_carbon"):
             self.assertTrue((out / "TGT" / f"TGT_{k}.png").is_file(), k)
+
+    def test_dead_months(self):
+        import pandas as pd
+        m = load()
+        c = pd.DataFrame({"Month": range(1, 13), "EC_GPP": [5.0] * 12, "GPP_gC_m2_d": [0.0] * 12, "TLAI": [0.0] * 12,
+                          "BTRAN": [0.0] * 12})
+        self.assertTrue(all("vegetation dead" in r[-1] for r in m.classify_months(c)))
 
     def test_parse_nml_and_times(self):
         m = load()
