@@ -1,0 +1,5 @@
+site,host_natpft_nonzero_percent,source_GitHub_20261026_report_value,operator_decision_20261101,proxy_scope,PCT_NATVEG_new_model_point,PCT_CROP_new_model_point,remaining_science_gates
+DE-Gri,13:100,C3 grass 100 (candidate),APPROVED_AS_FIXNC_MODEL_PROXY,C3_HERBACEOUS_COMMUNITY_PROXY,100,0,"native tower meteorology QC; effective CIME streams; soil-source provenance"
+DE-RuR,13:100,C3 grass 100 (candidate),APPROVED_AS_FIXNC_MODEL_PROXY,C3_HERBACEOUS_COMMUNITY_PROXY,100,0,"native tower meteorology QC; effective CIME streams; soil-source and management provenance"
+IT-Tor,13:100,C3 grass 100 (candidate),APPROVED_AS_FIXNC_MODEL_PROXY,C3_HERBACEOUS_COMMUNITY_PROXY,100,0,"native tower meteorology QC; effective CIME streams; ALL TEN ORGANIC=0 soil provenance; alpine forcing"
+ES-Agu,0:49|9:22|13:29,bare 49 / C3 grass 29 / evergreen shrub 22,APPROVED_AS_FIXNC_MODEL_PROXY_WITH_DOCUMENTED_COVER_UNCERTAINTY,BARE_GRASS_SHRUB_GROUND_COVER_PROXY,100,0,"native tower meteorology QC; effective CIME streams; bare-ground nocomp support; alternative cover survey sensitivity and biocrust; soil provenance"
