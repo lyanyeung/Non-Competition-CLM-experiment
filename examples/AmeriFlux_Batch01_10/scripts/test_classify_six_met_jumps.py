@@ -32,6 +32,8 @@ class JumpReviewTests(unittest.TestCase):
             rows = list(csv.DictReader(io.StringIO(buffer.getvalue())))
             self.assertEqual(stats['local_jumps_gt8_C'], 2)
             self.assertEqual(stats['qc_pairs'], {'0-0': 2})
+            self.assertEqual(stats['review_counts']['qc0_endpoint_vs_era_gt10_C'], 2)
+            self.assertEqual(len(stats['largest_qc0_era_review_examples']), 2)
             self.assertAlmostEqual(float(rows[0]['selected_step_C']), -39.877)
             self.assertEqual(rows[0]['era_right_C'], '17.7')
             self.assertEqual(rows[0]['left_selected_differs_tower'], 'False')
