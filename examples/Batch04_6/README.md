@@ -505,6 +505,12 @@ python3 -B "$SCRIPT" plan \
 
 The PFT selection gate is **APPROVED**; **native tower forcing/QC, true CIME streams, soil science (especially IT-Tor), and AD5/AD400 submission remain separate HOLDs**. CH-Aws RH and GL-ZaH Arctic private-map are unaffected.
 
+## Stage02X actual IRIDIS6 success — four isolated PFT point-surface candidates created
+
+[1-Nov Stage02X operator source/SHA and run results](docs/stage02x_operator_four_PFT_surface_candidates_created_20261101.md) confirm `STAGE02X PLAN PASS` and successful explicit `build` of **4 new NetCDF point-surface candidates** at `/iridisfs/scratch/ly3n24/CLM_FATES/experiments/Batch04_GitHub_PFT_Gz7kLAkn`. New files are `<site>_B04_GITHUBPFT_POINT_CANDIDATE.nc` for DE-Gri, DE-RuR, IT-Tor and ES-Agu, all with exact SHA256 recorded in the linked report. PFT values follow the user's already approved Oct26 GitHub register, with *model-point* `NATVEG=100` and `CROP=0`; original source surface and inherited soil remain unchanged. Local ES-Agu nocomp bare-ground interface and source FATES host9/13 map checks passed.
+
+**Status after this Stage02X run: PFT decisions 6/6; new PFT candidate surfaces 4/6; new FIXNC isolated simulation cases submitted 0/6.** Two unbuilt surfaces are CH-Aws (original RH/ERA source HOLD) and GL-ZaH (site-only Arctic FATES host9/11 mapping). The four existing original S30SHARED/S30EXCL pairs **do not** yet use these new candidate surfaces. Next: verify all SHA256 receipts, inspect **actual effective case DATM stream, model fsurdat and FATES mapping** for the four candidates and independently audit native meteorology and soil, especially IT-Tor's ten-layer ORGANIC=0. There is no science release for AD5/AD400 or Slurm until each site passes those independent gates. Never silently overwrite original cases, shared FATES map, forcing or surface.
+
 ## Stage02Y: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
