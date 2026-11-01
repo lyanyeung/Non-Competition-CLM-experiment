@@ -137,6 +137,36 @@ sensitivity-science inventory, not a CIME forcing activation or clearance of
 all meteorological event flags. Maintain science HOLD where original QC0
 temperatures are overwritten or distant weather stations are used as proxies.
 
+### Stage56 union audit PASS — 1 November 2026, operator IRIDIS6 log
+
+The operator ran the SHA-pinned
+[Stage56 seven-year candidate audit](scripts/56_three_site_candidate_union_audit.py).
+All **7 / 7** annual NetCDFs and **64 / 64** selected half-hour edits passed:
+original and candidate SHA256, retained earlier approved records, non-overlap,
+unchanged fields and all times beyond selected edits. Exact coverage:
+
+| Site | Candidate years | Changed half-hours | Stage56 |
+|---|---|---:|---|
+| CA-Cbo | 2018 | 5 | PASS |
+| CA-Man | 1994, 2005, 2007 | 49 (1 + 45 + 3) | PASS |
+| US-Aud | 2012, 2019, 2023 | 10 (1 + 3 + 6) | PASS |
+
+**Science HOLD remains:** all **45** CA-Man 2005 edited half-hours had
+original tower **TA QC0** even though the approved *sensitivity* uses ERA5
+temperature and VPD instead. The consistency checks do **not** justify
+replacing original QC0 tower temperature in production without targeted
+scientific support. NOAA nearby-station representativeness and other
+unreviewed Met issues are not cleared either.
+
+[Stage57](scripts/57_three_site_met_boundary_science_audit.py) is the next
+read-only diagnostic: prints all 64 original/new T and VPD pairs and QC
+provenance, plus before/after boundary T/VPD jumps for every contiguous edited
+segment (including a warning for annual file boundaries). Numerical flags are
+review prompts, not automatic approvals. Stage57 does not activate or modify
+forcing, CIME cases, or Slurm jobs. Only after science review should a
+separately named fully checksummed detached final forcing selection be planned;
+never overwrite the Stage23 source.
+
 ### Reproducible Stage45/Stage55 Normal400 operation
 
 The original `45_prepare_six_normal400.py` was incompatible with Stage36's
