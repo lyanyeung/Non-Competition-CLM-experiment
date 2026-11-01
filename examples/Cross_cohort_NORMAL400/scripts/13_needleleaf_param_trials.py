@@ -10,12 +10,16 @@ draws it below 1 x leaf C. Trials (PFT 2 only; every other PFT and parameter unc
   B  fates_mort_upthresh_cstarvation  1.0   -> 0.5     die only when storage is really low
   C  fates_leaf_slatop                0.005 -> 0.010   half the leaf C per leaf area
   D  A + C
+  E  no parameter change; use_fates_dbh_init = .true. (closed-canopy cold start from
+     fates_recruit_init_dbh). A falsification control: the mortality depends on storage /
+     leaf C, not on stand closure, so the needleleaf PFT should still collapse.
 
 Each trial is a create_clone --keepexe of the site's own AD case (same executable, surface,
 forcing, CO2, AD settings, start date) with: a private copy of the case's FATES parameter
-file holding the change, the 09 diagnostic history (full FATES output + per-PFT mortality),
+file holding the change (E: the namelist switch instead), the 09 diagnostic history (full FATES output + per-PFT mortality),
 <years> years in 5-year segments, and new RUNDIR / DOUT_S_ROOT. The regenerated lnd_in must
-equal the AD case's on every key except hist_* / fates_history_* and fates_paramfile, and the
+equal the AD case's on every key except hist_* / fates_history_* and fates_paramfile (E:
+use_fates_dbh_init instead of fates_paramfile), and the
 parameter copy must differ from its source only in the intended PFT 2 entries, or nothing is
 submitted. Controls are the existing *_DIAG50 re-runs (default parameters, same history).
 
@@ -39,11 +43,12 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 PFT = 2
 PFT_NAME = "needleleaf_evergreen_extratrop_tree"
-VARIANTS = {
-    "A": ("storage cushion 2.4", {"fates_alloc_storage_cushion": 2.4}),
-    "B": ("carbon-starvation upthresh 0.5", {"fates_mort_upthresh_cstarvation": 0.5}),
-    "C": ("slatop 0.010", {"fates_leaf_slatop": 0.010}),
-    "D": ("storage cushion 2.4 + slatop 0.010", {"fates_alloc_storage_cushion": 2.4, "fates_leaf_slatop": 0.010}),
+VARIANTS = {   # name: (description, PFT-2 parameter changes, namelist changes)
+    "A": ("storage cushion 2.4", {"fates_alloc_storage_cushion": 2.4}, {}),
+    "B": ("carbon-starvation upthresh 0.5", {"fates_mort_upthresh_cstarvation": 0.5}, {}),
+    "C": ("slatop 0.010", {"fates_leaf_slatop": 0.010}, {}),
+    "D": ("storage cushion 2.4 + slatop 0.010", {"fates_alloc_storage_cushion": 2.4, "fates_leaf_slatop": 0.010}, {}),
+    "E": ("closed-canopy cold start (use_fates_dbh_init), default parameters", {}, {"use_fates_dbh_init": ".true."}),
 }
 STATE = "PARAM_TRIAL_STATE.json"
 R = None   # module 09
@@ -85,7 +90,9 @@ def set_pft(data, axis, idx, value):
 
 def make_param(base, variant):
     """Write (or verify) the private parameter copy for one variant; return (path, sha, changes)."""
-    desc, changes = VARIANTS[variant]
+    desc, changes, _ = VARIANTS[variant]
+    if not changes:
+        R.fail(f"variant {variant} has no parameter changes")
     src = json.loads(Path(base).read_text())
     prm = src["parameters"]
     names = [str(x).strip() for x in prm["fates_pftname"]["data"]]
@@ -145,10 +152,15 @@ def ident(site, variant, F7, P, years):
     return i
 
 
-def set_paramfile(text, path):
+def set_nml(text, key, value):
+    """Replace (or add) one user_nl entry; continuation lines of the old entry go too."""
     blocks = R.nml_blocks(text)
-    keep = "".join("".join(l) for k, l in blocks if k != "fates_paramfile").rstrip() + "\n"
-    return keep + f"fates_paramfile = '{path}'\n"
+    keep = "".join("".join(l) for k, l in blocks if k != key.lower()).rstrip() + "\n"
+    return keep + f"{key} = {value}\n"
+
+
+def set_paramfile(text, path):
+    return set_nml(text, "fates_paramfile", f"'{path}'")
 
 
 def prepare(site, variant, F7, P, years):
@@ -173,11 +185,18 @@ def prepare(site, variant, F7, P, years):
     if not base_param:
         R.fail("fates_paramfile not found in AD lnd_in")
     base_param = base_param.strip("'\" ")
-    param, psha, changes = make_param(base_param, variant)
+    _, pchanges, nchanges = VARIANTS[variant]
+    if pchanges:
+        param, psha, changes = make_param(base_param, variant)
+    else:
+        param, psha, changes = Path(base_param), R.digest(base_param), {}
     overlay = R.overlay_for(ad_lnd)
     found = R.fates_has(srcroot, R.DIAG_FIELDS)
     nl, old_hist, fields = R.edit_user_nl((ad / "user_nl_clm").read_text(), found)
-    nl = set_paramfile(nl, param)
+    if pchanges:
+        nl = set_paramfile(nl, param)
+    for key, val in nchanges.items():
+        nl = set_nml(nl, key, val)
     wall = R.cmd(["./xmlquery", "JOB_WALLCLOCK_TIME", "--subgroup", "case.run", "--value"], cwd=ad, timeout=90).strip()
 
     cimescripts = Path(srcroot) / "cime" / "scripts"
@@ -211,19 +230,25 @@ def prepare(site, variant, F7, P, years):
         R.fail("env_case.xml / lock not restored after overlay preview")
     a, n = R.parse_nml(ad_lnd), R.parse_nml((case / "CaseDocs" / "lnd_in").read_text())
     diff = sorted(k for k in set(a) | set(n) if a.get(k) != n.get(k))
-    bad = [k for k in diff if not (R.is_hist(k) or k.endswith(".fates_paramfile"))]
+    allowed = ([".fates_paramfile"] if pchanges else []) + [f".{k}" for k in nchanges]
+    bad = [k for k in diff if not (R.is_hist(k) or any(k.endswith(x) for x in allowed))]
     if bad:
-        R.fail("land namelist differs from the AD case beyond history settings and fates_paramfile:\n" +
+        R.fail(f"land namelist differs from the AD case beyond history settings and {allowed}:\n" +
                "\n".join(f"  {k}: AD={a.get(k)!r} NEW={n.get(k)!r}" for k in bad[:20]))
     pf = next((v for k, v in n.items() if k.endswith(".fates_paramfile")), "").strip("'\" ")
     if pf != str(param):
         R.fail(f"new lnd_in fates_paramfile is {pf!r}, expected {param}")
+    for key, val in nchanges.items():
+        got = next((v for k, v in n.items() if k.endswith("." + key)), None)
+        if got is None or got.strip().lower() != val.lower():
+            R.fail(f"new lnd_in {key} = {got!r}, expected {val}")
     if (case / "CaseDocs" / "datm.streams.xml").read_bytes() != ad_streams:
         R.fail("datm.streams.xml differs from the AD case")
     fin = next((v for k, v in n.items() if k.endswith(".hist_fincl1")), "")
     if any(f not in fin for f in fields):
         R.fail("hist_fincl1 incomplete in new lnd_in")
     state = {"phase": "VERIFIED_NOT_SUBMITTED", "at": R.utc(), "variant": variant, "description": VARIANTS[variant][0],
+             "namelist_changes": nchanges,
              **{k: str(v) for k, v in i.items()}, "years": years, "settings": settings, "wallclock_per_segment": wall,
              "overlay": str(overlay), "paramfile": str(param), "paramfile_sha256": psha, "base_paramfile": base_param,
              "param_changes": changes, "hist_fincl1": fields, "lnd_in_keys_changed": diff,
@@ -233,7 +258,15 @@ def prepare(site, variant, F7, P, years):
     for key, c in changes.items():
         old = c["old_data"]
         print(f"  {key}: PFT {PFT} -> {c['new']} (file had {json.dumps(old)[:120]})", flush=True)
-    print(f"  parameter copy: {param}", flush=True)
+    for key, val in nchanges.items():
+        print(f"  namelist: {key} = {val} (AD case: {next((v for k, v in a.items() if k.endswith('.' + key)), 'not set (default .false.)')})", flush=True)
+    if nchanges.get("use_fates_dbh_init"):
+        try:
+            prm = json.loads(Path(base_param).read_text())["parameters"]
+            print(f"  fates_recruit_init_dbh for PFT {PFT}: {prm['fates_recruit_init_dbh']['data'][PFT - 1]} cm", flush=True)
+        except Exception:
+            pass
+    print(f"  parameter file: {param}" + (" (private copy)" if pchanges else " (unchanged, as in the AD case)"), flush=True)
     print(f"  lnd_in vs AD: only these keys differ: {', '.join(k.split('.', 1)[1] for k in diff)}", flush=True)
     print(f"  run: {years} y from {adv['RUN_STARTDATE']} as {years // R.SEG} x {R.SEG}-y segments, wallclock/segment {wall}", flush=True)
     print(f"  {site} {variant} VERIFIED, NOT SUBMITTED", flush=True)

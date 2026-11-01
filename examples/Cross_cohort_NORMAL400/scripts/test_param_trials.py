@@ -35,7 +35,11 @@ class ParamTrialTest(unittest.TestCase):
 
     def check(self, base):
         src = json.loads(base.read_text())["parameters"]
-        for v, (_, changes) in self.m.VARIANTS.items():
+        for v, (_, changes, nml) in self.m.VARIANTS.items():
+            if not changes:
+                with self.assertRaises(RuntimeError):
+                    self.m.make_param(base, v)
+                continue
             out, sha, rec = self.m.make_param(base, v)
             new = json.loads(out.read_text())["parameters"]
             for k in src:
@@ -72,6 +76,13 @@ class ParamTrialTest(unittest.TestCase):
         out.write_text(out.read_text().replace("2.4", "9.9"))
         with self.assertRaises(RuntimeError):
             self.m.make_param(base, "A")
+
+    def test_variant_e_is_namelist_only(self):
+        desc, p, n = self.m.VARIANTS["E"]
+        self.assertEqual(p, {}); self.assertEqual(n, {"use_fates_dbh_init": ".true."})
+        txt = "use_fates_dbh_init = .false.\nhist_mfilt = 12\n"
+        new = self.m.set_nml(txt, "use_fates_dbh_init", ".true.")
+        self.assertEqual(new.count("use_fates_dbh_init"), 1); self.assertIn("use_fates_dbh_init = .true.", new)
 
     def test_set_paramfile(self):
         txt = "fsurdat = '/s.nc'\nfates_paramfile = '/old.json'\nhist_mfilt = 12\n"
