@@ -206,6 +206,63 @@ Success criteria: needleleaf density stops declining (carbon-starvation mortalit
 (cover → ~1, LAI of a few m² m⁻²), GPP in the range of the EC record, no new failure mode (e.g. storage never filling).
 Results: to be added.
 
+## 10. 75-site screening: which sites have GPP far below EC (2026-11-01)
+
+Data: [`figures/AD400_NORMAL400_gpp_vs_ec_screening/20261101_from_20261101T042427Z`](../figures/AD400_NORMAL400_gpp_vs_ec_screening/20261101_from_20261101T042427Z/).
+The comparison uses the last NORMAL400 forcing cycle against EC monthly means. Ratio = FATES / EC.
+Thirteen sites were not run (6 AmeriFlux, 7 ICOS). US-NR3 is excluded because its EC mean is ≈ 0.
+
+| Class | Sites | of which needleleaf ≥ 50% of vegetation |
+|---|---|---|
+| A far below (< 0.5) | 28 | **25** |
+| B below (0.5–0.8) | 7 | 2 |
+| C close (0.8–1.25) | 24 | 3 |
+| D above (> 1.25) | 15 | 1 |
+
+**A, ≈ 0 (complete collapse; soil C → 0):**
+- Needleleaf sites: FI-Sod, CH-Dav, IL-Yat, DE-Obe, IT-Ren, CZ-BK1, CA-Ca3, CA-LP1, US-NC2, US-GLE, FI-Hyy.
+- Broadleaf sites: **CZ-Stn and DE-Lnf (both DBF 100)**.
+
+**A, 0.08–0.48 (needleleaf dies, the other PFTs survive):** US-Ho2, DE-Tha, RU-Fyo, US-Ho1, BE-Bra, US-Ho3, FR-FBn, FI-Let, US-SP1,
+US-NR1, BE-Vie, US-Me2, IT-Lav, US-Me6. Here the residual ratio tracks the non-needleleaf share. Examples:
+- BE-Vie: DBF 36 → 0.31
+- FI-Let and US-Ho3: DBF 20 → 0.21 and 0.19
+- RU-Fyo: DBF 15 → 0.09
+
+Across the collapsed and partial needleleaf sites, r = 0.57 between ratio and non-needleleaf %.
+
+**The non-needleleaf site in class A:** US-CMW (DBF 74 / C4 26), ratio 0.28. Its soil C is not zero, so the vegetation did not die;
+this is an under-estimate rather than a collapse.
+
+**Class B:** CA-TP4 (NET 93) 0.55; tropical evergreen broadleaf GF-Guy 0.57 and BR-Ma2 0.68 (a known FATES nocomp under-estimate,
+not collapse); US-BZS, US-Uaf, FR-Pue, DK-Sor.
+
+**Needleleaf sites that do not collapse:**
+- US-MtB (NET 100) 0.90; US-Vcp (NET 100) 0.90; US-Vcm (NET 100) 2.17; US-Mpj (NET 60) 0.92.
+- All four are high-elevation, sunny, dry south-western US sites.
+- Humid warm needleleaf sites (US-NC2, US-SP1) and cloudy/cold European and boreal sites do collapse. Working hypothesis:
+  - In the south-west, winter GPP stays positive and maintenance respiration is low (cool, sunny).
+  - So storage does not drop below the leaf target, and the carbon-starvation term (section 8) stays near zero.
+  - To be tested with 11/12 on a surviving vs a collapsing needleleaf site (e.g. US-MtB vs US-NC2).
+
+**Class D (over-estimate):** arctic tundra (US-ICh, US-ICt, US-EML), drylands (US-Whs, US-Ses, US-Seg, US-Wkg, ES-LJu, IT-Noe),
+grass/crop-like sites (US-Var, US-UiD, US-Ton) and US-Rpf. This is a separate problem (no water/nutrient limitation strong enough,
+bare-ground fraction, or EC GPP partitioning at very low fluxes) and is not addressed by the needleleaf fix.
+
+### Conclusion
+
+GPP far below EC is overwhelmingly a needleleaf problem: 25 of the 28 class-A sites are needleleaf-dominated. In every
+needleleaf site with mixed composition, only the needleleaf part is lost. This matches the carbon-starvation mechanism in
+sections 7–8, so the A–E trials (section 9) address most of the class-A sites.
+
+The exceptions need their own check:
+1. **CZ-Stn and DE-Lnf (DBF 100)** — collapse in AD year ≈ 15–20 (TOTSOMC shows a litter pulse, then decays to 0). Same pattern
+   as the needleleaf sites, but other DBF sites (DE-Hai, DE-Hzd, FR-Hes …) survive. Both are Batch03 cases built on held template
+   surfaces, and the history lacks FATES_VEGC. Next: 09 diagnostic re-run (50 AD years) + 08/11/12.
+2. **US-MtB / US-Vcp / US-Vcm** — the control group where needleleaf survives. Comparing them with collapsing sites isolates the
+   climate condition that triggers starvation.
+3. **US-NR3** — EC GPP mean ≈ 0; check the EC record.
+
 ## Scripts (branch `full-sequence-gpp-nee-ec`, commit 80ec742)
 
 | Script | Purpose |
