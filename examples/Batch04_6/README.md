@@ -486,7 +486,26 @@ python3 -B "$SCRIPT" \
 
 If the operator approves a proposed site PFT, construct a **new isolated site-specific model surface**, making explicit that `PCT_NAT_PFT` percentages are conditional on `PCT_NATVEG` rather than the original full-gridcell crop share. Verify effective runtime FATES HLM mapping and original tower source/soil QC before AD5/AD400. No automatic PFT overwrite.
 
-## Stage02X: full native-source forcing / soil / PFT science release (future)
+## 1 Nov 2026: user APPROVED four official GitHub PFT model proxies after Stage02W
+
+**Decided:** use the official [2026-10-26 ICOS FIXNC PFT registry](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/ICOS_sites/ICOS_PFT/FINAL_38_SITE_FIXNC_PFT_20261026_ICOS.csv) for the four Batch04 non-Arctic follow-up sites. **DE-Gri, DE-RuR, IT-Tor = HLM13 cool C3 grass 100%**; **ES-Agu = HLM0 bare 49%, HLM9 evergreen temperate shrub 22%, HLM13 cool C3 grass 29%**. These four **FIXNC model proxy selections are now operator-approved**; no further PFT-choice approval is needed. They remain model representations of ecosystems, not measured EC-tower footprint PFT-area fractions. The scientific 38-station registry retains its original evidence grades and is NOT rewritten to imply direct observational evidence. Full decision, soil/PFT caveats and audited Batch03 method: [operator approval / Stage02X plan](docs/stage02w_operator_PFT_approval_stage02x_plan_20261101.md). Machine-readable 1-Nov approval overlay: [four-site approved PFT CSV](data/stage02x_operator_approved_four_site_GitHub_PFT_20261101.csv).
+
+**Stage02W actual operator output:** GitHub source check PASS; `STAGE02W SELF-TEST PASS`; 8/8 original source cases mismatch the official new NATPFT proxy, as expected for unchanged gridded original surfaces; **`PFT_OPERATOR_RELEASE 0/4` describes the earlier decision status** at the time Stage02W ran, superseded for *PFT selection only* by the user approval above. Original 8/8 CIME DATM path lists were verified by Stage02V; all original forcing inputs remain untouched. The real old landunits (NATVEG 62.674/78.891/89.915/71.461% at respective four sites) are **gridcell landunit areas**, unlike the approved conditional natural-PFT vector.
+
+### Stage02X: source-preserving new site-point PFT surface candidates — plan first, no Slurm
+
+[Stage02X script](scripts/02x_four_site_approved_GitHub_PFT_surface_candidates.py) implements the established independent Batch03 FIXNC model-point surface convention: **PCT_NATVEG=100%, PCT_CROP=0%, other landunits 0%, PCT_NAT_PFT approved 15-vector conditional on NATVEG**. `self-test` and `plan` are read only; `plan` validates Stage02U+W report identities, original source schema, original point locations, 10-layer PCT_SAND/PCT_CLAY/ORGANIC, source SHA, FATES host13/host9 map, and nocomp bare support for ES-Agu, without writing anything. `build` (only after plan success, exact operator-confirm token, and fresh EMPTY output directory) creates four independent SHA-recorded **candidate** NetCDF point surfaces; old original source surface, cases and forcing remain unchanged. Soil data are **inherited but NOT validated against site measurements**, especially IT-Tor `ORGANIC=0` for all ten original layers. No new CIME cases or Slurm submissions.
+
+~~~bash
+python3 -B "$SCRIPT" self-test
+python3 -B "$SCRIPT" plan \
+  --stage02w "$HOME/ICOS_Batch04_stage02w_7wTwcDfO/results/stage02w_four_site_GitHub_PFT_manual_science_gate.json" \
+  --stage02u "$HOME/ICOS_Batch04_stage02u_EFhTiiqx/results/stage02u_four_site_case_surface_soil_PFT_static_audit.json"
+~~~
+
+The PFT selection gate is **APPROVED**; **native tower forcing/QC, true CIME streams, soil science (especially IT-Tor), and AD5/AD400 submission remain separate HOLDs**. CH-Aws RH and GL-ZaH Arctic private-map are unaffected.
+
+## Stage02Y: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
