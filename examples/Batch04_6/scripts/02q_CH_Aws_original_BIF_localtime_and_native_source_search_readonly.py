@@ -177,7 +177,7 @@ def scan_metadata_reader(reader):
             counts[matched]+=1
             # Per-topic slots prevent RH/VPD rows late in a long BIF file
             # from being hidden by the earliest generic metadata entries.
-            if len(groups[matched])<15:
+            if len(groups[matched])<10:
                 groups[matched].append({"row":idx,"fields":r,"matched_topic":matched})
     selected=sorted(
         (sample for entries in groups.values() for sample in entries),
@@ -190,7 +190,7 @@ def scan_metadata_reader(reader):
         "relevant_topic_counts":dict(counts),
         "example_limit":MAX_METADATA_EXAMPLES,
         "metadata_scan_complete":True,
-        "metadata_sampling":"first <=15 rows per RH/VPD/TIME/QC/INSTRUMENT/TA_PA/OTHER topic, <=80 total",
+        "metadata_sampling":"first <=10 rows per RH/VPD/TIME/QC/INSTRUMENT/TA_PA/OTHER topic, <=80 total",
     }
 
 
@@ -356,9 +356,14 @@ def main():
               "TOPICS",json.dumps(info["relevant_topic_counts"],sort_keys=True),
               "COMPLETE",info["metadata_scan_complete"],
               "HEADERS",",".join(info["headers"][:25]))
-        for example in info["relevant_rows_examples"][:12]:
-            print(" META_EXCERPT",label,"ROW",example["row"],
-                  "VALUES",json.dumps(example["fields"],ensure_ascii=False)[:650])
+        # Surface RH/VPD, QC and time metadata even when they appear late
+        # in a long BIF/BIFVARINFO file; do not rely on file-order first 12.
+        for topic in ("RH","VPD","TIME","QC","INSTRUMENT","TA_PA","OTHER"):
+            samples=[x for x in info["relevant_rows_examples"]
+                     if x["matched_topic"]==topic][:2]
+            for example in samples:
+                print(" META_EXCERPT",label,"TOPIC",topic,"ROW",example["row"],
+                      "VALUES",json.dumps(example["fields"],ensure_ascii=False)[:900])
     for label,info in ledgers.items():
         print("LEDGER",label,"ROWS",info["original_rows"],
               "TIME_COLUMN",info["ledger_clock_column"],
