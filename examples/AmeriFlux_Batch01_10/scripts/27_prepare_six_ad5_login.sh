@@ -11,6 +11,7 @@ test -f "$RUN/COMPLETE.json"
 mkdir -p "$HOME/CLM_FATES_PLOTS"
 TOOL=$(mktemp -d "$HOME/CLM_FATES_PLOTS/amf_six_ad5_tool.XXXXXXXX")
 curl -fsSL "$BASE/examples/AmeriFlux_Batch01_10/scripts/26_six_ad5_case_preparation.py" -o "$TOOL/ad5.py"
+curl -fsSL "$BASE/examples/AmeriFlux_Batch01_10/scripts/28_six_met_flag_context.py" -o "$TOOL/met_context.py"
 curl -fsSL "$BASE/examples/AmeriFlux_Batch02_10/scripts/06_direct_AD400_ten_site_cases_and_submit.py" -o "$TOOL/helper.py"
 if ! curl -fsSL 'https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv' -o "$TOOL/co2.csv"; then
   PREVIOUS='/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/AmeriFlux_Batch02_10/Stage06_direct_AD400/co2_annmean_gl.csv'
@@ -20,6 +21,14 @@ if ! curl -fsSL 'https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv
 fi
 printf 'TOOL=%q\nRUN=%q\nPY=%q\n' "$TOOL" "$RUN" "$PY" > "$TOOL/run.env"
 printf '\nTool: %s\nInput: %s\nLog: %s\nSource revision: %s\n' "$TOOL" "$RUN" "$TOOL/prepare.log" "$VERSION"
+echo 'Checking flagged humidity and largest temperature jumps against available source data.'
+set +e
+env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 15 \
+  "$PY" -u -B "$TOOL/met_context.py" --run "$RUN" 2>&1 | tee "$TOOL/met_context.log"
+MET_STATUSES=("${PIPESTATUS[@]}")
+set -e
+if [ "${MET_STATUSES[1]}" -ne 0 ]; then echo 'Met context log write failed.' >&2; exit 1; fi
+if [ "${MET_STATUSES[0]}" -ne 0 ]; then echo 'Met context check did not finish; inspect met_context.log.' >&2; fi
 echo 'Preparing six detached AD5 cases; NO Slurm jobs will be submitted.'
 set +e
 env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 15 \
