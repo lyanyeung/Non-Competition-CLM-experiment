@@ -232,7 +232,8 @@ US-NR1, BE-Vie, US-Me2, IT-Lav, US-Me6. Here the residual ratio tracks the non-n
 Across the collapsed and partial needleleaf sites, r = 0.57 between ratio and non-needleleaf %.
 
 **The non-needleleaf site in class A:** US-CMW (DBF 74 / C4 26), ratio 0.28. Its soil C is not zero, so the vegetation did not die;
-this is an under-estimate rather than a collapse.
+this is an under-estimate rather than a collapse. **US-CMW is flagged GROUNDWATER-DEPENDENT and excluded from the GPP comparison**
+(section 11).
 
 **Class B:** CA-TP4 (NET 93) 0.55; tropical evergreen broadleaf GF-Guy 0.57 and BR-Ma2 0.68 (a known FATES nocomp under-estimate,
 not collapse); US-BZS, US-Uaf, FR-Pue, DK-Sor.
@@ -263,6 +264,56 @@ The exceptions need their own check:
    climate condition that triggers starvation.
 3. **US-NR3** — EC GPP mean ≈ 0; check the EC record.
 
+## 11. Site anomaly checks: US-CMW, CZ-Stn, DE-Lnf (2026-11-01)
+
+Script `14_diagnose_site_anomalies.py` (branch `full-sequence-gpp-nee-ec`). It compares each site with a working reference on
+case set-up, forcing vs EC meteorology, the first 60 AD years, and the last Normal forcing cycle (water balance, LAI, BTRAN,
+GPP by PFT, phenology counters). It is read-only.
+
+### US-CMW — FLAGGED: groundwater-dependent riparian woodland, excluded
+
+> **Site flag: `US-CMW = EXCLUDED_GROUNDWATER`.** Do not use US-CMW to judge FATES GPP in this experiment.
+
+- **Tower water balance, 2001–2021 (252 paired months).** EC ET is **662 mm/yr** against **263 mm/yr** precipitation, i.e.
+  2.5 × rainfall, every cycle. The forcing matches the tower (T, P and SW ratios 1.00), so this is not a forcing error.
+- **Literature agrees.** US-CMW (Charleston Mesquite Woodland) is the riparian mesquite woodland on the Upper San Pedro River.
+  Scott et al. (2008, *J. Arid Environ.* 72:1232, doi:10.1016/j.jaridenv.2008.01.001) derived groundwater use from eddy
+  covariance at the San Pedro riparian sites. The woodland site had the densest phreatophytes and the steadiest groundwater use.
+- **The model has no access to that water.** A single-point CLM column has no lateral groundwater inflow: model ET is
+  251 mm/yr ≈ precipitation, the water table sits at 8.6 m, and BTRAN is 0.08–0.20 from May to October. So FATES GPP cannot
+  reach the tower whatever the vegetation parameters.
+- **Secondary, for the record.** The 74 % DBF (FATES PFT 6, cold-deciduous) contributes no GPP; all model GPP is from C4 grass.
+  - The cold-deciduous leaf-on counter shows no leaf-on event for ~770 years, and the site has ≤ 10 chilling days per year.
+  - The real mesquite is drought-deciduous.
+  - US-SRM (DBF 35 %) shows the same counters. Warm, dry sites with DBF (US-SRM, US-SRG, US-Ton) should be checked when the
+    PFT mapping is revisited.
+
+### CZ-Stn and DE-Lnf (DBF 100, collapse) — under investigation
+
+What is ruled out:
+- PFT set-up, parameter file and namelist are identical to the B03 reference DE-Hzd.
+- Both are cold starts.
+- Forcing matches the tower (CZ-Stn: T −0.00 K, P × 1.00, SW × 1.00). All unit and coverage checks pass.
+
+When the vegetation goes: AD year 15 (CZ-Stn) and AD year 14 (DE-Lnf). DE-Hzd persists. Both sites' AD history has only seven
+variables, so the cause cannot be seen yet.
+
+Suspects:
+1. **Soil.** The two sites have identical soil profiles although they are 500 km apart: sand 43–63 %, clay 8–11 %, identical
+   organic matter. The register lists both as "template fsurdat texture, not observed". DE-Lnf is a silty loess Luvisol, which
+   does not fit 43–63 % sand.
+2. **Shallow bedrock at DE-Lnf:** 1.26 m (DE-Hzd 20.9 m, CZ-Stn 7.1 m).
+3. **The reference is not clean.** DE-Hzd's EC P_F, and therefore its forcing, gives **3169 mm/yr**, an implausible value for
+   Saxony that needs checking in the EC file. DE-Hzd may survive partly because of this extra water. DE-Hai (B01, DBF, normal
+   precipitation) is the reference from now on.
+
+Next steps:
+- 09 diagnostic re-run of the first 50 AD years for CZ-Stn and DE-Lnf (`*_B03_FIXNC_AD400_DIAG50`).
+- Then run 08 (mortality type), 10 (BTRAN / soil water) and 11/12 (carbon budget, carbon starvation), with DE-Hai as the living
+  reference.
+- Hypothesis to test: water stress on the coarse template soil (and shallow bedrock) leads to carbon-starvation or hydraulic
+  mortality.
+
 ## Scripts (branch `full-sequence-gpp-nee-ec`, commit 80ec742)
 
 | Script | Purpose |
@@ -273,6 +324,7 @@ The exceptions need their own check:
 | [10_diagnose_btran_soil.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/80ec74268420e560af068b7c2c457005a243407b/examples/Cross_cohort_NORMAL400/scripts/10_diagnose_btran_soil.py) | layer-by-layer BTRAN recomputation, soil water/ice/temperature, roots, canopy cover |
 | [11_diagnose_carbon_budget.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/80ec74268420e560af068b7c2c457005a243407b/examples/Cross_cohort_NORMAL400/scripts/11_diagnose_carbon_budget.py) | per-plant / per-leaf carbon budget, carbon use, PFT parameter differences |
 | [12_check_cstarvation.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/80ec74268420e560af068b7c2c457005a243407b/examples/Cross_cohort_NORMAL400/scripts/12_check_cstarvation.py) | carbon-starvation formula vs history output, settings in use |
+| [14_diagnose_site_anomalies.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/a64fd99ed6188d406e13723fefe1d0c818f04e88/examples/Cross_cohort_NORMAL400/scripts/14_diagnose_site_anomalies.py) | set-up, forcing vs EC, early AD and water-balance check of a site against a working reference |
 | [13_needleleaf_param_trials.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/7f4187c4d5a75f11a91679edb7e2f016ed615385/examples/Cross_cohort_NORMAL400/scripts/13_needleleaf_param_trials.py) | needleleaf fix trials: private parameter copies, clone, verify, submit |
 
 All are read-only except 09 and 13 (create new `*_DIAG50` / `*_FIX?50` cases and parameter copies; originals untouched). Each has a unit test on

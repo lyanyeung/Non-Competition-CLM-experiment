@@ -14,3 +14,5 @@ Checking against the 07 EC means: median relative difference −0.1%, 90th-perce
 US-NR3 has an EC mean ≈ 0 (bias +1.73, R² −5.8), so no ratio is given; the EC record needs checking.
 
 The interpretation is in `docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md`, section 10.
+
+`site_flag`: US-CMW is `EXCLUDED_GROUNDWATER`. It is a riparian mesquite woodland where tower ET is 2.5 × precipitation, and a single-point CLM column cannot supply that water (docs section 11).

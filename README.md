@@ -4,6 +4,8 @@
 
 [Diagnosis log](docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md): needleleaf-dominated sites lose their vegetation in AD400 through FATES carbon-starvation mortality (storage falls below 1 × leaf carbon every winter with the default needleleaf parameters), not water stress — the history BTRAN ≈ 0.05 is canopy-cover dilution. Figures, numbers, source-code references, corrections and the fix plan are in the log.
 
+**Site flags:** **US-CMW is excluded (groundwater-dependent riparian mesquite woodland: tower ET 662 mm/yr against 263 mm/yr precipitation; a single-point CLM column cannot supply that water).** CZ-Stn and DE-Lnf (DBF 100, vegetation gone in AD years 14–15) are under investigation with a 50-year diagnostic re-run. See [section 11 of the log](docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md#11-site-anomaly-checks-us-cmw-cz-stn-de-lnf-2026-11-01).
+
 ## NL-Loo V3 three-phase figures
 
 [NL-Loo PRE50 → AD200 → POST300 convergence and EC plotting](docs/NL_LOO_THREE_PHASE_PLOTS.md) checks the actual V3 history, marks incomplete phases and PRE50-based EC comparisons as interim, and uses NT-first tower GPP. It does not infer that POST300 has run.
