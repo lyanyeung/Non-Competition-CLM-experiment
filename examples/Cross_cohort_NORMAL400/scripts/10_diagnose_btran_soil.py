@@ -330,8 +330,10 @@ def summarize(label, case, df, t, z, dz, area, pft, pname, smpso, smpsc, src, wi
         mod, est = r["BTRAN_model_JJA"], r["BTRAN_est_vegetated_JJA"]
         tol = lambda v: abs(v - mod) <= max(0.01, 0.25 * abs(mod))
         xc = r.get("BTRAN_est_x_cover_JJA")
-        if tol(est) and (xc is None or not np.isfinite(xc) or abs(est - mod) <= abs(xc - mod)):
-            r["Estimate_vs_model"] = "estimate matches model BTRAN"
+        cov = r.get("Canopy_cover_JJA")
+        closed = cov is not None and np.isfinite(cov) and cov >= 0.9
+        if tol(est) and (closed or xc is None or not np.isfinite(xc) or abs(est - mod) <= abs(xc - mod)):
+            r["Estimate_vs_model"] = "estimate matches model BTRAN" + (" (closed canopy)" if closed else "")
         elif xc is not None and np.isfinite(xc) and tol(xc):
             r["Estimate_vs_model"] = ("estimate x canopy cover matches model BTRAN: plants are not water-limited; "
                                       "history BTRAN is diluted by bare soil between crowns (BTRAN=0 there)")
