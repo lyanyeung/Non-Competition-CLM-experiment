@@ -13,8 +13,10 @@ It then recomputes BTRAN layer by layer with the FATES/CLM non-hydro formula
 
 (root fraction from FATES_FROOTC_SL; smpso/smpsc of the dominant PFT from the case's
 FATES parameter file) and splits the loss into: dry soil (w), frozen/cold soil (gate),
-roots (where they are), and patch area (BTRAN is averaged over the whole site).
-If the estimate does not match the model's BTRAN, that mismatch is itself the finding.
+roots (where they are), and canopy cover. CTSM weights each FATES patch by the ground
+area its crowns cover (canopy_fraction_pa) and gives the uncovered ground to a bare-soil
+patch whose BTRAN is set to 0 (BareGroundFluxes), so the history BTRAN is roughly
+canopy cover x plant BTRAN. Canopy cover = sum over PFTs of min(canopy crown area, patch area).
 
 Default cases: the two 09 diagnostic re-runs (first 50 AD years) and two living
 references from NORMAL400 (last 50 years): DE-Hai (broadleaf) and FI-Hyy (needleleaf).
@@ -55,7 +57,7 @@ DEFAULT_CASES = ["DE-Obe:DE-Obe_B03_FIXNC_AD400_DIAG50:first50",
 SCALARS = ["BTRAN", "FATES_GPP", "TLAI", "TSA", "RAIN", "SNOW", "H2OSNO", "FSDS", "QVEGT"]
 LAYERED = ["SOILLIQ", "SOILICE", "H2OSOI", "TSOI", "SMP", "FATES_FROOTC_SL"]
 CONSTS = ["ZSOI", "DZSOI", "WATSAT", "SUCSAT", "BSW"]
-PFTVARS = ["FATES_NOCOMP_PATCHAREA_PF", "FATES_VEGC_PF", "FATES_GPP_PF"]
+PFTVARS = ["FATES_NOCOMP_PATCHAREA_PF", "FATES_VEGC_PF", "FATES_GPP_PF", "FATES_CANOPYCROWNAREA_PF", "FATES_CROWNAREA_PF"]
 SMP_NAMES = [("fates_nonhydro_smpso", "fates_nonhydro_smpsc"), ("fates_smpso", "fates_smpsc")]
 JJA = (6, 7, 8)
 
@@ -260,6 +262,21 @@ def layer_terms(lay, const, dz, smpso, smpsc):
     return t
 
 
+def canopy_cover(df):
+    """Fraction of the site under crowns: sum_pft min(canopy-layer crown area, patch area)."""
+    crown = "FATES_CANOPYCROWNAREA_PF" if any(c.startswith("FATES_CANOPYCROWNAREA_PF__") for c in df) else \
+        "FATES_CROWNAREA_PF" if any(c.startswith("FATES_CROWNAREA_PF__") for c in df) else None
+    if crown is None:
+        return np.full(len(df), np.nan)
+    tot = np.zeros(len(df))
+    for c in [c for c in df.columns if c.startswith(crown + "__pft")]:
+        k = c.split("__pft")[1]
+        a = df[c].to_numpy(float)
+        pa = df.get(f"FATES_NOCOMP_PATCHAREA_PF__pft{k}")
+        tot += np.nan_to_num(np.minimum(a, pa.to_numpy(float)) if pa is not None else a)
+    return np.clip(tot, 0, 1)
+
+
 def jja(df):
     return df["Month"].isin(JJA).to_numpy()
 
@@ -276,12 +293,16 @@ def summarize(label, case, df, t, z, dz, area, pft, pname, smpso, smpsc, src, wi
             r[lab] = mean(df[c][m])
     if "BTRAN" in df:
         r["BTRAN_model_annual"] = mean(df["BTRAN"])
+    if "CANOPY_COVER" in df and df["CANOPY_COVER"].notna().any():
+        r["Canopy_cover_JJA"] = mean(df["CANOPY_COVER"][m])
     if "contrib" in t:
         est = np.nansum(t["contrib"], axis=1)
         r["BTRAN_est_vegetated_JJA"] = mean(est[m])
         r["BTRAN_est_annual"] = mean(est)
         if area is not None:
             r["BTRAN_est_x_veg_area_JJA"] = r["BTRAN_est_vegetated_JJA"] * area
+        if "Canopy_cover_JJA" in r:
+            r["BTRAN_est_x_cover_JJA"] = mean((est * df["CANOPY_COVER"].to_numpy(float))[m])
     if area is not None:
         r["Vegetated_patch_area_frac"] = area
     if "root_frac" in t:
@@ -307,10 +328,18 @@ def summarize(label, case, df, t, z, dz, area, pft, pname, smpso, smpsc, src, wi
         r["Most_limiting_JJA"] = f"{k}: {fac[k]:.2f}" if fac[k] < 0.95 else "no soil limitation in rooted layers (all factors >= 0.95)"
     if "BTRAN_model_JJA" in r and "BTRAN_est_vegetated_JJA" in r:
         mod, est = r["BTRAN_model_JJA"], r["BTRAN_est_vegetated_JJA"]
-        r["Estimate_vs_model"] = ("estimate matches model BTRAN" if abs(est - mod) <= max(0.05, 0.25 * abs(mod)) else
-                                  "estimate x vegetated area matches model BTRAN (site average dilutes it)"
-                                  if area is not None and abs(est * area - mod) <= max(0.05, 0.25 * abs(mod)) else
-                                  f"MISMATCH: estimate {est:.2f} vs model {mod:.2f}")
+        tol = lambda v: abs(v - mod) <= max(0.01, 0.25 * abs(mod))
+        xc = r.get("BTRAN_est_x_cover_JJA")
+        if tol(est) and (xc is None or not np.isfinite(xc) or abs(est - mod) <= abs(xc - mod)):
+            r["Estimate_vs_model"] = "estimate matches model BTRAN"
+        elif xc is not None and np.isfinite(xc) and tol(xc):
+            r["Estimate_vs_model"] = ("estimate x canopy cover matches model BTRAN: plants are not water-limited; "
+                                      "history BTRAN is diluted by bare soil between crowns (BTRAN=0 there)")
+        elif area is not None and tol(est * area):
+            r["Estimate_vs_model"] = "estimate x vegetated area matches model BTRAN (site average dilutes it)"
+        else:
+            r["Estimate_vs_model"] = f"MISMATCH: estimate {est:.2f} vs model {mod:.2f}" + \
+                (f" (x cover {xc:.2f})" if xc is not None and np.isfinite(xc) else "")
     return r
 
 
@@ -332,7 +361,12 @@ def plot_timeseries(label, case, df, t, z, keep, dest, smpso, smpsc, r):
                 ax.plot(x, df["BTRAN"], color="k", lw=1, label="BTRAN (model, site average)")
             if "contrib" in t:
                 ax.plot(x, np.nansum(t["contrib"], axis=1), color="tab:red", lw=1, ls="--",
-                        label="estimate Σ root×w×gate (vegetated patches)")
+                        label="estimate Σ root×w×gate (plants)")
+                if df["CANOPY_COVER"].notna().any():
+                    ax.plot(x, np.nansum(t["contrib"], axis=1) * df["CANOPY_COVER"].to_numpy(float), color="tab:blue",
+                            lw=1.2, ls=":", label="estimate × canopy cover (what the history BTRAN averages)")
+            if df["CANOPY_COVER"].notna().any():
+                ax.plot(x, df["CANOPY_COVER"], color="0.5", lw=0.8, label="canopy cover fraction")
             if "FATES_GPP" in df:
                 a2 = ax.twinx()
                 a2.plot(x, df["FATES_GPP"] * 86400e3, color="tab:green", lw=0.8, alpha=0.7)
@@ -351,8 +385,9 @@ def plot_timeseries(label, case, df, t, z, keep, dest, smpso, smpsc, r):
         ax.invert_yaxis(); ax.set_ylabel("depth (m)")
         fig.colorbar(pc, ax=ax, pad=0.01, fraction=0.025)
     axs[-1].set_xlabel(f"Years from {int(df['Year'].iloc[0])} (monthly)")
-    fig.suptitle(f"{label} | {case}\nBTRAN JJA model {r.get('BTRAN_model_JJA', np.nan):.3f} | estimate (vegetated) "
-                 f"{r.get('BTRAN_est_vegetated_JJA', np.nan):.3f} | vegetated area {r.get('Vegetated_patch_area_frac', np.nan):.2f} | "
+    fig.suptitle(f"{label} | {case}\nBTRAN JJA model {r.get('BTRAN_model_JJA', np.nan):.3f} | estimate (plants) "
+                 f"{r.get('BTRAN_est_vegetated_JJA', np.nan):.3f} | canopy cover {r.get('Canopy_cover_JJA', np.nan):.3f} | "
+                 f"estimate × cover {r.get('BTRAN_est_x_cover_JJA', np.nan):.3f} | "
                  f"smpso/smpsc {smpso}/{smpsc} mm\n{r.get('Most_limiting_JJA', '')} | {r.get('Estimate_vs_model', '')}", fontsize=11)
     fig.tight_layout()
     p = dest / f"{label}_06_btran_soil_timeseries.png"
@@ -470,6 +505,7 @@ def process(spec, args):
         smpso, smpsc, src = smp_params(params, pft)
         ac = [c for c in df.columns if c.startswith("FATES_NOCOMP_PATCHAREA_PF__pft")]
         area = float(np.nanmean(df[ac].sum(axis=1, min_count=1))) if ac else None
+        df["CANOPY_COVER"] = canopy_cover(df)
         t = layer_terms(lay, const, dz, smpso, smpsc)
         r = summarize(label, case, df, t, z, dz, area, pft, pname, smpso, smpsc, src, f"{years[0]}-{years[-1]}")
         r["Parameter_file"] = str(pf) if pf else "not found"
@@ -508,6 +544,7 @@ def run(a):
         r, res = process(spec, a)
         recs.append(r); results.append(res)
     first = ["Label", "Status", "Case", "Years", "Dominant_PFT", "BTRAN_model_JJA", "BTRAN_est_vegetated_JJA",
+             "Canopy_cover_JJA", "BTRAN_est_x_cover_JJA",
              "Vegetated_patch_area_frac", "BTRAN_est_x_veg_area_JJA", "Estimate_vs_model", "Most_limiting_JJA",
              "Root_depth_50pct_m", "Root_depth_90pct_m", "Root_frac_top10cm", "RootWeighted_liq_vol_JJA",
              "RootWeighted_ice_vol_JJA", "RootWeighted_T_C_JJA", "RootWeighted_w_dry_JJA", "RootWeighted_gate_JJA",
@@ -522,7 +559,7 @@ def run(a):
     for r in recs:
         f3 = lambda k: f"{r[k]:.3f}" if isinstance(r.get(k), float) and np.isfinite(r[k]) else "–"
         print(f"== {r['Label']}: {r['Status']} | BTRAN JJA model {f3('BTRAN_model_JJA')} est {f3('BTRAN_est_vegetated_JJA')} "
-              f"| veg area {f3('Vegetated_patch_area_frac')} | roots 90% above {f3('Root_depth_90pct_m')} m "
+              f"| canopy cover {f3('Canopy_cover_JJA')} (est x cover {f3('BTRAN_est_x_cover_JJA')}) | roots 90% above {f3('Root_depth_90pct_m')} m "
               f"| {r.get('Most_limiting_JJA', '')} | {r.get('Estimate_vs_model', r.get('Error', ''))}", flush=True)
     ok = sum(r["Status"] == "OK" for r in recs)
     (a.output_root / "RUN_COMPLETE.json").write_text(json.dumps(
@@ -551,8 +588,8 @@ def publish(run_dir, repo):
         comp = run_dir / "ALL_CASES_08_btran_soil_comparison.png"
         if comp.is_file() and F7.is_png(comp):
             shutil.copyfile(comp, out / comp.name); lines += [f"- [All cases comparison]({comp.name})", ""]
-        lines += ["| Case | Years | PFT | BTRAN JJA model | estimate | veg. area | roots 90% above (m) | most limiting (JJA) | check | Figures |",
-                  "| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- |"]
+        lines += ["| Case | Years | PFT | BTRAN JJA model | estimate (plants) | canopy cover | estimate × cover | roots 90% above (m) | most limiting (JJA) | check | Figures |",
+                  "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |"]
         for r in rows:
             lab = r["Label"]
             if not F7.SAFE.fullmatch(lab):
@@ -568,7 +605,7 @@ def publish(run_dir, repo):
                 links.append(f"[inventory]({lab}/{inv.name})")
             cell = lambda k: (r.get(k) or "").replace("|", "/")
             lines.append(f"| {lab} ({cell('Case')}) | {cell('Years')} | {cell('Dominant_PFT')} | {fmt(r.get('BTRAN_model_JJA'))} | "
-                         f"{fmt(r.get('BTRAN_est_vegetated_JJA'))} | {fmt(r.get('Vegetated_patch_area_frac'))} | "
+                         f"{fmt(r.get('BTRAN_est_vegetated_JJA'))} | {fmt(r.get('Canopy_cover_JJA'))} | {fmt(r.get('BTRAN_est_x_cover_JJA'))} | "
                          f"{fmt(r.get('Root_depth_90pct_m'))} | {cell('Most_limiting_JJA')} | "
                          f"{cell('Estimate_vs_model') or cell('Error')[:80]} | {' '.join(links) or 'missing'} |")
         (out / "README.md").write_text("\n".join(lines) + "\n", encoding="utf-8")

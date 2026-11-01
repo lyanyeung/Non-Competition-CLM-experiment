@@ -36,7 +36,7 @@ def state(month, dry_top):
     return liq, ice, T, float(np.sum(ROOT * w * gate))
 
 
-def write(path, year, month, area, dry_top):
+def write(path, year, month, area, dry_top, cover=None):
     from scipy.io import netcdf_file
     cum = np.cumsum([0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30]); nd = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     start = (year - 1) * 365 + cum[month - 1]
@@ -53,7 +53,9 @@ def write(path, year, month, area, dry_top):
     def tv(n, dims, val, units):
         x = ds.createVariable(n, "f8", ("time",) + dims + ("lndgrid",)); x.units = units
         x[:] = np.asarray(val, float).reshape((1,) + tuple({"levsoi": NSOI, "levgrnd": NGRND, "fates_levpft": NPFT}[d] for d in dims) + (1,))
-    tv("BTRAN", (), [btran * area], "unitless")
+    tv("BTRAN", (), [btran * (area if cover is None else cover)], "unitless")
+    if cover is not None:
+        tv("FATES_CANOPYCROWNAREA_PF", ("fates_levpft",), [0.0, cover, 0.0], "m2 m-2")
     tv("FATES_GPP", (), [1e-8 * btran * area], "kg m-2 s-1")
     tv("TSA", (), [270.0 if month in (12, 1, 2) else 288.0], "K")
     tv("SOILLIQ", ("levsoi",), liq * DZ[:NSOI] * 1000.0, "kg/m2")
@@ -74,14 +76,15 @@ class BtranSoilTest(unittest.TestCase):
         prm.write_text(json.dumps({"parameters": {
             "fates_pftname": {"data": ["broadleaf_evergreen_tropical_tree", "needleleaf_evergreen_extratrop_tree", "c3_grass"]},
             "fates_nonhydro_smpso": {"data": [SMPSO] * 3}, "fates_nonhydro_smpsc": {"data": [SMPSC] * 3}}}))
-        for case, area, dry in (("SITE_A_DIAG5", 1.0, True), ("SITE_B_NORMAL", 0.4, False)):
+        for case, area, dry, cover in (("SITE_A_DIAG5", 1.0, True, None), ("SITE_B_NORMAL", 0.4, False, None),
+                                       ("SITE_C_SPARSE", 1.0, False, 0.05)):
             d = self.cases / case; (d / "CaseDocs").mkdir(parents=True)
             (d / "env_run.xml").write_text('<file><entry id="RUN_STARTDATE" value="0001-01-01"/></file>')
             (d / "CaseDocs" / "lnd_in").write_text(f"&fates_inparm\n fates_paramfile = '{prm}'\n/\n")
             h = self.archive / case / "lnd" / "hist"; h.mkdir(parents=True)
             for y in range(1, 7):
                 for m in range(1, 13):
-                    write(h / f"{case}.clm2.h0.{y:04d}-{m:02d}.nc", y, m, area, dry)
+                    write(h / f"{case}.clm2.h0.{y:04d}-{m:02d}.nc", y, m, area, dry, cover)
         spec = importlib.util.spec_from_file_location("btran10", HERE / "10_diagnose_btran_soil.py")
         self.mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(self.mod)
 
@@ -91,7 +94,7 @@ class BtranSoilTest(unittest.TestCase):
     def test_end_to_end(self):
         out = Path(self.tmp.name) / "out"
         code = self.mod.main(["--output-root", str(out), "--years", "5", "--max-depth", "1",
-                              "--cases", "A:SITE_A_DIAG5:first50", "B:SITE_B_NORMAL:last50",
+                              "--cases", "A:SITE_A_DIAG5:first50", "B:SITE_B_NORMAL:last50", "C:SITE_C_SPARSE:first50",
                               "--archive-root", str(self.archive), "--cases-root", str(self.cases)])
         for lab in ("A", "B"):
             e = out / lab / "ERROR.txt"
@@ -99,7 +102,11 @@ class BtranSoilTest(unittest.TestCase):
         self.assertEqual(code, 0)
         with (out / "btran_soil_summary.csv").open() as f:
             rows = {r["Label"]: r for r in csv.DictReader(f)}
-        a, b = rows["A"], rows["B"]
+        a, b, c = rows["A"], rows["B"], rows["C"]
+        self.assertAlmostEqual(float(c["Canopy_cover_JJA"]), 0.05, 6)
+        self.assertAlmostEqual(float(c["BTRAN_model_JJA"]), 0.05, 4)
+        self.assertIn("estimate x canopy cover matches", c["Estimate_vs_model"])
+        self.assertIn("not water-limited", c["Estimate_vs_model"])
         self.assertEqual(a["Years"], "1-5"); self.assertEqual(b["Years"], "2-6")
         self.assertTrue(a["Dominant_PFT"].startswith("2 needleleaf"))
         self.assertAlmostEqual(float(a["BTRAN_est_vegetated_JJA"]), float(a["BTRAN_model_JJA"]), 4)
