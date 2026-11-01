@@ -90,17 +90,21 @@ def pin_files(data,entries):
     if root.name!="CH-Aws" or root.parent.name!="MY_EC_SITE":
         raise ValueError("Original Stage02Q CH-Aws root invalid")
     home=Path.home().resolve(strict=True)
-    base=home/"FLUXNET_MultiSite_11"
     files={}
-    candidate={str(x.get("path")) for x in entries}
+    candidates=[str(x.get("path","")) for x in entries]
     for label,rel in HISTORICAL.items():
-        path=base/rel
-        if str(path) not in candidate and str(path.resolve(strict=True)) not in candidate:
-            raise ValueError("Stage02Q did not pin expected historical source "+label)
-        if path.is_symlink() or not path.is_file() or \
-           not path.resolve(strict=True).is_relative_to(home) or \
+        suffix="/FLUXNET_MultiSite_11/"+rel
+        found=[Path(x) for x in candidates if x.endswith(suffix)]
+        if len(found)!=1:
+            raise ValueError("Stage02Q did not uniquely pin historical source "+label)
+        path=found[0]
+        if not path.is_absolute() or path.is_symlink() or not path.is_file() or \
            path.stat().st_size>MAX_SOURCE_BYTES:
             raise ValueError("Unsafe/oversize external historical source "+str(path))
+        base=next((p for p in path.parents if p.name=="FLUXNET_MultiSite_11"),None)
+        if base is None or not base.parent.samefile(home) or \
+           not path.resolve(strict=True).is_relative_to(base.resolve(strict=True)):
+            raise ValueError("Historical source unexpectedly outside operator HOME "+str(path))
         files[label]=path
     for label,key in (("BIF","BIF"),("BIFVARINFO_HH","BIFVARINFO_HH")):
         metadata=data.get("original_distributed_metadata",{}).get(key,{})
