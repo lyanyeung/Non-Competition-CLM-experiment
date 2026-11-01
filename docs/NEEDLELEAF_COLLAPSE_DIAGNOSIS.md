@@ -340,6 +340,38 @@ Reading:
 - **Drylands (× 1.9) and arctic tundra (× 3.3) over-estimate GPP and have the wrong timing.** Absolute NEE errors there are
   small only because the fluxes are small.
 
+## 13. Drylands and mixed forests checked with script 14 (2026-11-01)
+
+Run: [`figures/AD400_NORMAL400_site_anomaly_diagnostics/20261101T064340Z`](../figures/AD400_NORMAL400_site_anomaly_diagnostics/20261101T064340Z/).
+Values are annual totals over the last Normal forcing cycle, taken from the `*_normal_seasonal.csv` files.
+
+| Site | Vegetated patch area (FATES) | Model ET | EC ET | Model T/ET | Model GPP | EC GPP | GPP/ET model vs EC (g C kg⁻¹) |
+|---|---|---:|---:|---:|---:|---:|---|
+| US-Seg (C4 60, bare 40) | 0.60 = 1 − bare | 213 | 223 | 0.46 | 311 | 163 | 1.46 vs 0.73 |
+| ES-LJu (C3 31, shrub 20, bare 49) | 0.51 = 1 − bare | 316 | 252 | 0.65 | 904 | 302 | 2.86 vs 1.20 |
+| US-Whs (shrubs 40, C4 3, bare 57) | 0.43 = 1 − bare | 280 | – (EC file not in default path) | 0.58 | 486 | ≈ 113 | – |
+
+**Drylands:**
+- **The bare-ground fraction is applied correctly.** FATES vegetated patch area equals 1 − bare at all three sites, so that
+  hypothesis is ruled out.
+- **Water use is about right** (US-Seg model ET = EC ET; ES-LJu +25 %).
+- **Carbon gained per unit water is 2–2.4 × too high.**
+- The over-estimate is therefore mainly a water-use-efficiency problem in the dryland PFTs (C4 grass, C3 grass, evergreen
+  shrub), not water supply. Candidates:
+  - Photosynthetic capacity and stomatal slope.
+  - Too high a transpiration share at ES-LJu (T/ET 0.65 with 49 % bare ground).
+  - EC GPP partitioning uncertainty at very small fluxes (a secondary caveat).
+- US-Whs uses a custom parameter file (`fates_params_HYDRO_SHRUB_b05_v1.json`).
+
+**Mixed forests — correction of section 12's reading:**
+- At US-Ha1 (NET 27 %) and US-Slt (NET 38 %) the needleleaf PFT is **alive**:
+  - Canopy crown area 0.20 / 0.32 of patch area 0.27 / 0.38.
+  - It supplies 15 % / 23 % of GPP.
+  - Annual BTRAN is 0.84 / 0.92.
+- Their GPP ratios (0.84, 1.08) are therefore genuine, not compensation.
+- With US-MtB, US-Vcp, US-Vcm and US-Mpj, that gives six sites where needleleaf survives. US-Ha1 (Harvard Forest, MA) vs US-Ho1
+  (Howland, ME, collapsed) is a close-climate pair for comparing set-up and carbon budget (11/12).
+
 ## Scripts (branch `full-sequence-gpp-nee-ec`, commit 80ec742)
 
 | Script | Purpose |
