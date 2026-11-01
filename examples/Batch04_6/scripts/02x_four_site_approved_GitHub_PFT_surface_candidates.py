@@ -268,13 +268,13 @@ def main():
     print("ES-AGU_NOCOMP_BARE",profiles["ES-Agu"]["fates_bare_support"])
     print("STAGE02X PFT PROXY OPERATOR APPROVED 4/4; "
           "TOWER_FORCING/ACTIVE_STREAM/SOIL SCIENCE HOLD; NO JOBS")
+    if not profiles["ES-Agu"]["fates_bare_support"]["supported"]:
+        raise ValueError("ES-Agu FATES bare-ground feature unverified: PLAN/BUILD HOLD")
     if x.action=="plan":
-        print("STAGE02X PLAN PASS; NO FILES OR CASES WRITTEN")
+        print("STAGE02X PLAN PASS: original source schemas/PFT mapping/bare feature verified; NO FILES OR CASES WRITTEN")
         return
     if x.confirm!=CONFIRM:
         ap.error("Requires --confirm "+CONFIRM)
-    if not profiles["ES-Agu"]["fates_bare_support"]["supported"]:
-        raise ValueError("ES-Agu FATES bare-ground feature unverified: NO BUILD")
     if x.out_dir is None or not x.out_dir.is_dir() or \
        x.out_dir.is_symlink() or any(x.out_dir.iterdir()):
         ap.error("Build requires a NEW, existing, EMPTY and non-symlink output directory")
