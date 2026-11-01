@@ -1,6 +1,6 @@
 # Needleleaf collapse in the FATES fixed-biogeography / no-competition spin-up — diagnosis log
 
-Status: **diagnosis complete up to the mechanism; fix not yet tested.** Last updated 1 November 2026.
+Status: **mechanism confirmed (section 8); parameter trials prepared (section 9).** Last updated 1 November 2026.
 Scope: the AD400 → NORMAL400 cases of job 4764252 (54 sites), with detailed diagnosis at
 DE-Obe and FI-Sod (needleleaf, collapsed) against DE-Hai (broadleaf, healthy) and FI-Hyy
 (mostly needleleaf, alive only in its 5 % broadleaf patch).
@@ -16,7 +16,8 @@ DE-Obe and FI-Sod (needleleaf, collapsed) against DE-Hai (broadleaf, healthy) an
   - 默认 `slatop` 只有 0.005 m² gC⁻¹（阔叶 0.03），同样的叶面积要背约 6 倍的叶碳；
   - 叶寿命 4 年；
   - 冬天叶子不落，维持呼吸照常消耗储存，每年冬天都跌破 1.0 倍叶碳的门槛，于是持续死亡，补充的新苗赶不上。
-- **下一步：** 逐月核对碳饥饿公式（脚本 12），然后做针叶 PFT 参数试验：储存缓冲、碳饥饿门槛、slatop。
+- **公式核对：** 按公式预测的碳饥饿死亡率和模型输出逐月一致（DE-Obe r=0.996、斜率 1.04；FI-Sod r=1.00、斜率 1.02）。储存/叶碳在 DE-Obe 1–4 月、FI-Sod 11–6 月低于 1.0。
+- **下一步：** 针叶 PFT 参数试验（储存缓冲、碳饥饿门槛、slatop），见第 9 节。
 
 ## 1. Full-sequence screening (54 sites)
 
@@ -149,11 +150,28 @@ needleleaf stand therefore starts sparse and never closes, but the mortality abo
 Source versions read: FATES `main` b8fbdde (2026-10-25), CTSM `master` f302090 (2026-10-30); line numbers are
 approximate for the pinned model version used in these runs.
 
-## 8. Formula check (pending)
+## 8. Formula check — confirmed
 
-`scripts/12_check_cstarvation.py` compares, month by month, the carbon-starvation mortality in the history output
-with the formula above (from `FATES_STOREC_PF / FATES_LEAFC_PF`) and reports the namelist settings actually used
-(`fates_cstarvation_model`, `fates_leafresp_model`, `use_fates_dbh_init`). Result: to be added here.
+Figures: [`figures/AD400_NORMAL400_cstarvation_check/20261101T044701Z`](../figures/AD400_NORMAL400_cstarvation_check/20261101T044701Z)
+
+Settings actually used (from `lnd_in`): `fates_cstarvation_model = linear`, `fates_leafresp_model = ryan1991`,
+`use_fates_dbh_init = .false.`. Observed = `FATES_MORTALITY_CSTARV_SZPF` (needleleaf PFT) / `FATES_NPLANT_PF`;
+predicted = 0.6 × max(0, 1 − `FATES_STOREC_PF`/`FATES_LEAFC_PF`), monthly, months with ≥ 1 plant ha⁻¹.
+
+| | DE-Obe NET | FI-Sod NET |
+|---|---|---|
+| Observed / predicted mean (yr⁻¹) | 0.044 / 0.040 | 0.156 / 0.152 |
+| Observed maximum (yr⁻¹) | 0.20 | 0.41 |
+| Correlation r / slope (observed vs predicted) | 0.996 / 1.04 | 1.00 / 1.02 |
+| Storage / leaf C: minimum, mean | 0.68, 1.03 | 0.32, 0.80 |
+| Months below the threshold (1.0) | 38 % | 66 % |
+| Storage / leaf C by month (Jan … Dec) | 0.89 0.79 0.75 0.79 1.00 1.19 1.20 1.20 1.20 1.19 1.13 1.01 | 0.67 0.55 0.43 0.37 0.43 0.81 1.19 1.20 1.18 1.08 0.93 0.79 |
+
+The default formula reproduces the needleleaf carbon-starvation mortality almost exactly. Storage reaches the cap
+(1.2 × leaf C) in July–October and falls below 1.0 from January to April at DE-Obe and from November to June at
+FI-Sod (minimum 0.37 in April). The DE-Hai row in the figures is not comparable: for a cold-deciduous PFT actual leaf
+C is ~0 in winter (the formula uses the flushed leaf target), and its NORMAL400 output has carbon-starvation deaths
+only for all PFTs combined, dominated by short-lived understory recruits while the stand is stable.
 
 ## 9. Fix plan
 
