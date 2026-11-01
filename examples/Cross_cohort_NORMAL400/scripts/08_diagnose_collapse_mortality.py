@@ -477,6 +477,8 @@ def plot_site(site, pair, df, names, focal, cy, att, dest, monthly, first_years)
                 ax.plot(x, df[c], color=col, lw=1, label=lab); ok = True
         if f"FATES_NPP_PF__pft{focal}" in df:
             ax.plot(x, df[f"FATES_NPP_PF__pft{focal}"], color="tab:green", ls="--", lw=1, label="NPP focal PFT"); ok = True
+        if "ORIGINAL_AD_FATES_GPP" in df and df["ORIGINAL_AD_FATES_GPP"].notna().any():
+            ax.plot(x, df["ORIGINAL_AD_FATES_GPP"], color="0.55", ls=":", lw=1.6, label="GPP original AD400 run"); ok = True
         ax.axhline(0, color="0.6", lw=0.6)
         return ok, "g C m-2 d-1", "Stand carbon fluxes"
     panels.append(p_flux)
@@ -595,6 +597,35 @@ def ad_only_inventory(case, args):
     return {"fad": fad, "fno": {}, "ad_years": P.contiguous(fad, y0, F7.PHASE), "normal_years": []}
 
 
+def add_original_gpp(mon, case, inv, args, rec):
+    """For a *_DIAG<n> re-run, add the original AD case's GPP for the same years (reproduction check)."""
+    m = re.match(r"^(.*)_DIAG\d+$", case)
+    if not m:
+        return mon
+    orig = m.group(1)
+    rec["Original_AD_case"] = orig
+    try:
+        fad = P.history_index(args.archive_root, orig)
+        years = [y for y in inv["ad_years"] if y in fad]
+        if not years:
+            raise FileNotFoundError("no overlapping history years")
+        o, _ = read_series({"fad": fad, "fno": {}, "ad_years": years, "normal_years": []}, {"FATES_GPP": "scalar"})
+    except Exception as exc:
+        rec["GPP_vs_original"] = f"not compared: {type(exc).__name__}: {exc}"
+        return mon
+    o = o[["Year", "Month", "FATES_GPP"]].rename(columns={"FATES_GPP": "ORIGINAL_AD_FATES_GPP"})
+    mon = mon.merge(o, on=["Year", "Month"], how="left")
+    a, b = mon["FATES_GPP"].to_numpy(float), mon["ORIGINAL_AD_FATES_GPP"].to_numpy(float)
+    ok = np.isfinite(a) & np.isfinite(b)
+    if ok.any():
+        d = float(np.max(np.abs(a[ok] - b[ok])))
+        scale = float(np.max(np.abs(b[ok]))) or 1.0
+        rec["GPP_vs_original_max_abs_diff_gC_m-2_d-1"] = d
+        rec["GPP_vs_original"] = (f"identical over {ok.sum()} months" if d <= 1e-9 else
+                                  f"max |diff| {d:.3g} g C m-2 d-1 ({100 * d / scale:.2g}% of peak) over {ok.sum()} months")
+    return mon
+
+
 def process(task):
     site, normal, args = task[:3]
     ad_only = len(task) > 3 and task[3]
@@ -641,6 +672,8 @@ def process(task):
         names, src = pft_names(pair["normal"], args)
         rec["PFT_names_from"] = src
         mon, units = read_series(inv, spec)
+        if ad_only:
+            mon = add_original_gpp(mon, ad, inv, args, rec)
         ann = annual_from_monthly(mon)
         focal = choose_focal(mon, names)
         cy, cy_col = collapse_year(ann, focal)
@@ -669,7 +702,7 @@ def process(task):
 
 
 def save_summary(root, rows):
-    first = ["Site", "Status", "Focal_PFT", "Collapse_year", "Output_note", "GPP_year1_gC_m-2_d-1",
+    first = ["Site", "Status", "Focal_PFT", "Collapse_year", "GPP_vs_original", "Output_note", "GPP_year1_gC_m-2_d-1",
              "GPP_max_annual_gC_m-2_d-1", "GPP_max_year", "Attribution_window", "Dominant_mortality",
              "Dominant_share_pct", "Top3_mortality", "Focal_NPP_mean_gC_m-2_d-1", "Focal_GPP_mean_gC_m-2_d-1",
              "Focal_density_mean_ha-1", "Storage_fraction_of_target_mean", "Storage_fraction_of_target_min",
@@ -700,6 +733,8 @@ def run(a):
         rows = [process(t) for t in tasks]
     save_summary(a.output_root, rows)
     for r in rows:
+        if r.get("GPP_vs_original"):
+            print(f"   {r['Site']}: GPP vs original AD case: {r['GPP_vs_original']}", flush=True)
         print(f"== {r['Site']}: {r['Status']} | focal {r.get('Focal_PFT', '')} | collapse {r.get('Collapse_year') or 'n/a'} | "
               f"{r.get('Top3_mortality') or r.get('Dominant_mortality', '')} {r.get('Error', '')}", flush=True)
         if r.get("Output_note"):

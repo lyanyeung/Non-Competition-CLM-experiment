@@ -221,8 +221,37 @@ class ADOnlyRerunTest(CollapseDiagnosticsTest):
         self.assertEqual(int(r["AD_years"]), self.AD_YEARS)
         self.assertEqual(int(r["Collapse_year"]), 9)
         self.assertEqual(r["Dominant_mortality"], "CSTARV")
+        self.assertEqual(r["GPP_vs_original"], "")                    # not a *_DIAG case
         for tag in ("_04_collapse_diagnostics_ADrerun.png", "_05_collapse_diagnostics_first20y.png"):
             self.assertTrue((out / "FI-Sod" / f"FI-Sod{tag}").is_file(), tag)
+
+
+class DiagVsOriginalTest(CollapseDiagnosticsTest):
+    """A *_DIAG<n> case is compared with its original AD case over the same years."""
+
+    def test_units(self):
+        pass
+
+    def test_end_to_end(self):
+        import shutil
+        diag = "FI-Sod_AD_DIAG20"
+        (self.cases / diag).mkdir()
+        shutil.copy(self.cases / "FI-Sod_AD" / "env_run.xml", self.cases / diag / "env_run.xml")
+        src, dst = self.archive / "FI-Sod_AD" / "lnd" / "hist", self.archive / diag / "lnd" / "hist"
+        dst.mkdir(parents=True)
+        for y in range(1, 21):
+            for m in range(1, 13):
+                shutil.copy(src / f"FI-Sod_AD.clm2.h0.{y:04d}-{m:02d}.nc", dst / f"{diag}.clm2.h0.{y:04d}-{m:02d}.nc")
+        out = Path(self.tmp.name) / "out"
+        code = self.mod.main(["--output-root", str(out), "--ad-only", f"FI-Sod:{diag}", "--workers", "1", "--first-years", "20",
+                              "--archive-root", str(self.archive), "--cases-root", str(self.cases)])
+        err = out / "FI-Sod" / "ERROR.txt"
+        self.assertEqual(code, 0, err.read_text() if err.exists() else "")
+        with (out / "collapse_summary.csv").open() as f:
+            r = list(csv.DictReader(f))[0]
+        self.assertEqual(r["Original_AD_case"], "FI-Sod_AD")
+        self.assertEqual(r["GPP_vs_original"], "identical over 240 months")
+        self.assertEqual(int(r["AD_years"]), 20)
 
 
 class CloneNamelistTest(unittest.TestCase):
