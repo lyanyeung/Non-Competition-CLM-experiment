@@ -91,6 +91,24 @@ for the three sites, preserving the original Stage23 inputs. Several flagged
 temperature events and potential QC0 replacements remain scientifically
 unresolved; `COMPLETE` does not authorize an AD400 case or submission.
 
+### Stage56 next gate — read-only candidate integrity and coverage
+
+A new [Stage56 read-only audit](scripts/56_three_site_detached_candidate_audit.py)
+reconciles the completed Stage43/51/54 candidates (including linked CA-Man
+2007 Stage51), confirms the expected seven unique site-year files and **64**
+approved half-hour changes, and verifies each candidate against the original
+Stage23 NetCDF SHA256 and unchanged-variable/unchanged-time scope.
+It refuses dropped earlier-approved changes. This tool is a technical scope
+gate only, not science authorization. Run `self-test` first, then `audit`.
+
+Expected final detached years: CA-Cbo 2018 (5 HH); CA-Man 1994 (1),
+2005 (45), 2007 (3); US-Aud 2012 (1), 2019 (3), 2023 (6).
+US-Aud 2023 proxies include candidate RH values below 10%, so these still
+require an explicit site-science judgement; they are not inherently
+instrument measurements. **Do not launch AD400 before outstanding flagged
+observations, 2005 CA-Man QC0 replacement, and forcing source provenance have
+been reviewed.** The audit does not modify original NetCDF or CIME cases.
+
 ### Reproducible Stage45/Stage55 Normal400 operation
 
 The original `45_prepare_six_normal400.py` was incompatible with Stage36's
