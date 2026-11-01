@@ -57,6 +57,12 @@ def parse_timestamp(raw):
                     "%Y%m%d%H%M","%Y%m%d%H%M%S"):
         try:return dt.datetime.strptime(s,pattern)
         except ValueError:pass
+    try:
+        t=dt.datetime.fromisoformat(s)
+        if t.tzinfo is None and t.second==0 and t.microsecond==0:
+            return t
+    except ValueError:
+        pass
     return None
 
 
