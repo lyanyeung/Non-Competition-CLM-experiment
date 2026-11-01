@@ -184,13 +184,22 @@ against EC before rolling out to all needleleaf sites and repeating AD400 → NO
 | A | `fates_alloc_storage_cushion` 1.2 → 2.0–2.4 | margin between storage cap and mortality threshold grows from 0.2 to 0.8–1.2 × leaf C, covering the winter drawdown; 2.4 is already used by a default PFT; evergreen cushions of 1.8–2.7 used in FATES calibration | slower early growth while storage fills |
 | B | `fates_mort_upthresh_cstarvation` 1.0 → 0.5 | mortality only when storage is genuinely low | tunes the mortality rule rather than physiology |
 | C | `fates_leaf_slatop` 0.005 → ~0.008–0.010 | halves leaf C per leaf area → lower leaf and fine-root respiration, lower absolute threshold, more LAI per carbon (CLM5 temperate needleleaf uses ~0.01 — to be verified against TRY/site data) | changes canopy structure; needs observational support |
-| D | A + C | | |
+| D | A + C | combines the two physiological changes | |
+| E | no parameter change; `use_fates_dbh_init = .true.` | falsification control: mortality depends on storage / leaf C, not stand closure, so the needleleaf PFT should still collapse; if it survives, the mechanism above is incomplete | namelist switch affects all PFTs/sites if adopted |
+
+Why one change at a time rather than A+B+C together: each trial shows whether that lever alone is sufficient and how
+strongly it acts; a combined change that "works" cannot say which part was needed and risks overcorrection
+(mortality too low, unrealistically dense stands, GPP above EC). A and C are physiological (non-structural
+carbohydrate reserves; leaf mass per area) and can be checked against observations; B changes the mortality rule
+itself and is the least defensible. A and B act on the same margin (A raises the storage cap, B lowers the threshold),
+so combining them double-counts one mechanism. If D is not enough, B is added in the next round.
 
 `use_fates_dbh_init = .true.` (closed-canopy cold start, as in FATES' `patch_nocomp_noresm.json` approach) does not
-address this mechanism and is a secondary option.
+address this mechanism; it is run as control E and may later be combined with the winning parameter change to
+shorten canopy closure.
 
-Implementation: [`13_needleleaf_param_trials.py`](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/9a6944e96253cb81de712e3bae677ea2c4c678d2/examples/Cross_cohort_NORMAL400/scripts/13_needleleaf_param_trials.py)
-creates cases `<AD case>_FIX<A|B|C|D>50` at DE-Obe and FI-Sod (8 single-point runs, 50 years each, 5-year segments,
+Implementation: [`13_needleleaf_param_trials.py`](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/7f4187c4d5a75f11a91679edb7e2f016ed615385/examples/Cross_cohort_NORMAL400/scripts/13_needleleaf_param_trials.py)
+creates cases `<AD case>_FIX<A|B|C|D|E>50` at DE-Obe and FI-Sod (10 single-point runs, 50 years each, 5-year segments,
 same executable/inputs/AD settings as the AD case). Parameter copies live in
 `experiments/NonCompetitionObserved22/NeedleleafFixTrials/params/` with a receipt (source file, SHA-256, old/new values).
 Success criteria: needleleaf density stops declining (carbon-starvation mortality ≈ background level), canopy closes
@@ -207,7 +216,7 @@ Results: to be added.
 | [10_diagnose_btran_soil.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/80ec74268420e560af068b7c2c457005a243407b/examples/Cross_cohort_NORMAL400/scripts/10_diagnose_btran_soil.py) | layer-by-layer BTRAN recomputation, soil water/ice/temperature, roots, canopy cover |
 | [11_diagnose_carbon_budget.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/80ec74268420e560af068b7c2c457005a243407b/examples/Cross_cohort_NORMAL400/scripts/11_diagnose_carbon_budget.py) | per-plant / per-leaf carbon budget, carbon use, PFT parameter differences |
 | [12_check_cstarvation.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/80ec74268420e560af068b7c2c457005a243407b/examples/Cross_cohort_NORMAL400/scripts/12_check_cstarvation.py) | carbon-starvation formula vs history output, settings in use |
-| [13_needleleaf_param_trials.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/9a6944e96253cb81de712e3bae677ea2c4c678d2/examples/Cross_cohort_NORMAL400/scripts/13_needleleaf_param_trials.py) | needleleaf fix trials: private parameter copies, clone, verify, submit |
+| [13_needleleaf_param_trials.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/7f4187c4d5a75f11a91679edb7e2f016ed615385/examples/Cross_cohort_NORMAL400/scripts/13_needleleaf_param_trials.py) | needleleaf fix trials: private parameter copies, clone, verify, submit |
 
 All are read-only except 09 and 13 (create new `*_DIAG50` / `*_FIX?50` cases and parameter copies; originals untouched). Each has a unit test on
 synthetic history in the same folder.
