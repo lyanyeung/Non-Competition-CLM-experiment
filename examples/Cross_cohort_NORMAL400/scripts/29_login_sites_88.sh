@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# Run the 38+50 site diagnostics in the foreground on the IRIDIS login node.
+# Prepare on the login node; run the analysis in an interactive compute session.
 set -euo pipefail
+if [ "${1:-}" = '--run-prepared' ]; then
+  [ "$#" -eq 2 ] || { echo 'Usage: --run-prepared /path/to/run.env' >&2; exit 2; }
+  source "$2"
+  : "${TOOL:?}" "${OUT:?}" "${PY:?}" "${RUN_ID:?}" "${VERSION:?}"
+else
 VERSION=${VERSION:?Set VERSION to a 40-character GitHub commit SHA}
 [[ "$VERSION" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid source revision' >&2; exit 1; }
 BASE="https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$VERSION"
@@ -23,9 +28,15 @@ tool = Path(sys.argv[1]); names = ('plot.py','scan.py','run.py','registry.py','d
 digests = {name: hashlib.sha256((tool / name).read_bytes()).hexdigest() for name in names}
 (tool / 'initial_code_hashes.json').write_text(json.dumps(digests), encoding='utf-8')
 PY
-printf 'TOOL=%q\nOUT=%q\nPY=%q\nRUN_ID=%q\n' "$TOOL" "$OUT" "$PY" "$RUN_ID" > "$TOOL/run.env"
+printf 'TOOL=%q\nOUT=%q\nPY=%q\nRUN_ID=%q\nVERSION=%q\n' "$TOOL" "$OUT" "$PY" "$RUN_ID" "$VERSION" > "$TOOL/run.env"
 printf '\nRun: %s\nOutput: %s\nLog: %s\nEnvironment: %s\nSource commit: %s\n\n' \
   "$RUN_ID" "$OUT" "$TOOL/analysis.log" "$TOOL/run.env" "$VERSION"
+if [ "${PREPARE_ONLY:-0}" = 1 ]; then
+  printf 'Preparation complete. On an interactive compute node run:\n'
+  printf 'bash %q --run-prepared %q\n' "$(realpath "$0")" "$TOOL/run.env"
+  exit 0
+fi
+fi
 printf '%s\n' 'Running in the foreground; a new snapshot is written without touching previous results.'
 set +e
 "$PY" -u -B "$TOOL/driver.py" --output-root "$OUT" 2>&1 | tee "$TOOL/analysis.log"
