@@ -252,11 +252,11 @@ def self_test():
     assert at("2025-10-01 10:30:00","selected")==datetime(2025,10,1,10,30)
     assert num("-9999") is None and num("2.5")==2.5
     assert RAIN_INHERITED.startswith("INHERITED_STAGE21_")
-    assert len(scopes([{"start_or_time":f"2015-01-{i:02d}","end":f"2015-01-{i:02d}"}
-                       for i in range(1,50) if i<=28] if False else [
-                       {"start_or_time":f"2015-01-{i:02d}","end":f"2015-01-{i:02d}"} for i in range(1,29)]
-                       +[{"start_or_time":f"2015-02-{i:02d}","end":f"2015-02-{i:02d}"}
-                           for i in range(1,22)])["DE-Gri"])==49
+    fake=[{"start_or_time":f"2015-01-{i:02d}","end":f"2015-01-{i:02d}"}
+          for i in range(1,29)]
+    fake += [{"start_or_time":f"2015-02-{i:02d}","end":f"2015-02-{i:02d}"}
+             for i in range(1,22)]
+    assert len(scopes(fake)["DE-Gri"])==49
     print("STAGE03D SELF-TEST PASS: Stage21->Stage22 inherited rain path, event-scoped source/Stage28 stream, original 49 MDS and no writes")
 
 def main():
