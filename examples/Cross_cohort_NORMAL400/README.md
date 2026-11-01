@@ -22,6 +22,8 @@ Carbon budget diagnostics (`scripts/11_diagnose_carbon_budget.py`): per-plant an
 
 Carbon-starvation check (`scripts/12_check_cstarvation.py`): month-by-month comparison of the FATES carbon-starvation mortality in the history output with the model's own formula, cmort = scalar × max(0, (upthresh − storage/leafC)/upthresh), plus the namelist settings actually used (`fates_cstarvation_model`, `fates_leafresp_model`, `use_fates_dbh_init`) and the PFT's storage, mortality and leaf parameters. Full write-up: [docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md](../../docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md) (on `main`).
 
+Needleleaf fix trials (`scripts/13_needleleaf_param_trials.py`): clones each site's AD case with a private copy of its FATES parameter file in which only the needleleaf PFT (2) changes — A storage cushion 2.4, B carbon-starvation threshold 0.5, C slatop 0.010, D A+C — runs the first 50 AD years with the diagnostic history, and refuses to submit unless `lnd_in` differs from the AD case only in history settings and `fates_paramfile` and the parameter copy differs only in the intended entries. Controls are the `*_DIAG50` re-runs.
+
 [All-completed AD400 + Normal400 plotting runbook](ALL_COMPLETED_PLOTS.md): live status and reference-pair selection, NT-first EC comparison, and separate per-case carbon diagnostics. The analysis runs as a read-only-input Slurm job and writes new derived files under Home. Completion is not convergence.
 
 
