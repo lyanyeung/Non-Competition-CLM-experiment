@@ -1,0 +1,46 @@
+{
+  "site": "US-BZS",
+  "ad_case": "US-BZS_AMF_B02_FIXNC_AD400_DIRECT",
+  "normal_case": "US-BZS_AMF_B02_FIXNC_NORMAL400_DIRECT",
+  "status": "OK",
+  "gpp_policy": "Each day across sources: NT VUT, NT CUT, DT VUT, DT CUT; NEE VUT before NEE CUT",
+  "ec_gpp_columns_used": [
+    "GPP_NT_VUT_REF"
+  ],
+  "ec_nee_columns_used": [
+    "NEE_VUT_REF"
+  ],
+  "forcing_first_last_align": [
+    2010,
+    2024,
+    2010
+  ],
+  "ec_cycle_model_years": [
+    2790,
+    2804
+  ],
+  "carbon_variables": [
+    "TOTSOMC"
+  ],
+  "carbon_units": {
+    "TOTSOMC": {
+      "factor": 1.0,
+      "plot_units": "g C m$^{-2}$",
+      "csv_units": "g C m-2",
+      "original_units": "gC/m^2"
+    }
+  },
+  "missing_primary_carbon_variables": [
+    "TOTECOSYSC",
+    "FATES_VEGC"
+  ],
+  "ec_sources": [
+    {
+      "source_file": "AMF_US-BZS_FLUXNET_FULLSET_HH_2010-2024_5-7.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "valid_GPP_days": 5475,
+      "valid_NEE_days": 4745,
+      "source_error": false
+    }
+  ]
+}
