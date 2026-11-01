@@ -189,6 +189,14 @@ against EC before rolling out to all needleleaf sites and repeating AD400 → NO
 `use_fates_dbh_init = .true.` (closed-canopy cold start, as in FATES' `patch_nocomp_noresm.json` approach) does not
 address this mechanism and is a secondary option.
 
+Implementation: [`13_needleleaf_param_trials.py`](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/9a6944e96253cb81de712e3bae677ea2c4c678d2/examples/Cross_cohort_NORMAL400/scripts/13_needleleaf_param_trials.py)
+creates cases `<AD case>_FIX<A|B|C|D>50` at DE-Obe and FI-Sod (8 single-point runs, 50 years each, 5-year segments,
+same executable/inputs/AD settings as the AD case). Parameter copies live in
+`experiments/NonCompetitionObserved22/NeedleleafFixTrials/params/` with a receipt (source file, SHA-256, old/new values).
+Success criteria: needleleaf density stops declining (carbon-starvation mortality ≈ background level), canopy closes
+(cover → ~1, LAI of a few m² m⁻²), GPP in the range of the EC record, no new failure mode (e.g. storage never filling).
+Results: to be added.
+
 ## Scripts (branch `full-sequence-gpp-nee-ec`, commit 80ec742)
 
 | Script | Purpose |
@@ -199,6 +207,7 @@ address this mechanism and is a secondary option.
 | [10_diagnose_btran_soil.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/80ec74268420e560af068b7c2c457005a243407b/examples/Cross_cohort_NORMAL400/scripts/10_diagnose_btran_soil.py) | layer-by-layer BTRAN recomputation, soil water/ice/temperature, roots, canopy cover |
 | [11_diagnose_carbon_budget.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/80ec74268420e560af068b7c2c457005a243407b/examples/Cross_cohort_NORMAL400/scripts/11_diagnose_carbon_budget.py) | per-plant / per-leaf carbon budget, carbon use, PFT parameter differences |
 | [12_check_cstarvation.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/80ec74268420e560af068b7c2c457005a243407b/examples/Cross_cohort_NORMAL400/scripts/12_check_cstarvation.py) | carbon-starvation formula vs history output, settings in use |
+| [13_needleleaf_param_trials.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/9a6944e96253cb81de712e3bae677ea2c4c678d2/examples/Cross_cohort_NORMAL400/scripts/13_needleleaf_param_trials.py) | needleleaf fix trials: private parameter copies, clone, verify, submit |
 
-All are read-only except 09 (creates new `*_DIAG50` cases; originals untouched). Each has a unit test on
+All are read-only except 09 and 13 (create new `*_DIAG50` / `*_FIX?50` cases and parameter copies; originals untouched). Each has a unit test on
 synthetic history in the same folder.
