@@ -7,11 +7,14 @@ ERA5_HH is a companion product and is not claimed independent of FLUXNET fill.
 """
 from __future__ import annotations
 import argparse
+from contextlib import ExitStack
 import csv
 import hashlib
+import io
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
+from zipfile import BadZipFile, ZipFile
 
 SITES = ('CA-Cbo', 'CA-Man', 'CA-TP1', 'CA-TP3', 'US-Aud', 'US-Bar')
 RAW = Path('/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE')
@@ -49,7 +52,13 @@ def distinct_events(events):
 def read_subset(path, stamp_col, wanted, cols, compact=False):
     wanted_key = {s.replace('-', '').replace(':', '').replace(' ', '')[:12]: s for s in wanted} if compact else {}
     result = {}
-    with Path(path).open(encoding='latin-1', newline='') as f:
+    with ExitStack() as stack:
+        if isinstance(path, tuple):
+            archive, member = path
+            z = stack.enter_context(ZipFile(archive))
+            f = stack.enter_context(io.TextIOWrapper(z.open(member), encoding='latin-1', newline=''))
+        else:
+            f = stack.enter_context(Path(path).open(encoding='latin-1', newline=''))
         rows = csv.DictReader(f)
         if stamp_col not in (rows.fieldnames or []): raise ValueError('Missing timestamp column in ' + str(path))
         for row in rows:
@@ -63,10 +72,37 @@ def read_subset(path, stamp_col, wanted, cols, compact=False):
     return result
 
 
-def one_raw(site, kind):
-    matches = sorted((RAW / site / 'forcing/raw').glob('AMF_' + site + '_FLUXNET_*/*' + kind + '*.csv'))
-    if len(matches) != 1: raise ValueError(f'{site}: expected one {kind} CSV, found {len(matches)}')
-    return matches[0]
+def sources(site, kind):
+    """Find exactly one extracted file or an exact-release ZIP member; never guess."""
+    raw = RAW / site / 'forcing/raw'
+    packages = sorted(x for x in raw.glob('AMF_' + site + '_FLUXNET_*') if x.is_dir())
+    files = sorted(p for d in packages for p in d.rglob('*')
+                   if p.is_file() and p.suffix.lower() == '.csv' and kind in p.name.upper())
+    if len(files) == 1:
+        return files[0], {'status': 'EXTRACTED', 'path': str(files[0])}
+    if len(files) > 1:
+        return None, {'status': 'AMBIGUOUS_EXTRACTED', 'candidates': [str(p) for p in files]}
+    zip_paths = set()
+    for package in packages:
+        for p in (RAW / site / 'forcing/packages' / (package.name + '.zip'),
+                  RAW / '_incoming_zips' / (package.name + '.zip')):
+            if p.is_file(): zip_paths.add(p.resolve())
+    members, notes = [], []
+    for path in sorted(zip_paths):
+        try:
+            with ZipFile(path) as z:
+                for name in z.namelist():
+                    if name.lower().endswith('.csv') and kind in Path(name).name.upper():
+                        members.append((path, name))
+                    elif name.lower().endswith('.zip'):
+                        notes.append(str(path) + ':' + name + ' (nested ZIP not inspected)')
+        except (BadZipFile, OSError) as e:
+            notes.append(str(path) + ': ' + type(e).__name__)
+    if len(members) == 1:
+        return members[0], {'status': 'RELEASE_ZIP', 'path': str(members[0][0]), 'member': members[0][1]}
+    return None, {'status': 'MISSING' if not members else 'AMBIGUOUS_ZIP',
+                  'archives_searched': [str(p) for p in sorted(zip_paths)],
+                  'members': [str(p) + ':' + name for p, name in members], 'notes': notes}
 
 
 def main():
@@ -76,7 +112,9 @@ def main():
     events = read_events(args.met_log)
     with STAGE80.open(encoding='utf-8-sig', newline='') as f:
         selections = {r['site']: r for r in csv.DictReader(f, delimiter='\t')}
+    errors = []; missing_era = []
     for site in SITES:
+      try:
         chosen = distinct_events(events[site]['largest_jumps'])
         wanted = set()
         for stamp, _ in chosen:
@@ -84,11 +122,13 @@ def main():
                 wanted.add((stamp + timedelta(minutes=minutes)).strftime('%Y-%m-%d %H:%M:%S'))
         row = selections[site]; selected = Path(row['selected_source'])
         if sha(selected) != row['selected_sha256']: raise ValueError(site + ': selected forcing checksum mismatch')
-        fluxmet, era = one_raw(site, 'FLUXMET_HH'), one_raw(site, 'ERA5_HH')
+        fluxmet, flux_info = sources(site, 'FLUXMET_HH')
+        era, era_info = sources(site, 'ERA5_HH')
+        if era is None: missing_era.append(site)
         chosen_data = read_subset(selected, 'time', wanted, ('TA_USE', 'VPD_USE', 'TBOT', 'QBOT', 'PSRF'))
         tower_data = read_subset(fluxmet, 'TIMESTAMP_START', wanted,
-            ('TA_F', 'TA_F_QC', 'VPD_F', 'VPD_F_QC', 'SW_IN_F', 'SW_IN_F_QC'), compact=True)
-        era_data = read_subset(era, 'TIMESTAMP_START', wanted, ('TA_ERA', 'VPD_ERA', 'SW_IN_ERA'), compact=True)
+            ('TA_F', 'TA_F_QC', 'VPD_F', 'VPD_F_QC', 'SW_IN_F', 'SW_IN_F_QC'), compact=True) if fluxmet else {}
+        era_data = read_subset(era, 'TIMESTAMP_START', wanted, ('TA_ERA', 'VPD_ERA', 'SW_IN_ERA'), compact=True) if era else {}
         out = []
         for stamp, event in chosen:
             frames = []
@@ -99,10 +139,15 @@ def main():
             out.append({'event': {k: event[k] for k in ('left_local', 'right_local', 'left_final_C', 'right_final_C', 'difference_C')},
                         'context': frames})
         print('TEMPERATURE CONTEXT', json.dumps({'site': site, 'max_rh_pct': events[site]['max_rh_pct'],
-            'stage80_selected_sha256': row['selected_sha256'], 'fluxmet_file': fluxmet.name,
-            'era_companion_file': era.name, 'events': out}, sort_keys=True), flush=True)
+            'stage80_selected_sha256': row['selected_sha256'], 'fluxmet_source': flux_info,
+            'era_companion_source': era_info, 'events': out}, sort_keys=True), flush=True)
+      except Exception as e:
+        errors.append(site)
+        print('TEMPERATURE CONTEXT ERROR', site, type(e).__name__ + ':', str(e), flush=True)
+    print('SUMMARY:', json.dumps({'site_errors': errors, 'era_unavailable_or_ambiguous': missing_era}), flush=True)
     print('DONE: all timestamps are source local labels; no modifications, model runs or Slurm jobs.')
+    return int(bool(errors))
 
 
-if __name__ == '__main__': main()
+if __name__ == '__main__': raise SystemExit(main())
 
