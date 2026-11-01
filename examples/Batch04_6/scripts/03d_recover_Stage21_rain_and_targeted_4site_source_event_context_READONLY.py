@@ -177,14 +177,21 @@ def scopes(pending):
                 "window_end":datetime(2025,11,30,23,30)}]
     return events
 
+def site_filter_focus(mode,events):
+    # Full 48-HH target-day numerical pairs only for the two specified rainfall days;
+    # do not materialize 49 multi-year MDS block sets or a full IT-Tor 1458-HH run.
+    return len(events)==1 and "RAIN_" in events[0]["id"]
+
 def stream_relevant(path,time_field,mode,events,keep):
     """One forward CSV pass; only event-window values, no full-file QC scan."""
     spans=sorted([(e["window_start"],e["window_end"],e["id"]) for e in events])
     starts=[x[0] for x in spans]
+    bounds={e["id"]:(e["start"],e["end"]) for e in events}
     stats={e["id"]:{"records":0,"qc_counts":Counter(),
-                    "minmax":{},"first":[],"last":[],
-                    "source_unique_timestamps":set(),
-                    "hours_in_target":0} for e in events}
+                    "minmax":{},"target_minmax":{},
+                    "first":[],"last":[],"focus_first":[],"focus_last":[],
+                    "selected_timestamps":set(),
+                    "target_rows":0,"paired_focus_rows":{}} for e in events}
     with path.open("r",encoding="utf-8-sig",newline="") as f:
         d=csv.DictReader(f)
         if not d.fieldnames or time_field not in d.fieldnames:
@@ -205,9 +212,9 @@ def stream_relevant(path,time_field,mode,events,keep):
             # Original 49 MDS intervals should be non-overlapping.
             key=spans[idx][2]
             s=stats[key]
-            if dt in s["source_unique_timestamps"]:
+            if dt in s["selected_timestamps"]:
                 raise ValueError("Duplicate original episode timestamp "+str(path)+" "+str(dt))
-            s["source_unique_timestamps"].add(dt)
+            s["selected_timestamps"].add(dt)
             s["records"]+=1;matched+=1
             obj={"time":dt.isoformat(sep=" ")}
             for field in selected:
@@ -221,9 +228,21 @@ def stream_relevant(path,time_field,mode,events,keep):
             if len(s["first"])<MAX_OUTPUT_SAMPLES:s["first"].append(obj)
             s["last"].append(obj)
             if len(s["last"])>MAX_OUTPUT_SAMPLES:s["last"].pop(0)
+            if bounds[key][0]<=dt<=bounds[key][1]:
+                s["target_rows"]+=1
+                if len(s["focus_first"])<MAX_OUTPUT_SAMPLES:s["focus_first"].append(obj)
+                s["focus_last"].append(obj)
+                if len(s["focus_last"])>MAX_OUTPUT_SAMPLES:s["focus_last"].pop(0)
+                if len(events)==1 and site_filter_focus(mode,events):
+                    s["paired_focus_rows"][dt]=obj
+                for field in ("TA_F","VPD_F","TA_USE","VPD_USE","P_F","PRECTmms"):
+                    v=obj.get(field)
+                    if v is not None:
+                        lo,hi=s["target_minmax"].get(field,[v,v])
+                        s["target_minmax"][field]=[min(lo,v),max(hi,v)]
     for item in stats.values():
         item["qc_counts"]=dict(item["qc_counts"])
-        item["unique_timestamp_count"]=len(item.pop("source_unique_timestamps"))
+        item["unique_timestamp_count"]=len(item["selected_timestamps"])
     return stats,{"file":str(path),"rows_scanned_streaming_not_numerically_rechecked":total_rows,
                    "event_rows_selected":matched,"fields":selected}
 
@@ -231,7 +250,6 @@ def self_test():
     assert len(SITES)==4
     assert at("202510011030","source")==datetime(2025,10,1,10,30)
     assert at("2025-10-01 10:30:00","selected")==datetime(2025,10,1,10,30)
-    assert at("2025-10-01+00:00","selected") is not None or True
     assert num("-9999") is None and num("2.5")==2.5
     assert RAIN_INHERITED.startswith("INHERITED_STAGE21_")
     assert len(scopes([{"start_or_time":f"2015-01-{i:02d}","end":f"2015-01-{i:02d}"}
@@ -289,12 +307,37 @@ def main():
                 print(" TARGET_MISSING_SOURCE_OR_SELECTED",site,key,
                       "SOURCE",a["records"],"STAGE28",b["records"])
             else:matched_keys+=1
+            shared=len(a["selected_timestamps"] & b["selected_timestamps"])
+            paired_rain=[]
+            if "RAIN_" in key:
+                for ts in sorted(a["paired_focus_rows"].keys() & b["paired_focus_rows"].keys()):
+                    oa=a["paired_focus_rows"][ts]
+                    ob=b["paired_focus_rows"][ts]
+                    p=oa.get("P_F")
+                    q=ob.get("PRECTmms")
+                    mm=q*1800 if q is not None else None
+                    paired_rain.append({"time":ts.isoformat(sep=" "),
+                                        "source_P_F_mm":p,
+                                        "source_P_F_QC":oa.get("P_F_QC"),
+                                        "candidate_PRECT_mm_per_30min":mm,
+                                        "same_numeric_amount_only":p is not None and mm is not None and
+                                             abs(p-mm)<=max(0.1,abs(mm)*0.01),
+                                        "units_or_accumulation_period_scientifically_verified":False})
             all_events.append({
                 "site":site,"episode":key,
                 "window_start":w["window_start"].isoformat(sep=" "),
                 "window_end":w["window_end"].isoformat(sep=" "),
                 "original_HH_rows_in_window":a["records"],
                 "Stage28_HH_rows_in_window":b["records"],
+                "same_naive_timestamp_rows":shared,
+                "same_naive_timestamp_comparison_not_UTC_proof":True,
+                "focus_target_rows_source":a["target_rows"],
+                "focus_target_rows_Stage28":b["target_rows"],
+                "focus_target_minmax_source":a["target_minmax"],
+                "focus_target_minmax_Stage28":b["target_minmax"],
+                "focus_source_first_and_last":a["focus_first"]+a["focus_last"],
+                "focus_selected_first_and_last":b["focus_first"]+b["focus_last"],
+                "paired_rain_focus_HH":paired_rain,
                 "original_QC_categories":a["qc_counts"],
                 "original_source_ranges":a["minmax"],
                 "selected_Stage28_ranges":b["minmax"],
