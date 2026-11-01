@@ -43,7 +43,7 @@ MAX_META_HEAD=65536
 MAX_BYTES_FOR_ZIP=2_000_000_000
 MAX_RECORD_FIELDS=140
 SKIP={".git",".cache","__pycache__","node_modules","case","cases",
-      "archive","logs","run","build","bld","subset_data"}
+      "logs","run","build","bld","subset_data"}
 MET=re.compile(r"(?:^|[_./-])(FLUXMET|FLUXNET|ONEFLUX|ICOS|EUF|ERA5|ERA|BASE|BADM|BIF|HH|HALFHOURLY|MET|METEO|FORCING|QC)(?:[_./-]|$)",re.I)
 FIELD=re.compile(r"(?i)(?:^|_)(?:RH|VPD|TA|T_AIR|PA|PRECIP|P|P_F|P_RAIN|SW_IN|LW_IN|WS|USTAR|TIMESTAMP|TIME|DATE|QC)(?:_|$)|_QC$|_ERA$")
 TIME=re.compile(r"(?i)TIMESTAMP|^TIME$|^DATE$|DATE_TIME|DATETIME")
