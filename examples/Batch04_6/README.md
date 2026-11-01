@@ -325,7 +325,26 @@ python3 -B "$SCRIPT" --stage02n "$N" --stage02m "$M" --out-dir "$NEW_EMPTY_DIR"
 
 The science HOLD remains on all six sites; the four less complex DE-Gri/DE-RuR/IT-Tor/ES-Agu do not need a Stage02D rerun and can proceed to independent source/active-CIME/PFT/soil preflight in parallel. GL-ZaH retains its mandatory private Arctic FATES mapping requirement. Do not start AD5/AD400 without per-site release.
 
-## Stage02P: full native-source forcing / soil / PFT science release (future)
+## Stage02O actual IRIDIS6 result — 20/20 unexplained RH source conflicts
+
+[Stage02O operator evidence](docs/stage02o_operator_IRIDIS6_result_20261101.md) confirms the selected 20 highest-QBOT-disagreement events all have **processed VPD-derived RH below 10%**, and their old-source RH differs from both ledger ERA5 and ERA5-Land RH by **>=50 percentage points**. There are six original-ledger neighboring RH jumps >=40pp and one explicit source seam (E009 on 2007-05-17). All 20 cases are `REVIEW_FIRST`, **0 have independently confirmed native sensor RH/QC**, and no original Stage34/38/42 exploratory revision is scientifically approved. This selection is not representative of site-wide abnormal observation prevalence.
+
+## Stage02P — locate unfilled tower observation sources before further forcing decisions
+
+[Stage02P read-only CH-Aws site-source finder](scripts/02p_CH_Aws_native_tower_source_availability_readonly.py) consumes the exact saved Stage02O JSON and inventories **only the CH-Aws site folder**: `/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/CH-Aws`. It lists plausible original tower sensor/raw/processed product filenames, CSV header columns indicating RH/TA/QC/VPD, lightweight JSON provenance/metadata references, and ZIP/TAR archive member **names only**. Existing annual DATM model NC files are excluded from native-source candidate output; `raw/...FLUXMET_HH` is classified as **processed**, never original instrument QC. Source-search limits and truncation flags are included, so a missing sensor file under this one root does **not** demonstrate nonexistence elsewhere.
+
+Run after downloading the immutable merged-commit script and checking exact `git hash-object`:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02o "$HOME/ICOS_Batch04_stage02o_hLF8GLFP/results/stage02o_CH_Aws_20_event_risk_triage.json" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+Outputs `stage02p_CH_Aws_native_source_availability.json` and `stage02p_CH_Aws_source_file_headers.csv` exclusively into the standalone new empty HOME directory, without editing any source, CIME, Git tree or Slurm jobs. Further event-level native tower RH/TA/QC and independently grounded ERA5 source checks require positive source discovery and provenance; **all six Batch04 stations remain science HOLD**, no AD5/AD400 submissions.
+
+## Stage02Q: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
