@@ -344,7 +344,28 @@ python3 -B "$SCRIPT" \
 
 Outputs `stage02p_CH_Aws_native_source_availability.json` and `stage02p_CH_Aws_source_file_headers.csv` exclusively into the standalone new empty HOME directory, without editing any source, CIME, Git tree or Slurm jobs. Further event-level native tower RH/TA/QC and independently grounded ERA5 source checks require positive source discovery and provenance; **all six Batch04 stations remain science HOLD**, no AD5/AD400 submissions.
 
-## Stage02Q: full native-source forcing / soil / PFT science release (future)
+## Stage02P actual result — no independently identified native RH/QC inside CH-Aws site tree
+
+[Actual source-pinned Stage02P output (1 November 2026)](docs/stage02p_operator_IRIDIS6_result_20261101.md) scanned 169 files, `TRUNCATED False`, under the CH-Aws site tree, including 72 annual model DATM files, four processed-multisource source candidates and their metadata, original distributed EUF BIF/BIFVARINFO and processed FLUXMET_HH, plus the Stage21/25/34/38/42 humidity revision evidence. **No independently identified unfilled native tower RH/QC file** was detected in that bounded site root. This is **not evidence that genuine sensor data do not exist elsewhere**. The key time-provenance finding is the original Stage21/25 ledger field `time_local_standard_UTCplus1`, contrasting with original FLUXMET `TIMESTAMP_START`/`TIMESTAMP_END` and later revision ledgers' generic `time` field.
+
+## Stage02Q — historical UTC+1 ledger/source metadata discovery
+
+[Stage02Q read-only tool](scripts/02q_CH_Aws_original_BIF_localtime_and_native_source_search_readonly.py) accepts the **saved Stage02P and Stage02O JSONs** and independently opens the original EUF `BIF`, `BIFVARINFO_HH`, Stage21 and Stage25 revision-ledger CSV files from paths pinned in Stage02P. For all 20 high-contrast DATM event labels, it records literal Stage21/25 local-standard-time matches at 0, ±30, and ±60 minutes, **without assuming UTC or selecting a clock conversion**, plus relevant source metadata rows. An optional `--extra-root "$HOME"` conducts only a 3-level, 15,000-file bounded **filename-only** look for CH-Aws/Weissenstein candidate source packages outside the site tree; it follows no symlinks and does not imply a comprehensive archive inventory. This stage does not read the full 372 MB FLUXMET file or alter sources.
+
+Example after source/hash verification:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02p "$HOME/ICOS_Batch04_stage02p_D6TUjQg7/results/stage02p_CH_Aws_native_source_availability.json" \
+  --stage02o "$HOME/ICOS_Batch04_stage02o_hLF8GLFP/results/stage02o_CH_Aws_20_event_risk_triage.json" \
+  --extra-root "$HOME" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+Reports: `stage02q_CH_Aws_clock_and_source_provenance.json` and `stage02q_CH_Aws_stage21_25_time_hypotheses.csv`. **No source QC/time approval, no forcing revision, no AD5/AD400 or Slurm submission**. While CH-Aws native humidity provenance is blocked, parallel read-only stream/PFT/soil scientific preflights can proceed for DE-Gri, DE-RuR, IT-Tor and ES-Agu; GL-ZaH needs a private Arctic shrub map.
+
+## Stage02R: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
