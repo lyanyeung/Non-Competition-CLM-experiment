@@ -244,7 +244,8 @@ def self_test():
     nn,cols,xx=scan_reader(csv.DictReader(io.StringIO(mini)),toy)
     assert nn==2 and len(cols)==5
     assert xx[("E001","TIMESTAMP_START",0)][0]["VPD_ERA"]=="2.1"
-    assert xx[("E001","TIMESTAMP_END",0)]==[] if False else True
+    assert ("E001","TIMESTAMP_END",0) not in xx
+    assert xx[("E001","TIMESTAMP_END",30)][0]["VPD_ERA"]=="2.1"
     events=[]
     matches={}
     for k in range(20):
