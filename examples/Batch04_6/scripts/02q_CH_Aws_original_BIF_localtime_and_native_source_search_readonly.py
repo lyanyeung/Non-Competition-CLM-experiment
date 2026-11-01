@@ -20,6 +20,7 @@ import collections
 import csv
 import datetime as dt
 import json
+import io
 import os
 import re
 from pathlib import Path
@@ -37,7 +38,9 @@ METADATA_KEYWORDS=("rh","vpd","ta","humidity","sensor","instrument",
                    "pressure","timezone","time_zone","utc","qc","source",
                    "height","latitude","longitude","elev","gapfill")
 MAX_META_FILE=2_000_000
-MAX_META_ROWS=5000
+MAX_LEDGER_ROWS=25000
+MAX_METADATA_SCAN_ROWS=100000
+MAX_METADATA_EXAMPLES=80
 MAX_ROW_MATCHES=240
 MAX_SEARCH_FILES=15000
 MAX_SEARCH_DEPTH=3
@@ -115,31 +118,94 @@ def pinned_paths(manifest):
 
 
 def read_csv(path):
+    """Small, bounded original Stage21/25 revision ledgers ONLY."""
     with path.open("r",newline="",encoding="utf-8-sig",errors="replace") as f:
         reader=csv.DictReader(f)
         headers=reader.fieldnames
-        if not headers:raise ValueError("No CSV metadata/ledger header")
+        if not headers:
+            raise ValueError("No Stage21/25 ledger CSV header")
         out=[]
         for i,row in enumerate(reader):
-            if i>=MAX_META_ROWS:raise ValueError("Unexpected >5000-row bounded metadata file")
-            if None in row:raise ValueError("Malformed CSV row/extra columns in "+str(path))
+            if i>=MAX_LEDGER_ROWS:
+                raise ValueError("Stage21/25 ledger unexpectedly exceeds 25000 rows")
+            if None in row:
+                raise ValueError("Malformed ledger CSV row/extra columns in "+str(path))
             out.append({str(k):str(v) if v is not None else "" for k,v in row.items()})
     return list(headers),out
 
 
+# Exact variable tokens avoid accidentally treating 'data', 'metadata' or 'station'
+# as TA/RH evidence. Grouped deterministic examples retain late rows for RH,
+# VPD, time/QC and instrument provenance even in a 5000+ row BIF file.
+_META_GROUP_RE = (
+    ("RH", re.compile(r"(?i)(?<![A-Za-z0-9])(?:RH(?:_[A-Za-z0-9]+)*|RELATIVE[_ ]?HUMIDITY|HUMIDITY)(?![A-Za-z0-9])")),
+    ("VPD", re.compile(r"(?i)(?<![A-Za-z0-9])VPD(?:_[A-Za-z0-9]+)*(?![A-Za-z0-9])")),
+    ("TIME", re.compile(r"(?i)(?:TIMESTAMP|TIME[_ -]?ZONE|UTC[+-]?\d*|LOCAL[_ -]?TIME|TIME[_ -]?OFFSET)")),
+    ("QC", re.compile(r"(?i)(?:QC(?:[_ -]|$)|QUALITY[_ -]?(?:CONTROL|FLAG)|GAP[_ -]?FILL|MDS)")),
+    ("INSTRUMENT", re.compile(r"(?i)(?:SENSOR|INSTRUMENT|MEASUREMENT[_ -]?HEIGHT|TOWER|LOGGER|SOURCE)")),
+    ("TA_PA", re.compile(r"(?i)(?<![A-Za-z0-9])(?:TA|PA|PRESSURE|TEMPERATURE)(?:_[A-Za-z0-9]+)*(?![A-Za-z0-9])")),
+    ("OTHER", re.compile(r"(?i)(?:ELEVATION|ALTITUDE|LATITUDE|LONGITUDE|REANALYSIS|ERA5|ERA5-LAND)")),
+)
+
+
+def scan_metadata_reader(reader):
+    """Stream BIF/BIFVARINFO without a 5000-row ceiling or full-file materialization.
+
+    The source file is already size-bounded at 2 MB by pinned_paths. Full row
+    counts and per-theme relevant counts are retained, while only <=80 examples
+    are kept in memory for source/QC provenance inspection.
+    """
+    headers=reader.fieldnames
+    if not headers:
+        raise ValueError("Original BIF metadata has no CSV header")
+    groups={name:[] for name,_ in _META_GROUP_RE}
+    counts=collections.Counter()
+    total=0
+    relevant=0
+    for idx,row in enumerate(reader,2):
+        total+=1
+        if total>MAX_METADATA_SCAN_ROWS:
+            raise ValueError("Original BIF metadata exceeds bounded 100000 rows")
+        if None in row:
+            raise ValueError("Malformed original BIF metadata CSV row")
+        r={str(k):str(v) if v is not None else "" for k,v in row.items()}
+        evidence=" ".join(r.values())
+        matched=next((name for name,regex in _META_GROUP_RE
+                      if regex.search(evidence)), None)
+        if matched is not None:
+            relevant+=1
+            counts[matched]+=1
+            # Per-topic slots prevent RH/VPD rows late in a long BIF file
+            # from being hidden by the earliest generic metadata entries.
+            if len(groups[matched])<10:
+                groups[matched].append({"row":idx,"fields":r,"matched_topic":matched})
+    selected=sorted(
+        (sample for entries in groups.values() for sample in entries),
+        key=lambda x:x["row"]
+    )[:MAX_METADATA_EXAMPLES]
+    return {
+        "headers":list(headers),"rows_total":total,
+        "relevant_rows_total":relevant,
+        "relevant_rows_examples":selected,
+        "relevant_topic_counts":dict(counts),
+        "example_limit":MAX_METADATA_EXAMPLES,
+        "metadata_scan_complete":True,
+        "metadata_sampling":"first <=10 rows per RH/VPD/TIME/QC/INSTRUMENT/TA_PA/OTHER topic, <=80 total",
+    }
+
+
 def describe_metadata(label,path):
-    headers,rows=read_csv(path)
-    selected=[]
-    for idx,r in enumerate(rows,2):
-        evidence=" ".join(str(v) for v in r.values()).lower()
-        if any(word in evidence for word in METADATA_KEYWORDS):
-            selected.append({"row":idx,"fields":r})
-    return {"path":str(path),"source_kind":"FLUXNET_DISTRIBUTED_PRODUCT_METADATA_NOT_NATIVE_QC",
-            "headers":headers,"rows_total":len(rows),
-            "relevant_rows_total":len(selected),
-            "relevant_rows_examples":selected[:80],
-            "metadata_QC_semantics_validated":False,
-            "source_clock_validated":False}
+    # Original BIF files may legitimately contain >5000 rows despite being
+    # only 75–250 KB. Scan each CSV record without retaining all rows.
+    with path.open("r",newline="",encoding="utf-8-sig",errors="replace") as f:
+        result=scan_metadata_reader(csv.DictReader(f))
+    return {
+        "path":str(path),
+        "source_kind":"FLUXNET_DISTRIBUTED_PRODUCT_METADATA_NOT_NATIVE_QC",
+        **result,
+        "metadata_QC_semantics_validated":False,
+        "source_clock_validated":False,
+    }
 
 
 def match_legacy(label,path,anchors):
@@ -244,7 +310,18 @@ def self_test():
     assert parse_timestamp("2007-07-22 07:30:00")==dt.datetime(2007,7,22,7,30)
     assert parse_timestamp("200707220730")==dt.datetime(2007,7,22,7,30)
     assert parse_timestamp("bad") is None
-    print("STAGE02Q SELF-TEST PASS: 20 science HOLD events, pinned source contract, independent clock parsing; NO WRITES")
+    # Regression for the real BIF failure: source metadata can legitimately
+    # exceed 5000 CSV rows; late humidity provenance must remain discoverable.
+    content="VARIABLE,DESCRIPTION\n"+("GENERIC,ordinary note\n"*6001)+\
+        "RH,relative humidity sensor metadata\n"+\
+        "VPD_F,processed gapfill QC metadata\n"
+    sample=scan_metadata_reader(csv.DictReader(io.StringIO(content)))
+    assert sample["rows_total"]==6003
+    assert sample["metadata_scan_complete"] is True
+    assert sample["relevant_topic_counts"].get("RH",0)>=1
+    assert sample["relevant_topic_counts"].get("VPD",0)>=1
+    assert any(x["row"]>5000 for x in sample["relevant_rows_examples"])
+    print("STAGE02Q SELF-TEST PASS: 6003-row BIF streaming, late RH/VPD samples, 20 source HOLD events; NO WRITES")
 
 
 def main():
@@ -276,10 +353,17 @@ def main():
     for label,info in meta.items():
         print("METADATA",label,"ROWS",info["rows_total"],
               "MATCHING_KEYWORD_ROWS",info["relevant_rows_total"],
+              "TOPICS",json.dumps(info["relevant_topic_counts"],sort_keys=True),
+              "COMPLETE",info["metadata_scan_complete"],
               "HEADERS",",".join(info["headers"][:25]))
-        for example in info["relevant_rows_examples"][:12]:
-            print(" META_EXCERPT",label,"ROW",example["row"],
-                  "VALUES",json.dumps(example["fields"],ensure_ascii=False)[:650])
+        # Surface RH/VPD, QC and time metadata even when they appear late
+        # in a long BIF/BIFVARINFO file; do not rely on file-order first 12.
+        for topic in ("RH","VPD","TIME","QC","INSTRUMENT","TA_PA","OTHER"):
+            samples=[x for x in info["relevant_rows_examples"]
+                     if x["matched_topic"]==topic][:2]
+            for example in samples:
+                print(" META_EXCERPT",label,"TOPIC",topic,"ROW",example["row"],
+                      "VALUES",json.dumps(example["fields"],ensure_ascii=False)[:900])
     for label,info in ledgers.items():
         print("LEDGER",label,"ROWS",info["original_rows"],
               "TIME_COLUMN",info["ledger_clock_column"],
