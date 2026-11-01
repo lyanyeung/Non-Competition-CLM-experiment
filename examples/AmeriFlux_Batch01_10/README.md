@@ -60,6 +60,37 @@ The other two required manifest inputs existed in the same operator check:
 Stage54 must remain detached from active cases; passing it is not an
 authorization to launch AD400 for CA-Cbo, CA-Man, or US-Aud.
 
+### Stage54 detached CA-Cbo / US-Aud merger — operator-confirmed 1 Nov 2026, 22:39 UK
+
+The operator ran `54_approved_q1_and_cbo_login.sh` using pinned GitHub
+commit `dec30ebbc0530a723b53f674d6fabd7e63a0181a`, with
+`JOINT=/iridisfs/home/ly3n24/CLM_FATES_PLOTS/approved_cbo_caman.b5Ve5c8S/result/manifest.json`.
+The command returned **COMPLETE** and explicitly stated that NO original input,
+case, or Slurm job was modified.
+
+- New **detached** manifest:
+  `/iridisfs/home/ly3n24/CLM_FATES_PLOTS/approved_q1_cbo.QeDyqeSz/result/manifest.json`.
+- **CA-Cbo 2018**: 5 unique half-hour changes in the final candidate, combining
+  2018-06-28 with the July ID02/03/04 approved edits. The successful output
+  reported `CA-CBO MERGED 5 records`.
+- **US-Aud 2019**: 3 total half-hour changes in the merged 2019 candidate,
+  including 2 newly approved adjacent Q1 source timestamps
+  (2019-04-04 14:30 and 15:30 local).
+- **US-Aud 2023**: 6 total half-hour changes in the merged 2023 candidate,
+  including 4 newly approved adjacent Q1 timestamps
+  (2023-04-30 16:00, 16:30; 2023-12-18 18:30, 19:00 local).
+  NOAA USCRN AZ Elgin 5 S subhourly source and the fixed 2019/2023
+  annual SHA256 checks passed. The NOAA readings are nearby-station proxy
+  observations, not measurements at the flux tower.
+- **CA-Man** candidates remain in the Stage51 result; Stage54 does not
+  consolidate them with 1994 and 2007 itself. A multi-source per-year audit is
+  needed before discussing replacement of Stage23 inputs.
+
+**NEXT:** read-only candidate coverage/source fingerprint/changed-index audit
+for the three sites, preserving the original Stage23 inputs. Several flagged
+temperature events and potential QC0 replacements remain scientifically
+unresolved; `COMPLETE` does not authorize an AD400 case or submission.
+
 ### Reproducible Stage45/Stage55 Normal400 operation
 
 The original `45_prepare_six_normal400.py` was incompatible with Stage36's
