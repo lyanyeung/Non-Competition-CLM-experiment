@@ -310,7 +310,22 @@ After Stage02N, determine whether original measured `RH` or another independentl
 
 **Priorities:** (1) CH-Aws verify original unfilled tower humidity and QC, independent ERA reference/height/clock, then science-review repair versions; (2) run read-only final original meteorology/active DATM stream/soil/PFT checks in parallel for DE-Gri, DE-RuR, IT-Tor, ES-Agu; (3) separate private site-only Arctic FATES map for GL-ZaH plus soil/point QC. All six sites remain **HOLD**, and no AD5/AD400, file editing or Slurm submission is authorised.
 
-## Stage02O: full native-source forcing / soil / PFT science release (future)
+## Stage02O — continue CH-Aws source RH/ERA scientific screening (1 November 2026)
+
+The [read-only Stage02O script](scripts/02o_CH_Aws_RH_source_ERA_20event_triage_readonly.py) and [operator scope/limitations](docs/stage02o_scope_and_operator_INSTRUCTIONS_20261101.md) are the controlled next step after the original three Stage34/38/42 revision ledger files and 20 exact event rows were SHA/time verified by Stage02N. It consumes only the original saved Stage02N and Stage02M JSON reports, never modifies any site files, and computes per-event implied low RH, ERA5/ERA5-Land humidity differences, original recorded neighbor jumps, source seams and unresolved QC flags. `REVIEW_FIRST` is a diagnostic review priority, not approval to use ERA data or alter a forcing version.
+
+Input sources:
+
+~~~bash
+N="$HOME/ICOS_Batch04_stage02n_sfazK8sU/results/stage02n_CH_Aws_original_ledger_QC_provenance.json"
+M="$HOME/ICOS_Batch04_stage02m_WIktbwfu/results/stage02m_ERA_gapfill_revision_evidence.json"
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" --stage02n "$N" --stage02m "$M" --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+The science HOLD remains on all six sites; the four less complex DE-Gri/DE-RuR/IT-Tor/ES-Agu do not need a Stage02D rerun and can proceed to independent source/active-CIME/PFT/soil preflight in parallel. GL-ZaH retains its mandatory private Arctic FATES mapping requirement. Do not start AD5/AD400 without per-site release.
+
+## Stage02P: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
