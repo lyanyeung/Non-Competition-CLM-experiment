@@ -1,4 +1,65 @@
-# AmeriFlux Batch01 — fixed biogeography + no competition, AD400 → Normal400 (planning)
+# AmeriFlux Batch01 — fixed biogeography + no competition, AD400 → Normal400
+
+## Latest user-confirmed IRIDIS6 progress — 1 November 2026 (UK)
+
+This is the **AmeriFlux Batch01** cohort, not the European/ICOS `Batch01_10` cohort.
+The following records are grounded in the operator's actual Stage21/Stage45 and
+Slurm outputs; a submitted ledger alone is **not** proof of terminal completion.
+
+- **BR-Ma2, CA-Ca3, CA-LP1, CA-TP4:** their AD and Normal archive restart
+  directories reached the expected Y+400 and Y+800 checkpoints, and their
+  Stage21 status showed no jobs queued. Formal final `audit-normal400` may
+  still be performed independently.
+- **CA-TP1:** AD400 passed strict audit: 80 run segments, 80 archives, restart
+  `2402-01-01-00000`, `spinup_state=2`. Normal hybrid staging validated
+  successfully after a source-type compatibility fix; Normal400 submitted
+  2026-11-01 with first run job **4799483** and archive job **4799484**
+  (`RESUBMIT=79`, expected end 2802). Both were **PENDING** at the last
+  recorded `sacct` check; no claim of Normal completion.
+- **CA-TP3:** AD400 strict audit PASS (80/80; 2402; state 2); Normal400
+  `PREPARED_NOT_SUBMITTED` after successful hybrid validation, target 2802.
+- **US-Bar:** AD400 strict audit PASS (80/80; 2404; state 2); Normal400
+  `PREPARED_NOT_SUBMITTED`, target 2804. The AD forcing contains an approved
+  **provisional** 2015 sensitivity replacement with other meteorological
+  science caveats outstanding. Technical AD success does not resolve those.
+- **CA-Cbo, CA-Man, US-Aud:** quality-control work is still on detached
+  meteorological forcing candidates; no evidence that these three have
+  undergone AD400 production submission. Scripts
+  [51](scripts/51_user_approved_cbo_caman_login.sh) and
+  [54](scripts/54_approved_q1_and_cbo_login.sh) use source-pinned, approved
+  inputs and only create separate candidate NetCDF/manifest outputs. Never
+  substitute them into a live case without a distinct science and input gate.
+
+### Reproducible Stage45/Stage55 Normal400 operation
+
+The original `45_prepare_six_normal400.py` was incompatible with Stage36's
+string-valued restart triplet; `lane.stage_normal_one` requires
+`pathlib.Path` values. It now explicitly converts the three restart paths
+before creating a Normal case. The failed CA-TP1 stage was guarded
+(`STAGE_ATTEMPTED_UNCERTAIN`), confirmed to have no Slurm history, and
+quarantined under
+`Stage45_six_NORMAL400/quarantine_interrupted_stage/CA-TP1_20261101T202159Z`.
+CA-TP1, CA-TP3 and US-Bar subsequently passed Normal hybrid validations
+without changing their source AD cases.
+
+The Stage45 `prepare` action sets `RESUBMIT=79` before submission, whereas
+the original Lane A `validate_normal` expects the pre-submit baseline value
+`RESUBMIT=0`. The new
+[guarded Stage55 submit helper](scripts/55_six_normal400_submit_guarded.py)
+pins the original Lane A Git blob
+`c461a85feef163830316c71410c1c3fd2c4d859e` and changes only this
+expectation **in memory**, preserving the original code and case settings.
+Run its `self-test` and `check` first; `submit` requires
+`--confirm SUBMIT_AMF_B01_STAGE45_NORMAL400_ONCE`, explicit `--sites`, and
+additionally `--ack-provisional-usbar` if submitting US-Bar.
+The submitted job/ledger check is one-time and refuses duplicates. Run with
+`ulimit -s unlimited` to propagate the required stack limit.
+
+**Safety:** never re-run prepare or submit after an uncertain/interrupted
+attempt. Inspect ledger, CaseStatus, `squeue`, and `sacct` before recovery.
+Stage55 should be used only with its source-pinned Stage21 helper toolset and
+the intended Stage23 inputs.
+
 
 ## Status, 24 October 2026
 
