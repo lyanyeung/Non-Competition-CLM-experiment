@@ -30,6 +30,36 @@ Slurm outputs; a submitted ledger alone is **not** proof of terminal completion.
   inputs and only create separate candidate NetCDF/manifest outputs. Never
   substitute them into a live case without a distinct science and input gate.
 
+### Stage51 approved detached Met candidates — operator-confirmed 1 Nov 2026, 21:36 UK
+
+Operator re-ran `51_user_approved_cbo_caman_login.sh` from commit
+`dec30ebbc0530a723b53f674d6fabd7e63a0181a`, with original-approved
+manifest and review files present. Stage51 returned **COMPLETE** for:
+
+- Detached result manifest:
+  `/iridisfs/home/ly3n24/CLM_FATES_PLOTS/approved_cbo_caman.b5Ve5c8S/result/manifest.json`
+- CA-Cbo: the 2018 July ID02/03/04 merged candidate; ID04 two locally
+  indexed half-hours at 2018-07-18 16:00 and 16:30 have accepted linear
+  interpolation candidates with full TBOT/QBOT/SHUM/RH consistency checks.
+- CA-Man: 2005 ID11/12 (45 half-hours, local
+  2004-12-31 18:00 through 2005-01-01 16:00, supplied ERA5 T/VPD) and
+  separate linked 2007 ID13+14 joint candidate. Importantly the 2005
+  source TA_QC is 0 at some altered records and the ERA replacement differs
+  sharply from original tower temperature; this remains a *sensitivity*
+  choice and merits scientific discussion before case activation.
+- `NO MODEL CASE OR SLURM JOB MODIFIED`, per operator log.
+  Do not repeat Stage51 merely to advance workflow, since the result already
+  exists.
+
+**Next step:** Stage54 with
+`JOINT=/iridisfs/home/ly3n24/CLM_FATES_PLOTS/approved_cbo_caman.b5Ve5c8S/result/manifest.json`
+to merge the June CA-Cbo candidate and six selected US-Aud NOAA Q1 records.
+The other two required manifest inputs existed in the same operator check:
+`approved_met_candidates.TVqWqlLi/result/manifest.json` and
+`four_met_candidates.3j2pvGeO/result/manifest.json`.
+Stage54 must remain detached from active cases; passing it is not an
+authorization to launch AD400 for CA-Cbo, CA-Man, or US-Aud.
+
 ### Reproducible Stage45/Stage55 Normal400 operation
 
 The original `45_prepare_six_normal400.py` was incompatible with Stage36's
