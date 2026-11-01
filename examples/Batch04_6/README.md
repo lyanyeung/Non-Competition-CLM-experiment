@@ -408,7 +408,27 @@ python3 -B "$SCRIPT" \
 
 Only new JSON/CSV in a standalone empty HOME directory; the large FLUXMET product is **not** reread, no source changes/Slurm. All six Batch04 site science releases remain HOLD, including CH-Aws native tower RH/ERA/clock and GL-ZaH site-only Arctic map. Do not submit AD5/AD400 until independent station-specific science gates pass.
 
-## Stage02T: full native-source forcing / soil / PFT science release (future)
+## Stage02S complete: original EUF_ERA5_HH is missing at the recorded path
+
+[Operator Stage02S actual result, 1 Nov 2026](docs/stage02s_operator_IRIDIS6_missing_original_ERA5_20261101.md): source-pinned code and self-test PASS, but Stage03's expected `EUF_CH-Aws_FLUXNET_ERA5_HH_1981-2025_v1.3_r2.csv` was **not present at its recorded original-distribution path**. The script correctly reported `MISSING_ORIGINAL_DISTRIBUTED_ERA5_HH_INPUT`, `SOURCE_HOLD`, **0 rows scanned / 0 comparisons**. There is **no new clock evidence or invalid meteorological measurement** from that test. The processed FLUXMET source still contains ERA-derived fields; they are not independent original sensor RH.
+
+## Stage02T: search exact original ERA5 source filename and ZIP members (read only)
+
+[Stage02T source-archive forensic checker](scripts/02t_CH_Aws_missing_EUF_ERA_source_archive_readonly.py) consumes the saved Stage02S+Stage02R JSONs, requires their science-HOLD and exact Stage03 ERA filename/path pins, and performs bounded **filename-only** searching under the scoped CH-Aws site tree plus `$HOME/FLUXNET_MultiSite_11`. For candidate ZIP archives it reads only the ZIP **central directory and member names**, without extraction, download or opening the large processed FLUXMET CSV. It reports whether the exact `EUF_CH-Aws_FLUXNET_ERA5_HH_1981-2025_v1.3_r2.csv` is present or named in an archive, with scan truncation flags and no claim of source integrity or scientific approval.
+
+Run after downloading exact merged-commit source and verifying its Git blob SHA:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02s "$HOME/ICOS_Batch04_stage02s_krFdN4ko/results/stage02s_CH_Aws_original_EUF_ERA_time_comparison.json" \
+  --stage02r "$HOME/ICOS_Batch04_stage02r_2zMBe7n8/results/stage02r_CH_Aws_original_metadata_legacy_clock_review.json" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+Output `stage02t_CH_Aws_ERA5_original_source_location.json` and `stage02t_CH_Aws_archive_source_candidates.csv` under the new empty HOME folder only. No source, case/NetCDF, Git working tree, or Slurm changes. If the original product is genuinely unavailable under these bounded roots, document that gap and prioritize independent source/PFT/soil validation at the four other non-Arctic sites rather than repeatedly optimizing RH34A/38A/42A against non-independent ERA data. **All six Batch04 sites remain science HOLD**.
+
+## Stage02U: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
