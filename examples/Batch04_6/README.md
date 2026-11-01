@@ -448,7 +448,25 @@ python3 -B "$SCRIPT" \
 
 Only outputs a new JSON plus eight-row CSV under a standalone EMPTY HOME directory. Inspect site/CIME/surface/soil/PFT exceptions in those reports before separate source-QC and actual FATES mapping science decisions. ES-Agu's conditional bare 49/shrub 22/C3-grass 29 proxy is **not measured ground cover**; GL-ZaH private Arctic map and CH-Aws source QC are separate unresolved tracks. No AD5/AD400 submission.
 
-## Stage02V: full native-source forcing / soil / PFT science release (future)
+## Stage02U operator result (1 Nov 2026) — eight static DATM list mismatches, original surface versus model PFT proxy
+
+[Exact Stage02U operator console evidence and original NATVEG/CROP/PFT/soil numbers](docs/stage02u_operator_IRIDIS6_result_20261101.md): 8 original S30EXCL/SHARED case folders over DE-Gri/DE-RuR/IT-Tor/ES-Agu, previous 74 annual NC internal Stage02D `FLAGS {}`, all eight original static site points matched; each site-pair uses the **same original surface** and **same FATES parameter path**, with no differences in the inspected XML science or `lnd_in` keys. However, all eight `DATM_STATIC_LIST_MATCH False` require diagnosis before trusting input paths. The earlier Stage02U's narrower regex can differ from Stage02B's original absolute NetCDF list parser (e.g. potential `.nc4` truncation); **do not conclude this is an actual active forcing failure yet**. Original surface `PCT_NATVEG` and `PCT_CROP` are respectively DE-Gri 62.674/37.326, DE-RuR 78.891/21.109, IT-Tor 89.915/10.085, ES-Agu 71.461/28.539 (%). Original conditional NATPFT compositions differ sharply from the operator-accepted candidate proxies (three grass-only, ES-Agu bare49/shrub22/C3grass29); those crop fractions are separate landunits, not automatically grass/bare. IT-Tor original surface `ORGANIC` is 0 in all ten inspected layers and needs source review.
+
+## Stage02V — source-verified eight-case DATM reference parser reconciliation and NATVEG/PFT difference
+
+[Stage02V read-only script](scripts/02v_four_site_DATM_parser_and_landunit_provenance_readonly.py) takes the saved Stage02U **and Stage02C** JSON reports, checks four exact sites/eight source cases, parses each original `Buildconf/datm.input_data_list` with Stage02B's established NetCDF filename grammar and the prior Stage02U grammar, then compares literal and resolved source paths with original Stage02C 22/15/18/19 annual site DATM paths. Any mismatch produces exact source input lines and missing/unexpected path excerpts, and no runtime binding is assumed. It additionally extracts original source `PCT_NATVEG`, `PCT_CROP`, conditional `PCT_NAT_PFT`, the operator model-proxy difference and soil organic bounds from the **already saved Stage02U result**. This audits neither observed tower-footprint PFT nor native meteorological source QC. Only two new reports are created in a new empty HOME directory, with no NetCDF, CIME, FATES or Slurm writes.
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02u "$HOME/ICOS_Batch04_stage02u_EFhTiiqx/results/stage02u_four_site_case_surface_soil_PFT_static_audit.json" \
+  --stage02c "$HOME/ICOS_Batch04_stage02c_sGTtt5pv/stage02c_report.json" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+All four stations remain HOLD. If Stage02V verifies original CIME source list paths, that alone does **not** approve active DATM stream binding or a crop/natural-area transformation, and must not trigger AD5/AD400.
+
+## Stage02W: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
