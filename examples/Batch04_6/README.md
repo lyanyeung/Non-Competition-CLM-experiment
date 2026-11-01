@@ -365,6 +365,12 @@ python3 -B "$SCRIPT" \
 
 Reports: `stage02q_CH_Aws_clock_and_source_provenance.json` and `stage02q_CH_Aws_stage21_25_time_hypotheses.csv`. **No source QC/time approval, no forcing revision, no AD5/AD400 or Slurm submission**. While CH-Aws native humidity provenance is blocked, parallel read-only stream/PFT/soil scientific preflights can proceed for DE-Gri, DE-RuR, IT-Tor and ES-Agu; GL-ZaH needs a private Arctic shrub map.
 
+## Stage02Q source-metadata scanner defect and corrected rerun (1 November 2026)
+
+The initial Stage02Q IRIDIS6 `SOURCE VERIFIED` and self-test both passed, but the data run then failed **before any Stage02Q report was created** in `describe_metadata -> read_csv` with `ValueError: Unexpected >5000-row bounded metadata file`. This was an **artificial common CSV row cap**, not a tower/ERA/forcing data quality failure. [Bugfix and evidence note](docs/stage02q_metadata_gt5000_row_bugfix_20261101.md).
+
+The revised script retains the original site-/path-pinned read-only data source and 20-event science HOLD, but **streams the potentially >5000-row BIF/BIFVARINFO metadata tables** (up to 100,000 rows under the existing 2 MB input-size guard), retains topic-specific RH/VPD/QC/time examples including rows beyond 5,000, and tests a 6,003-row synthetic metadata case. Stage21/25 ledgers still have separate bounded row scans and no inferred UTC conversion. Only rerun Stage02Q from the **new merged commit with exact Git blob checksum** into a fresh empty HOME output directory; no Stage02A–P rerun, forcing editing or Slurm submission.
+
 ## Stage02R: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
