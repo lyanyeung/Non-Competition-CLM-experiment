@@ -199,6 +199,59 @@ forcing. It also inspects the preceding 2004 year file across CA-Man 2005
 UTC index zero. No further changes to production or candidate forcing
 are authorized by Stage57's diagnostic completion.
 
+### Stage58 source-forensic review — operator-confirmed 1 Nov 2026 (UK)
+
+Operator ran [Stage58](scripts/58_three_site_flagged_boundary_source_forensics.py)
+with SHA-pinned source, and obtained `STAGE58 COMPLETE | flagged episodes 7`.
+This was **read-only**. It expanded each Stage57 flagged boundary to the
+original tower TA/VPD and associated QC, companion ERA5, Stage80 selection,
+and original/candidate annual NC; the 2004→2005 CA-Man year-edge was
+successfully inspected, not silently omitted.
+
+Selected conclusions, for scientific review only:
+
+- CA-Cbo 2018-07-18 16:00/16:30 tower QC0 T **34.069/32.333 C**,
+  while 15:30 and 17:00 towers are 24.855/28.238 C.
+  Independent-looking ERA companion at the center is about 22 C,
+  but its provenance may overlap with gap filling. The previous
+  interpolation is more temporally continuous; the two QC0 anomalies
+  remain a specifically documented sensitivity, not proof of a sensor fault.
+- CA-Man 1994-04-10 14:00 tower QC0 **−15.367 C** between −7.037 C
+  (QC1) and +1.294 C (QC0); ERA −2.975 C and candidate −2.872 C.
+  Candidate reduces the spike but retains a ~4.17 C edge.
+- CA-Man 2005 replacement interval: after the 2004-12-31 17:30
+  tower **−26.530 C (QC0)**, at 18:00 it jumps to **−9.657 C
+  (also QC0)**, persists approximately −9 to −12 C for 45 HH,
+  and by 2005-01-01 16:30 returns to **−25.110 C (QC0)**.
+  Companion ERA around −26 to −32 C matches the surrounding cold
+  episode far better than the anomalous flat warm run. This is strong
+  evidence to investigate mislabeled QC0/instrument data, but not an
+  automatic authorization to replace *all* 45 QC0 records.
+- US-Aud 2012-08-28 original QC0 07:00 **29.4 C / 28.661 hPa**,
+  and QC0 at 07:30+ remains about 29.5 C and high VPD, while ERA is
+  about 19–22 C. Replacing only the 07:00 point with NOAA data
+  introduces a large discontinuity at the next half-hour.
+- US-Aud 2019-04-04 three repaired HH bridge between tower 14:00
+  20.715 C and 16:00 21.620 C, with reasonable ERA and NOAA
+  consistency but VPD boundary +4.694 hPa. The central edited
+  15:00 point has original TA QC0, despite apparent inconsistency.
+- US-Aud 2023-04-30 current candidate ends at 16:30, but 17:00–18:00
+  tower TA QC1 is about 15–16 C while companion ERA remains around
+  28–29 C; the residual candidate-boundary step is −13.762 C and
+  −23.636 hPa. Expand *investigation*, not the repair automatically.
+- US-Aud 2023-12-18 the edited 18:00–19:00 bridge ends at
+  19:30 tower QC1 ~6.233 C; surrounding ERA decreases from ~15.5
+  to 10 C, suggesting proxy representativeness and episode duration
+  need further evaluation.
+
+[Stage59 expanded candidate episode audit](scripts/59_three_site_extended_met_episode_audit.py)
+is now available: it reads extended local-time windows (hours to days)
+and reports uninterrupted original tower/ERA discrepancy runs, grouped
+by QC flags and overlap with the existing approved sensitivity edits.
+Its numeric thresholds (8 C TA, 10 hPa VPD) are **investigative,
+not approval criteria**. It must never activate or overwrite these
+detached candidates or submit model jobs.
+
 ### Reproducible Stage45/Stage55 Normal400 operation
 
 The original `45_prepare_six_normal400.py` was incompatible with Stage36's
