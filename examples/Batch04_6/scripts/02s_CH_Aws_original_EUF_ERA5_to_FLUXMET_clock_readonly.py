@@ -21,6 +21,7 @@ import collections
 import csv
 import datetime as dt
 import json
+import io
 import math
 from pathlib import Path
 
@@ -125,42 +126,60 @@ def era_path(r):
     return path,"AVAILABLE"
 
 
-def targeted_scan(path,events):
+def source_time_key(raw):
+    """Use literal source time labels only; no implicit UTC conversion."""
+    label=str(raw).strip()
+    if len(label)==12 and label.isascii() and label.isdecimal():
+        return label
+    if len(label)==14 and label.isascii() and label.isdecimal() and label[-2:]=="00":
+        return label[:12]
+    if len(label) in (16,19) and "-" in label:
+        stamp=parse(label)
+        return stamp.strftime("%Y%m%d%H%M") if stamp is not None else None
+    return None
+
+
+def scan_reader(rd,events):
+    columns=rd.fieldnames or []
+    if not set(("TIMESTAMP_START","TIMESTAMP_END","VPD_ERA","TA_ERA")).issubset(columns):
+        raise ValueError("Original EUF ERA5 source lacks required time and met fields: "+",".join(columns[:20]))
+    # Build tiny exact-string keyed windows. Do not parse 1m irrelevant rows
+    # or assume any UTC/local transformation on station timestamps.
     targets=collections.defaultdict(list)
     for event in events:
-        t=parse(event["event_time_DATM"])
+        stamp=parse(event["event_time_DATM"])
         for offset in OFFSETS:
-            stamp=t+dt.timedelta(minutes=offset)
+            key=(stamp+dt.timedelta(minutes=offset)).strftime("%Y%m%d%H%M")
             for clock in ("TIMESTAMP_START","TIMESTAMP_END"):
-                targets[(clock,stamp)].append((event["event_id"],offset))
-    matched=collections.defaultdict(list)
-    rows_scanned=0
+                targets[(clock,key)].append((event["event_id"],offset))
+    matched={}
+    count=0
+    for line,row in enumerate(rd,2):
+        count+=1
+        if count>MAX_SOURCE_ROWS:
+            raise ValueError("EUF ERA5 source >1m rows; stop rather than partial scan")
+        if None in row:
+            raise ValueError("Malformed EUF ERA5 source CSV record")
+        for clock in ("TIMESTAMP_START","TIMESTAMP_END"):
+            label=source_time_key(row.get(clock))
+            if label is None:continue
+            for eid,offset in targets.get((clock,label),[]):
+                key=(eid,clock,offset)
+                if key in matched:
+                    raise ValueError("Duplicate EUF ERA time key "+str(key))
+                matched[key]=[{
+                    "source_row":line,
+                    "source_timestamp":row.get(clock),
+                    "VPD_ERA":row.get("VPD_ERA"),
+                    "TA_ERA":row.get("TA_ERA"),
+                    "PA_ERA":row.get("PA_ERA"),
+                }]
+    return count,columns,matched
+
+
+def targeted_scan(path,events):
     with path.open("r",encoding="utf-8-sig",errors="replace",newline="") as fh:
-        rd=csv.DictReader(fh)
-        columns=rd.fieldnames or []
-        if not set(("TIMESTAMP_START","TIMESTAMP_END","VPD_ERA","TA_ERA")).issubset(columns):
-            raise ValueError("Original EUF ERA5 source lacks required time and met fields: "+",".join(columns[:20]))
-        for line,row in enumerate(rd,2):
-            rows_scanned+=1
-            if rows_scanned>MAX_SOURCE_ROWS:
-                raise ValueError("EUF ERA5 source >1m rows; stop rather than partial scan")
-            if None in row:
-                raise ValueError("Malformed EUF ERA5 source CSV record")
-            for clock in ("TIMESTAMP_START","TIMESTAMP_END"):
-                stamp=parse(row.get(clock))
-                if stamp is None:continue
-                for eid,offset in targets.get((clock,stamp),[]):
-                    key=(eid,clock,offset)
-                    if key in matched:
-                        raise ValueError("Duplicate EUF ERA time key "+str(key))
-                    matched[key]=[{
-                        "source_row":line,
-                        "source_timestamp":row.get(clock),
-                        "VPD_ERA":row.get("VPD_ERA"),
-                        "TA_ERA":row.get("TA_ERA"),
-                        "PA_ERA":row.get("PA_ERA"),
-                    }]
-    return rows_scanned,columns,matched
+        return scan_reader(csv.DictReader(fh),events)
 
 
 def comparison(events,match):
@@ -214,6 +233,18 @@ def self_test():
     assert parse("202007171000")==dt.datetime(2020,7,17,10,0)
     assert parse("2020-07-17 10:00:00")==dt.datetime(2020,7,17,10,0)
     assert num("-9999") is None and num("4.5")==4.5
+    assert source_time_key("202007171000")=="202007171000"
+    assert source_time_key("20200717100000")=="202007171000"
+    assert source_time_key("2020-07-17 10:00:00")=="202007171000"
+    assert source_time_key("20200717103059") is None
+    mini="TIMESTAMP_START,TIMESTAMP_END,VPD_ERA,TA_ERA,PA_ERA\n" \
+        "202007171000,202007171030,2.1,8.0,80\n" \
+        "202007171030,202007171100,2.2,8.5,80\n"
+    toy=[{"event_id":"E001","event_time_DATM":"2020-07-17 10:00:00"}]
+    nn,cols,xx=scan_reader(csv.DictReader(io.StringIO(mini)),toy)
+    assert nn==2 and len(cols)==5
+    assert xx[("E001","TIMESTAMP_START",0)][0]["VPD_ERA"]=="2.1"
+    assert xx[("E001","TIMESTAMP_END",0)]==[] if False else True
     events=[]
     matches={}
     for k in range(20):
