@@ -16,6 +16,8 @@ Collapse diagnostics (`scripts/08_diagnose_collapse_mortality.py`): for a few si
 
 Diagnostic AD re-run (`scripts/09_clone_AD_diag_rerun.py`): the AD400 cases saved only seven history fields, so the cause of the needleleaf collapse is not recorded. This clones a site's own AD case (same executable, inputs, parameters and AD settings), switches on full FATES history plus per-PFT mortality by type, and runs the first years again in the same 5-year segments. The regenerated land namelist must equal the AD one except for history settings, or nothing is submitted. Read the result with `08_... --ad-only SITE:CASE`.
 
+BTRAN / soil diagnostics (`scripts/10_diagnose_btran_soil.py`): for the re-runs and living reference sites, layer-by-layer liquid water, ice, soil temperature and fine-root distribution, with BTRAN recomputed from the FATES/CLM non-hydro formula (root fraction × water-potential factor × temperature gate) and checked against the model's BTRAN, to show whether low BTRAN comes from dry soil, frozen soil, shallow roots or site-average dilution by patch area.
+
 [All-completed AD400 + Normal400 plotting runbook](ALL_COMPLETED_PLOTS.md): live status and reference-pair selection, NT-first EC comparison, and separate per-case carbon diagnostics. The analysis runs as a read-only-input Slurm job and writes new derived files under Home. Completion is not convergence.
 
 
