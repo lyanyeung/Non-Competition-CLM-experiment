@@ -28,7 +28,7 @@ Outputs (never under scratch):
                  _AD_annual.csv, _normal_seasonal.csv, _findings.txt
   <out>/site_anomaly_summary.csv, RUN_COMPLETE.json
 Usage (login node; ~1-3 min per site, mostly reading the EC csv):
-  python -B 14_...py --output-root DIR [--specs LABEL:NORMAL_CASE:REF_LABEL:REF_NORMAL_CASE ...]
+  python -B 14_...py --output-root DIR [--specs LABEL:NORMAL_CASE[:REF_LABEL:REF_NORMAL_CASE] ...] [--ec-file SITE=PATH]
   python -B 14_...py --publish-run DIR
 """
 from __future__ import annotations
@@ -397,6 +397,9 @@ def forcing_checks(df, stats, units, setup):
             note += f"; annual precipitation {val:.0f} mm"
             if not (50 <= val <= 5000):
                 status = "FAIL"
+            elif val > 2500 and status == "ok":
+                status = "WARN"
+                note += "; unusually high outside the tropics/mountains - check the source P units"
         rows.append((v, round(val, 6), status, note))
     return rows
 
@@ -430,9 +433,35 @@ def forcing_clim(df, units=None):
 
 
 # ------------------------------------------------------------------ EC
+def find_ec(site, args):
+    """EC files: --ec-file override, else the standard forcing/raw* search, else any HH/HR flux csv under the site folder."""
+    if site in args.ec_file:
+        return [Path(args.ec_file[site])]
+    try:
+        return P.ec_sources(args.sites_root / site / "forcing", None)
+    except FileNotFoundError:
+        pass
+    root = args.sites_root / site
+    cands = []
+    if root.is_dir():
+        for p in sorted(root.rglob("*.csv")):
+            up = p.name.upper()
+            if not re.search(r"(FULLSET|FLUXMET|FLUXES|FLUX)_H[HR]", up) or re.search(r"ERA5|ERAI|AUX|BIF", up):
+                continue
+            try:
+                cols = set(pd.read_csv(p, nrows=0, encoding="latin-1").columns)
+            except Exception:
+                continue
+            if {"TIMESTAMP_START", "NEE_VUT_REF"} <= cols and ({"GPP_NT_VUT_REF", "GPP_DT_VUT_REF"} & cols):
+                cands.append(p)
+    if not cands:
+        raise FileNotFoundError(f"no EC flux csv for {site} under {root} (give --ec-file {site}=PATH)")
+    return cands
+
+
 def ec_monthly(site, first, last, args):
     """EC meteorology + GPP as monthly values (Year, Month) within the forcing period."""
-    srcs = P.ec_sources(args.sites_root / site / "forcing", None)
+    srcs = find_ec(site, args)
     obs, prov = P.ec_daily(srcs, first, last, args.min_halfhour)
     obs = obs.set_index("date")
     gpp = pd.to_numeric(obs["EC_GPP"], errors="coerce")
@@ -666,6 +695,64 @@ def pft_status(c):
     return out
 
 
+def season_metrics(c):
+    """Annual totals, water-use efficiency and timing of model vs EC GPP (monthly climatology)."""
+    m = {}
+    if c.empty or "GPP_gC_m2_d" not in c:
+        return m
+    ann = lambda k: float(np.nansum(c[k].to_numpy(float) * DAYS)) if k in c and c[k].notna().sum() == 12 else np.nan
+    g, e = c["GPP_gC_m2_d"].to_numpy(float), c["EC_GPP"].to_numpy(float) if "EC_GPP" in c else np.full(12, np.nan)
+    m["GPP_model_gC_m2_yr"], m["GPP_EC_gC_m2_yr"] = ann("GPP_gC_m2_d"), ann("EC_GPP")
+    m["GPP_ratio"] = m["GPP_model_gC_m2_yr"] / m["GPP_EC_gC_m2_yr"] if m["GPP_EC_gC_m2_yr"] > 1 else np.nan
+    et_m, et_e, t_m = ann("ET_mm_day"), ann("EC_ET_mm_day"), ann("T_mm_day")
+    m["ET_model_mm_yr"], m["ET_EC_mm_yr"] = et_m, et_e
+    m["T_over_ET_model"] = t_m / et_m if et_m > 1 else np.nan
+    m["WUE_model_gC_kg"] = m["GPP_model_gC_m2_yr"] / et_m if et_m > 1 else np.nan
+    m["WUE_EC_gC_kg"] = m["GPP_EC_gC_m2_yr"] / et_e if et_e > 1 else np.nan
+    if np.isfinite(g).all() and np.nanmax(g) > 0:
+        m["peak_month_model"] = int(np.nanargmax(g) + 1)
+        m["active_months_model"] = int(np.sum(g > 0.25 * np.nanmax(g)))
+    if np.isfinite(e).sum() == 12 and np.nanmax(e) > 0:
+        m["peak_month_EC"] = int(np.nanargmax(e) + 1)
+        m["active_months_EC"] = int(np.sum(e > 0.25 * np.nanmax(e)))
+        if np.isfinite(g).all() and np.std(g) > 0:
+            m["seasonal_corr"] = float(np.corrcoef(g, e)[0, 1])
+    return m
+
+
+def season_lines(c):
+    m = season_metrics(c)
+    out = []
+    if not m:
+        return out
+    f = lambda k, n=2: (f"{m[k]:.{n}f}" if isinstance(m.get(k), float) and np.isfinite(m[k]) else
+                        (str(m[k]) if k in m else "-"))
+    out.append(f"GPP model {f('GPP_model_gC_m2_yr', 0)} vs EC {f('GPP_EC_gC_m2_yr', 0)} g C m-2 yr-1 (ratio {f('GPP_ratio')}); "
+               f"GPP per ET model {f('WUE_model_gC_kg')} vs EC {f('WUE_EC_gC_kg')} g C per kg water; model T/ET {f('T_over_ET_model')}")
+    out.append(f"timing: peak month model {f('peak_month_model')} vs EC {f('peak_month_EC')}; active months (>25% of peak) "
+               f"model {f('active_months_model')} vs EC {f('active_months_EC')}; seasonal correlation {f('seasonal_corr')}")
+    wm, we = m.get("WUE_model_gC_kg", np.nan), m.get("WUE_EC_gC_kg", np.nan)
+    if np.isfinite(wm) and np.isfinite(we) and we > 0 and wm / we > 1.5:
+        out.append(f"!! carbon gained per unit water is {wm / we:.1f} x the tower value (water-use efficiency too high)")
+    ge = m.get("GPP_EC_gC_m2_yr", np.nan)
+    if np.isfinite(ge) and ge < 40:
+        out.append(f"!! EC GPP is only {ge:.0f} g C m-2 yr-1: check the EC record / partitioning before judging the model")
+    am, ae = m.get("active_months_model"), m.get("active_months_EC")
+    if am is not None and ae is not None and abs(am - ae) >= 2:
+        out.append(f"!! growing season length differs: model {am} vs EC {ae} active months")
+    if c is not None and {"EC_GPP", "GPP_gC_m2_d"} <= set(c.columns):
+        for _, row in c.iterrows():
+            ec, mo = row["EC_GPP"], row["GPP_gC_m2_d"]
+            if np.isfinite(ec) and np.isfinite(mo) and mo > 1 and mo > 2 * max(ec, 0.05):
+                extra = ", ".join(f"{k} {row[k]:.2f}" for k in ("TLAI", "BTRAN") if k in row and np.isfinite(row[k]))
+                if "TSA" in row and np.isfinite(row["TSA"]):
+                    extra += f", T {row['TSA'] - 273.15:.1f} C"
+                if "H2OSNO" in row and np.isfinite(row["H2OSNO"]):
+                    extra += f", snow {row['H2OSNO']:.0f} mm"
+                out.append(f"over-estimated month {int(row['Month']):2d}: EC {ec:.2f}, model {mo:.2f} ({extra})")
+    return out
+
+
 def classify_months(clim):
     """Months with EC GPP > 1 g C m-2 d-1 and model < 50% of EC."""
     rows = []
@@ -770,13 +857,16 @@ def ec_vs_forcing(b):
 
 def findings(label, t, r, diff_rows):
     F = []
+    B = [("target", t)] + ([("reference", r)] if r else [])
     # set-up
-    real = [d for d in diff_rows if d[4] and d[5] not in ("site-specific", "path (site-specific name)")]
-    paths = [d for d in diff_rows if d[4] and d[5] == "path (site-specific name)"]
-    F.append(f"SETUP: {len(real)} set-up differences vs {r['label']} that are not just site names "
-             f"(lnd_in/env/user_nl/surface/parameters); {len(paths)} site-specific file paths differ (expected).")
-    for d in real[:25]:
-        F.append(f"   {d[0]} {d[1]}: target={d[2]} | reference={d[3]} {('(' + d[5] + ')') if d[5] else ''}")
+    if r:
+        real = [d for d in diff_rows if d[4] and d[5] not in ("site-specific", "path (site-specific name)")]
+        paths = [d for d in diff_rows if d[4] and d[5] == "path (site-specific name)"]
+        F.append(f"SETUP: {len(real)} set-up differences vs {r['label']} that are not just site names "
+                 f"(lnd_in/env/user_nl/surface/parameters); {len(paths)} site-specific file paths differ (expected).")
+        for d in real[:25]:
+            F.append(f"   {d[0]} {d[1]}: target={d[2]} | reference={d[3]} {('(' + d[5] + ')') if d[5] else ''}")
+    F.append(f"PARAMETERS: {Path(t['AD']['paramfile']).name or 'not found'}; fsurdat {Path(t['AD']['fsurdat']).name}")
     s = t["AD"]["surface"]
     if s:
         pct = {k: float(np.nansum(s[k])) for k in ("PCT_NATVEG", "PCT_GLACIER", "PCT_LAKE", "PCT_WETLAND", "PCT_URBAN", "PCT_CROP") if k in s}
@@ -784,13 +874,14 @@ def findings(label, t, r, diff_rows):
                  (f"; PCT_NAT_PFT {short(s['PCT_NAT_PFT'])}" if "PCT_NAT_PFT" in s else ""))
         if pct.get("PCT_GLACIER", 0) > 0 or pct.get("PCT_NATVEG", 100) < 50:
             F.append("!! surface file: natural vegetation < 50% or glacier present")
-    F.append(f"INIT: AD finidat = {t['AD']['finidat'] or '(cold start)'}; reference AD finidat = {r['AD']['finidat'] or '(cold start)'}")
+    F.append(f"INIT: AD finidat = {t['AD']['finidat'] or '(cold start)'}" +
+             (f"; reference AD finidat = {r['AD']['finidat'] or '(cold start)'}" if r else ""))
     # forcing
     bad = [c for c in t["forcing_checks"] if c[2] in ("FAIL", "WARN")]
     F.append(f"FORCING ({t.get('forcing_files', 0)} files): " + ("all checks ok" if not bad else f"{len(bad)} problems"))
     for c in bad:
         F.append(f"   {'!!' if c[2] == 'FAIL' else '! '} {c[0]}: {c[1]} {c[3]}")
-    for who, b in (("target", t), ("reference", r)):
+    for who, b in B:
         e = ec_vs_forcing(b)
         if e:
             msg = ", ".join(f"{k} {v:.2f}" if isinstance(v, float) else f"{k} {v}" for k, v in e.items())
@@ -800,13 +891,17 @@ def findings(label, t, r, diff_rows):
                 flag = "  <-- forcing does not match the tower"
             F.append(f"FORCING vs EC met ({who} {b['label']}): {msg}{flag}")
     fc = forcing_clim(t.get("forcing", pd.DataFrame()), t.get("forcing_units"))
-    rc = forcing_clim(r.get("forcing", pd.DataFrame()), r.get("forcing_units"))
-    if "T_C" in fc and "T_C" in rc:
-        F.append(f"FORCING climate: target T {np.nanmean(fc['T_C']):.1f} C, P {np.nansum(fc.get('P_mm_month', np.nan)):.0f} mm/yr, "
-                 f"SW {np.nanmean(fc.get('FSDS', np.nan)):.0f} W/m2 | reference T {np.nanmean(rc['T_C']):.1f} C, "
-                 f"P {np.nansum(rc.get('P_mm_month', np.nan)):.0f} mm/yr, SW {np.nanmean(rc.get('FSDS', np.nan)):.0f} W/m2")
+    clim = lambda c: (f"T {np.nanmean(c['T_C']):.1f} C, P {np.nansum(c.get('P_mm_month', np.nan)):.0f} mm/yr, "
+                      f"SW {np.nanmean(c.get('FSDS', np.nan)):.0f} W/m2")
+    if "T_C" in fc:
+        line = "FORCING climate: target " + clim(fc)
+        if r:
+            rc = forcing_clim(r.get("forcing", pd.DataFrame()), r.get("forcing_units"))
+            if "T_C" in rc:
+                line += " | reference " + clim(rc)
+        F.append(line)
     # AD trajectory
-    for who, b in (("target", t), ("reference", r)):
+    for who, b in B:
         a = b.get("ad_ann")
         if a is None or a.empty:
             F.append(f"AD ({who}): history not readable")
@@ -823,7 +918,7 @@ def findings(label, t, r, diff_rows):
             msg += f"; TWS change {a['TWS'].iloc[-1] - a['TWS'].iloc[0]:+.0f} mm"
         F.append(msg)
     # seasonal / water balance
-    for who, b in (("target", t), ("reference", r)):
+    for who, b in B:
         c = seasonal_clim(b)
         if c.empty:
             continue
@@ -838,6 +933,8 @@ def findings(label, t, r, diff_rows):
         if "ZWT" in c:
             F.append(f"   model water table depth {np.nanmean(c['ZWT']):.1f} m; "
                      + ", ".join(f"{k.replace('H2OSOI_', 'soil water ')} {np.nanmean(c[k]):.3f}" for k in c if k.startswith("H2OSOI_")))
+        for line in season_lines(c):
+            F.append("   " + line)
         for mo, ec, md, lai, bt, why in classify_months(c):
             F.append(f"   month {mo:2d}: EC GPP {ec:.2f}, model {md:.2f}, LAI {lai:.2f}, BTRAN {bt:.2f} -> {why}")
         for line in pft_status(c):
@@ -855,7 +952,7 @@ def findings(label, t, r, diff_rows):
         if ph:
             F.append("   phenology variables (monthly mean Jan..Dec): " +
                      "; ".join(f"{k} " + " ".join(f"{v:.0f}" for v in c[k].to_numpy(float)) for k in ph[:6]))
-    for who, b in (("target", t), ("reference", r)):
+    for who, b in B:
         for e in b.get("errors", []):
             F.append(f"ERROR ({who}): {e}")
     return F
@@ -863,6 +960,7 @@ def findings(label, t, r, diff_rows):
 
 # ------------------------------------------------------------------ plots
 def plots(label, t, r, dest):
+    r = r or {"label": "none", "errors": []}
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -943,15 +1041,17 @@ def plots(label, t, r, dest):
 
 # ------------------------------------------------------------------ run / publish
 def process(spec, args, cache):
-    label, case, rlabel, rcase = spec.split(":")
+    parts = spec.split(":")
+    label, case = parts[0], parts[1]
+    rlabel, rcase = (parts[2], parts[3]) if len(parts) == 4 else (None, None)
     dest = args.output_root / label
     dest.mkdir(parents=True, exist_ok=True)
-    rec = {"Label": label, "Case": case, "Reference": f"{rlabel} ({rcase})", "Status": "FAILED"}
+    rec = {"Label": label, "Case": case, "Reference": f"{rlabel} ({rcase})" if rlabel else "none", "Status": "FAILED"}
     try:
         t = site_bundle(label, case, args, cache)
-        r = site_bundle(rlabel, rcase, args, cache)
-        t["ref_label"] = rlabel
-        diff = setup_diff(t, r, label)
+        r = site_bundle(rlabel, rcase, args, cache) if rlabel else None
+        t["ref_label"] = rlabel or ""
+        diff = setup_diff(t, r, label) if r else []
         with (dest / f"{label}_setup_diff.csv").open("w", newline="", encoding="utf-8") as f:
             w = csv.writer(f); w.writerow(["section", "key", "target", "reference", "differs", "note"]); w.writerows(diff)
         if not t["forcing"].empty:
@@ -964,11 +1064,11 @@ def process(spec, args, cache):
         c = seasonal_clim(t)
         if not c.empty:
             c.to_csv(dest / f"{label}_normal_seasonal.csv", index=False)
-        cr = seasonal_clim(r)
+        cr = seasonal_clim(r) if r else pd.DataFrame()
         if not cr.empty:
             cr.to_csv(dest / f"{label}_reference_{rlabel}_normal_seasonal.csv", index=False)
         F = findings(label, t, r, diff)
-        head = [f"{label} ({case}; AD {t['ad_case']}) vs reference {rlabel} ({rcase}; AD {r['ad_case']})",
+        head = [f"{label} ({case}; AD {t['ad_case']})" + (f" vs reference {rlabel} ({rcase}; AD {r['ad_case']})" if r else ""),
                 f"EC: {t.get('ec_note', {})}", ""]
         (dest / f"{label}_findings.txt").write_text("\n".join(head + F) + "\n", encoding="utf-8")
         plots(label, t, r, dest)
@@ -978,7 +1078,9 @@ def process(spec, args, cache):
                    Setup_differences=sum(1 for d in diff if d[4] and d[5] not in ("site-specific", "path (site-specific name)")),
                    Forcing_problems=sum(1 for x in t["forcing_checks"] if x[2] in ("FAIL", "WARN")),
                    AD_collapse_year=cy or "", AD_peak_LAI=peak if peak is not None else "", **e,
-                   Errors="; ".join(t["errors"] + r["errors"]))
+                   **{k: (round(v, 3) if isinstance(v, float) else v) for k, v in season_metrics(c).items()},
+                   PFT_status=" | ".join(pft_status(c)) if not c.empty else "",
+                   Errors="; ".join(t["errors"] + (r["errors"] if r else [])))
         print("\n".join(F), flush=True)
     except Exception as exc:
         rec["Errors"] = f"{type(exc).__name__}: {exc}"
@@ -1063,7 +1165,9 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--output-root", type=Path)
     ap.add_argument("--publish-run", type=Path)
-    ap.add_argument("--specs", nargs="+", default=DEFAULT_SPECS, metavar="LABEL:NORMAL_CASE:REF_LABEL:REF_NORMAL_CASE")
+    ap.add_argument("--specs", nargs="+", default=DEFAULT_SPECS, metavar="LABEL:NORMAL_CASE[:REF_LABEL:REF_NORMAL_CASE]",
+                    help="reference optional; without it the site is screened on its own")
+    ap.add_argument("--ec-file", nargs="*", default=[], metavar="SITE=PATH", help="EC csv for sites whose file is not in the default place")
     ap.add_argument("--ad-years", type=int, default=60)
     ap.add_argument("--min-halfhour", type=int, default=40)
     ap.add_argument("--min-days", type=int, default=20)
@@ -1091,8 +1195,12 @@ def main(argv=None):
         ap.error("output directory must be new or empty: " + str(root))
     for s in a.specs:
         p = s.split(":")
-        if len(p) != 4 or not F7.SAFE.fullmatch(p[0]) or not F7.SAFE.fullmatch(p[2]):
+        if len(p) not in (2, 4) or not F7.SAFE.fullmatch(p[0]) or (len(p) == 4 and not F7.SAFE.fullmatch(p[2])):
             ap.error(f"bad --specs entry {s!r}")
+    try:
+        a.ec_file = dict(x.split("=", 1) for x in a.ec_file)
+    except ValueError:
+        ap.error("--ec-file entries must be SITE=PATH")
     a.output_root = root
     return run(a)
 

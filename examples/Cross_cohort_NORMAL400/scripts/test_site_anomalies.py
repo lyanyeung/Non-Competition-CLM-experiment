@@ -187,6 +187,39 @@ class SiteAnomalyTest(unittest.TestCase):
         for k in ("01_forcing_vs_EC", "02_AD_first_years", "03_seasonal_water_carbon"):
             self.assertTrue((out / "TGT" / f"TGT_{k}.png").is_file(), k)
 
+    def test_single_site_and_ec_fallback(self):
+        m = load()
+        # move the target EC file out of forcing/raw*, so only the recursive fallback can find it
+        src = next((self.sites / "TGT" / "forcing" / "raw").glob("*.csv"))
+        dst = self.sites / "TGT" / "elsewhere" / src.name; dst.parent.mkdir()
+        src.rename(dst)
+        out = self.root / "single"
+        rc = m.main(["--output-root", str(out), "--allow-scratch-output", "--ad-years", "12",
+                     "--archive-root", str(self.arch), "--cases-root", str(self.cases), "--sites-root", str(self.sites),
+                     "--specs", "TGT:TGT_NORMAL400"])
+        self.assertEqual(rc, 0)
+        summ = list(csv.DictReader((out / "site_anomaly_summary.csv").open()))[0]
+        self.assertEqual(summ["Reference"], "none")
+        self.assertAlmostEqual(float(summ["ET_EC_mm_yr"]), 1095, delta=2)
+        self.assertEqual(summ["peak_month_EC"], "5")
+        txt = (out / "TGT" / "TGT_findings.txt").read_text()
+        self.assertIn("GPP per ET model", txt)
+        self.assertIn("timing: peak month", txt)
+        self.assertNotIn("SETUP:", txt)
+        self.assertFalse((out / "TGT" / "TGT_setup_diff.csv").read_text().strip().count("\n"))
+        self.assertTrue((out / "TGT" / "TGT_03_seasonal_water_carbon.png").is_file())
+
+    def test_season_flags(self):
+        import pandas as pd
+        m = load()
+        c = pd.DataFrame({"Month": range(1, 13), "EC_GPP": [0.2] * 4 + [3.0] * 3 + [0.2] * 5,
+                          "GPP_gC_m2_d": [2.0] * 12, "ET_mm_day": [0.5] * 12, "EC_ET_mm_day": [0.5] * 12,
+                          "T_mm_day": [0.3] * 12, "TLAI": [1.0] * 12, "BTRAN": [0.5] * 12})
+        txt = "\n".join(m.season_lines(c))
+        self.assertIn("water-use efficiency too high", txt)
+        self.assertIn("growing season length differs", txt)
+        self.assertIn("over-estimated month  1", txt)
+
     def test_dead_months(self):
         import pandas as pd
         m = load()
