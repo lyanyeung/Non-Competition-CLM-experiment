@@ -3,7 +3,7 @@
 set -euo pipefail
 ACTION=${1:-}
 case "$ACTION" in
-  --prepare)
+  --prepare|--run)
     VERSION=${VERSION:?Set VERSION to the pinned GitHub commit}
     [[ "$VERSION" =~ ^[0-9a-f]{40}$ ]] || { echo 'VERSION must be a 40-character commit' >&2; exit 1; }
     RUN=${RUN:-/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/AmeriFlux_Batch01_10/Stage23_six_inputs_amf_six_inputs_tool.OSXxymF5}
@@ -23,7 +23,12 @@ case "$ACTION" in
     shift
     env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 15 "$PY" -u -B "$TOOL/direct.py" prepare \
       --run "$RUN" --helper "$TOOL/helper.py" --stage26 "$TOOL/stage26.py" --co2-csv "$TOOL/co2.csv" "$@" 2>&1 | tee "$TOOL/prepare.log"
-    echo "Prepared; no jobs submitted. To submit run: bash $0 --submit $TOOL/run.env"
+    if [[ "$ACTION" == --run ]]; then
+      echo 'Preparation passed. Submitting the verified cases once.'
+      bash "$0" --submit "$TOOL/run.env" "$@"
+    else
+      echo "Prepared; no jobs submitted. To submit run: bash $0 --submit $TOOL/run.env"
+    fi
     ;;
   --submit|--status)
     ENVFILE=${2:?Give the run.env path printed during preparation}
@@ -32,5 +37,5 @@ case "$ACTION" in
     env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 15 "$PY" -u -B "$TOOL/direct.py" "$OP" \
       --run "$RUN" --helper "$TOOL/helper.py" --stage26 "$TOOL/stage26.py" --co2-csv "$TOOL/co2.csv" "$@" 2>&1 | tee "$TOOL/$OP.log"
     ;;
-  *) echo 'Usage: VERSION=<commit> bash launcher --prepare [--sites ...]; bash launcher --submit|--status <run.env> [--sites ...]' >&2; exit 2;;
+  *) echo 'Usage: VERSION=<commit> bash launcher --prepare|--run [--sites ...]; bash launcher --submit|--status <run.env> [--sites ...]' >&2; exit 2;;
 esac
