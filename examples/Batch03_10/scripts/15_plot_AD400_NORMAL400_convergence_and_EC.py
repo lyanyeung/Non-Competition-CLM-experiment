@@ -20,9 +20,11 @@ Units g C m-2 d-1.
 
 Outputs (per site, under --output-root, never under scratch):
   <site>_01_carbon_pools_AD400_NORMAL400.png
+  <site>_04_carbon_pools_AD400_panels.png
   <site>_02_carbon_pools_NORMAL400_panels.png
+  <site>_04_carbon_pools_AD400_panels.png
   <site>_GPP_NEE_monthly_overview.png
-  <site>_carbon_annual_means.csv  <site>_convergence_metrics.csv
+  <site>_carbon_annual_means.csv  <site>_convergence_metrics.csv  <site>_AD_diagnostics.csv
   <site>_daily_FATES_vs_EC.csv    <site>_monthly_FATES_vs_EC.csv
   <site>_flux_metrics.csv         <site>_metadata.json
   AD400_NORMAL400_summary.csv
@@ -556,6 +558,63 @@ def plot_panels(carbon, names, meta, site, dest, interim, conv, n_force):
     fig.savefig(p, dpi=200, bbox_inches="tight"); plt.close(fig); return p
 
 
+def ad_diagnostics(carbon, names, n_force, align):
+    """AD-only trends and aligned cycles; they are not post-AD convergence."""
+    if n_force < 1:
+        raise ValueError("Forcing cycle length must be positive")
+    ad = carbon[carbon.Phase == "AD"].sort_values("SpinupYear")
+    years = ad.ModelYear.to_numpy(int)
+    starts = [i for i, year in enumerate(years)
+              if (year - align) % n_force == 0 and i + n_force <= len(years)
+              and np.array_equal(years[i:i+n_force], np.arange(year, year+n_force))]
+    rows = []
+    for name in names:
+        values = ad[name].to_numpy(float)
+        slope, pct = trend(values, 100)
+        diff = np.nan
+        if len(starts) >= 2:
+            prev = values[starts[-2]:starts[-2] + n_force]
+            last = values[starts[-1]:starts[-1] + n_force]
+            if np.isfinite(prev).all() and np.isfinite(last).all() and abs(np.mean(prev)) >= 1e-8:
+                diff = 100 * (np.mean(last) - np.mean(prev)) / abs(np.mean(prev))
+        rows.append({"Variable": name, "AD_years_available": len(ad),
+                     "Last100y_slope_per_year": slope, "Last100y_trend_pct_per_100y": pct,
+                     "AD_complete_cycles": len(starts), "Last_two_aligned_AD_cycle_mean_change_pct": diff})
+    return pd.DataFrame(rows)
+
+
+def plot_ad_panels(carbon, names, meta, site, dest, n_force, align):
+    import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
+    ad = carbon[carbon.Phase == "AD"].sort_values("SpinupYear")
+    if ad.empty:
+        raise ValueError("No AD-phase data for AD panel")
+    diag = ad_diagnostics(carbon, names, n_force, align)
+    diag.to_csv(dest / f"{site}_AD_diagnostics.csv", index=False)
+    nrow = math.ceil(len(names) / 2)
+    fig, axs = plt.subplots(nrow, 2, figsize=(16, 4.2*nrow), sharex=True, squeeze=False)
+    x = ad.SpinupYear.to_numpy()
+    for ax, name in zip(axs.flat, names):
+        ax.plot(x, ad[name].to_numpy(float), lw=1.35, color="#2878b5")
+        if len(ad) >= 100:
+            ax.axvspan(x[-100], x[-1], color="0.8", alpha=.22)
+        row = diag.loc[diag.Variable == name].iloc[0]
+        fmt = lambda v: f"{v:+.2f}%" if np.isfinite(v) else "N/A"
+        ax.set_title(f"{name} ({LABELS.get(name, name)})\n"
+                     f"Last 100 y trend: {fmt(row.Last100y_trend_pct_per_100y)} / 100 y\n"
+                     f"Last two aligned {n_force}-y cycles: {fmt(row.Last_two_aligned_AD_cycle_mean_change_pct)} mean change "
+                     f"({int(row.AD_complete_cycles)} complete cycles)", fontsize=9.5)
+        ax.set_xlim(1, PHASE); ax.set_ylabel(meta[name]["plot_units"]); ax.grid(alpha=.22)
+    for ax in list(axs.flat)[len(names):]: ax.set_visible(False)
+    for ax in axs[-1]:
+        if ax.get_visible(): ax.set_xlabel("Spin-up year (AD phase: 1–400)")
+    fig.suptitle(f"{site} | AD400: annual mean carbon pools and diagnostics\n"
+                 "Accelerated decomposition: AD trends do not establish Normal-phase equilibrium", fontsize=12)
+    fig.tight_layout(rect=(0, 0, 1, .94))
+    p = dest / f"{site}_04_carbon_pools_AD400_panels.png"
+    fig.savefig(p, dpi=200, bbox_inches="tight"); plt.close(fig)
+    return p
+
+
 def plot_flux(mon, site, cycle, first, last, gpp_label, dest, interim, nee_label="NEE_VUT_REF"):
     import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt, matplotlib.dates as mdates
     fig, axs = plt.subplots(2, 1, figsize=(16, 8), sharex=True)
@@ -626,6 +685,7 @@ def process(pair, args):
     conv = convergence(carbon, names, meta, n, align); conv.to_csv(dest / f"{s}_convergence_metrics.csv", index=False)
     cases = f"{pair['ad']} → {pair['normal']} | model years {inv['start']}–{inv['start'] + len(files) - 1}"
     plot_overview(carbon, names, meta, s, cases, dest, interim)
+    plot_ad_panels(carbon, names, meta, s, dest, n, align)
     if inv["normal_years"]:
         plot_panels(carbon, names, meta, s, dest, interim, conv, n)
     status, err, prov, scores, cycle, gpp_cols, nee_cols, freq = "CARBON_ONLY", "", [], None, [], [], [], ""
@@ -638,10 +698,10 @@ def process(pair, args):
             gpp_cols = sorted({c for c in obs["EC_GPP_column"].dropna() if c})
             nee_cols = sorted({c for c in obs["EC_NEE_column"].dropna() if c})
             daily, mon = paired_monthly(model, obs, freq, args.min_days)
-            for flux in ("GPP", "NEE"):
-                matched = mon[[f"EC_{flux}", f"FATES_{flux}"]].dropna()
-                if len(matched) < 2:
-                    raise ValueError(f"{flux}: fewer than two matched monthly observations")
+            matched_counts = {flux: len(mon[[f"EC_{flux}", f"FATES_{flux}"]].dropna())
+                              for flux in ("GPP", "NEE")}
+            if all(n < 2 for n in matched_counts.values()):
+                raise ValueError("Both GPP and NEE have fewer than two matched monthly observations")
             mon.to_csv(dest / f"{s}_monthly_FATES_vs_EC.csv", index=False)
             label = " + ".join(gpp_cols) if gpp_cols else "no GPP"
             scores, _ = plot_flux(mon, s, cycle, first, last, label, dest, interim,
@@ -652,7 +712,9 @@ def process(pair, args):
                                           **metrics(daily[f"EC_{f}"], daily[f"FATES_{f}"])} for f in ("GPP", "NEE")])
                 scores = pd.concat([scores, daily_sc], ignore_index=True)
             scores.to_csv(dest / f"{s}_flux_metrics.csv", index=False)
-            status = "OK"
+            status = "OK" if all(n >= 2 for n in matched_counts.values()) else "PARTIAL_EC"
+            if status == "PARTIAL_EC":
+                err = "Fewer than two matched months for: " + ", ".join(k for k, v in matched_counts.items() if v < 2)
         except Exception as exc:
             err = f"{type(exc).__name__}: {exc}"; status = "CARBON_OK_EC_ERROR"
             print(f"  EC comparison skipped: {err}", file=sys.stderr, flush=True)

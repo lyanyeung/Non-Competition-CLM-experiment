@@ -98,6 +98,26 @@ class TestScienceGuards(unittest.TestCase):
         self.assertTrue(np.isnan(figures.trend(np.arange(99.), 100)[0]))
         self.assertTrue(np.isnan(figures.trend(np.arange(29.), 30)[0]))
 
+    def test_ad_diagnostics_exclude_normal_phase_and_align_cycles(self):
+        frame = pd.DataFrame({"SpinupYear": np.arange(1, 801),
+                              "ModelYear": np.arange(2000, 2800),
+                              "Phase": ["AD"] * 400 + ["NORMAL"] * 400,
+                              "TOTSOMC": np.r_[np.arange(400.) + 10, np.full(400, 100000.)]})
+        d = figures.ad_diagnostics(frame, ["TOTSOMC"], 10, 2000).iloc[0]
+        self.assertAlmostEqual(d.Last100y_slope_per_year, 1.)
+        self.assertEqual(d.AD_complete_cycles, 40)
+        self.assertAlmostEqual(d.Last_two_aligned_AD_cycle_mean_change_pct, 1000 / 394.5)
+
+    def test_ad_figure_is_written(self):
+        spin = np.arange(1, 801)
+        data = pd.DataFrame({"SpinupYear": spin, "ModelYear": spin + 1999,
+                             "Phase": np.where(spin <= 400, "AD", "NORMAL"), "TOTSOMC": spin * 1.})
+        meta = {"TOTSOMC": {"plot_units": "g C m-2", "csv_units": "g C m-2"}}
+        with tempfile.TemporaryDirectory(dir=HERE) as tmp:
+            fig = figures.plot_ad_panels(data, ["TOTSOMC"], meta, "TEST", Path(tmp), 10, 2000)
+            self.assertTrue(fig.is_file())
+            self.assertTrue((Path(tmp) / "TEST_AD_diagnostics.csv").is_file())
+
     def test_normal_metrics_ignore_ad_and_plots_do_not_join_phases(self):
         from matplotlib.axes import Axes
         ad = pd.DataFrame({"Phase": "AD", "ModelYear": np.arange(2000, 2400),
