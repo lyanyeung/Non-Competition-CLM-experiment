@@ -511,7 +511,24 @@ The PFT selection gate is **APPROVED**; **native tower forcing/QC, true CIME str
 
 **Status after this Stage02X run: PFT decisions 6/6; new PFT candidate surfaces 4/6; new FIXNC isolated simulation cases submitted 0/6.** Two unbuilt surfaces are CH-Aws (original RH/ERA source HOLD) and GL-ZaH (site-only Arctic FATES host9/11 mapping). The four existing original S30SHARED/S30EXCL pairs **do not** yet use these new candidate surfaces. Next: verify all SHA256 receipts, inspect **actual effective case DATM stream, model fsurdat and FATES mapping** for the four candidates and independently audit native meteorology and soil, especially IT-Tor's ten-layer ORGANIC=0. There is no science release for AD5/AD400 or Slurm until each site passes those independent gates. Never silently overwrite original cases, shared FATES map, forcing or surface.
 
-## Stage02Y: full native-source forcing / soil / PFT science release (future)
+## Stage02X SHA verification completed (1 November) and Stage02Y read-only static input binding
+
+The operator independently confirmed all four new [Stage02X candidate point-surface SHA256 values and manifests](docs/stage02x_four_surface_SHA_verified_stage02y_plan_20261101.md) with `sha256sum -c` **PASS 4/4**, and all four `<site>_B04_surface_manifest.json` present in `/iridisfs/scratch/ly3n24/CLM_FATES/experiments/Batch04_GitHub_PFT_Gz7kLAkn`. No rerun/rebuild of Stage02X is required. Model-PFT decision and four candidate builds are now **complete**, but zero NEW isolated CIME cases have been prepared/submitted and four sites still have unreviewed original native meteorology and soil source/QC.
+
+[Stage02Y read-only static CIME source-to-candidate checker](scripts/02y_four_site_candidate_surface_static_CIME_binding_readonly.py) recomputes exact SHA/receipts and source-surface SHA, compares inherited original sand/clay/ORGANIC/lat/lon and new NATVEG100/CROP0/host 15-PFT vectors, then inspects eight original S30EXCL/SHARED `CaseDocs/lnd_in`, `datm_in`, stream documents and current DATM input data lists versus saved original Stage02C/02V evidence (22/15/18/19 annual paths). The old case `fsurdat` is still expected to point to the **original** grid surface, **not** the new verified candidate. This is static evidence, not proof of runtime DATM stream loading or native tower observations; IT-Tor ten-layer soil `ORGANIC=0` is a separate HOLD. No changes to original source, cases, FATES, force inputs, jobs, or Git worktree.
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02v "$HOME/ICOS_Batch04_stage02v_9MKZUOLs/results/stage02v_four_site_DATM_parser_landunit_review.json" \
+  --stage02c "$HOME/ICOS_Batch04_stage02c_sGTtt5pv/stage02c_report.json" \
+  --candidate-dir "/iridisfs/scratch/ly3n24/CLM_FATES/experiments/Batch04_GitHub_PFT_Gz7kLAkn" \
+  --out-dir "$NEW_EMPTY_REPORT_DIR"
+~~~
+
+The resulting Stage02Y JSON+CSV are the inputs for a **separate** source-QC/soil and isolated case creation gate. **Do not submit AD5/AD400 automatically after passing Stage02Y**. Six-site status: PFT accepted 6/6; new PFT point surfaces ready 4/6; new simulations submitted 0/6; CH-Aws RH/ERA and GL-ZaH Arctic FATES mapping are still unresolved.
+
+## Stage02Z: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
