@@ -372,6 +372,30 @@ Values are annual totals over the last Normal forcing cycle, taken from the `*_n
 - With US-MtB, US-Vcp, US-Vcm and US-Mpj, that gives six sites where needleleaf survives. US-Ha1 (Harvard Forest, MA) vs US-Ho1
   (Howland, ME, collapsed) is a close-climate pair for comparing set-up and carbon budget (11/12).
 
+## 14. Summary: which sites are wrong and why (2026-11-01, 75 sites)
+
+Ratio = FATES / EC GPP. The status column says how far each explanation has been tested.
+
+| Problem | Sites (ratio) | Cause | Status |
+|---|---|---|---|
+| Needleleaf collapse, GPP ≈ 0 | FI-Sod, CH-Dav, IL-Yat, DE-Obe, IT-Ren, CZ-BK1, CA-Ca3, CA-LP1, US-NC2, US-GLE, FI-Hyy (0–0.03) | FATES carbon-starvation mortality of PFT 2 | confirmed (sections 7–8); fix trials A–E running |
+| Needleleaf part lost, other PFTs alive | US-Ho2 0.08, DE-Tha 0.09, RU-Fyo 0.09, US-Ho1 0.10, BE-Bra 0.18, US-Ho3 0.19, FR-FBn 0.19, FI-Let 0.21, US-SP1 0.22, US-NR1 0.25, BE-Vie 0.31, US-Me2 0.34, IT-Lav 0.42, US-Me6 0.48, CA-TP4 0.55 | same | same |
+| Broadleaf collapse | CZ-Stn, DE-Lnf (≈ 0) | unknown; suspects are template soil, shallow bedrock (DE-Lnf), water stress | 50-year diagnostic re-runs submitted |
+| Groundwater-dependent | US-CMW 0.28 | EC ET 2.5 × precipitation; a single-point column cannot supply it | confirmed; site excluded |
+| Dryland over-estimate | US-Whs 4.22, US-Ses 3.09, ES-LJu 3.02, US-Seg 1.91, US-Wkg 1.84, IT-Noe 1.78, US-SRM 1.27 | GPP per unit water 2–2.4 × too high; bare fraction correct; water use about right | confirmed at US-Seg and ES-LJu; the others are not yet checked |
+| Arctic over-estimate | US-ICh 4.15, US-ICt 4.05, US-EML 2.62 | not diagnosed | open |
+| Annual-grass phenology | US-Var 2.19 | model GPP 3–4 g C m⁻² d⁻¹ in autumn–winter while EC ≈ 0; the annual-grass life cycle is not representable with perennial C3 grass | inferred from the figure |
+| Other over-estimates | US-Vcm 2.17, US-Rpf 2.01, US-Ton 1.41, US-UiD 1.34 | not diagnosed (US-Ton: possible annual grass and warm-climate DBF) | open |
+| Cold-deciduous DBF never leafs in warm climates | US-SRM (DBF 35 %), US-CMW; probably US-SRG, US-Ton | FATES cold-deciduous phenology needs chilling; no leaf-on for ~770 years | confirmed at US-SRM and US-CMW (counters, PFT GPP); US-SRG and US-Ton to check |
+| Mild under-estimate | FR-Pue 0.75, DK-Sor 0.76, US-BZS 0.68 | not diagnosed | open |
+| Tropical under-estimate | GF-Guy 0.57, BR-Ma2 0.68 | not diagnosed | deferred |
+| Annual mean right, seasonal shape wrong | CH-Cha (R² 0.23), CH-Fru 0.41, IT-MBo 0.32, US-Kon −0.06, US-Mpj −2.1, US-Wjs −6.1, US-SRG −1.8 | CH-Cha: model grass drops all leaves in dry summers; managed grasslands: mowing and grazing not simulated; drylands: monsoon timing | partly inferred from figures |
+| EC data problem | US-NR3 (EC GPP ≈ 0), DE-Hzd (precipitation 3169 mm/yr in P_F and forcing) | data | to check |
+| Accurate (within ±25 %, R² ≥ 0.65) | DE-Hai, FR-Hes, FR-Fon, IT-Col, US-UMB, US-UMd, US-MMS, US-MOz, US-WCr, US-Syv, US-Ha1, US-Slt, CH-Lae, AT-Neu, DE-Hzd | – | – |
+
+NEE in all forest sites is systematically a weaker sink than the towers (section 12). This follows from the steady-state
+spin-up, not from per-site errors.
+
 ## Scripts (branch `full-sequence-gpp-nee-ec`, commit 80ec742)
 
 | Script | Purpose |
