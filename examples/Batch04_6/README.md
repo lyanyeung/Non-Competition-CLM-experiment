@@ -528,7 +528,20 @@ python3 -B "$SCRIPT" \
 
 The resulting Stage02Y JSON+CSV are the inputs for a **separate** source-QC/soil and isolated case creation gate. **Do not submit AD5/AD400 automatically after passing Stage02Y**. Six-site status: PFT accepted 6/6; new PFT point surfaces ready 4/6; new simulations submitted 0/6; CH-Aws RH/ERA and GL-ZaH Arctic FATES mapping are still unresolved.
 
-## Stage02Z: full native-source forcing / soil / PFT science release (future)
+## Stage02Y actual IRIDIS6 success — four original CIME case pairs still use old surfaces, DATM stream field requires diagnosis
+
+[Actual Stage02Y operator output and Stage02Z plan](docs/stage02y_operator_IRIDIS6_result_stage02z_plan_20261101.md): original Stage02Y source/self-test pass; **4/4** previously built GitHub PFT point surface SHA256 and unchanged soil probes verified; **8/8** original S30EXCL/SHARED CIME cases inspected; all eight exact site-year DATM source-path lists still match Stage02C/V (**22 / 15 / 18 / 19** distinct year files). **All eight original cases still point to the old source surface; zero original case bindings to the new PFT candidate surfaces is expected**, because isolated FIXNC cases have not been created. In all eight old CaseDocs/datm_in outputs, the narrow search printed **DATM_STREAM_FIELD MISSING**, while one stream-related CaseDocs document was detected per case. This is **not proof the DATM stream is broken**.
+
+[Stage02Z read-only source-scoped DATM stream forensic](scripts/02z_four_site_eight_case_DATM_stream_source_forensics_readonly.py) uses the original saved Stage02Y output to inspect each generated CaseDocs/datm_in, original stream-related file, env_run.xml, and source Buildconf/datm.input_data_list for literal DATM stream definition and mode evidence; prints short source excerpts and writes only a new report JSON+CSV under an empty HOME folder. No CIME file mutation, preview, model run, forcing, NetCDF, FATES map, or Slurm operation. Continue original tower meteorology / actual CIME runtime / soil source science HOLD after Stage02Z; especially IT-Tor ten original ORGANIC layers remain zero. The operator-approved four PFT candidates must **not** be reselected or overwritten.
+
+Run the exact blob-pinned script once:
+
+    python3 -B "$SCRIPT" --self-test
+    python3 -B "$SCRIPT" \
+      --stage02y "$HOME/ICOS_Batch04_stage02y_pT2JPSjW/results/stage02y_four_site_candidate_surface_case_binding_audit.json" \
+      --out-dir "$NEW_EMPTY_DIR"
+
+## Stage03: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
