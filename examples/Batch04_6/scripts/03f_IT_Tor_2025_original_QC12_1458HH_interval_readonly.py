@@ -216,7 +216,26 @@ def self_test():
     assert time_val("2025-10-01 00:00:00",False)==times[0]
     assert sum(EXPECT_Q["TA_F_QC"].values())==EXPECTED
     assert sum(EXPECT_Q["P_F_QC"].values())==EXPECTED
-    print("STAGE03F SELF-TEST PASS: paired QC1/QC2 run segmentation, two QC0 anchors, pinned 2928-HH provenance, no writes")
+    # Exercise the complete 2,928-HH event audit with synthetic QC counts,
+    # including exact source-vs-selected agreement without inventing 1,458-HH.
+    timeline=expected_times()
+    synthetic_source={}
+    synthetic_selected={}
+    for i,t in enumerate(timeline):
+        q=0 if i<1441 else (1 if i<2028 else 2)
+        p=0 if i<1440 else 2
+        synthetic_source[t]={
+            "TA_F_QC":q,"VPD_F_QC":q,"P_F_QC":p,
+            "TA_F":10.0,"VPD_F":3.0}
+        synthetic_selected[t]={"TA_USE":10.0,"VPD_USE":3.0}
+    checked=audit(synthetic_source,synthetic_selected)
+    assert checked["original_QC_counts"]["TA_F_QC"]=={"0":1441,"1":587,"2":900}
+    assert len(checked["run_types"]["PAIR_QC1_OR_QC2"])==1
+    assert checked["run_types"]["PAIR_QC1_OR_QC2"][0]["half_hours"]==1487
+    assert checked["pair_filled_exact_1458_length_candidates"]==[]
+    assert checked["source_vs_selected_numeric_equality_by_original_QC"]["0"]["TA_equals"]==1441
+    assert checked["historical_Stage27_1458HH_identity_proven"] is False
+    print("STAGE03F SELF-TEST PASS: original QC1/2 segmentation, QC0 anchors, full 2928-HH synthetic audit and no false 1458 identification; NO WRITES")
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
