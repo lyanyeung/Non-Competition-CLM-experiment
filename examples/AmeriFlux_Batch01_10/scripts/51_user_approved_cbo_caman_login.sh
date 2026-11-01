@@ -4,7 +4,7 @@ set -euo pipefail
 VERSION=${VERSION:?Set VERSION to a pinned GitHub commit}
 [[ "$VERSION" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid VERSION' >&2; exit 1; }
 RUN='/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/AmeriFlux_Batch01_10/Stage23_six_inputs_amf_six_inputs_tool.OSXxymF5'
-PREVIOUS='/iridisfs/home/ly3n24/CLM_FATES_PLOTS/approved_met_candidates.TVqWqlLi/result/manifest.json'
+PREVIOUS=${PREVIOUS:-/iridisfs/home/ly3n24/CLM_FATES_PLOTS/approved_met_candidates.TVqWqlLi/result/manifest.json}
 PY="$HOME/.conda/envs/clm_fates_env/bin/python"
 test -x "$PY"; test -f "$RUN/COMPLETE.json"; test -f "$PREVIOUS"; test -f "$(dirname "$PREVIOUS")/extended_context.csv"
 mkdir -p "$HOME/CLM_FATES_PLOTS"
