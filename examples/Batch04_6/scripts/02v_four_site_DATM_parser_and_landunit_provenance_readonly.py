@@ -231,7 +231,11 @@ def self_test():
         "file2='"+base+"/DE-Gri/datm_annual/DE-Gri_DATM_2005.nc4'\n"
         "aerosol=/somewhere/aerosol.nc\n")
     old,new=parsers(text,"DE-Gri")
-    assert len(old)==1 and len(new)==2
+    assert len(old)==2 and len(new)==2
+    # The old regex may silently truncate a .nc4 reference to .nc
+    # and then fail source-path equality despite two apparent matches.
+    assert any(x.endswith("DE-Gri_DATM_2005.nc") for x in old)
+    assert any(x.endswith("DE-Gri_DATM_2005.nc4") for x in new)
     assert all("DE-Gri_DATM_" in x for x in new)
     assert not parsers(text,"IT-Tor")[1]
     fake={"surface_original":{"fields":{
