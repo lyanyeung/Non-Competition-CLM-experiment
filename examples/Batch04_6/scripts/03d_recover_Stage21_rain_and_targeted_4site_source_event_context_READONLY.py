@@ -143,8 +143,8 @@ def rain_provenance(stage21,stage22):
             "original_P_F_value","original_P_F_QC"}<=set(ledger[0] if ledger else []):
         raise ValueError("Old rain ledger unexpectedly lacks source fields")
     report.update(status="FOUND_ACTUAL_STAGE21_OR_INHERITED_RAIN_LEDGER",
-                  selected_source=str(use),"selected_sha256":digest(use),
-                  "historical_total_events":len(ledger))
+                  selected_source=str(use),selected_sha256=digest(use),
+                  historical_total_events=len(ledger))
     return [r for r in ledger if r.get("site") in SITES],report
 
 def scopes(pending):
