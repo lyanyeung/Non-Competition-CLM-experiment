@@ -371,7 +371,26 @@ The initial Stage02Q IRIDIS6 `SOURCE VERIFIED` and self-test both passed, but th
 
 The revised script retains the original site-/path-pinned read-only data source and 20-event science HOLD, but **streams the potentially >5000-row BIF/BIFVARINFO metadata tables** (up to 100,000 rows under the existing 2 MB input-size guard), retains topic-specific RH/VPD/QC/time examples including rows beyond 5,000, and tests a 6,003-row synthetic metadata case. Stage21/25 ledgers still have separate bounded row scans and no inferred UTC conversion. Only rerun Stage02Q from the **new merged commit with exact Git blob checksum** into a fresh empty HOME output directory; no Stage02A–P rerun, forcing editing or Slurm submission.
 
-## Stage02R: full native-source forcing / soil / PFT science release (future)
+## Stage02Q complete (1 Nov 2026): original BIF UTC+1 and earlier source audits found
+
+[Stage02Q actual IRIDIS6 operator output](docs/stage02q_operator_IRIDIS6_result_20261101.md) confirms the repaired streaming reader completed original EUF **BIF 5,192 rows** and **BIFVARINFO_HH 1,027 rows**, with BIF `GRP_UTC_OFFSET`/`UTC_OFFSET=1`, `GRP_ONEFLUX PRODUCT_SOURCE_NETWORK=EUF`, and original ERA-downscaled TA/PA/VPD provenance metadata. The original Stage21/25 `time_local_standard_UTCplus1` ledgers have 779 and 30 rows but **no literal ±60-minute overlap** with the 20 specifically selected high-QBOT Stage02O event labels. This does NOT imply a bad timezone: they may describe different event scopes. HOME's bounded search inspected **5,357 filenames**, found **128** CH-Aws related candidates and was not truncated. Crucially, the operator discovered pre-existing Stage03, Stage06 and Stage09 source investigations under `$HOME/FLUXNET_MultiSite_11` — especially `stage09_CH_Aws/01_timezone_alignment.csv` and `stage09_CH_Aws/02_CH_Aws_559_event_reference_comparison.csv`. No independently verified unfilled tower RH was yet found at the selected events.
+
+## Stage02R — actual historical time-alignment, source status and RH/VPD BIF groups
+
+[Read-only Stage02R code](scripts/02r_CH_Aws_historical_timezone_and_RH_provenance_readonly.py) reads the saved Stage02Q JSON and **source-pins** seven named historical small Stage03/06/09 CSV/JSON files from the exact Stage02Q candidate paths (including the historical timezone alignment and original humidity review), the original small BIF/BIFVARINFO CSV metadata, and the original Stage21/25 source ledgers. It reports all relevant group-level `VAR_INFO_VARNAME` `RH`, `VPD_F`, `VPD_F_QC`, `TA_ERA`, UTC offset and QC metadata; time-range boundaries for the two old local-standard ledgers; and ±30/60-minute raw timestamp candidates from historical QC tables, without choosing a UTC conversion or manufacturing tower truth. Only a new JSON and CSV under an empty standalone HOME folder are written. Original forcing, FLUXMET, NetCDF, CIME, Slurm and Git working tree remain untouched.
+
+To run once verified with the exact immutable file SHA:
+
+~~~bash
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" \
+  --stage02q "$HOME/ICOS_Batch04_stage02q_fixed_bsOEPjTg/results/stage02q_CH_Aws_clock_and_source_provenance.json" \
+  --out-dir "$NEW_EMPTY_DIR"
+~~~
+
+All six Batch04 stations remain **scientific HOLD**. No automatic RH34A/RH38A/RH42A release or AD5/AD400 submission based on MDS vs ERA similarity.
+
+## Stage02S: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
 
