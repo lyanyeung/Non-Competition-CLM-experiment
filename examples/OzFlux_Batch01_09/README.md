@@ -1,6 +1,6 @@
 # OzFlux 9-site Non-Competition CLM-FATES — operator-selected v1.1 PFT inputs
 
-**Status 2026-11-02: Stage01–03 OPERATOR SUCCESS on IRIDIS6. Nine v1.1 operator-selected PFTs, 10/10 native OzFlux L6 files, and 9/9 independent FIXNC PFT-specific point Surface CANDIDATES (AU-ASM Stage02 plus 8 new Stage03) created and source-SHA documented. All eight Stage03 sites have 10 CTSM-2000 gridded soil reference layers and verified only PCT_NAT_PFT changed versus their respective source reference NetCDF. Stage04 native-year QC / DATM source handoff INITIAL RUN STOPPED ON A PATH-ALIAS FALSE POSITIVE in six-year AU-ASM Stage14 manifest; corrected source committed, operator rerun pending. Surface is not proof of tower-measured soil, forcing or effective CIME FATES-map approval; no case, AD5 or AD400 submitted.**
+**Status 2026-11-02: Non-Competition OzFlux Stage01–05 OPERATOR SUCCESS on IRIDIS6 for read-only provenance checks.** Nine operator-selected v1.1 PFT vectors and 9/9 isolated fixed-PFT point Surface CANDIDATES (10/10 original L6 files) have been verified. Stage04 (operator report `ozflux_nc_stage04_20261102T223221Z_FIX`) verified 9 surface SHAs, 169 native source file-years (67 structurally eligible, 102 REVIEW/HOLD), and all six 2013–2018 AU-ASM Stage14 FSDS0 provisional DATM source/manifest/physical SHAs. The original Stage04 2015 hard-coded hash typo was corrected in separate PR #61, which must be merged before relying on `main`. Stage05 (operator report `ozflux_nc_stage05_20261102T224556Z_FIX`) independently reconciled 196 original 7-variable source-year QC series across AU-ASM 2013–2018, AU-DaS 2009–2021 and AU-Dry 2010–2018 against Stage08; source-QC episode segmentation passed. All source L6, provisional DATM, PFT, surface, CIME, existing AU-How and Slurm jobs remain unchanged. **No science-approved forcing, no AD5 and no AD400 authorised or submitted.**
 
 The operator instructed: *use all the OzFlux PFT numbers already updated on GitHub for the non-competition experiment, and proceed*. Do **not** continue the AU-ASM historical 2018 derived-AGB forensic stages as a prerequisite to FIXNC PFT input selection. All SOURCE AGB evidence remains preserved in `CLM-FATES-single-site-workflows`; 2018 derived AGB is not validated observation.
 
@@ -339,6 +339,22 @@ candidates but **not physics / QC / land-cover approved**.
 AU-DaS has prior source-level high humidity flags and
 post-2022 land-cover change; do not mix vegetation regimes
 by default. Keep AU-How competition case unchanged.
+
+## Stage04–05 actual operator receipts (2026-11-02)
+
+Both reports are completed **READ ONLY** on IRIDIS6:
+- Stage04: `/iridisfs/home/ly3n24/ozflux_nc_stage04_20261102T223221Z_FIX/` — 9/9 surface source SHA verified; 169 native source-years; 67 structural-year candidates, 102 HOLD; six AU-ASM Stage14 provisional DATM SHA256 file/manifest checks passed (2013–2018). Not a model submission gate.
+- Stage05: `/iridisfs/home/ly3n24/ozflux_nc_stage05_20261102T224556Z_FIX/` — 42 AU-ASM + 91 AU-DaS + 63 AU-Dry year-variable QC groups (196 total) reconciled with the original L6 NetCDF and Stage08. The local-source-time stamps below are **not** independently UTC-certified. The executed script is in Stage05 [PR #62](https://github.com/lyanyeung/Non-Competition-CLM-experiment/pull/62), fixed commit `5c476617fb8c566f63bfa860b4602eb7d1b5e45b`.
+
+| Site/source years | Longest contiguous ACCESS/ERA5 (any driver) | Critical independent HOLD |
+|---|---:|---|
+| AU-ASM 2013–2018 | 395 h = 16.46 d | Six Stage14 FSDS0 files remain provisional; native-local-END to UTC-center hypothesis, PRECT units, SH/ZBOT evidence, CIME streams still require independent signoff |
+| AU-DaS 2009–2021 | 1,691.5 h = 70.48 d | Precip **ANY_NON_QC0** 2009-01-01 00:30 through 2009-12-31 23:30 (8,759.5 h); 885 separately diagnosed SH supersaturation cases, including 40 severe, remain on physical science HOLD |
+| AU-Dry 2010–2018 | 6,596.5 h = 274.85 d | Fsd and Fld ACCESS/ERA5 2013-03-25 13:30 to 2013-12-25 09:30 (6,596.5 h), with simultaneous all-seven-variable ANY_NON_QC0; Precip ANY_NON_QC0 2010-01-01 to 2011-02-03 (9,566 h) |
+
+**Interpretation:** ANY_NON_QC0 cannot be assumed to be a single external model product; it includes interpolation, correction and other source QC categories. Code 420 denotes ACCESS, code 440 ERA5 in PyFluxPro's source code. No repair, model submission or causal attribution is automatically authorised by QC count. Values in the output are native labels as recorded by source L6.
+
+**Operator next step:** extract AU-ASM's own (not AU-Dry-dominated) longest QC episodes and yearly variable rows from the successful Stage05 report; independently validate six Stage14 provisional DATM physical bounds and CIME/DATM effective time/stream mapping; keep prior Stage13–14 exact source mapping and 360 FSDS0 records as immutable source receipts. Prioritise AU-ASM; separately review AU-DaS humidity/precip; defer AU-Dry forcing approval until long replacement periods are interpreted.
 
 ## Candidate model mode (not submitted)
 
