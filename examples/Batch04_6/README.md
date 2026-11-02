@@ -777,6 +777,7 @@ All three cases were built the same way:
   - It replaces TBOT/QBOT at the three QC1 labels 2025-11-13 14:30–15:30 with packaged ERA TA/VPD; pressure is unchanged.
   - The script first proves that the original DATM values equal the source labels, then checks that nothing else changed.
   - It is `DETACHED_EXPLORATORY_NOT_RELEASED`.
+  - **Version note:** the repository copy of `05a` (sha `997f237b…`) is Codex's latest local file. The copy that actually ran on IRIDIS6 was verified as sha `2a537d46…`. [Stage05B](scripts/05b_batch04_status_itTor_soil_glZaH_preflight_READONLY.py) prints the diff between the two; replace the repository copy with the run copy if they differ.
 - *Soil.* The inherited ORGANIC is 0 in all ten source layers. The S1 soil candidate waits for a review of the pinned CTSM layer mapping (`20SL_8.5m` model layers; 10-level surface data).
 
 **GL-ZaH.** A private Arctic FATES parameter candidate exists:
@@ -785,6 +786,8 @@ All three cases were built the same way:
 - No GL surface or case exists yet. The template is `GL-ZaH_FATES_SPINUP500_11P` (DATM 2000–2025).
 
 **CH-Aws.** The native-sensor humidity source is still under review.
+
+**Next read-only step:** [Stage05B](scripts/05b_batch04_status_itTor_soil_glZaH_preflight_READONLY.py) audits the three running chains (restart sets, `spinup_state`, CO2 versus the NOAA first-year convention), diffs the F1 script, prints the pinned CTSM ORGANIC/soil-layer mapping for IT-Tor S1 and preflights the GL-ZaH template, surface and private map.
 
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
