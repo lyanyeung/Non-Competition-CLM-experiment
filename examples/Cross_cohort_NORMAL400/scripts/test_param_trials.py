@@ -84,6 +84,20 @@ class ParamTrialTest(unittest.TestCase):
         new = self.m.set_nml(txt, "use_fates_dbh_init", ".true.")
         self.assertEqual(new.count("use_fates_dbh_init"), 1); self.assertIn("use_fates_dbh_init = .true.", new)
 
+    def test_hashed_names_per_source(self):
+        b1 = Path(self.tmp.name) / "p1.json"; fake_params(b1)
+        b2 = Path(self.tmp.name) / "p2.json"; fake_params(b2)
+        d = json.loads(b2.read_text()); d["parameters"]["fates_grperc"]["data"] = [0.2, 0.2, 0.2]; b2.write_text(json.dumps(d))
+        o1, _, _ = self.m.make_param(b1, "F", hashed=True)
+        o2, _, _ = self.m.make_param(b2, "F", hashed=True)
+        self.assertNotEqual(o1, o2)                       # different sources -> different copies, no clash
+        self.assertTrue(o1.name.startswith("fates_params_needleleaf_trial_F_"))
+        legacy, _, _ = self.m.make_param(b1, "D")
+        self.assertEqual(legacy.name, "fates_params_needleleaf_trial_D.json")
+        p = json.loads(o1.read_text())["parameters"]
+        self.assertEqual(p["fates_leaf_slatop"]["data"], [0.012, 0.008, 0.03])
+        self.assertEqual(p["fates_alloc_storage_cushion"]["data"], [1.2, 2.4, 2.4])
+
     def test_set_paramfile(self):
         txt = "fsurdat = '/s.nc'\nfates_paramfile = '/old.json'\nhist_mfilt = 12\n"
         new = self.m.set_paramfile(txt, Path("/new.json"))

@@ -13,6 +13,12 @@ draws it below 1 x leaf C. Trials (PFT 2 only; every other PFT and parameter unc
   E  no parameter change; use_fates_dbh_init = .true. (closed-canopy cold start from
      fates_recruit_init_dbh). A falsification control: the mortality depends on storage /
      leaf C, not on stand closure, so the needleleaf PFT should still collapse.
+     (Rejected by this FATES version at initialisation, EDPftvarcon.F90 l.1307; dropped.)
+  F  storage cushion 2.4 + slatop 0.008   the D combination with a smaller SLA increase
+
+Final round (2026-11-02): D and F, 100 years, at ten sites (collapsing needleleaf sites across
+climates plus the mixed survivor US-Ha1). Results 50 y: D was the only variant that worked at
+both DE-Obe and FI-Sod, but FI-Sod GPP was still rising past the EC value at year 49.
 
 Each trial is a create_clone --keepexe of the site's own AD case (same executable, surface,
 forcing, CO2, AD settings, start date) with: a private copy of the case's FATES parameter
@@ -25,6 +31,7 @@ submitted. Controls are the existing *_DIAG50 re-runs (default parameters, same 
 
 Steps (login node):
   python -B 13_...py prepare [--sites DE-Obe FI-Sod] [--variants A B C D] [--years 50]   # NO Slurm
+  final round:  prepare --final --variants D F --years 100     (--final = the ten FINAL_SITES)
   python -B 13_...py submit  [--sites ...] [--variants ...]
   python -B 13_...py status  [--sites ...] [--variants ...]
   python -B 13_...py reset   --sites X --variants Y        # only a FAILED prepare that never ran
@@ -49,14 +56,16 @@ VARIANTS = {   # name: (description, PFT-2 parameter changes, namelist changes)
     "C": ("slatop 0.010", {"fates_leaf_slatop": 0.010}, {}),
     "D": ("storage cushion 2.4 + slatop 0.010", {"fates_alloc_storage_cushion": 2.4, "fates_leaf_slatop": 0.010}, {}),
     "E": ("closed-canopy cold start (use_fates_dbh_init), default parameters", {}, {"use_fates_dbh_init": ".true."}),
+    "F": ("storage cushion 2.4 + slatop 0.008", {"fates_alloc_storage_cushion": 2.4, "fates_leaf_slatop": 0.008}, {}),
 }
+FINAL_SITES = ["DE-Obe", "FI-Sod", "FI-Hyy", "CH-Dav", "CZ-BK1", "IT-Ren", "RU-Fyo", "US-Ho1", "US-SP1", "US-Ha1"]
 STATE = "PARAM_TRIAL_STATE.json"
 R = None   # module 09
 
 
 def load09():
     global R
-    for c in (HERE / "rerun.py", HERE / "09_clone_AD_diag_rerun.py"):
+    for c in (HERE / "09_clone_AD_diag_rerun.py", HERE / "rerun.py"):
         if c.is_file():
             spec = importlib.util.spec_from_file_location("rerun09", c)
             R = importlib.util.module_from_spec(spec)
@@ -88,7 +97,10 @@ def set_pft(data, axis, idx, value):
     return np.moveaxis(arr, -1, axis).tolist()
 
 
-def make_param(base, variant):
+LEGACY = ("A", "B", "C", "D", "E")   # 50-year round: file names without the source hash
+
+
+def make_param(base, variant, hashed=False):
     """Write (or verify) the private parameter copy for one variant; return (path, sha, changes)."""
     desc, changes, _ = VARIANTS[variant]
     if not changes:
@@ -128,7 +140,9 @@ def make_param(base, variant):
     if {k: v for k, v in src.items() if k != "parameters"} != {k: v for k, v in new.items() if k != "parameters"}:
         R.fail("file-level attributes/dimensions changed")
     PARAM_DIR.mkdir(parents=True, exist_ok=True)
-    out = PARAM_DIR / f"fates_params_needleleaf_trial_{variant}.json"
+    # one copy per (variant, source file): sites may use different source parameter files
+    tag = "" if (variant in LEGACY and not hashed) else "_" + R.digest(base)[:10]
+    out = PARAM_DIR / f"fates_params_needleleaf_trial_{variant}{tag}.json"
     text = json.dumps(new, indent=1) + "\n"
     rec = Path(str(out) + ".receipt.json")
     if out.exists():
@@ -187,10 +201,10 @@ def prepare(site, variant, F7, P, years):
     base_param = base_param.strip("'\" ")
     _, pchanges, nchanges = VARIANTS[variant]
     if pchanges:
-        param, psha, changes = make_param(base_param, variant)
+        param, psha, changes = make_param(base_param, variant, hashed=years != 50)
     else:
         param, psha, changes = Path(base_param), R.digest(base_param), {}
-    overlay = R.overlay_for(ad_lnd)
+    overlay = R.overlay_for(ad_lnd) if "_private_ctsm_FATES_AD400_namelist_overlay" in ad_lnd else None
     found = R.fates_has(srcroot, R.DIAG_FIELDS)
     nl, old_hist, fields = R.edit_user_nl((ad / "user_nl_clm").read_text(), found)
     if pchanges:
@@ -221,11 +235,14 @@ def prepare(site, variant, F7, P, years):
         R.cmd([case / "case.setup"], cwd=case, timeout=300)
     env, lock = case / "env_case.xml", case / "LockedFiles" / "env_case.xml"
     orig = env.read_bytes()
-    try:
-        R.xc(case, "COMP_ROOT_DIR_LND", str(overlay))
+    if overlay is None:   # AD case built with the standard CTSM namelist: no overlay swap
         R.cmd([case / "preview_namelists"], cwd=case, timeout=600)
-    finally:
-        R.xc(case, "COMP_ROOT_DIR_LND", "$SRCROOT")
+    else:
+        try:
+            R.xc(case, "COMP_ROOT_DIR_LND", str(overlay))
+            R.cmd([case / "preview_namelists"], cwd=case, timeout=600)
+        finally:
+            R.xc(case, "COMP_ROOT_DIR_LND", "$SRCROOT")
     if env.read_bytes() != orig or (lock.is_file() and lock.read_bytes() != orig):
         R.fail("env_case.xml / lock not restored after overlay preview")
     a, n = R.parse_nml(ad_lnd), R.parse_nml((case / "CaseDocs" / "lnd_in").read_text())
@@ -250,7 +267,7 @@ def prepare(site, variant, F7, P, years):
     state = {"phase": "VERIFIED_NOT_SUBMITTED", "at": R.utc(), "variant": variant, "description": VARIANTS[variant][0],
              "namelist_changes": nchanges,
              **{k: str(v) for k, v in i.items()}, "years": years, "settings": settings, "wallclock_per_segment": wall,
-             "overlay": str(overlay), "paramfile": str(param), "paramfile_sha256": psha, "base_paramfile": base_param,
+             "overlay": str(overlay) if overlay else "none (standard CTSM namelist)", "paramfile": str(param), "paramfile_sha256": psha, "base_paramfile": base_param,
              "param_changes": changes, "hist_fincl1": fields, "lnd_in_keys_changed": diff,
              "lnd_in_sha256": R.digest(case / "CaseDocs" / "lnd_in"),
              "datm_streams_sha256": R.digest(case / "CaseDocs" / "datm.streams.xml")}
@@ -334,7 +351,7 @@ def reset(site, variant, F7, P, years):
 
 def cases(site, variant, F7, P, years):
     i = ident(site, variant, F7, P, years)
-    print(f"{site}_{variant}:{i['new']}:first50", flush=True)
+    print(f"{site}_{variant}:{i['new']}:{'first50' if years == 50 else 'all'}", flush=True)
 
 
 def main(argv=None):
@@ -342,9 +359,12 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("action", choices=("prepare", "submit", "status", "reset", "cases"))
     ap.add_argument("--sites", nargs="+", default=["DE-Obe", "FI-Sod"])
+    ap.add_argument("--final", action="store_true", help="use the ten FINAL_SITES")
     ap.add_argument("--variants", nargs="+", default=list(VARIANTS), choices=list(VARIANTS))
     ap.add_argument("--years", type=int, default=50)
     a = ap.parse_args(argv)
+    if a.final:
+        a.sites = FINAL_SITES
     load09()
     PARAM_DIR = R.B / "experiments/NonCompetitionObserved22/NeedleleafFixTrials/params"
     if a.years % R.SEG or a.years < R.SEG:
