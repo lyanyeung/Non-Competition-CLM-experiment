@@ -7,7 +7,8 @@ U=${USER:-$(whoami)}
 CASES=/iridisfs/scratch/ly3n24/CLM_FATES/cases
 echo "== $(date -u '+%H:%M UTC')  log: $LOG"
 
-pid=$(pgrep -u "$U" -f "22_phenology_patch_rollout.py ad-run" | head -1)
+pids=$(pgrep -u "$U" -f "22_phenology_patch_rollout.py ad-run" | tr "\n" " "); pid=${pids%% *}
+[ "$(echo $pids | wc -w)" -gt 1 ] && echo "WARNING: $(echo $pids | wc -w) ad-run processes ($pids) - only one should run"
 if [ -n "$pid" ]; then
   echo "ad-run: RUNNING (pid $pid, $(ps -o etime= -p "$pid" | tr -d ' ') elapsed)"
 else
@@ -16,15 +17,15 @@ fi
 b=$(pgrep -u "$U" -af "case.build" | grep -oE "cases/[^ /]+" | head -1)
 [ -n "$b" ] && echo "building now: ${b#cases/}"
 
-cur=$(grep -E "^=== " "$LOG" 2>/dev/null | tail -1)
+cur=$(grep -aE "^=== " "$LOG" 2>/dev/null | tail -1)
 echo "current site: ${cur:-none yet}"
-n_sites=$(grep -cE "^=== " "$LOG" 2>/dev/null)
-n_built=$(grep -c "BUILT AND VERIFIED" "$LOG" 2>/dev/null)
-n_sub=$(grep -cE "^  SUBMITTED " "$LOG" 2>/dev/null)
-n_hold=$(grep -c ": HOLD" "$LOG" 2>/dev/null)
+n_sites=$(grep -acE "^=== " "$LOG" 2>/dev/null)
+n_built=$(grep -ac "BUILT AND VERIFIED" "$LOG" 2>/dev/null)
+n_sub=$(grep -acE "^  SUBMITTED " "$LOG" 2>/dev/null)
+n_hold=$(grep -ac ": HOLD" "$LOG" 2>/dev/null)
 echo "sites started $n_sites / 42 | built+verified $n_built | submitted $n_sub | HOLD $n_hold"
-if [ "$n_hold" != "0" ]; then echo "-- HOLD lines:"; grep ": HOLD" "$LOG" | cut -c1-220; fi
-echo "-- last submissions:"; grep -E "^  SUBMITTED " "$LOG" 2>/dev/null | tail -3
+if [ "$n_hold" != "0" ]; then echo "-- HOLD lines:"; grep -a ": HOLD" "$LOG" | cut -c1-220; fi
+echo "-- last submissions:"; grep -aE "^  SUBMITTED " "$LOG" 2>/dev/null | tail -3
 tail -1 "$LOG" 2>/dev/null | grep "sites OK"
 
 echo "-- queue ($U): $(squeue -u "$U" -h | wc -l) jobs; running: $(squeue -u "$U" -h -t R | wc -l)"

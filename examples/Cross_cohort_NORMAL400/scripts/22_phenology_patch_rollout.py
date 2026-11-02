@@ -35,6 +35,8 @@ Actions:
                                RERUN_PHEN, RESTART_NLF and KEEP_NLF sites, and the cancelled <AD>_NLF cases (dry run without
                                --confirm); never a running case, never a build dir, never CaseDocs / namelists / stream xml
   status
+  reset                        remove a new AD case whose prepare was cut off (never submitted, no output)
+Only one script-22 action (other than plan/status) may run at a time; a second one refuses to start.
 """
 from __future__ import annotations
 
@@ -455,6 +457,35 @@ def purge_old(site, confirm):
     return total
 
 
+def reset(site):
+    """Remove a new AD case whose prepare was cut off (no state, or PREPARE_ATTEMPTED): never submitted, no jobs, no
+    model output. Removes <cases>/<new> and <OUT>/<new> (its own run and build dirs) and an empty archive."""
+    i = ident(site)
+    case, name = i["ad_case"], i["ad"]
+    if not case.exists():
+        print(f"{site}: {name} does not exist; nothing to reset", flush=True)
+        return
+    ph = M20.read_state(case).get("phase")
+    if ph not in (None, "PREPARE_ATTEMPTED"):
+        print(f"{site}: {name} is {ph}; kept (only a cut-off prepare is reset)", flush=True)
+        return
+    cs = (case / "CaseStatus").read_text(errors="replace") if (case / "CaseStatus").is_file() else ""
+    if "case.submit" in cs or "case.run" in cs or M20.jobs(name):
+        R.fail(f"{name}: has been submitted or has jobs; not reset")
+    if pgrep_build(name):
+        R.fail(f"{name}: a case.build is still running")
+    out = R.OUT / name
+    if (out / "run").is_dir() and any((out / "run").glob("*.nc")):
+        R.fail(f"{out}/run holds model output; not reset")
+    arch = i["ad_arch"]
+    if arch.exists() and any(arch.rglob("*.nc")):
+        R.fail(f"{arch} holds model output; not reset")
+    for d in (case, out, arch):
+        if d.exists() and d.name == name:
+            shutil.rmtree(d)
+    print(f"{site}: RESET {name} (cut-off prepare removed); ad-run will prepare it again", flush=True)
+
+
 def status(site):
     i, act, *_ = classify(site)
     parts = [f"{act:11s}"]
@@ -471,7 +502,8 @@ def status(site):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("action", choices=("plan", "cancel-nlf", "cancel-ad", "ad-run", "normal-run", "purge-old", "status"))
+    ap.add_argument("action", choices=("plan", "cancel-nlf", "cancel-ad", "ad-run", "normal-run", "purge-old", "status",
+                                       "reset"))
     ap.add_argument("--sites", nargs="+", default=None)
     ap.add_argument("--confirm", default="")
     a = ap.parse_args(argv)
@@ -480,12 +512,18 @@ def main(argv=None):
     unknown = [s for s in sites if s not in SITES]
     if unknown:
         ap.error("unknown sites: " + " ".join(unknown))
+    if a.action in ("ad-run", "normal-run", "cancel-nlf", "cancel-ad", "purge-old", "reset"):
+        out = R.cmd(["ps", "-u", R.USER, "-o", "pid=,args="], timeout=30)
+        others = [ln.strip() for ln in out.splitlines() if "22_phenology_patch_rollout.py" in ln
+                  and not ln.strip().startswith(str(os.getpid()) + " ") and " plan" not in ln and " status" not in ln]
+        if others:
+            ap.error("another script-22 action is running; only one at a time:\n  " + "\n  ".join(others))
     try:
         os.nice(10)
     except OSError:
         pass
     fn = {"plan": plan, "cancel-nlf": lambda s: cancel_nlf(s, a.confirm), "cancel-ad": lambda s: cancel_ad(s, a.confirm), "ad-run": ad_run, "normal-run": normal_run,
-          "purge-old": lambda s: purge_old(s, a.confirm), "status": status}[a.action]
+          "purge-old": lambda s: purge_old(s, a.confirm), "status": status, "reset": reset}[a.action]
     bad, counts, total = 0, {}, 0
     for s in sites:
         try:
