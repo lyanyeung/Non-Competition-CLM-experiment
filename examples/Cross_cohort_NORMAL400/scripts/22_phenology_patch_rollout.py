@@ -328,6 +328,11 @@ def ad_prepare(site):
     return i
 
 
+def pgrep_build(name):
+    out = R.cmd(["ps", "-u", R.USER, "-o", "pid=,args="], timeout=30)
+    return [ln for ln in out.splitlines() if "case.build" in ln and f"/{name}/" in ln + "/"]
+
+
 def build(i):
     """script-17 procedure: case.build with CLM_ACCELERATED_SPINUP off and the user_nl_clm spinup_state line(s)
     commented out (the plain build-namelist refuses FATES AD), both restored, namelist re-generated through the verified
@@ -336,10 +341,21 @@ def build(i):
     st = M20.read_state(case)
     print(f"  building {i['ad']} ...", flush=True)
     spin = R.xq(case, "CLM_ACCELERATED_SPINUP")
-    if spin.lower() != "on":
-        R.fail(f"CLM_ACCELERATED_SPINUP is {spin!r} before the build, expected 'on'")
     unl = case / "user_nl_clm"
     orig = unl.read_bytes()
+    if spin.lower() == "off" and M17.BUILD_TAG.encode() in orig and st.get("phase") == "PATCHED_NOT_BUILT":
+        # an earlier build of this script was killed inside case.build: undo exactly what it changed, then rebuild
+        if R.xq(i["ad0_case"], "CLM_ACCELERATED_SPINUP").lower() != "on":
+            R.fail("interrupted build, and the original AD is not 'on' either; inspect by hand")
+        if pgrep_build(i["ad"]):
+            R.fail(f"a case.build of {i['ad']} is still running (left by a killed ad-run); wait for it to end")
+        orig = orig.decode().replace(M17.BUILD_TAG, "").encode()
+        unl.write_bytes(orig)
+        R.xc(case, "CLM_ACCELERATED_SPINUP", "on")
+        spin = R.xq(case, "CLM_ACCELERATED_SPINUP")
+        print("  repaired an interrupted earlier build (spinup on, user_nl_clm line restored)", flush=True)
+    if spin.lower() != "on":
+        R.fail(f"CLM_ACCELERATED_SPINUP is {spin!r} before the build, expected 'on'")
     if M17.BUILD_TAG.encode() in orig:
         R.fail("user_nl_clm still has a line hidden by an interrupted build; restore it by hand (remove the tag)")
     hidden, nh = M17.hide_spinup_state(orig.decode())
