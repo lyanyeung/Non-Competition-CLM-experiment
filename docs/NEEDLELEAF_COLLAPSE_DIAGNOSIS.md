@@ -379,6 +379,27 @@ Rule for all further runs:
 - Script: [`18_adopt_needleleaf_params.py`](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/5f4011fdb2f3ae0d1281e4ef74f27048b45775d9/examples/Cross_cohort_NORMAL400/scripts/18_adopt_needleleaf_params.py)
   (`plan` / `write` / `check`).
 
+#### Production rerun (started 2026-11-02 evening)
+
+- **Scope:** AD400 → NORMAL400 is rerun with the adopted parameters at the 41 sites that contain PFT 2.
+- **Operator decisions (2026-11-02):**
+  - Start now with the needleleaf fix only. The FATES phenology patch (section 16) is still being tested; if it is
+    adopted, sites with cold-deciduous PFTs will need a further rerun.
+  - Delete the old default-parameter `.nc` output of these sites now, because disk space is short.
+- **New cases** are `<original case>_NLF`, made with create_clone `--keepexe`:
+  - Every lnd_in key equals the original except `fates_paramfile`, plus `finidat` for the Normal case.
+  - The DATM streams are exactly the ones the original run read.
+  - Each run is 80 × 5-year segments.
+  - Script: [`20_needleleaf_rerun_AD400_NORMAL400.py`](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/9482ba42e68bd4186f9102e2939828007da0bcc7/examples/Cross_cohort_NORMAL400/scripts/20_needleleaf_rerun_AD400_NORMAL400.py)
+    (`plan` / `ad-run` / `normal-run` / `purge-old` / `status`).
+- **What `purge-old` deletes:** only `*.nc` in the RUNDIR and archive of the original AD and Normal cases, and only after
+  the new AD case is verified.
+  - It never touches case directories, namelists, stream files, logs or build directories (executables are shared
+    between cases).
+  - A list of the deleted files is kept in `experiments/NonCompetitionObserved22/Needleleaf_F_rerun/`.
+- **Consequence:** the published figures of these 41 sites (screening, sections 1–15, final trials) remain the record of
+  the default-parameter runs; their model output no longer exists on IRIDIS.
+
 ## 10. 75-site screening: which sites have GPP far below EC (2026-11-01)
 
 Data: [`figures/AD400_NORMAL400_gpp_vs_ec_screening/20261101_from_20261101T042427Z`](../figures/AD400_NORMAL400_gpp_vs_ec_screening/20261101_from_20261101T042427Z/).
