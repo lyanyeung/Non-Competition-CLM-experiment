@@ -742,6 +742,10 @@ The actual IT-TrF 2025 Nov 12–20 station source was **read directly locally**,
 
 [Actual uploaded nested ZIP provenance, detailed Nov TA availability, four matched handoff steps and final science decision](docs/stage03n_actual_uploaded_IT_TrF_nested_archive_verified_Nov2025_neighbor_evidence_final_decision_20261102.md). [Official ICOS source](https://meta.icos-cp.eu/objects/mwN98ExGR4uPnaUKi5mWoISl). No licensed original ZIP or per-record data was committed to GitHub.
 
+## DE-Gri input plan passed (2 Nov 2026) and Stage03W case preflight
+
+[Operator record](docs/stage03v_operator_DE_Gri_22_year_input_plan_pass_stage03w_case_preflight_20261102.md): Stage03V on IRIDIS6 verified the complete DE-Gri 2004-2025 annual DATM set (20 historical + approved 2011/2024 detached sensitivities) and the B04 surface; no case, staging or Slurm. Next is the read-only [Stage03W case preflight](scripts/03w_de_gri_independent_case_preflight_READONLY.py): re-hash, sensitivity-vs-baseline scope check, surface/soil inheritance check, named-template stream-path match and a model-year schedule showing when 2011/2024 are first read (a 5-year AD smoke does not read them). It prints a proposed independent case design and executes nothing. DE-Gri science HOLDs (49 original MDS blocks beyond the two sensitivities, soil, source clock) are unchanged and this does not authorise AD5/AD400.
+
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
