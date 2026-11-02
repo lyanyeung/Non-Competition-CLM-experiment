@@ -230,6 +230,30 @@ def read_text(path):
     return path.read_text(encoding='utf-8', errors='replace') if path.is_file() else ''
 
 
+def forcing_stream_window(streams_xml, user_streams):
+    """Year window of the CLM_USRDAT forcing stream ONLY.
+
+    A real datm.streams.xml also holds aerosol, deposition, ozone and topography streams whose
+    year_first/year_last/year_align (e.g. 1, 2000) must not be mixed into the forcing window."""
+    parts = re.split(r'(?=<stream_info\s+name=")', streams_xml)
+    xml = {k: set() for k in ('year_first', 'year_last', 'year_align')}
+    names = []
+    for part in parts:
+        m = re.match(r'<stream_info\s+name="([^"]+)"', part)
+        if not m or not m.group(1).startswith('CLM_USRDAT'):
+            continue
+        names.append(m.group(1))
+        for k in xml:
+            xml[k].update(re.findall(r'<%s>\s*(\d+)' % k, part))
+    usr = {k: set(re.findall(r'(?m)^\s*CLM_USRDAT[^:\s]*:%s\s*=\s*(\d+)' % k, user_streams))
+           for k in xml}
+    conflict = [k for k in xml if xml[k] and usr[k] and xml[k] != usr[k]]
+    chosen = {k: sorted(xml[k] or usr[k]) for k in xml}
+    return {'forcing_streams': names, 'xml': {k: sorted(v) for k, v in xml.items()},
+            'user_nl': {k: sorted(v) for k, v in usr.items()}, 'conflict': conflict,
+            'unique': all(len(v) == 1 for v in chosen.values()) and not conflict, **chosen}
+
+
 def inspect_template(case):
     env = env_values(case)
     lnd = read_text(case / 'CaseDocs' / 'lnd_in')
@@ -240,10 +264,9 @@ def inspect_template(case):
     for source, text in (('user_nl_datm_streams', user_streams), ('datm.streams.xml', streams_xml)):
         for path, year in DATM_REF.findall(text):
             refs.setdefault(int(year), {}).setdefault(path, set()).add(source)
-    first = re.findall(r'<year_first>\s*(\d+)', streams_xml) or re.findall(r'year_first\s*=\s*(\d+)', user_streams)
-    last = re.findall(r'<year_last>\s*(\d+)', streams_xml) or re.findall(r'year_last\s*=\s*(\d+)', user_streams)
-    align = re.findall(r'<year_align>\s*(\d+)', streams_xml) or re.findall(r'year_align\s*=\s*(\d+)', user_streams)
-    return {'name': case.name, 'env': {k: env.get(k) for k in (
+    window = forcing_stream_window(streams_xml, user_streams)
+    first, last, align = window['year_first'], window['year_last'], window['year_align']
+    return {'stream_window': window,'name': case.name, 'env': {k: env.get(k) for k in (
                 'BUILD_COMPLETE', 'DATM_MODE', 'RUN_STARTDATE', 'RUN_TYPE', 'STOP_OPTION', 'STOP_N',
                 'REST_N', 'RESUBMIT', 'CLM_USRDAT_NAME', 'CLM_BLDNML_OPTS')},
             'fsurdat': nl_value(lnd, 'fsurdat'), 'use_fates': nl_value(lnd, 'use_fates'),
@@ -371,7 +394,12 @@ def run_plan(plan_path, template_case, case_name, cases_dir, stage_dir):
 
     # 5. design and coverage
     schedule = None
-    if tpl['year_first'] and tpl['year_last'] and tpl['year_align'] and re.match(r'\d{4}', env['RUN_STARTDATE'] or ''):
+    if tpl['stream_window']['conflict']:
+        holds.append('TEMPLATE_STREAM_YEAR_WINDOW_XML_VS_USER_NL_CONFLICT')
+    print('FORCING_STREAM_WINDOW', json.dumps(tpl['stream_window'], sort_keys=True, separators=(',', ':')))
+    if env.get('RESUBMIT') not in (None, '0'):
+        notes.append('Template RESUBMIT=%s; a fresh AD5 smoke case must set RESUBMIT=0' % env['RESUBMIT'])
+    if tpl['stream_window']['unique'] and re.match(r'\d{4}', env['RUN_STARTDATE'] or ''):
         schedule = sensitivity_schedule(int(env['RUN_STARTDATE'][:4]), int(tpl['year_first'][0]),
                                         int(tpl['year_last'][0]), int(tpl['year_align'][0]))
         print('SCHEDULE', json.dumps(schedule, sort_keys=True, separators=(',', ':')))
@@ -465,10 +493,11 @@ def _make_surface(path, pft13=100.0):
             nc.createVariable(n, 'f8', ('nlevsoi', 'lsmlat', 'lsmlon'))[:] = val
 
 
-def _make_case(case, surface, years, base_dir, mutate_year=None, built='TRUE', align=1):
+def _make_case(case, surface, years, base_dir, mutate_year=None, built='TRUE', align=1, real_like=False,
+               user_align=None, resubmit='0'):
     (case / 'CaseDocs').mkdir(parents=True)
     for name, entries in (('env_run.xml', {'DATM_MODE': '1PT', 'RUN_STARTDATE': '0001-01-01', 'STOP_N': '5',
-                                           'STOP_OPTION': 'nyears', 'REST_N': '5', 'RESUBMIT': '0', 'RUN_TYPE': 'startup'}),
+                                           'STOP_OPTION': 'nyears', 'REST_N': '5', 'RESUBMIT': resubmit, 'RUN_TYPE': 'startup'}),
                           ('env_build.xml', {'BUILD_COMPLETE': built}), ('env_case.xml', {})):
         root = ET.Element('file')
         for k, v in entries.items():
@@ -481,10 +510,21 @@ def _make_case(case, surface, years, base_dir, mutate_year=None, built='TRUE', a
         d = Path(base_dir)
         name = 'DE-Gri_DATM_%d_PROVISIONAL.nc' % (y + (1 if y == mutate_year else 0))
         lines.append('CLM_USRDAT.Solar:datafiles=%s/%s' % (d, name))
+    if real_like:
+        # Real layout: forcing stream plus aerosol/deposition/ozone/topography streams with their own years.
+        ua = align if user_align is None else user_align
+        lines += ['CLM_USRDAT.Solar:taxmode = cycle', 'CLM_USRDAT.Solar:year_first = 2004',
+                  'CLM_USRDAT.Solar:year_last = 2025', 'CLM_USRDAT.Solar:year_align = %d' % ua]
+        xml = ('<stream_info name="CLM_USRDAT.Solar">\n<year_first>2004</year_first>\n<year_last>2025</year_last>\n'
+               '<year_align>%d</year_align>\n</stream_info>\n' % align)
+        for other, first in (('presaero.clim_2000', 2000), ('preso3.clim_2000', 2000), ('topo.observed', 1)):
+            xml += ('<stream_info name="%s">\n<year_first>%d</year_first>\n<year_last>%d</year_last>\n'
+                    '<year_align>1</year_align>\n</stream_info>\n' % (other, first, first))
+    else:
+        xml = ('<stream_info name="CLM_USRDAT.Solar"><year_first>2004</year_first><year_last>2025</year_last>'
+               '<year_align>%d</year_align></stream_info>\n' % align)
     (case / 'user_nl_datm_streams').write_text('\n'.join(lines) + '\n')
-    (case / 'CaseDocs' / 'datm.streams.xml').write_text(
-        '<stream_info name="CLM_USRDAT.Solar"><year_first>2004</year_first><year_last>2025</year_last>'
-        '<year_align>%d</year_align></stream_info>\n' % align)
+    (case / 'CaseDocs' / 'datm.streams.xml').write_text(xml)
 
 
 def self_test(root):
@@ -573,6 +613,20 @@ def self_test(root):
             _make_case(shifted, tpl_surf, YEARS, hist, align=2004)
             rep4 = run_plan(good, shifted, 'DE-Gri_B04_other', tmp / 'cases', None)
             assert rep4['schedule']['first_model_year_index_using'] == {2011: 9, 2024: 22}
+            # regression: real multi-stream layout must use the CLM_USRDAT window only (earlier version took the
+            # minimum over ALL streams, giving year 1 and an empty schedule)
+            real = tmp / 'cases' / 'DE-Gri_real_like'
+            _make_case(real, tpl_surf, YEARS, hist, align=2004, real_like=True, resubmit='199')
+            rep5 = run_plan(good, real, 'DE-Gri_B04_real', tmp / 'cases', None)
+            assert not rep5['holds'], rep5['holds']
+            assert rep5['schedule']['first_model_year_index_using'] == {2011: 9, 2024: 22}, rep5['schedule']
+            assert rep5['schedule']['five_year_smoke_forcing_years'] == rep4['schedule']['five_year_smoke_forcing_years']
+            assert any('RESUBMIT=199' in n for n in rep5['notes']), rep5['notes']
+            # XML and user_nl disagree on year_align: HOLD, never silently pick one
+            clash = tmp / 'cases' / 'DE-Gri_clash'
+            _make_case(clash, tpl_surf, YEARS, hist, align=2004, real_like=True, user_align=1)
+            rep6 = run_plan(good, clash, 'DE-Gri_B04_clash', tmp / 'cases', None)
+            assert 'TEMPLATE_STREAM_YEAR_WINDOW_XML_VS_USER_NL_CONFLICT' in rep6['holds'], rep6['holds']
             run_list(tmp / 'cases')
         finally:
             SURFACE_SHA = real_pin
