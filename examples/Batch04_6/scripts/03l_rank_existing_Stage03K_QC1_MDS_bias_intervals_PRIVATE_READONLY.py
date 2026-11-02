@@ -181,16 +181,48 @@ def rank_segments(j,rows):
     return summary,transformed
 
 def self_test():
-    # Small negative screening and time-label checks; confirm that malformed
-    # counts cannot bypass previous Stage03K evidence.
-    assert number("-14.498")==-14.498
-    assert integer("98")==98
-    assert int((datetime.fromisoformat("2025-10-21 03:00:00")-
-                datetime.fromisoformat("2025-10-21 02:30:00")).total_seconds())==1800
-    assert EXPECTED["LONG_1458"]["QC1"]+EXPECTED["SHORT_29"]["QC1"]==587
-    assert EXPECTED["LONG_1458"]["below_minus10C"]==98
-    assert sum(x["segments"] for x in EXPECTED.values())==10
-    print("STAGE03L SELF-TEST PASS: saved Stage03K 9+1 QC1 segments, strict per-episode count/time/mean reconciliation, readonly")
+    # In-memory complete 9+1 subrun test; no meteorology source reads.
+    lens=[208,80,70,60,45,35,30,20,10]
+    c5=[120,40,23,0,0,0,0,0,0]
+    c10=[90,8,0,0,0,0,0,0,0]
+    means={"LONG_1458":-3.903508960573476,
+           "SHORT_29":-0.3746896551724137}
+    rows=[]
+    current=datetime.fromisoformat(LIMITS["LONG_1458"][0])
+    for n,a,b in zip(lens,c5,c10):
+        end=current+timedelta(minutes=30*(n-1))
+        rows.append(dict(run="LONG_1458",start=str(current),end=str(end),
+            QC1_halfhours=str(n),N=str(n),min="-14.498",p05="-12.658",
+            median="-3.135",p95="2.711",max="8.443",
+            mean=str(means["LONG_1458"]),below_minus5C=str(a),
+            below_minus10C=str(b)))
+        current=end+timedelta(minutes=30*11)
+    a=datetime.fromisoformat(LIMITS["SHORT_29"][0])
+    rows.append(dict(run="SHORT_29",start=str(a),
+        end=str(a+timedelta(minutes=30*28)),QC1_halfhours="29",N="29",
+        min="-1.741",p05="-1.6026",median="-0.806",p95="1.0656",
+        max="1.069",mean=str(means["SHORT_29"]),
+        below_minus5C="0",below_minus10C="0"))
+    prior={"two_runs":[dict(run=name,QC1_MDS_HH=ex["QC1"],
+        QC2_ERA_HH=ex["QC2"],QC1_subrun_count=ex["segments"],
+        science_release=False,MDS_minus_packaged_ERA_T_C=dict(
+        N=ex["QC1"],below_minus5C=ex["below_minus5C"],
+        below_minus10C=ex["below_minus10C"],mean=means[name]))
+        for name,ex in EXPECTED.items()]}
+    summary,ranked=rank_segments(prior,rows)
+    assert len(ranked)==10 and summary["subintervals_gt10C_count"]==2
+    assert ranked[0]["MDS_colder_than_ERA_gt10C_HH"]==90
+    assert ranked[1]["MDS_colder_than_ERA_gt10C_HH"]==8
+    assert ranked[-1]["run"]=="SHORT_29"
+    broken=[dict(r) for r in rows]
+    broken[0]["below_minus10C"]="999"
+    try:
+        rank_segments(prior,broken)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Corrupted source episode count was accepted")
+    print("STAGE03L SELF-TEST PASS: all 10 in-memory QC1 subruns, 558+29 HH, 183/98 thresholds, date/mean reconciliation; NO SOURCE READS")
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
