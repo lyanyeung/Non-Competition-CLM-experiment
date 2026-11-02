@@ -1,6 +1,6 @@
 # OzFlux 9-site Non-Competition CLM-FATES — operator-selected v1.1 PFT inputs
 
-**Status 2026-11-02: Stage01–03 OPERATOR SUCCESS on IRIDIS6. Nine v1.1 operator-selected PFTs, 10/10 native OzFlux L6 files, and 9/9 independent FIXNC PFT-specific point Surface CANDIDATES (AU-ASM Stage02 plus 8 new Stage03) created and source-SHA documented. All eight Stage03 sites have 10 CTSM-2000 gridded soil reference layers and verified only PCT_NAT_PFT changed versus their respective source reference NetCDF. Stage04 native-year QC / DATM source readiness handoff PUBLISHED, operator run pending. Surface is not proof of tower-measured soil, forcing or effective CIME FATES-map approval; no case, AD5 or AD400 submitted.**
+**Status 2026-11-02: Stage01–03 OPERATOR SUCCESS on IRIDIS6. Nine v1.1 operator-selected PFTs, 10/10 native OzFlux L6 files, and 9/9 independent FIXNC PFT-specific point Surface CANDIDATES (AU-ASM Stage02 plus 8 new Stage03) created and source-SHA documented. All eight Stage03 sites have 10 CTSM-2000 gridded soil reference layers and verified only PCT_NAT_PFT changed versus their respective source reference NetCDF. Stage04 native-year QC / DATM source handoff INITIAL RUN STOPPED ON A PATH-ALIAS FALSE POSITIVE in six-year AU-ASM Stage14 manifest; corrected source committed, operator rerun pending. Surface is not proof of tower-measured soil, forcing or effective CIME FATES-map approval; no case, AD5 or AD400 submitted.**
 
 The operator instructed: *use all the OzFlux PFT numbers already updated on GitHub for the non-competition experiment, and proceed*. Do **not** continue the AU-ASM historical 2018 derived-AGB forensic stages as a prerequisite to FIXNC PFT input selection. All SOURCE AGB evidence remains preserved in `CLM-FATES-single-site-workflows`; 2018 derived AGB is not validated observation.
 
@@ -260,6 +260,39 @@ location verification still pending. Surfaces are **source-consistent
 PFT experimental candidates**, not approved soil or CIME inputs.
 No AD5 / AD400, no source modifications.
 
+## Stage04 actual first operator STOP — Stage14 path alias, corrected and awaiting rerun
+
+**Actual IRIDIS6 operator first attempt** (2026-11-02):
+Git source SHA VERIFIED, syntax PASS, self-test PASS, then
+`ValueError: AU-ASM six-year FSDS0 source SHA or manifest changed:
+ /home/ly3n24/ozflux_stage14_FSDS0_20261102T012038Z/AU-ASM_FSDS0_PROVISIONAL_DATM_2013.nc`.
+In the initial Stage04 source, a compound `or` test included
+`str(p)!=listed[y]["path"]`: this compares
+`/home/ly3n24/...` against Stage14's original
+`out.resolve()`-recorded `/iridisfs/home/ly3n24/...`,
+which are two aliases for the **same file** on IRIDIS6.
+The compound error message alone did **not** demonstrate a
+genuine file SHA256 change. **Do not regenerate or
+modify the six original AU-ASM provisional DATM files**.
+
+**Source fix committed**:
+`scripts/04_ozflux09_forcing_handoff_source_QC_and_surface_receipts_READONLY.py`,
+commit `8bc23faa3fb08a53677efbe01763534565a9ff1c`,
+git blob `04e3647425fecd8b5644b3068e3a21f7c087fb17`.
+For each original 2013–2018 file, it now requires
+`Path.resolve(strict=True)` equality between Stage14
+manifest path and the actual candidate, then **independently
+checks both manifest SHA256 and actual file SHA256** against
+the six immutable original source values. It prints a
+`AU_ASM_FSDS0_SHA_VERIFIED` line for each validated year
+or gives a separate detailed missing-file, different-target,
+manifest-hash or physical-file-hash error. No source or
+report/NetCDF modification. A new self-test covers
+HOME alias normalization without creating a fixture file.
+**Corrected operator execution pending**; all surface SHA
+and Stage07/08 upstream checks had already passed before
+the first Stage14 compound-path stop.
+
 ## Stage04 forcing handoff — published, operator run pending
 
 **Next real work is meteorological forcing**, not further PFT or
@@ -278,8 +311,8 @@ be silently spliced into Mulga1.
 
 **Stage04 read-only source handoff**:
 `scripts/04_ozflux09_forcing_handoff_source_QC_and_surface_receipts_READONLY.py`,
-immutable commit `445450207055b999a0bf7e05ad9fce536d871d2c`,
-Git blob `7b88469c402e007ccc85ffbe693be5209917690d`.
+immutable commit `8bc23faa3fb08a53677efbe01763534565a9ff1c`,
+Git blob `04e3647425fecd8b5644b3068e3a21f7c087fb17`.
 It opens 9 already-created surfaces only for SHA checks;
 verifies original Stage01–03 receipts, all 169 prior source
 year-QC and Stage08 triage entries, 67/102 split, and original
