@@ -1,0 +1,7 @@
+case DE-Lnf_B03_FIXNC_AD400_DIAG50, years 2002-2051
+parameter file: /iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/Batch03_10/_private_ctsm_FATES_AD400_namelist_overlay/src/fates/parameter_files/fates_params_default.json
+smpso/smpsc (fates_nonhydro_smpso/fates_nonhydro_smpsc): -66000.0 / -255000.0 mm for PFT 6 broadleaf_colddecid_extratrop_tree
+found: BTRAN, FATES_GPP, TLAI, TSA, RAIN, SNOW, H2OSNO, FSDS, QVEGT, SOILLIQ, SOILICE, H2OSOI, TSOI, SMP, FATES_FROOTC_SL, ZSOI, DZSOI, WATSAT, SUCSAT, BSW, FATES_NOCOMP_PATCHAREA_PF, FATES_VEGC_PF, FATES_GPP_PF, FATES_CANOPYCROWNAREA_PF, FATES_CROWNAREA_PF
+missing: none
+units: {"BTRAN": "unitless", "FATES_GPP": "kg m-2 s-1", "TLAI": "m^2/m^2", "TSA": "K", "RAIN": "mm/s", "SNOW": "mm/s", "H2OSNO": "mm", "FSDS": "W/m^2", "QVEGT": "mm/s", "SOILLIQ": "kg/m2", "SOILICE": "kg/m2", "H2OSOI": "mm3/mm3", "TSOI": "K", "SMP": "mm", "FATES_FROOTC_SL": "kg m-3", "FATES_NOCOMP_PATCHAREA_PF": "m2 m-2", "FATES_VEGC_PF": "kg m-2", "FATES_GPP_PF": "kg m-2 s-1", "FATES_CANOPYCROWNAREA_PF": "m2 m-2", "FATES_CROWNAREA_PF": "m2 m-2"}
+root/smp parameters in file: fates_allom_zroot_k, fates_allom_zroot_max_dbh, fates_allom_zroot_max_z, fates_allom_zroot_min_dbh, fates_allom_zroot_min_z, fates_nonhydro_smpsc, fates_nonhydro_smpso
