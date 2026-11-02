@@ -132,7 +132,12 @@ def run(v,u,x,w):
 
 def selftest():
     assert round(physical(20,.0,100000)["RH_water_pct"],4)==0
-    assert round(physical(20,.0147,100000)["RH_water_pct"])>0
+    # q=0.0147 kg/kg at 20 C and 100 kPa exceeds liquid saturation slightly
+    # (VPD about -0.055 hPa). Use a genuinely subsaturated test value.
+    assert 60 < physical(20,.010,100000)["RH_water_pct"] < 80
+    try: physical(20,.018,100000)
+    except ValueError: pass
+    else: raise AssertionError("Supersaturated humidity not rejected")
     try: physical(12,-.1,100000)
     except ValueError: pass
     else: raise AssertionError("Bad humidity not rejected")
