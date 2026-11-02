@@ -4,6 +4,8 @@ This log records every deletion of model output, every stopped run and every cas
 and the reasons for each decision are in [NEEDLELEAF_COLLAPSE_DIAGNOSIS.md](../docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md).
 
 Files in this folder:
+- [`RULES_FOR_NEW_CASES.md`](RULES_FOR_NEW_CASES.md) explains how any new case gets the phenology patch and the
+  needleleaf parameters. Neither is in the shared source, so a default case runs the old code.
 - [`20261102_purge_and_replace.sh`](20261102_purge_and_replace.sh) records the stop, delete and replace commands run on
   2026-11-02. It downloads every script at the exact commit used. The deletion code itself is `purge_old()` /
   `old_nc_files()` in script 20 and `purge_old()` / `cancel_nlf()` in script 22 (branch `full-sequence-gpp-nee-ec`).
