@@ -6,8 +6,8 @@ Decision 2026-11-02 evening (docs, section 16): the patch removes the "never col
 The needleleaf reruns (<AD>_NLF, script 20) started without it, so at sites that ALSO have a cold-deciduous PFT they
 are stopped and restarted with patch + F, to run 800 years once instead of twice.
 
-Classification (read from each site's surface data + parameter file; cold-deciduous = fates_phen_season_decid == 1,
-mapped from PCT_NAT_PFT with fates_hlm_pft_map):
+Classification (read from each site's surface data + parameter file; cold-deciduous = fates_phen_leaf_habit == 2
+(ihard_season_decid; older FATES: fates_phen_season_decid == 1), mapped from PCT_NAT_PFT with fates_hlm_pft_map):
   RESTART_NLF   PFT 2 and cold-deciduous: stop <AD>_NLF, new <AD>_NLFP = patch + F
   KEEP_NLF      PFT 2, no cold-deciduous PFT: <AD>_NLF keeps running (nothing changes)
   RERUN_PHEN    no PFT 2, cold-deciduous: new <AD>_PHEN = patch only (parameters unchanged)
@@ -62,7 +62,7 @@ OTHER = {"AT-Neu": "AT-Neu_B03_FIXNC_NORMAL400", "BR-Ma2": "BR-Ma2_AMF_FIXNC_NOR
          "US-Var": "US-Var_AMF_B05_FIXNC_NORMAL400_DIRECT", "US-WCr": "US-WCr_AMF_B05_FIXNC_NORMAL400_DIRECT",
          "US-Whs": "US-Whs_AMF_B05_FIXNC_NORMAL400_DIRECT", "US-Wkg": "US-Wkg_AMF_B05_FIXNC_NORMAL400_DIRECT"}
 EXCLUDED = {"US-CMW": "groundwater-dependent site, excluded (docs section 11)"}
-DECID_PARAM = "fates_phen_season_decid"
+DECID_PARAMS = (("fates_phen_leaf_habit", 2), ("fates_phen_season_decid", 1))   # FATES >= ~1.70 / older
 CONFIRM_CANCEL = "STOP_NLF_FOR_PHENOLOGY_PATCH"
 CONFIRM_PURGE = "DELETE_OLD_PHENOLOGY_OUTPUTS"
 PATCH_ACTIONS = ("RESTART_NLF", "RERUN_PHEN")
@@ -96,11 +96,12 @@ def decid_share(pct_nat_pft, params):
     import numpy as np
     prm = params["parameters"]
     names = [str(x).strip() for x in prm["fates_pftname"]["data"]]
-    if DECID_PARAM not in prm:
-        raise ValueError(f"{DECID_PARAM} not in parameter file")
-    dec = np.asarray(prm[DECID_PARAM]["data"], float).ravel()
+    key, flag = next(((k, f) for k, f in DECID_PARAMS if k in prm), (None, None))
+    if key is None:
+        raise ValueError("no phenology-habit parameter (" + " / ".join(k for k, _ in DECID_PARAMS) + ") in parameter file")
+    dec = np.asarray(prm[key]["data"], float).ravel() == flag
     if len(dec) != len(names):
-        raise ValueError(f"{DECID_PARAM} has {len(dec)} values for {len(names)} PFTs")
+        raise ValueError(f"{key} has {len(dec)} values for {len(names)} PFTs")
     pct = np.asarray(pct_nat_pft, float).ravel()
     veg = pct[1:].sum()
     if veg <= 0:
@@ -109,7 +110,7 @@ def decid_share(pct_nat_pft, params):
     m = np.moveaxis(np.asarray(ent["data"], float), T.pft_axis(ent, len(names)), -1)
     n = min(m.shape[0], len(pct) - 1)
     area = (pct[1:1 + n, None] * m[:n, :]).sum(axis=0) / veg * 100      # % of vegetation per FATES PFT
-    present = [(names[p], round(float(area[p]), 1)) for p in range(len(names)) if dec[p] == 1 and area[p] > 0]
+    present = [(names[p], round(float(area[p]), 1)) for p in range(len(names)) if dec[p] and area[p] > 0]
     return float(sum(a for _, a in present)), present
 
 
