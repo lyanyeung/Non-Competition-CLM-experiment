@@ -13,6 +13,7 @@
 # On a compute node (no internet there): download on the login node first, then
 #   srun -p batch -N1 -n1 -c4 --mem=16G -t 02:00:00 --pty bash
 #   SKIP_DOWNLOAD=1 PUBLISH=0 PHENFIX=0 bash acceptance_20261102.sh      # PHENFIX=0: skip 3B/3C (fix runs not started)
+# NEEDLELEAF=0 skips 3A (script 15; its control = original AD400 output, deleted by script 20 purge-old)
 # and back on the login node publish that run:
 #   PUBLISH_ONLY=$(cat $HOME/CLM_FATES_PLOTS/LAST_ACCEPTANCE_DIR) bash acceptance_20261102.sh
 set -u
@@ -20,6 +21,7 @@ SHA=ec3f3b9caf934fc9150f0d2aa0be9c110a31d8b4
 PUBLISH=${PUBLISH:-1}
 SKIP_DOWNLOAD=${SKIP_DOWNLOAD:-0}
 PHENFIX=${PHENFIX:-1}
+NEEDLELEAF=${NEEDLELEAF:-1}
 PUBLISH_ONLY=${PUBLISH_ONLY:-}
 TOOL=$HOME/CLM_FATES_PLOTS/diag_rerun_tool
 PY=$HOME/.conda/envs/clm_fates_env/bin/python
@@ -77,10 +79,14 @@ for x in $NL $PF; do
 done
 
 # ---------------------------------------------------------------- 3. analyses
+if [ "$NEEDLELEAF" = "1" ]; then
 say ""; say "=== 3A. NEEDLELEAF D vs F vs EC (script 15)"
 $PY -B 15_needleleaf_final_trials_vs_ec.py --output-root "$R/15_needleleaf" > "$R/15.log" 2>&1
 grep -E "INTERIM|RECOMMENDED|with [DF]:|^control|^D |^F |alive [0-9]" "$R/15.log" | tee -a "$S"
 grep -E "^  [A-Z][A-Z]-[A-Za-z0-9]+ " "$R/15.log" | tee -a "$S"
+else
+say ""; say "=== 3A skipped (NEEDLELEAF=0)"
+fi
 
 if [ "$PHENFIX" = "1" ]; then
 FIXCASES=$(echo "$PF" | tr '\n' ' ')
