@@ -1,0 +1,6 @@
+INTERIM: 15 trial cases have fewer than 100 years yet; numbers use the years available (stability needs >= 30 years): DE-Obe D (90 y), FI-Sod F (95 y), CH-Dav D (90 y), CZ-BK1 D (90 y), CZ-BK1 F (95 y), IT-Ren D (90 y), IT-Ren F (90 y), RU-Fyo D (90 y), RU-Fyo F (90 y), US-Ho1 D (85 y), US-Ho1 F (90 y), US-SP1 D (85 y), US-SP1 F (85 y), US-Ha1 D (85 y), US-Ha1 F (85 y)
+control : alive 9/10, stable 4/10, within +/-25% of EC 1/10, median GPP/EC 0.04, median |log ratio| 3.25
+D       : alive 9/9, stable 9/9, within +/-25% of EC 5/9, median GPP/EC 1.14, median |log ratio| 0.15
+F       : alive 9/9, stable 8/9, within +/-25% of EC 5/9, median GPP/EC 1.12, median |log ratio| 0.17
+RECOMMENDED: D (ranking: most sites alive, most within +/-25 % of EC, most stable, then smallest median |log GPP/EC|)
+   with D: over-estimate (>1.25) ['FI-Sod', 'CH-Dav', 'US-Ho1', 'US-SP1']; under-estimate (<0.75) none; not yet stable none
