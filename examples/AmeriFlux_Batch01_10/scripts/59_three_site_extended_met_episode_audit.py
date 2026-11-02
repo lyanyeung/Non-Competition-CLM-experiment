@@ -22,6 +22,12 @@ from pathlib import Path
 ROOT=Path("/iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/AmeriFlux_Batch01_10/Stage23_six_inputs_amf_six_inputs_tool.OSXxymF5")
 HOME=Path("/iridisfs/home/ly3n24/CLM_FATES_PLOTS")
 PIN_STAGE58="82b63dbf16665df05060c7ed70ea77023ba2cea5"
+PIN_CONTEXT29="6f6e594d2ed57ac2c00c9af2f325cd179b10ecb3"
+EXPECTED={
+    ("CA-Cbo",2018):5,
+    ("CA-Man",1994):1,("CA-Man",2005):45,("CA-Man",2007):3,
+    ("US-Aud",2012):1,("US-Aud",2019):3,("US-Aud",2023):6,
+}
 WINDOWS={
 "CA-Cbo":[("2018-07-18 12:00:00","2018-07-19 00:00:00")],
 "CA-Man":[("1994-04-10 09:00:00","1994-04-10 20:00:00"),
@@ -85,6 +91,51 @@ def fmt(value):
     if value is None:return "NA"
     return f"{value:.3f}"
 
+def include_2007(stage58_selection,linked):
+    """Stage58 selects six flagged years; its separately linked 2007 is seventh."""
+    result=dict(stage58_selection)
+    key=("CA-Man",2007)
+    check(key not in result,"Stage58 selection unexpectedly includes CA-Man 2007")
+    check(linked.get("status")=="DETACHED_NOT_USED_BY_CASES" and
+          linked.get("site")=="CA-Man" and int(linked.get("year",0))==2007,
+          "CA-Man 2007 linked manifest invalid")
+    result[key]=linked
+    check(set(result)==set(EXPECTED),"Unexpected canonical candidate inventory")
+    for identity,record in result.items():
+        changes=record.get("changes",[])
+        check(len(changes)==EXPECTED[identity],f"{identity}: unexpected candidate edit count")
+        check(len({int(c["UTC_index"]) for c in changes})==len(changes),f"{identity}: duplicate edit index")
+    return result
+
+def select_canonical(s58,args):
+    """Reuse Stage58's actual public selector and the verified linked manifest."""
+    check(callable(getattr(s58,"select_candidates",None)),"Pinned Stage58 selector unavailable")
+    six=s58.select_candidates(args)
+    joint=s58.read_json(args.joint)
+    linked_path=Path(joint["linked_CA_Man_2007_13_14_manifest"]).resolve(strict=True)
+    check(sha256(linked_path)==joint["linked_CA_Man_2007_13_14_manifest_sha256"],
+          "CA-Man linked 2007 manifest checksum mismatch")
+    return include_2007(six,s58.read_json(linked_path))
+
+def verify_sources(selected,root,s58):
+    """Verify every original and candidate against the Stage23 receipt."""
+    root=Path(root).resolve(strict=True)
+    receipt=s58.read_json(root/"COMPLETE.json")
+    records={r["site"]:r for r in receipt["sites"]}
+    sources={}
+    for site in WINDOWS:
+        rec=records[site]; manifest=Path(rec["manifest"]).resolve(strict=True)
+        check(root in manifest.parents and sha256(manifest)==rec["sha256"],site+": Stage23 manifest SHA mismatch")
+        sources[site]={int(r["year"]):r for r in s58.read_json(manifest)["annual_files"]}
+    for (site,year),f in selected.items():
+        rec=sources[site][year]
+        original=Path(f.get("original",f.get("source"))).resolve(strict=True)
+        source_sha=f.get("original_sha256",f.get("source_sha256"))
+        check(root in original.parents and original==Path(rec["path"]).resolve(strict=True) and
+              source_sha==rec["sha256"] and sha256(original)==rec["sha256"],
+              f"{site} {year}: original Stage23 forcing mismatch")
+        check(sha256(f["candidate"])==f["candidate_sha256"],f"{site} {year}: candidate SHA mismatch")
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--self-test",action="store_true")
@@ -99,17 +150,23 @@ def main():
         check(groups_of_flags(["2023-01-01 00:00:00","2023-01-01 00:30:00","2023-01-01 01:00:00"],
                               {"2023-01-01 00:00:00","2023-01-01 01:00:00"})==
               [["2023-01-01 00:00:00"],["2023-01-01 01:00:00"]],"Segmentation")
-        check(gitblob(Path(a.stage58).read_bytes())==PIN_STAGE58,"Stage58 helper integrity")
-        print("STAGE59 SELF-TEST PASS | pinned Stage58 and time/group tests; NO WRITES",flush=True)
+        s58=load(a.stage58,"s58_59_selftest",PIN_STAGE58)
+        h=load(a.context_helper,"context29_59_selftest",PIN_CONTEXT29)
+        check(callable(getattr(s58,"select_candidates",None)) and callable(getattr(s58,"read_json",None)),
+              "Stage58 selector API mismatch")
+        check(callable(getattr(h,"sources",None)) and callable(getattr(h,"read_subset",None)),"Context helper API mismatch")
+        fake={key:{"changes":[{"UTC_index":i} for i in range(n)]}
+              for key,n in EXPECTED.items() if key!=("CA-Man",2007)}
+        linked={"site":"CA-Man","year":2007,"status":"DETACHED_NOT_USED_BY_CASES",
+                "changes":[{"UTC_index":i} for i in range(3)]}
+        check(len(include_2007(fake,linked))==7,"Seven-year candidate selection failed")
+        print("STAGE59 SELF-TEST PASS | pinned APIs, seven-year inventory and time/group tests; NO WRITES",flush=True)
         return
     s58=load(a.stage58,"s58_59",PIN_STAGE58)
-    h=load(a.context_helper,"context29_59")
+    h=load(a.context_helper,"context29_59",PIN_CONTEXT29)
     # Requires exact validated provenance for all seven canonical candidate years.
-    selected_candidates=s58.candidates(a)
-    check(len(selected_candidates)==7,"Unexpected Stage58 selected candidate inventory")
-    for (site,year),f in selected_candidates.items():
-        check(sha256(f["candidate"])==f["candidate_sha256"],
-              f"Candidate checksum changed: {site} {year}")
+    selected_candidates=select_canonical(s58,a)
+    verify_sources(selected_candidates,ROOT,s58)
     edits={}
     for (site,year),f in selected_candidates.items():
         edits.setdefault(site,set()).update(c["time_local"] for c in f["changes"])
@@ -128,6 +185,9 @@ def main():
         sr=h.read_subset(source,"time",set(times),SELECTED_COLS)
         tw=h.read_subset(tower,"TIMESTAMP_START",set(times),TOWER_COLS,True)
         er=h.read_subset(era,"TIMESTAMP_START",set(times),ERA_COLS,True)
+        for label,rows in (("selected",sr),("tower",tw),("ERA",er)):
+            missing=sorted(set(times)-set(rows))
+            check(not missing,f"{site}: {label} source lacks {len(missing)} requested rows; first {missing[:3]}")
         print("STAGE59 SOURCE",site,"tower",ti,"ERA",ei,flush=True)
         for start,end in windows:
             episodes+=1
@@ -149,10 +209,16 @@ def main():
                 if time in edits[site]:counts["APPROVED_EDIT_IN_WINDOW"]+=1
                 if qc==0:counts["ORIGINAL_TA_QC0"]+=1
                 if t=={}:counts["TOWER_ROWS_MISSING"]+=1
+                if ta is None or et is None:counts["MISSING_TEMPERATURE_PAIR"]+=1
+                if vpd is None or ev is None:counts["MISSING_VPD_PAIR"]+=1
             print("STAGE59 WINDOW",site,start,"TO",end,"HH",len(stamps),
                   "approved_edit",counts["APPROVED_EDIT_IN_WINDOW"],
                   "threshold_flagged",len(flags),"flags",dict(counts),flush=True)
             clusters=groups_of_flags(stamps,flags)
+            if stamps[0] in flags or stamps[-1] in flags:
+                print("STAGE59 WINDOW_CENSORED",site,start,end,
+                      "start_flagged",stamps[0] in flags,"end_flagged",stamps[-1] in flags,
+                      "expand_before_interpreting_event_boundaries",flush=True)
             for run in clusters:
                 n_edits=sum(t in edits[site] for t in run)
                 kinds=sorted(set.union(*(reason[t] for t in run)))
@@ -181,8 +247,10 @@ def main():
                       "selectedT",fmt(number(sel,"TA_USE")),
                       "selectedV",fmt(number(sel,"VPD_USE")),flush=True)
             print("STAGE59 WINDOW END",site,start,end,"suspect_runs",len(clusters),flush=True)
-    print("STAGE59 COMPLETE",episodes,"review windows; all 7 canonical candidate SHAs verified",flush=True)
+    print("STAGE59 COMPLETE",episodes,"review windows; 7 canonical candidate/source SHAs verified;",
+          "candidate inventory is broader than the reviewed windows",flush=True)
     print("SCIENCE HOLD | thresholds are exploratory; ERA5_HH is a companion product, not independent tower truth",flush=True)
+    print("SCIENCE HOLD | reported runs are threshold-defined, not proven full physical anomaly boundaries",flush=True)
     print("SCIENCE HOLD | CA-Man QC0 edits and US-Aud adjacent events remain unapproved for production",flush=True)
     print("READ ONLY | no forcing/case/Slurm writes",flush=True)
 
