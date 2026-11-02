@@ -1,0 +1,20 @@
+US-Whs (US-Whs_AMF_B05_FIXNC_NORMAL400_DIRECT; AD US-Whs_AMF_B05_FIXNC_AD400_DIRECT)
+EC: {'EC_sources': 'FAILED no EC flux csv for US-Whs under /iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/US-Whs (give --ec-file US-Whs=PATH)'}
+
+PARAMETERS: fates_params_HYDRO_SHRUB_b05_v1.json; fsurdat surfdata_US-Whs_FIXNC_PFT_soil10_b05_v1.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [57.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 20.0, 20.0, 0.0, 0.0, 0.0, 3.0]
+INIT: AD finidat = (cold start)
+FORCING (19 files): all checks ok
+FORCING climate: target T 17.8 C, P 294 mm/yr, SW 247 W/m2
+AD first 60 years (target US-Whs): peak LAI 1.43, GPP years 1-5 0.51 g C m-2 d-1, vegetation persists; TWS change -1037 mm
+WATER (target US-Whs, last cycle, mm/yr): model P 294, model ET 280, EC ET nan, EC P nan
+   model water table depth 8.6 m; soil water 0-0.1m 0.123, soil water 0.1-0.5m 0.138, soil water 0.5-1m 0.123, soil water 1-3m 0.134
+   GPP model 486 vs EC nan g C m-2 yr-1 (ratio nan); GPP per ET model 1.74 vs EC nan g C per kg water; model T/ET 0.58
+   timing: peak month model 9 vs EC -; active months (>25% of peak) model 12 vs EC -; seasonal correlation -
+   PFT 7: patch area 0.20, canopy crown area 0.191, leaf C mean 0.0356 max 0.036, GPP 0.603 g C m-2 d-1 -> alive
+   PFT 8: patch area 0.20, canopy crown area 0.198, leaf C mean 0.0165 max 0.0233, GPP 0.546 g C m-2 d-1 -> alive
+   PFT 14: patch area 0.03, canopy crown area 0.030, leaf C mean 0.000747 max 0.00116, GPP 0.180 g C m-2 d-1 -> alive
+   GPP share by PFT: pft7 45%, pft8 41%, pft14 14%
+   !! no cold-deciduous leaf-on event for 741 years (FATES_DAYSINCE_COLDLEAFON): either all vegetation is dead or the site is in FATES' 'never cold' state, in which cold-deciduous PFTs drop their leaves and never flush again
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 270092 270122 270151 270182 270212 270242 270273 270304 270334 270365 270396 270426; FATES_DAYSINCE_COLDLEAFON 270402 270432 270461 270492 270522 270552 270583 270614 270644 270675 270706 270736; FATES_GDD 0 0 0 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 8 12 13 13 13 13 13 13 11 0 0 2; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0
+ERROR (target): EC: no EC flux csv for US-Whs under /iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/US-Whs (give --ec-file US-Whs=PATH)

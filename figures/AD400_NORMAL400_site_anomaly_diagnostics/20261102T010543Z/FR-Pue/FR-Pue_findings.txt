@@ -1,0 +1,22 @@
+FR-Pue (FR-Pue_B01_FIXNC_NORMAL400; AD FR-Pue_B01_FIXNC_AD400)
+EC: {'EC_sources': 'ICOS_FR-Pue_FLUXNET_FLUXMET_HH_2000-2026_v1.3_r1.csv', 'EC_met_source': "ICOS_FR-Pue_FLUXNET_FLUXMET_HH_2000-2026_v1.3_r1.csv: {'TA': 'TA_F', 'SW_IN': 'SW_IN_F', 'P': 'P_F', 'VPD': 'VPD_F', 'LE': 'LE_F_MDS', 'WS': 'WS_F', 'PA': 'PA_F', 'SWC1': 'SWC_F_MDS_1', 'SWC2': 'SWC_F_MDS_2'}"}
+
+PARAMETERS: fates_params_default.json; fsurdat surfdata_FR-Pue_B01_FIXNC_AD400_v1.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [0.0, 0.0, 0.0, 0.0, 0.0, 95.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+INIT: AD finidat = (cold start)
+FORCING (26 files): all checks ok
+FORCING vs EC met (target FR-Pue): paired_months 312, T_forcing_minus_EC_C -0.00, P_forcing_over_EC 1.00, SW_forcing_over_EC 1.00
+FORCING climate: target T 14.2 C, P 907 mm/yr, SW 173 W/m2
+AD first 60 years (target FR-Pue): peak LAI 0.49, GPP years 1-5 0.36 g C m-2 d-1, vegetation persists; TWS change +453 mm
+WATER (target FR-Pue, last cycle, mm/yr): model P 907, model ET 462, EC ET 432, EC P 907
+   model water table depth 8.3 m; soil water 0-0.1m 0.420, soil water 0.1-0.5m 0.449, soil water 0.5-1m 0.465, soil water 1-3m 0.474
+   GPP model 1007 vs EC 1338 g C m-2 yr-1 (ratio 0.75); GPP per ET model 2.18 vs EC 3.10 g C per kg water; model T/ET 0.47
+   timing: peak month model 6 vs EC 6; active months (>25% of peak) model 10 vs EC 12; seasonal correlation 0.87
+   !! growing season length differs: model 10 vs EC 12 active months
+   month  1: EC GPP 2.02, model 0.96, LAI 1.29, BTRAN 0.74 -> leaves present, not water-limited (light / temperature / capacity)
+   month 12: EC GPP 1.84, model 0.90, LAI 1.31, BTRAN 0.74 -> leaves present, not water-limited (light / temperature / capacity)
+   PFT 4: patch area 0.95, canopy crown area 0.742, leaf C mean 0.125 max 0.126, GPP 2.752 g C m-2 d-1 -> alive
+   PFT 6: patch area 0.05, canopy crown area 0.000, leaf C mean 0 max 0, GPP 0.000 g C m-2 d-1 -> leafless all year
+   GPP share by PFT: pft4 100%
+   !! no cold-deciduous leaf-on event for 673 years (FATES_DAYSINCE_COLDLEAFON): either all vegetation is dead or the site is in FATES' 'never cold' state, in which cold-deciduous PFTs drop their leaves and never flush again
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 245466 245495 245524 245555 245586 245616 245646 245678 245708 245738 245769 245800; FATES_DAYSINCE_COLDLEAFON 245776 245805 245834 245865 245896 245926 245956 245988 246018 246048 246079 246110; FATES_GDD 0 0 0 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 22 34 40 40 40 40 40 40 35 0 1 8; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0

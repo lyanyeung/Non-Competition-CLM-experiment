@@ -1,0 +1,21 @@
+IT-MBo (IT-MBo_B02_FIXNC_NORMAL400; AD IT-MBo_B02_FIXNC_AD400)
+EC: {'EC_sources': 'ICOS_IT-MBo_FLUXNET_FLUXMET_HH_2003-2026_v1.3_r1.csv', 'EC_met_source': "ICOS_IT-MBo_FLUXNET_FLUXMET_HH_2003-2026_v1.3_r1.csv: {'TA': 'TA_F', 'SW_IN': 'SW_IN_F', 'P': 'P_F', 'VPD': 'VPD_F', 'LE': 'LE_F_MDS', 'WS': 'WS_F', 'PA': 'PA_F', 'SWC1': 'SWC_F_MDS_1', 'SWC2': 'SWC_F_MDS_2'}"}
+
+PARAMETERS: fates_params_default.json; fsurdat surfdata_IT-MBo_B02_FIXNC_candidate_v1.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 0.0]
+INIT: AD finidat = (cold start)
+FORCING (23 files): all checks ok
+FORCING vs EC met (target IT-MBo): paired_months 276, T_forcing_minus_EC_C -0.00, P_forcing_over_EC 1.00, SW_forcing_over_EC 1.00
+FORCING climate: target T 5.5 C, P 1151 mm/yr, SW 160 W/m2
+AD first 60 years (target IT-MBo): peak LAI 3.15, GPP years 1-5 3.28 g C m-2 d-1, vegetation persists; TWS change +124 mm
+WATER (target IT-MBo, last cycle, mm/yr): model P 1151, model ET 411, EC ET 493, EC P 1152
+   model water table depth 8.4 m; soil water 0-0.1m 0.392, soil water 0.1-0.5m 0.367, soil water 0.5-1m 0.334, soil water 1-3m 0.335
+   GPP model 1666 vs EC 1554 g C m-2 yr-1 (ratio 1.07); GPP per ET model 4.05 vs EC 3.15 g C per kg water; model T/ET 0.60
+   timing: peak month model 7 vs EC 6; active months (>25% of peak) model 7 vs EC 5; seasonal correlation 0.96
+   !! growing season length differs: model 7 vs EC 5 active months
+   over-estimated month  3: EC 0.53, model 1.51 (TLAI 1.38, BTRAN 0.90, T 0.5 C, snow 119 mm)
+   over-estimated month 11: EC 0.86, model 1.87 (TLAI 3.00, BTRAN 0.97, T 1.5 C, snow 9 mm)
+   PFT 13: patch area 1.00, canopy crown area 1.000, leaf C mean 0.0452 max 0.0599, GPP 4.540 g C m-2 d-1 -> alive
+   GPP share by PFT: pft13 100%
+   !! no cold-deciduous leaf-on event for 755 years (FATES_DAYSINCE_COLDLEAFON): either all vegetation is dead or the site is in FATES' 'never cold' state, in which cold-deciduous PFTs drop their leaves and never flush again
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 275293 275322 275352 275382 275413 275444 275474 275505 275536 275566 275596 275627; FATES_DAYSINCE_COLDLEAFON 275492 275522 275551 275582 275612 275642 275673 275704 275734 275765 275796 275826; FATES_GDD 0 0 0 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 83 113 142 166 173 174 174 174 151 4 23 52; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0

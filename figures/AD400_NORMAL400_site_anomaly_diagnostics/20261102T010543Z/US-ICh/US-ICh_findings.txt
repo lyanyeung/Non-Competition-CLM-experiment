@@ -1,0 +1,23 @@
+US-ICh (US-ICh_AMF_B02_FIXNC_NORMAL400_DIRECT; AD US-ICh_AMF_B02_FIXNC_AD400_DIRECT)
+EC: {'EC_sources': 'AMF_US-ICh_FLUXNET_FLUXMET_HH_2007-2025_v1.3_r1.csv', 'EC_met_source': "AMF_US-ICh_FLUXNET_FLUXMET_HH_2007-2025_v1.3_r1.csv: {'TA': 'TA_F', 'SW_IN': 'SW_IN_F', 'P': 'P_F', 'VPD': 'VPD_F', 'LE': 'LE_F_MDS', 'WS': 'WS_F', 'PA': 'PA_F', 'SWC1': 'SWC_F_MDS_1'}"}
+
+PARAMETERS: fates_params_ARCTIC_PURE_stage06_v1.json; fsurdat surfdata_US-ICh_FIXNC_PFT_soil10_stage07_v2.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 30.0, 0.0, 20.0, 50.0, 0.0, 0.0]
+INIT: AD finidat = (cold start)
+FORCING (19 files): all checks ok
+FORCING vs EC met (target US-ICh): paired_months 228, T_forcing_minus_EC_C 0.00, P_forcing_over_EC 1.00, SW_forcing_over_EC 1.00
+FORCING climate: target T -6.8 C, P 219 mm/yr, SW 104 W/m2
+AD first 60 years (target US-ICh): peak LAI 0.63, GPP years 1-5 0.66 g C m-2 d-1, vegetation persists; TWS change +137 mm
+WATER (target US-ICh, last cycle, mm/yr): model P 219, model ET 165, EC ET 146, EC P 219
+   model water table depth 8.6 m; soil water 0-0.1m 0.480, soil water 0.1-0.5m 0.515, soil water 0.5-1m 0.470, soil water 1-3m 0.501
+   GPP model 581 vs EC 174 g C m-2 yr-1 (ratio 3.34); GPP per ET model 3.53 vs EC 1.19 g C per kg water; model T/ET 0.42
+   timing: peak month model 6 vs EC 7; active months (>25% of peak) model 4 vs EC 3; seasonal correlation 0.87
+   !! carbon gained per unit water is 3.0 x the tower value (water-use efficiency too high)
+   over-estimated month  5: EC 0.22, model 2.11 (TLAI 0.88, BTRAN 0.33, T -1.0 C, snow 7 mm)
+   over-estimated month  6: EC 1.41, model 7.61 (TLAI 1.63, BTRAN 0.61, T 7.8 C, snow 0 mm)
+   over-estimated month  7: EC 2.94, model 7.28 (TLAI 1.85, BTRAN 0.67, T 10.4 C, snow 0 mm)
+   PFT 10: patch area 0.30, canopy crown area 0.000, leaf C mean 0 max 0, GPP 0.000 g C m-2 d-1 -> leafless all year
+   PFT 11: patch area 0.20, canopy crown area 0.177, leaf C mean 0.00546 max 0.0238, GPP 0.391 g C m-2 d-1 -> alive
+   PFT 12: patch area 0.50, canopy crown area 0.500, leaf C mean 0.0081 max 0.0327, GPP 1.190 g C m-2 d-1 -> alive
+   GPP share by PFT: pft11 25%, pft12 75%
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 153 183 212 243 273 304 334 174 34 61 92 122; FATES_DAYSINCE_COLDLEAFON 258 287 317 343 43 43 74 105 135 166 196 227; FATES_GDD 0 0 0 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 112 142 171 202 230 246 248 253 233 20 50 81; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0

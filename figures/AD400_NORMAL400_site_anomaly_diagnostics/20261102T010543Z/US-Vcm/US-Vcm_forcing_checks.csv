@@ -1,0 +1,11 @@
+check,value,status,note
+coverage CLM_USRDAT.UNSET,"2007-2025, 19 files",ok,
+time interpolation CLM_USRDAT.UNSET,tintalgo=linear offset=0,info,
+TBOT,278.292707,ok,units 'K' (expected K)
+PRECTmms,506.949526,ok,units 'mm/s' (expected mm/s); annual precipitation 507 mm
+FSDS,227.99656,ok,units 'W/m2' (expected W/m2)
+FLDS,253.534317,ok,units 'W/m2' (expected W/m2)
+QBOT,0.003713,ok,units 'kg/kg' (expected kg/kg)
+WIND,4.322658,ok,units 'm/s' (expected m/s)
+PSRF,70585.728385,ok,units 'Pa' (expected Pa)
+AD and Normal use the same forcing files,19,ok,

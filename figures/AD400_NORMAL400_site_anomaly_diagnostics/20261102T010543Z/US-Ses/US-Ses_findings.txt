@@ -1,0 +1,25 @@
+US-Ses (US-Ses_AMF_B04_FIXNC_NORMAL400_BASETA_V1; AD US-Ses_AMF_B04_FIXNC_AD400_BASETA_V1)
+EC: {'EC_sources': 'AMF_US-Ses_FLUXNET_FLUXMET_HH_2007-2025_v1.3_r1.csv', 'EC_met_source': "AMF_US-Ses_FLUXNET_FLUXMET_HH_2007-2025_v1.3_r1.csv: {'TA': 'TA_F', 'SW_IN': 'SW_IN_F', 'P': 'P_F', 'VPD': 'VPD_F', 'LE': 'LE_F_MDS', 'WS': 'WS_F', 'PA': 'PA_F'}"}
+
+PARAMETERS: US-Ses_FATES_DEFAULT14_params.json; fsurdat US-Ses_AMF_B04_SHARED_PFT_START_RESEARCH.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [20.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 55.0, 0.0, 0.0, 0.0, 0.0, 25.0]
+INIT: AD finidat = (cold start)
+FORCING (19 files): all checks ok
+FORCING vs EC met (target US-Ses): paired_months 228, T_forcing_minus_EC_C -0.00, P_forcing_over_EC 1.00, SW_forcing_over_EC 1.00
+FORCING climate: target T 14.3 C, P 224 mm/yr, SW 237 W/m2
+AD first 60 years (target US-Ses): peak LAI 1.47, GPP years 1-5 1.18 g C m-2 d-1, vegetation persists; TWS change -950 mm
+WATER (target US-Ses, last cycle, mm/yr): model P 224, model ET 218, EC ET 218, EC P 224
+   model water table depth 8.6 m; soil water 0-0.1m 0.148, soil water 0.1-0.5m 0.176, soil water 0.5-1m 0.158, soil water 1-3m 0.141
+   GPP model 361 vs EC 117 g C m-2 yr-1 (ratio 3.09); GPP per ET model 1.65 vs EC 0.54 g C per kg water; model T/ET 0.53
+   timing: peak month model 4 vs EC 8; active months (>25% of peak) model 10 vs EC 7; seasonal correlation 0.73
+   !! carbon gained per unit water is 3.1 x the tower value (water-use efficiency too high)
+   !! growing season length differs: model 10 vs EC 7 active months
+   over-estimated month  3: EC 0.17, model 1.25 (TLAI 0.45, BTRAN 0.32, T 10.0 C, snow 0 mm)
+   over-estimated month  4: EC 0.40, model 1.97 (TLAI 0.52, BTRAN 0.26, T 14.3 C, snow 0 mm)
+   over-estimated month  5: EC 0.48, model 1.35 (TLAI 0.42, BTRAN 0.20, T 18.8 C, snow 0 mm)
+   over-estimated month  7: EC 0.45, model 1.03 (TLAI 0.34, BTRAN 0.25, T 24.9 C, snow 0 mm)
+   over-estimated month  8: EC 0.75, model 1.60 (TLAI 0.42, BTRAN 0.28, T 24.2 C, snow 0 mm)
+   PFT 7: patch area 0.55, canopy crown area 0.170, leaf C mean 0.0191 max 0.0202, GPP 0.286 g C m-2 d-1 -> alive
+   PFT 14: patch area 0.25, canopy crown area 0.250, leaf C mean 0.00365 max 0.00532, GPP 0.700 g C m-2 d-1 -> alive
+   GPP share by PFT: pft7 29%, pft14 71%
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 59 88 118 148 179 209 240 271 301 332 205 33; FATES_DAYSINCE_COLDLEAFON 318 338 57 42 73 103 134 165 195 226 256 287; FATES_GDD 30 132 26 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 47 67 75 76 76 76 76 76 66 0 3 20; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0

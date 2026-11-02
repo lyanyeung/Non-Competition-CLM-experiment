@@ -1,0 +1,31 @@
+ES-LJu (ES-LJu_B02_FIXNC_MET24_GPPNPP_HISTFIX_NORMAL400; AD ES-LJu_B02_FIXNC_MET24_GPPNPP_HISTFIX_AD400)
+EC: {'EC_sources': 'EUF_ES-LJu_FLUXNET_FLUXMET_HH_2004-2024_v1.3_r1.csv', 'EC_met_source': "EUF_ES-LJu_FLUXNET_FLUXMET_HH_2004-2024_v1.3_r1.csv: {'TA': 'TA_F', 'SW_IN': 'SW_IN_F', 'P': 'P_F', 'VPD': 'VPD_F', 'LE': 'LE_F_MDS', 'WS': 'WS_F', 'PA': 'PA_F', 'SWC1': 'SWC_F_MDS_1'}"}
+
+PARAMETERS: fates_params_default.json; fsurdat surfdata_ES-LJu_B02_BARESHRUB_PFT_proxy_v1.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [49.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 20.0, 0.0, 0.0, 0.0, 31.0, 0.0]
+INIT: AD finidat = (cold start)
+FORCING (21 files): all checks ok
+FORCING vs EC met (target ES-LJu): paired_months 252, T_forcing_minus_EC_C 0.07, P_forcing_over_EC 1.00, SW_forcing_over_EC 1.00
+FORCING climate: target T 12.0 C, P 562 mm/yr, SW 190 W/m2
+AD first 60 years (target ES-LJu): peak LAI 1.43, GPP years 1-5 1.33 g C m-2 d-1, vegetation persists; TWS change -271 mm
+WATER (target ES-LJu, last cycle, mm/yr): model P 562, model ET 316, EC ET 252, EC P 562
+   model water table depth 8.5 m; soil water 0-0.1m 0.184, soil water 0.1-0.5m 0.205, soil water 0.5-1m 0.227, soil water 1-3m 0.255
+   GPP model 904 vs EC 302 g C m-2 yr-1 (ratio 3.00); GPP per ET model 2.86 vs EC 1.20 g C per kg water; model T/ET 0.65
+   timing: peak month model 5 vs EC 5; active months (>25% of peak) model 10 vs EC 7; seasonal correlation 0.96
+   !! carbon gained per unit water is 2.4 x the tower value (water-use efficiency too high)
+   !! growing season length differs: model 10 vs EC 7 active months
+   over-estimated month  1: EC 0.44, model 1.54 (TLAI 1.63, BTRAN 0.51, T 5.1 C, snow 2 mm)
+   over-estimated month  2: EC 0.56, model 2.01 (TLAI 1.65, BTRAN 0.51, T 5.0 C, snow 1 mm)
+   over-estimated month  3: EC 0.70, model 2.90 (TLAI 1.66, BTRAN 0.51, T 6.9 C, snow 1 mm)
+   over-estimated month  4: EC 1.34, model 4.09 (TLAI 1.67, BTRAN 0.51, T 9.1 C, snow 0 mm)
+   over-estimated month  5: EC 2.14, model 5.13 (TLAI 1.67, BTRAN 0.48, T 13.0 C, snow 0 mm)
+   over-estimated month  6: EC 1.74, model 5.00 (TLAI 1.65, BTRAN 0.42, T 17.8 C, snow 0 mm)
+   over-estimated month  7: EC 0.77, model 2.69 (TLAI 1.41, BTRAN 0.29, T 22.1 C, snow 0 mm)
+   over-estimated month  8: EC 0.37, model 1.39 (TLAI 0.88, BTRAN 0.27, T 21.3 C, snow 0 mm)
+   over-estimated month  9: EC 0.35, model 1.21 (TLAI 0.71, BTRAN 0.38, T 16.6 C, snow 0 mm)
+   over-estimated month 11: EC 0.49, model 1.30 (TLAI 1.10, BTRAN 0.51, T 8.2 C, snow 0 mm)
+   over-estimated month 12: EC 0.44, model 1.39 (TLAI 1.49, BTRAN 0.51, T 6.2 C, snow 0 mm)
+   PFT 7: patch area 0.20, canopy crown area 0.200, leaf C mean 0.0525 max 0.0527, GPP 1.060 g C m-2 d-1 -> alive
+   PFT 13: patch area 0.31, canopy crown area 0.310, leaf C mean 0.0143 max 0.0208, GPP 1.417 g C m-2 d-1 -> alive
+   GPP share by PFT: pft7 43%, pft13 57%
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 56 85 115 145 176 206 237 268 298 329 220 47; FATES_DAYSINCE_COLDLEAFON 313 336 105 38 68 99 129 160 191 221 252 282; FATES_GDD 74 197 78 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 28 44 56 62 64 64 64 64 55 0 2 12; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0

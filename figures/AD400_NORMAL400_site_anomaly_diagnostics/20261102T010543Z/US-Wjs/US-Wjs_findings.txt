@@ -1,0 +1,19 @@
+US-Wjs (US-Wjs_AMF_B05_FIXNC_NORMAL400_DIRECT; AD US-Wjs_AMF_B05_FIXNC_AD400_DIRECT)
+EC: {'EC_sources': 'AMF_US-Wjs_FLUXNET_FLUXMET_HH_2007-2025_v1.3_r1.csv', 'EC_met_source': "AMF_US-Wjs_FLUXNET_FLUXMET_HH_2007-2025_v1.3_r1.csv: {'TA': 'TA_F', 'SW_IN': 'SW_IN_F', 'P': 'P_F', 'VPD': 'VPD_F', 'LE': 'LE_F_MDS', 'WS': 'WS_F', 'PA': 'PA_F'}"}
+
+PARAMETERS: fates_params_default.json; fsurdat surfdata_US-Wjs_FIXNC_PFT_soil10_b05_v1.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [0.0, 26.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 74.0]
+INIT: AD finidat = (cold start)
+FORCING (19 files): all checks ok
+FORCING vs EC met (target US-Wjs): paired_months 228, T_forcing_minus_EC_C -0.00, P_forcing_over_EC 1.02, SW_forcing_over_EC 1.00
+FORCING climate: target T 12.3 C, P 336 mm/yr, SW 235 W/m2
+AD first 60 years (target US-Wjs): peak LAI 1.13, GPP years 1-5 2.00 g C m-2 d-1, vegetation persists; TWS change -677 mm
+WATER (target US-Wjs, last cycle, mm/yr): model P 336, model ET 327, EC ET 350, EC P 328
+   model water table depth 8.6 m; soil water 0-0.1m 0.186, soil water 0.1-0.5m 0.185, soil water 0.5-1m 0.185, soil water 1-3m 0.223
+   GPP model 601 vs EC 531 g C m-2 yr-1 (ratio 1.13); GPP per ET model 1.84 vs EC 1.52 g C per kg water; model T/ET 0.58
+   timing: peak month model 4 vs EC 8; active months (>25% of peak) model 8 vs EC 10; seasonal correlation 0.84
+   !! growing season length differs: model 8 vs EC 10 active months
+   PFT 2: patch area 0.26, canopy crown area 0.000, leaf C mean 0 max 0, GPP 0.000 g C m-2 d-1 -> leafless all year
+   PFT 14: patch area 0.74, canopy crown area 0.740, leaf C mean 0.00905 max 0.0124, GPP 1.635 g C m-2 d-1 -> alive
+   GPP share by PFT: pft14 100%
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 60 90 119 150 180 211 241 272 303 330 193 34; FATES_DAYSINCE_COLDLEAFON 315 341 81 40 70 101 131 162 193 223 254 284; FATES_GDD 23 106 34 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 52 75 86 88 88 88 88 88 77 0 5 24; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0

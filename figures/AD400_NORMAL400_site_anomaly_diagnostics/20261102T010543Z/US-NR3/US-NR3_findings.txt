@@ -1,0 +1,17 @@
+US-NR3 (US-NR3_AMF_B03_FIXNC_NORMAL400_DIRECT; AD US-NR3_AMF_B03_FIXNC_AD400_DIRECT)
+EC: {'EC_sources': 'FAILED no EC flux csv for US-NR3 under /iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/US-NR3 (give --ec-file US-NR3=PATH)'}
+
+PARAMETERS: fates_params_default.json; fsurdat surfdata_US-NR3_FIXNC_PFT_soil10_b03_v1.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [20.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 80.0, 0.0, 0.0]
+INIT: AD finidat = (cold start)
+FORCING (18 files): all checks ok
+FORCING climate: target T -0.7 C, P 884 mm/yr, SW 194 W/m2
+AD first 60 years (target US-NR3): peak LAI 0.7, GPP years 1-5 0.50 g C m-2 d-1, vegetation persists; TWS change -417 mm
+WATER (target US-NR3, last cycle, mm/yr): model P 884, model ET 338, EC ET nan, EC P nan
+   model water table depth 8.3 m; soil water 0-0.1m 0.330, soil water 0.1-0.5m 0.330, soil water 0.5-1m 0.289, soil water 1-3m 0.228
+   GPP model 633 vs EC nan g C m-2 yr-1 (ratio nan); GPP per ET model 1.87 vs EC nan g C per kg water; model T/ET 0.37
+   timing: peak month model 7 vs EC -; active months (>25% of peak) model 5 vs EC -; seasonal correlation -
+   PFT 12: patch area 0.80, canopy crown area 0.782, leaf C mean 0.0131 max 0.0388, GPP 1.717 g C m-2 d-1 -> alive
+   GPP share by PFT: pft12 100%
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 131 160 190 220 228 251 282 306 223 81 76 100; FATES_DAYSINCE_COLDLEAFON 252 282 311 339 119 71 102 129 153 160 191 221; FATES_GDD 0 0 0 1 1 0 0 0 0 0 0 0; FATES_NCHILLDAYS 103 133 162 193 222 239 240 240 209 13 42 72; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0
+ERROR (target): EC: no EC flux csv for US-NR3 under /iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/US-NR3 (give --ec-file US-NR3=PATH)

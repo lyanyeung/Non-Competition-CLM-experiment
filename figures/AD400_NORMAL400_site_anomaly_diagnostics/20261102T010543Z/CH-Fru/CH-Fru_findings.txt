@@ -1,0 +1,17 @@
+CH-Fru (CH-Fru_B02_FIXNC_NORMAL400; AD CH-Fru_B02_FIXNC_AD400)
+EC: {'EC_sources': 'EUF_CH-Fru_FLUXNET_FLUXMET_HH_2005-2024_v1.3_r1.csv', 'EC_met_source': "EUF_CH-Fru_FLUXNET_FLUXMET_HH_2005-2024_v1.3_r1.csv: {'TA': 'TA_F', 'SW_IN': 'SW_IN_F', 'P': 'P_F', 'VPD': 'VPD_F', 'LE': 'LE_F_MDS', 'WS': 'WS_F', 'PA': 'PA_F', 'SWC1': 'SWC_F_MDS_1', 'SWC2': 'SWC_F_MDS_2'}"}
+
+PARAMETERS: fates_params_default.json; fsurdat surfdata_CH-Fru_B02_FIXNC_candidate_v1.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 0.0]
+INIT: AD finidat = (cold start)
+FORCING (20 files): all checks ok
+FORCING vs EC met (target CH-Fru): paired_months 240, T_forcing_minus_EC_C -0.00, P_forcing_over_EC 1.00, SW_forcing_over_EC 1.00
+FORCING climate: target T 7.9 C, P 1472 mm/yr, SW 145 W/m2
+AD first 60 years (target CH-Fru): peak LAI 3.18, GPP years 1-5 3.22 g C m-2 d-1, vegetation persists; TWS change -213 mm
+WATER (target CH-Fru, last cycle, mm/yr): model P 1472, model ET 479, EC ET 579, EC P 1473
+   model water table depth 8.5 m; soil water 0-0.1m 0.349, soil water 0.1-0.5m 0.311, soil water 0.5-1m 0.284, soil water 1-3m 0.285
+   GPP model 1986 vs EC 2201 g C m-2 yr-1 (ratio 0.90); GPP per ET model 4.15 vs EC 3.80 g C per kg water; model T/ET 0.65
+   timing: peak month model 7 vs EC 5; active months (>25% of peak) model 7 vs EC 7; seasonal correlation 0.96
+   PFT 13: patch area 1.00, canopy crown area 1.000, leaf C mean 0.055 max 0.064, GPP 5.419 g C m-2 d-1 -> alive
+   GPP share by PFT: pft13 100%
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 84 113 143 173 204 234 265 296 322 249 50 53; FATES_DAYSINCE_COLDLEAFON 303 332 215 29 58 88 119 150 180 211 241 272; FATES_GDD 18 47 41 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 68 96 121 134 138 138 138 138 120 2 14 39; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0

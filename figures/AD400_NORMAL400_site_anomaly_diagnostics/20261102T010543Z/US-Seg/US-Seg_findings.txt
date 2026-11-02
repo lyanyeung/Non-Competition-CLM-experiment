@@ -1,0 +1,22 @@
+US-Seg (US-Seg_AMF_B04_FIXNC_NORMAL400_BASETA_V1; AD US-Seg_AMF_B04_FIXNC_AD400_BASETA_V1)
+EC: {'EC_sources': 'AMF_US-Seg_FLUXNET_FLUXMET_HH_2007-2025_v1.3_r1.csv', 'EC_met_source': "AMF_US-Seg_FLUXNET_FLUXMET_HH_2007-2025_v1.3_r1.csv: {'TA': 'TA_F', 'SW_IN': 'SW_IN_F', 'P': 'P_F', 'VPD': 'VPD_F', 'LE': 'LE_F_MDS', 'WS': 'WS_F', 'PA': 'PA_F'}"}
+
+PARAMETERS: US-Seg_FATES_DEFAULT14_params.json; fsurdat US-Seg_AMF_B04_SHARED_PFT_START_RESEARCH.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [40.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 60.0]
+INIT: AD finidat = (cold start)
+FORCING (19 files): all checks ok
+FORCING vs EC met (target US-Seg): paired_months 228, T_forcing_minus_EC_C -0.00, P_forcing_over_EC 1.00, SW_forcing_over_EC 1.00
+FORCING climate: target T 14.0 C, P 224 mm/yr, SW 232 W/m2
+AD first 60 years (target US-Seg): peak LAI 0.74, GPP years 1-5 1.29 g C m-2 d-1, vegetation persists; TWS change -975 mm
+WATER (target US-Seg, last cycle, mm/yr): model P 224, model ET 213, EC ET 223, EC P 225
+   model water table depth 8.6 m; soil water 0-0.1m 0.154, soil water 0.1-0.5m 0.186, soil water 0.5-1m 0.165, soil water 1-3m 0.141
+   GPP model 311 vs EC 163 g C m-2 yr-1 (ratio 1.91); GPP per ET model 1.46 vs EC 0.73 g C per kg water; model T/ET 0.46
+   timing: peak month model 4 vs EC 8; active months (>25% of peak) model 9 vs EC 7; seasonal correlation 0.30
+   !! carbon gained per unit water is 2.0 x the tower value (water-use efficiency too high)
+   !! growing season length differs: model 9 vs EC 7 active months
+   over-estimated month  3: EC 0.16, model 1.27 (TLAI 0.30, BTRAN 0.47, T 9.7 C, snow 0 mm)
+   over-estimated month  4: EC 0.51, model 1.91 (TLAI 0.37, BTRAN 0.39, T 13.9 C, snow 0 mm)
+   over-estimated month  5: EC 0.57, model 1.28 (TLAI 0.34, BTRAN 0.32, T 18.6 C, snow 0 mm)
+   PFT 14: patch area 0.60, canopy crown area 0.600, leaf C mean 0.00534 max 0.00677, GPP 0.847 g C m-2 d-1 -> alive
+   GPP share by PFT: pft14 100%
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 56 86 115 146 176 207 237 268 299 329 228 32; FATES_DAYSINCE_COLDLEAFON 318 339 59 42 73 103 134 165 195 226 256 287; FATES_GDD 30 131 27 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 46 66 73 74 74 74 74 74 64 0 3 20; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0

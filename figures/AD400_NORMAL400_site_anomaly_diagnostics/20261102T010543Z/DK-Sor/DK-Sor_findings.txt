@@ -1,0 +1,17 @@
+DK-Sor (DK-Sor_B02_FIXNC_ICOS_DBF100_NORMAL400; AD DK-Sor_B02_FIXNC_ICOS_DBF100_AD400)
+EC: {'EC_sources': 'ICOS_DK-Sor_FLUXNET_FLUXMET_HH_1996-2024_v1.3_r1.csv; ICOS_DK-Sor_FLUXNET_FLUXMET_HH_1996-2024_v1.3_r1.csv; ICOSETC_DK-Sor_FLUXNET_FLUXMET_HH_2021-2026_v1.3_r1.csv', 'EC_met_source': "ICOS_DK-Sor_FLUXNET_FLUXMET_HH_1996-2024_v1.3_r1.csv: {'TA': 'TA_F', 'SW_IN': 'SW_IN_F', 'P': 'P_F', 'VPD': 'VPD_F', 'LE': 'LE_F_MDS', 'WS': 'WS_F', 'PA': 'PA_F', 'SWC1': 'SWC_F_MDS_1', 'SWC2': 'SWC_F_MDS_2'}"}
+
+PARAMETERS: fates_params_default.json; fsurdat surfdata_DK-Sor_B02_ICOS_DBF100_v1.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+INIT: AD finidat = (cold start)
+FORCING (30 files): all checks ok
+FORCING vs EC met (target DK-Sor): paired_months 360, T_forcing_minus_EC_C -0.00, P_forcing_over_EC 1.00, SW_forcing_over_EC 1.00
+FORCING climate: target T 8.7 C, P 788 mm/yr, SW 118 W/m2
+AD first 60 years (target DK-Sor): peak LAI 3.4, GPP years 1-5 2.41 g C m-2 d-1, vegetation persists; TWS change +206 mm
+WATER (target DK-Sor, last cycle, mm/yr): model P 788, model ET 364, EC ET 429, EC P 793
+   model water table depth 5.7 m; soil water 0-0.1m 0.350, soil water 0.1-0.5m 0.327, soil water 0.5-1m 0.300, soil water 1-3m 0.315
+   GPP model 1578 vs EC 2085 g C m-2 yr-1 (ratio 0.76); GPP per ET model 4.34 vs EC 4.86 g C per kg water; model T/ET 0.69
+   timing: peak month model 6 vs EC 6; active months (>25% of peak) model 6 vs EC 5; seasonal correlation 0.99
+   PFT 6: patch area 1.00, canopy crown area 0.992, leaf C mean 0.0617 max 0.117, GPP 4.299 g C m-2 d-1 -> alive
+   GPP share by PFT: pft6 100%
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 73 102 132 162 193 223 254 285 315 301 103 42; FATES_DAYSINCE_COLDLEAFON 302 329 209 47 57 87 118 149 179 210 240 271; FATES_GDD 26 67 47 3 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 56 83 107 120 122 122 122 122 106 0 7 29; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0

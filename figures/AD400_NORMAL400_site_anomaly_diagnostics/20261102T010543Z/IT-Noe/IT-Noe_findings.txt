@@ -1,0 +1,23 @@
+IT-Noe (IT-Noe_B02_FIXNC_GPPNPP_HISTFIX_NORMAL400; AD IT-Noe_B02_FIXNC_GPPNPP_HISTFIX_AD400)
+EC: {'EC_sources': 'ICOS_IT-Noe_FLUXNET_FLUXMET_HH_2022-2025_v1.3_r1.csv; FLX_IT-Noe_FLUXNET2015_FULLSET_HH_2004-2023_1-3.csv', 'EC_met_source': "ICOS_IT-Noe_FLUXNET_FLUXMET_HH_2022-2025_v1.3_r1.csv: {'TA': 'TA_F', 'SW_IN': 'SW_IN_F', 'P': 'P_F', 'VPD': 'VPD_F', 'LE': 'LE_F_MDS', 'WS': 'WS_F', 'PA': 'PA_F', 'SWC1': 'SWC_F_MDS_1', 'SWC2': 'SWC_F_MDS_2'}"}
+
+PARAMETERS: fates_params_default.json; fsurdat surfdata_IT-Noe_B02_BARESHRUB_PFT_proxy_v1.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [34.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 66.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+INIT: AD finidat = (cold start)
+FORCING (22 files): all checks ok
+FORCING vs EC met (target IT-Noe): paired_months 264, T_forcing_minus_EC_C -0.07, P_forcing_over_EC 1.00, SW_forcing_over_EC 1.00
+FORCING climate: target T 16.8 C, P 571 mm/yr, SW 187 W/m2
+AD first 60 years (target IT-Noe): peak LAI 2.08, GPP years 1-5 0.04 g C m-2 d-1, vegetation persists; TWS change -54 mm
+WATER (target IT-Noe, last cycle, mm/yr): model P 571, model ET 445, EC ET 341, EC P 530
+   model water table depth 8.5 m; soil water 0-0.1m 0.269, soil water 0.1-0.5m 0.273, soil water 0.5-1m 0.264, soil water 1-3m 0.286
+   GPP model 1479 vs EC 847 g C m-2 yr-1 (ratio 1.75); GPP per ET model 3.33 vs EC 2.48 g C per kg water; model T/ET 0.65
+   timing: peak month model 6 vs EC 5; active months (>25% of peak) model 10 vs EC 12; seasonal correlation 0.88
+   !! growing season length differs: model 10 vs EC 12 active months
+   over-estimated month  6: EC 3.53, model 7.56 (TLAI 2.07, BTRAN 0.59, T 21.6 C, snow 0 mm)
+   over-estimated month  7: EC 2.54, model 5.42 (TLAI 2.08, BTRAN 0.40, T 24.3 C, snow 0 mm)
+   over-estimated month  8: EC 1.46, model 3.57 (TLAI 2.07, BTRAN 0.30, T 24.2 C, snow 0 mm)
+   over-estimated month  9: EC 1.51, model 3.53 (TLAI 2.07, BTRAN 0.40, T 21.8 C, snow 0 mm)
+   PFT 7: patch area 0.66, canopy crown area 0.660, leaf C mean 0.171 max 0.173, GPP 4.046 g C m-2 d-1 -> alive
+   GPP share by PFT: pft7 100%
+   !! no cold-deciduous leaf-on event for 773 years (FATES_DAYSINCE_COLDLEAFON): either all vegetation is dead or the site is in FATES' 'never cold' state, in which cold-deciduous PFTs drop their leaves and never flush again
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 282284 282314 282344 282374 282404 282435 282466 282496 282527 282558 282588 282618; FATES_DAYSINCE_COLDLEAFON 282284 282314 282344 282374 282404 282435 282466 282496 282527 282558 282588 282618; FATES_GDD 0 0 0 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 0 1 1 1 1 1 1 1 1 0 0 0; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0

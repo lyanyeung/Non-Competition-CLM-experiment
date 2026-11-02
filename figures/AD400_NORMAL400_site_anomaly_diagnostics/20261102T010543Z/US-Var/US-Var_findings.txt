@@ -1,0 +1,26 @@
+US-Var (US-Var_AMF_B05_FIXNC_NORMAL400_DIRECT; AD US-Var_AMF_B05_FIXNC_AD400_DIRECT)
+EC: {'EC_sources': 'AMF_US-Var_FLUXNET_FLUXMET_HH_2000-2025_v1.3_r1.csv', 'EC_met_source': "AMF_US-Var_FLUXNET_FLUXMET_HH_2000-2025_v1.3_r1.csv: {'TA': 'TA_F', 'SW_IN': 'SW_IN_F', 'P': 'P_F', 'VPD': 'VPD_F', 'LE': 'LE_F_MDS', 'WS': 'WS_F', 'PA': 'PA_F', 'SWC1': 'SWC_F_MDS_1', 'SWC2': 'SWC_F_MDS_2'}"}
+
+PARAMETERS: fates_params_default.json; fsurdat surfdata_US-Var_FIXNC_PFT_soil10_b05_v1.nc
+SURFACE (target AD): PCT_NATVEG 100.0, PCT_GLACIER 0.0, PCT_LAKE 0.0, PCT_WETLAND 0.0, PCT_URBAN 0.0, PCT_CROP 0.0; PCT_NAT_PFT [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 0.0]
+INIT: AD finidat = (cold start)
+FORCING (26 files): all checks ok
+FORCING vs EC met (target US-Var): paired_months 312, T_forcing_minus_EC_C -0.00, P_forcing_over_EC 1.04, SW_forcing_over_EC 1.00
+FORCING climate: target T 16.1 C, P 590 mm/yr, SW 219 W/m2
+AD first 60 years (target US-Var): peak LAI 2.45, GPP years 1-5 1.83 g C m-2 d-1, vegetation persists; TWS change -107 mm
+WATER (target US-Var, last cycle, mm/yr): model P 590, model ET 445, EC ET 308, EC P 569
+   model water table depth 8.3 m; soil water 0-0.1m 0.266, soil water 0.1-0.5m 0.293, soil water 0.5-1m 0.293, soil water 1-3m 0.289
+   GPP model 1542 vs EC 719 g C m-2 yr-1 (ratio 2.15); GPP per ET model 3.47 vs EC 2.34 g C per kg water; model T/ET 0.72
+   timing: peak month model 4 vs EC 4; active months (>25% of peak) model 9 vs EC 4; seasonal correlation 0.89
+   !! growing season length differs: model 9 vs EC 4 active months
+   over-estimated month  1: EC 1.82, model 3.73 (TLAI 3.27, BTRAN 0.98, T 8.5 C, snow 0 mm)
+   over-estimated month  5: EC 3.24, model 8.91 (TLAI 3.04, BTRAN 0.81, T 17.9 C, snow 0 mm)
+   over-estimated month  6: EC 0.05, model 3.03 (TLAI 1.46, BTRAN 0.61, T 22.3 C, snow 0 mm)
+   over-estimated month  9: EC -0.24, model 1.32 (TLAI 0.93, BTRAN 0.75, T 22.2 C, snow 0 mm)
+   over-estimated month 10: EC 0.13, model 3.54 (TLAI 2.54, BTRAN 0.68, T 17.4 C, snow 0 mm)
+   over-estimated month 11: EC 0.92, model 4.11 (TLAI 3.19, BTRAN 0.87, T 11.6 C, snow 0 mm)
+   over-estimated month 12: EC 1.51, model 3.40 (TLAI 3.29, BTRAN 0.99, T 8.4 C, snow 0 mm)
+   PFT 13: patch area 1.00, canopy crown area 1.000, leaf C mean 0.0457 max 0.0657, GPP 4.235 g C m-2 d-1 -> alive
+   GPP share by PFT: pft13 100%
+   !! no cold-deciduous leaf-on event for 742 years (FATES_DAYSINCE_COLDLEAFON): either all vegetation is dead or the site is in FATES' 'never cold' state, in which cold-deciduous PFTs drop their leaves and never flush again
+   phenology variables (monthly mean Jan..Dec): FATES_DAYSINCE_COLDLEAFOFF 270644 270673 270702 270733 270764 270794 270824 270856 270886 270916 270947 270978; FATES_DAYSINCE_COLDLEAFON 270954 270983 271012 271043 271074 271104 271134 271166 271196 271226 271257 271288; FATES_GDD 0 0 0 0 0 0 0 0 0 0 0 0; FATES_NCHILLDAYS 8 10 11 11 11 11 11 11 10 0 0 3; FATES_NCOLDDAYS 0 0 0 0 0 0 0 0 0 0 0 0
