@@ -1,6 +1,6 @@
 # OzFlux 9-site Non-Competition CLM-FATES — operator-selected v1.1 PFT inputs
 
-**Status 2026-11-02: Stage01 operator SUCCESS on IRIDIS6, 9/9 PFT snapshots PASS and 10/10 original OzFlux L6 present; AU-ASM alone has a previous exact-hashed CTSM2000 gridded reference surface. NO nine-site FIXNC PFT-specific point surfaces exist yet. Stage02 isolated AU-ASM PFT surface candidate builder plus 9-site original-L6 coordinate/source gate PUBLISHED, operator run pending. No CIME cases, DATM approval, AD5/AD400 or Slurm jobs submitted.**
+**Status 2026-11-02: Stage01 and Stage02 OPERATOR SUCCESS on IRIDIS6. Nine v1.1 PFT sources and 10/10 original L6 confirmed. Stage02 created exactly ONE isolated AU-ASM FIXNC PFT-specific point Surface candidate, SHA256 d06ad3111d93de69e7f2dd7f048b02a9161aee4ff853afafedcdfed71a54f3a1, verified only PCT_NAT_PFT changed and all other original CTSM reference values preserved; nine source L6 lat/lon metadata were internally consistent. Stage03 eight remaining site CTSM2000 point surface + v1.1 PFT candidate builder PUBLISHED, operator execution pending. Soil remains CTSM gridded reference, tower coordinates still lack separate external verification, no DATM science/CIME/AD5/AD400 submitted.**
 
 The operator instructed: *use all the OzFlux PFT numbers already updated on GitHub for the non-competition experiment, and proceed*. Do **not** continue the AU-ASM historical 2018 derived-AGB forensic stages as a prerequisite to FIXNC PFT input selection. All SOURCE AGB evidence remains preserved in `CLM-FATES-single-site-workflows`; 2018 derived AGB is not validated observation.
 
@@ -118,6 +118,115 @@ the same Git-locked v1.1 host PFT vectors while keeping
 site-specific soil/forcing gates clear. Build new isolated
 FIXNC cases and test AD5 only after DATM/soil/effective-map checks.
 Do not launch AD400 from the Stage02 candidate alone.
+
+## Stage02 actual SUCCESS: AU-ASM isolated PFT candidate, nine source-L6 coordinate gate
+
+**Operator actual successful run**:
+`/home/ly3n24/ozflux_nc_stage02_pre_20261102T215809Z`
+and `/home/ly3n24/ozflux_nc_stage02_ASM_20261102T215809Z`.
+Git source SHA, Python syntax, self-test, Stage01 PFT snapshot
+and Stage16 CTSM reference SHA passed.
+
+New exact-isolated candidate:
+`/home/ly3n24/ozflux_nc_stage02_ASM_20261102T215809Z/surfdata_AU-ASM_NC_FIXNC_PFT_v1p1_CTSM2000_SOIL_REFERENCE.nc`,
+SHA256
+`d06ad3111d93de69e7f2dd7f048b02a9161aee4ff853afafedcdfed71a54f3a1`.
+Natural-land host `PCT_NAT_PFT[0]=29`,
+`[5]=65`, `[13]=2`, `[14]=4`, remainder zero.
+Compared source/reference and candidate NetCDF **all variables**:
+only `PCT_NAT_PFT` differs; grid soil and other source variables
+preserved exactly. Original Stage16 reference unchanged.
+
+All 9 site IDs have consistent original L6 global attribute AND
+single-valued NetCDF variable latitude/longitude:
+
+| Site | L6 metadata latitude | longitude | New FIXNC point PFT surface |
+|---|---:|---:|---|
+| AU-ASM | -22.2828 | 133.2493 | **CREATED; candidate only** |
+| AU-Cow | -16.23819 | 145.42715 | not yet |
+| AU-Cpr | -34.0027 | 140.5877 | not yet |
+| AU-DaS | -14.1592 | 131.3881 | not yet |
+| AU-Dry | -15.2588 | 132.3706 | not yet |
+| AU-Gin | -31.376351 | 115.71377 | not yet |
+| AU-How | -12.4952 | 131.15005 | not yet |
+| AU-Stp | -17.1507 | 133.3502 | not yet |
+| AU-Tum | -35.6566 | 148.1516 | not yet |
+
+**Coordinate caveat:** These are exact **source L6** metadata
+candidates, not separately verified against official tower site
+registry. Do not imply independent site-location verification.
+This source metadata is a reasonable conditional reference for
+isolated CTSM2000 point extraction, with transparent uncertainty,
+not necessarily a complete tower footprint.
+
+## Stage03 published, actual run pending: remaining eight CTSM2000 point references + PFT candidates
+
+Script:
+`scripts/03_eight_site_CTSM2000_point_PFT_candidate_surfaces_SAFE_BUILD.py`,
+GitHub commit **`485870b65832a6c28e83d77072158e7f0f1c138e`**,
+Git blob **`ed37a66ad09f28dac02624570703045379eb5550`**.
+
+- `--preflight` read-only: checks actual Stage01/Stage02 operator
+  receipt and exact AU-ASM SHA, source-original v1.1 host PFT Git
+  blob, all eight sites' source L6 lat/lon fields (global AND NetCDF
+  scalar, numeric agreement) against **recorded original L6
+  values**, and CTSM `subset_data` executable, source input
+  grid/mesh and [surfdat]-scoped 2000 configuration. It prints
+  the 8 new proposed PFT vector values and never creates a directory.
+- `--build --confirm CREATE_EIGHT_ISOLATED_OZFLUX_FIXNC_SURFACE_CANDIDATES`
+  repeats full preflight and only then runs the existing
+  operator-verified CTSM `subset_data point --create-surface
+  --create-user-mods` for each of the remaining eight stations
+  into distinct, FRESH `$HOME` report child folders, 2000 base
+  gridded source, exact original-L6 metadata lat/lon.
+  For each site, keeps the generated CTSM 2000 reference
+  unchanged, copies the point NetCDF to a **distinct FIXNC
+  candidate** and changes only `PCT_NAT_PFT` to the frozen
+  v1.1 host0 bare-preserving vector. The candidate is reopened
+  and compared variable-by-variable to its generated reference;
+  ten reference soil layers checked. Per-site source SHA256 and
+  candidate SHA256 are recorded. Output includes partial site
+  results if a later site's CTSM tool fails.
+- Source **CTSM2000 gridded soil is NOT tower-site measured soil**.
+  The script does not overwrite any source, AU-ASM candidate,
+  old AU-How competition case, DATM or model config, and does
+  not create a CIME case, invoke Slurm, AD5 or AD400.
+- The next required stage after 8-source-surface candidates is
+  **per-site DATM climate forcing and soil science checking,
+  active FATES map and true CIME effective surface binding**,
+  then an isolated per-site AD5 before AD400 promotion. The
+  input PFT model scenario does not itself approve these
+  outstanding conditions.
+
+Copy/paste IRIDIS6 command pinned to the original script commit:
+
+```bash
+(
+set -euo pipefail
+conda activate clm_fates_env
+COMMIT="485870b65832a6c28e83d77072158e7f0f1c138e"
+BASE="https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$COMMIT/examples/OzFlux_Batch01_09"
+CODE="$HOME/ozflux_nc_stage03_code"
+SCRIPT="$CODE/stage03.py"
+OUT="$HOME/ozflux_nc_stage03_$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "$CODE"
+curl -fLsS --retry 3 "$BASE/scripts/03_eight_site_CTSM2000_point_PFT_candidate_surfaces_SAFE_BUILD.py" -o "$CODE/stage03.py.download"
+test "$(git hash-object "$CODE/stage03.py.download")" = "ed37a66ad09f28dac02624570703045379eb5550"
+mv "$CODE/stage03.py.download" "$SCRIPT"
+python3 -B -m py_compile "$SCRIPT"
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" --preflight --out "$OUT"
+python3 -B "$SCRIPT" --build --confirm CREATE_EIGHT_ISOLATED_OZFLUX_FIXNC_SURFACE_CANDIDATES --out "$OUT"
+echo "SURFACE_DIR=$OUT"
+)
+```
+
+**NOTE** `--preflight` does not create the supplied `--out`
+path and `--build` requires it to still be fresh.
+Eight `subset_data` calls may be moderately costly on login
+nodes; respect IRIDIS6 login-node resource policy and stop
+on cluster guidance. Do not claim a model run or completed
+site science approval from Stage03. Actual operator result pending.
 
 ## Candidate model mode (not submitted)
 
