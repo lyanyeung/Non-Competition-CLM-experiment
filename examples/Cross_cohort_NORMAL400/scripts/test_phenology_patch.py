@@ -50,6 +50,17 @@ class PhenologyPatchTest(unittest.TestCase):
         self.assertLess(p.index("nchill_threshold=0"), p.index("if ( any(currentSite%cstatus"))
         self.assertTrue(all(len(l) <= 132 for l in p.splitlines()))
 
+    def test_hide_spinup_state(self):
+        m = load()
+        txt = "use_fates = .true.\n spinup_state = 2\nSPINUP_STATE=1 ! x\nhist_nhtfrq = 0\n"
+        new, n = m.hide_spinup_state(txt)
+        self.assertEqual(n, 2)
+        self.assertNotIn("\n spinup_state = 2", "\n" + new.replace(m.BUILD_TAG, "#"))
+        self.assertIn(m.BUILD_TAG + " spinup_state = 2", new)
+        self.assertIn("hist_nhtfrq = 0", new)
+        self.assertEqual(m.hide_spinup_state("hist_nhtfrq = 0\n"), ("hist_nhtfrq = 0\n", 0))
+
+
     def test_refuses(self):
         m = load()
         with self.assertRaises(RuntimeError):

@@ -202,11 +202,24 @@ def prepare(site, F7, P, years):
     build(i)
 
 
+SPINUP_LINE = re.compile(r"^([ \t]*spinup_state[ \t]*=.*)$", re.I | re.M)
+BUILD_TAG = "! [17: hidden during case.build only, restored byte-identical] "
+
+
+def hide_spinup_state(text):
+    """Comment out the user_nl_clm spinup_state line(s) for the build. The plain CTSM build-namelist that case.build
+    runs refuses any spinup_state with FATES ("BGC mode is Satellite Phenology"); only the private overlay allows it."""
+    new, n = SPINUP_LINE.subn(lambda m: BUILD_TAG + m.group(1), text)
+    return new, n
+
+
 def build(i):
     """case.build regenerates the namelists with the plain CTSM build-namelist, which refuses accelerated spin-up
-    with FATES (only the private overlay allows it). So the build runs with CLM_ACCELERATED_SPINUP=off (a namelist-only
-    setting, nothing compiled depends on it), the setting is restored, and the namelist is regenerated through the
-    verified overlay and must be byte-identical to the one verified in prepare."""
+    with FATES (only the private overlay allows it, and the overlay cannot be used here: case.build rejects a changed
+    env_case.xml). Nothing compiled depends on the namelist, so for the build only CLM_ACCELERATED_SPINUP is off and
+    the spinup_state line(s) of user_nl_clm are commented out. Both are restored (user_nl_clm byte-identical), then
+    the namelist is regenerated through the verified overlay and must be byte-identical to the one verified in
+    prepare."""
     case = i["case"]
     st = read_state(i)
     print(f"  building {i['new']} (own executable) ...", flush=True)
@@ -214,10 +227,24 @@ def build(i):
     if spin.lower() != "on":
         R.fail(f"CLM_ACCELERATED_SPINUP is {spin!r} before the build, expected 'on'")
     try:
+        opts = R.xq(case, "CLM_NAMELIST_OPTS")
+    except RuntimeError:
+        opts = ""
+    if "spinup_state" in (opts or ""):
+        R.fail(f"spinup_state is set in CLM_NAMELIST_OPTS ({opts!r}); not handled, nothing built")
+    unl = case / "user_nl_clm"
+    orig = unl.read_bytes()
+    hidden, n = hide_spinup_state(orig.decode())
+    print(f"  build-only: CLM_ACCELERATED_SPINUP=off, {n} spinup_state line(s) in user_nl_clm commented out", flush=True)
+    try:
         R.xc(case, "CLM_ACCELERATED_SPINUP", "off")
+        unl.write_text(hidden)
         R.cmd([case / "case.build"], cwd=case, timeout=7200)
     finally:
+        unl.write_bytes(orig)
         R.xc(case, "CLM_ACCELERATED_SPINUP", spin)
+    if unl.read_bytes() != orig:
+        R.fail("user_nl_clm not restored after the build")
     if R.xq(case, "CLM_ACCELERATED_SPINUP") != spin:
         R.fail("CLM_ACCELERATED_SPINUP not restored after the build")
     ov = st.get("overlay", "none")
