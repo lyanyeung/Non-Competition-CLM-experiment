@@ -10,7 +10,7 @@
 #   cat $(cat $HOME/CLM_FATES_PLOTS/LAST_ACCEPTANCE_DIR)/ACCEPTANCE_SUMMARY.txt
 # Set PUBLISH=0 to skip the GitHub upload.
 set -u
-SHA=e4e65454e9232d0237c042c04198014a38d456e1
+SHA=ec3f3b9caf934fc9150f0d2aa0be9c110a31d8b4
 PUBLISH=${PUBLISH:-1}
 TOOL=$HOME/CLM_FATES_PLOTS/diag_rerun_tool
 PY=$HOME/.conda/envs/clm_fates_env/bin/python
