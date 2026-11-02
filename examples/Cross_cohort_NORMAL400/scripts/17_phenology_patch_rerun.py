@@ -41,17 +41,22 @@ SITES = ["CZ-Stn", "DE-Lnf", "US-SRM"]
 STATE = "PHENFIX_STATE.json"
 UPSTREAM = "NGEET/fates 6d9f5b34 (sci.1.94.0_api.47.0.0)"
 R = None
+T = None   # module 13 (overlay candidates / verified preview)
 
 
 def load09():
-    global R
-    for c in (HERE / "09_clone_AD_diag_rerun.py", HERE / "rerun.py"):
-        if c.is_file():
-            spec = importlib.util.spec_from_file_location("rerun09", c)
-            R = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(R)
-            return
-    raise FileNotFoundError("module 09 (09_clone_AD_diag_rerun.py) not found beside this script")
+    """Module 13 (which loads module 09) supplies the verified-preview helpers; R is its module 09."""
+    global R, T
+    c = HERE / "13_needleleaf_param_trials.py"
+    if not c.is_file():
+        raise FileNotFoundError("13_needleleaf_param_trials.py not found beside this script")
+    spec = importlib.util.spec_from_file_location("trial13", c)
+    T = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(T)
+    if not hasattr(T, "preview_verified"):
+        raise RuntimeError("13_needleleaf_param_trials.py is too old (no preview_verified); download the current version")
+    T.load09()
+    R = T.R
 
 
 # ------------------------------------------------------------------ the patch
@@ -148,7 +153,6 @@ def prepare(site, F7, P, years):
     patched = patch_source(original)                      # fails before anything is created
     ad_lnd = (ad / "CaseDocs" / "lnd_in").read_text()
     ad_streams = (ad / "CaseDocs" / "datm.streams.xml").read_bytes()
-    overlay = R.overlay_for(ad_lnd) if "_private_ctsm_FATES_AD400_namelist_overlay" in ad_lnd else None
     found = R.fates_has(srcroot, R.DIAG_FIELDS)
     nl, old_hist, fields = R.edit_user_nl((ad / "user_nl_clm").read_text(), found)
     cimescripts = Path(srcroot) / "cime" / "scripts"
@@ -180,24 +184,7 @@ def prepare(site, F7, P, years):
     i["rundir"].mkdir(parents=True, exist_ok=True)
     if not (case / ".case.run").is_file():
         R.cmd([case / "case.setup"], cwd=case, timeout=300)
-    env, lock = case / "env_case.xml", case / "LockedFiles" / "env_case.xml"
-    orig = env.read_bytes()
-    if overlay is None:
-        R.cmd([case / "preview_namelists"], cwd=case, timeout=600)
-    else:
-        try:
-            R.xc(case, "COMP_ROOT_DIR_LND", str(overlay))
-            R.cmd([case / "preview_namelists"], cwd=case, timeout=600)
-        finally:
-            R.xc(case, "COMP_ROOT_DIR_LND", "$SRCROOT")
-    if env.read_bytes() != orig or (lock.is_file() and lock.read_bytes() != orig):
-        R.fail("env_case.xml / lock not restored after overlay preview")
-    a, n = R.parse_nml(ad_lnd), R.parse_nml((case / "CaseDocs" / "lnd_in").read_text())
-    keys = sorted(k for k in set(a) | set(n) if a.get(k) != n.get(k))
-    bad = [k for k in keys if not R.is_hist(k)]
-    if bad:
-        R.fail("land namelist differs from the AD case beyond history settings:\n" +
-               "\n".join(f"  {k}: AD={a.get(k)!r} NEW={n.get(k)!r}" for k in bad[:20]))
+    overlay, a, n, keys = T.preview_verified(case, ad_lnd)
     if (case / "CaseDocs" / "datm.streams.xml").read_bytes() != ad_streams:
         R.fail("datm.streams.xml differs from the AD case")
     fin = next((v for k, v in n.items() if k.endswith(".hist_fincl1")), "")
@@ -216,9 +203,27 @@ def prepare(site, F7, P, years):
 
 
 def build(i):
+    """case.build regenerates the namelists with the plain CTSM build-namelist, which refuses accelerated spin-up
+    with FATES (only the private overlay allows it). So the build runs with CLM_ACCELERATED_SPINUP=off (a namelist-only
+    setting, nothing compiled depends on it), the setting is restored, and the namelist is regenerated through the
+    verified overlay and must be byte-identical to the one verified in prepare."""
     case = i["case"]
+    st = read_state(i)
     print(f"  building {i['new']} (own executable) ...", flush=True)
-    R.cmd([case / "case.build"], cwd=case, timeout=7200)
+    spin = R.xq(case, "CLM_ACCELERATED_SPINUP")
+    if spin.lower() != "on":
+        R.fail(f"CLM_ACCELERATED_SPINUP is {spin!r} before the build, expected 'on'")
+    try:
+        R.xc(case, "CLM_ACCELERATED_SPINUP", "off")
+        R.cmd([case / "case.build"], cwd=case, timeout=7200)
+    finally:
+        R.xc(case, "CLM_ACCELERATED_SPINUP", spin)
+    if R.xq(case, "CLM_ACCELERATED_SPINUP") != spin:
+        R.fail("CLM_ACCELERATED_SPINUP not restored after the build")
+    ov = st.get("overlay", "none")
+    T.run_preview(case, None if ov in ("none", "", None) else Path(ov))
+    if R.digest(case / "CaseDocs" / "lnd_in") != st["lnd_in_sha256"]:
+        R.fail("lnd_in regenerated after the build differs from the verified one")
     exeroot = Path(R.xq(case, "EXEROOT"))
     exe = exeroot / "cesm.exe"
     if not exe.is_file():
@@ -232,8 +237,6 @@ def build(i):
     fp = exeroot / "lnd" / "obj" / "Filepath"
     if fp.is_file() and str(case / "SourceMods" / "src.clm") not in fp.read_text():
         R.fail("SourceMods/src.clm is not in the land build Filepath")
-    if R.digest(case / "CaseDocs" / "lnd_in") != read_state(i)["lnd_in_sha256"]:
-        R.fail("CaseDocs/lnd_in changed during the build")
     write_state(i, phase="VERIFIED_BUILT_NOT_SUBMITTED", exe=str(exe), exe_sha256=R.digest(exe))
     print(f"  {i['new']} BUILT AND VERIFIED, NOT SUBMITTED", flush=True)
 

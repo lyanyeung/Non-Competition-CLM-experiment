@@ -178,6 +178,52 @@ def set_paramfile(text, path):
     return set_nml(text, "fates_paramfile", f"'{path}'")
 
 
+def overlay_candidates(ad_lnd):
+    """The overlay named in the AD lnd_in; otherwise every known private FATES-AD overlay, then the plain CTSM namelist."""
+    used = sorted(set(re.findall(r"(/[^'\"\s]*?/_private_ctsm_FATES_AD400_namelist_overlay)/", ad_lnd)))
+    if used:
+        return [Path(used[0])]
+    return [o for o in R.OVERLAYS if (o / "bld" / "CLMBuildNamelist.pm").is_file()] + [None]
+
+
+def run_preview(case, overlay):
+    env, lock = case / "env_case.xml", case / "LockedFiles" / "env_case.xml"
+    orig = env.read_bytes()
+    try:
+        if overlay is not None:
+            R.xc(case, "COMP_ROOT_DIR_LND", str(overlay))
+        R.cmd([case / "preview_namelists"], cwd=case, timeout=600)
+    finally:
+        if overlay is not None:
+            R.xc(case, "COMP_ROOT_DIR_LND", "$SRCROOT")
+    if env.read_bytes() != orig or (lock.is_file() and lock.read_bytes() != orig):
+        R.fail("env_case.xml / lock not restored after overlay preview")
+
+
+def preview_verified(case, ad_lnd, allowed=()):
+    """Generate the namelist with each candidate overlay until one reproduces the AD lnd_in (except history keys and
+    `allowed`). Nothing is accepted that differs; every attempt is reported."""
+    notes = []
+    for ov in overlay_candidates(ad_lnd):
+        label = str(ov) if ov else "plain CTSM namelist"
+        try:
+            run_preview(case, ov)
+        except RuntimeError as exc:
+            if "not restored" in str(exc):
+                raise
+            notes.append(f"{label}: preview failed ({str(exc).strip().splitlines()[-1][:160]})")
+            continue
+        a, n = R.parse_nml(ad_lnd), R.parse_nml((case / "CaseDocs" / "lnd_in").read_text())
+        diff = sorted(k for k in set(a) | set(n) if a.get(k) != n.get(k))
+        bad = [k for k in diff if not (R.is_hist(k) or any(k.endswith(x) for x in allowed))]
+        if not bad:
+            print(f"  namelist generated with: {label}", flush=True)
+            return ov, a, n, diff
+        notes.append(f"{label}: lnd_in differs from AD in " + ", ".join(
+            f"{k} (AD={a.get(k)!r} NEW={n.get(k)!r})" for k in bad[:6]))
+    R.fail("no overlay reproduces the AD lnd_in:\n  " + "\n  ".join(notes))
+
+
 def prepare(site, variant, F7, P, years):
     i = ident(site, variant, F7, P, years)
     ad, case = i["ad_case"], i["case"]
@@ -205,7 +251,6 @@ def prepare(site, variant, F7, P, years):
         param, psha, changes = make_param(base_param, variant, hashed=years != 50)
     else:
         param, psha, changes = Path(base_param), R.digest(base_param), {}
-    overlay = R.overlay_for(ad_lnd) if "_private_ctsm_FATES_AD400_namelist_overlay" in ad_lnd else None
     found = R.fates_has(srcroot, R.DIAG_FIELDS)
     nl, old_hist, fields = R.edit_user_nl((ad / "user_nl_clm").read_text(), found)
     if pchanges:
@@ -234,25 +279,8 @@ def prepare(site, variant, F7, P, years):
     i["rundir"].mkdir(parents=True, exist_ok=True)
     if not (case / ".case.run").is_file():
         R.cmd([case / "case.setup"], cwd=case, timeout=300)
-    env, lock = case / "env_case.xml", case / "LockedFiles" / "env_case.xml"
-    orig = env.read_bytes()
-    if overlay is None:   # AD case built with the standard CTSM namelist: no overlay swap
-        R.cmd([case / "preview_namelists"], cwd=case, timeout=600)
-    else:
-        try:
-            R.xc(case, "COMP_ROOT_DIR_LND", str(overlay))
-            R.cmd([case / "preview_namelists"], cwd=case, timeout=600)
-        finally:
-            R.xc(case, "COMP_ROOT_DIR_LND", "$SRCROOT")
-    if env.read_bytes() != orig or (lock.is_file() and lock.read_bytes() != orig):
-        R.fail("env_case.xml / lock not restored after overlay preview")
-    a, n = R.parse_nml(ad_lnd), R.parse_nml((case / "CaseDocs" / "lnd_in").read_text())
-    diff = sorted(k for k in set(a) | set(n) if a.get(k) != n.get(k))
     allowed = ([".fates_paramfile"] if pchanges else []) + [f".{k}" for k in nchanges]
-    bad = [k for k in diff if not (R.is_hist(k) or any(k.endswith(x) for x in allowed))]
-    if bad:
-        R.fail(f"land namelist differs from the AD case beyond history settings and {allowed}:\n" +
-               "\n".join(f"  {k}: AD={a.get(k)!r} NEW={n.get(k)!r}" for k in bad[:20]))
+    overlay, a, n, diff = preview_verified(case, ad_lnd, allowed)
     pf = next((v for k, v in n.items() if k.endswith(".fates_paramfile")), "").strip("'\" ")
     if pf != str(param):
         R.fail(f"new lnd_in fates_paramfile is {pf!r}, expected {param}")

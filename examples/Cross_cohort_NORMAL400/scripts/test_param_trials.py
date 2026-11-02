@@ -119,6 +119,29 @@ class ParamTrialTest(unittest.TestCase):
         self.m.prepare_submit("X", "F", None, None, 100)
         self.assertEqual(calls, [])
 
+    def test_preview_tries_overlays_until_lnd_in_matches(self):
+        root = Path(self.tmp.name)
+        ovs = []
+        for name in ("o1", "o2"):
+            o = root / name / "_private_ctsm_FATES_AD400_namelist_overlay"; (o / "bld").mkdir(parents=True)
+            (o / "bld" / "CLMBuildNamelist.pm").write_text("x"); ovs.append(o)
+        self.m.R.OVERLAYS = ovs
+        case = root / "case"; (case / "CaseDocs").mkdir(parents=True)
+        ad = "&clm_inparm\n spinup_state = 2\n hist_mfilt = 1\n/\n"
+        tried = []
+        def fake_preview(c, ov):
+            tried.append(ov)
+            if ov is None:
+                raise RuntimeError("rc=1 build-namelist failed")
+            txt = ad.replace("spinup_state = 2", "spinup_state = 0") if ov == ovs[0] else ad.replace("hist_mfilt = 1", "hist_mfilt = 12")
+            (c / "CaseDocs" / "lnd_in").write_text(txt)
+        self.m.run_preview = fake_preview
+        ov, a, n, diff = self.m.preview_verified(case, ad)
+        self.assertEqual(ov, ovs[1]); self.assertEqual(tried, ovs)            # o1 rejected (spinup differs), o2 accepted
+        self.m.run_preview = lambda c, ov: (_ for _ in ()).throw(RuntimeError("rc=1 failed"))
+        with self.assertRaises(RuntimeError):
+            self.m.preview_verified(case, ad)                                 # nothing reproduces the AD namelist
+
     def test_set_paramfile(self):
         txt = "fsurdat = '/s.nc'\nfates_paramfile = '/old.json'\nhist_mfilt = 12\n"
         new = self.m.set_paramfile(txt, Path("/new.json"))
