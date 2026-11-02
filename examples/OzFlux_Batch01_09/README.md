@@ -1,6 +1,6 @@
 # OzFlux 9-site Non-Competition CLM-FATES — operator-selected v1.1 PFT inputs
 
-**Status 2026-11-02: Stage01 and Stage02 OPERATOR SUCCESS on IRIDIS6. Nine v1.1 PFT sources and 10/10 original L6 confirmed. Stage02 created exactly ONE isolated AU-ASM FIXNC PFT-specific point Surface candidate, SHA256 d06ad3111d93de69e7f2dd7f048b02a9161aee4ff853afafedcdfed71a54f3a1, verified only PCT_NAT_PFT changed and all other original CTSM reference values preserved; nine source L6 lat/lon metadata were internally consistent. Stage03 eight remaining site CTSM2000 point surface + v1.1 PFT candidate builder PUBLISHED, operator execution pending. Soil remains CTSM gridded reference, tower coordinates still lack separate external verification, no DATM science/CIME/AD5/AD400 submitted.**
+**Status 2026-11-02: Stage01–03 OPERATOR SUCCESS on IRIDIS6. Nine v1.1 operator-selected PFTs, 10/10 native OzFlux L6 files, and 9/9 independent FIXNC PFT-specific point Surface CANDIDATES (AU-ASM Stage02 plus 8 new Stage03) created and source-SHA documented. All eight Stage03 sites have 10 CTSM-2000 gridded soil reference layers and verified only PCT_NAT_PFT changed versus their respective source reference NetCDF. Stage04 native-year QC / DATM source readiness handoff PUBLISHED, operator run pending. Surface is not proof of tower-measured soil, forcing or effective CIME FATES-map approval; no case, AD5 or AD400 submitted.**
 
 The operator instructed: *use all the OzFlux PFT numbers already updated on GitHub for the non-competition experiment, and proceed*. Do **not** continue the AU-ASM historical 2018 derived-AGB forensic stages as a prerequisite to FIXNC PFT input selection. All SOURCE AGB evidence remains preserved in `CLM-FATES-single-site-workflows`; 2018 derived AGB is not validated observation.
 
@@ -227,6 +227,85 @@ Eight `subset_data` calls may be moderately costly on login
 nodes; respect IRIDIS6 login-node resource policy and stop
 on cluster guidance. Do not claim a model run or completed
 site science approval from Stage03. Actual operator result pending.
+
+## Stage03 operator SUCCESS (2026-11-02): 9/9 fixed-PFT point Surface CANDIDATES now exist
+
+Actual IRIDIS6 output:
+`/home/ly3n24/ozflux_nc_stage03_20261102T220734Z`.
+Original source/preflight, syntax and self-test PASS. Eight CTSM
+`subset_data point --create-surface` calls succeeded, isolated
+new reference and PFT-specific candidate NetCDF for each.
+Every new candidate was checked against its own CTSM2000 original
+point reference: **only `PCT_NAT_PFT` modified**, grid soil
+reference **10 layers** and all other variable values unchanged.
+The repeated CTSM tool warning about `--dompft` is informational;
+the full requested PFT vectors were applied separately and independently
+verified. No old AU-How COMPETITION case or original L6 modified.
+
+| Site | PFT candidate SHA256 | CTSM soil layers |
+|---|---|---:|
+| AU-ASM (Stage02) | `d06ad3111d93de69e7f2dd7f048b02a9161aee4ff853afafedcdfed71a54f3a1` | 10 |
+| AU-Cow | `34a883bac4ae0cddae34774cf7ab8ba0043d0043c3e9fe3b4866677be98d7b5e` | 10 |
+| AU-Cpr | `c2a003eb6235da2fd5bd03b340a66424bc9f298db23ac81239390a5cbf8b0671` | 10 |
+| AU-DaS | `50cb8e60ea9f79059870d9230ad4e2ccdf3ea23112c7bd1cc2843cf2d5f79621` | 10 |
+| AU-Dry | `77ce34d9637c8afad0745185fe2296b7a13745b10dac69b0ed37e0ac0f5ece44` | 10 |
+| AU-Gin | `bc609b39f7239da03020a920224fbc986eea32bb582e5b0c7043c19a02321bae` | 10 |
+| AU-How | `cedaf296f9e557d61559d00fafee8d0b636e993729f45f796bc6806372214cd0` | 10 |
+| AU-Stp | `a7bf1a56df47fae71d7bf0ccc31669323d3e98c6ecf3e8f6630c6ad935158ca8` | 10 |
+| AU-Tum | `8e6a600563781d32342f7e701a64974be6c25a21f1369f8f9fa4be680cb8f793` | 10 |
+
+Coordinates come from each native source L6's internally consistent
+global + NetCDF scalar metadata; independent station/footprint
+location verification still pending. Surfaces are **source-consistent
+PFT experimental candidates**, not approved soil or CIME inputs.
+No AD5 / AD400, no source modifications.
+
+## Stage04 forcing handoff — published, operator run pending
+
+**Next real work is meteorological forcing**, not further PFT or
+surface construction. Existing source study repo OzFlux Stage07
+and Stage08 already verified **169 native file-year records across
+10 OzFlux L6 originals: 67 structural-year candidates and 102
+review/HOLD**. Do NOT treat 67 as science-approved DATM years.
+The earlier source workflow also produced AU-ASM Mulga1
+**six-year 2013–2018 provisional NOLEAP DATM**, then
+Stage14 source-faithful zero-floor FSDS candidates under
+`/home/ly3n24/ozflux_stage14_FSDS0_20261102T012038Z`.
+These are provisional and require independent DATM time/CIME
+stream, QC and physical-science confirmation, not immediate AD5.
+AU-ASM Mulga2 has separate native record years and must not
+be silently spliced into Mulga1.
+
+**Stage04 read-only source handoff**:
+`scripts/04_ozflux09_forcing_handoff_source_QC_and_surface_receipts_READONLY.py`,
+immutable commit `445450207055b999a0bf7e05ad9fce536d871d2c`,
+Git blob `7b88469c402e007ccc85ffbe693be5209917690d`.
+It opens 9 already-created surfaces only for SHA checks;
+verifies original Stage01–03 receipts, all 169 prior source
+year-QC and Stage08 triage entries, 67/102 split, and original
+AU-ASM 6 provisional DATM source/manifest SHAs. It outputs
+a per-site forcing priority register, preserves original
+native time/DATM scientific HOLD, and writes no forcing,
+surface, case or model.
+
+Use original prior source Stage07:
+`$HOME/ozflux_stage07_20261101T062633Z`.
+Locate actual Stage08 output by containing
+`stage08_review_summary.json` before running Stage04
+(do not infer that a report exists just from directory naming).
+
+After Stage04, focus on (1) validating proper native-vs-UTC
+half-hour timestamp convention and NOLEAP completeness for
+source-specific contiguous candidate blocks; (2) source L6
+seven-variable QC/provenance and humidity consistency; (3) building
+new isolated DATM NetCDF and validating stream mapping for
+each site. Rank source pilot periods cautiously:
+AU-ASM provisional 2013–2018 already exists; AU-DaS
+2009–2021 and AU-Dry 2010–2018 are strong STRUCTURAL
+candidates but **not physics / QC / land-cover approved**.
+AU-DaS has prior source-level high humidity flags and
+post-2022 land-cover change; do not mix vegetation regimes
+by default. Keep AU-How competition case unchanged.
 
 ## Candidate model mode (not submitted)
 
