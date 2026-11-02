@@ -98,6 +98,27 @@ class ParamTrialTest(unittest.TestCase):
         self.assertEqual(p["fates_leaf_slatop"]["data"], [0.012, 0.008, 0.03])
         self.assertEqual(p["fates_alloc_storage_cushion"]["data"], [1.2, 2.4, 2.4])
 
+    def test_run_submits_only_verified(self):
+        calls = []
+        case = Path(self.tmp.name) / "case"; case.mkdir()
+        st = case / self.m.STATE
+        self.m.ident = lambda *a: {"case": case}
+        def prep_ok(*a):
+            calls.append("prepare"); st.write_text('{"phase": "VERIFIED_NOT_SUBMITTED"}')
+        def prep_bad(*a):
+            calls.append("prepare"); st.write_text('{"phase": "PREPARE_ATTEMPTED"}')
+        self.m.submit = lambda *a: calls.append("submit")
+        self.m.prepare = prep_bad
+        with self.assertRaises(RuntimeError):
+            self.m.prepare_submit("X", "F", None, None, 100)
+        self.assertEqual(calls, ["prepare"])
+        calls.clear(); self.m.prepare = prep_ok
+        self.m.prepare_submit("X", "F", None, None, 100)
+        self.assertEqual(calls, ["prepare", "submit"])
+        calls.clear(); st.write_text('{"phase": "SUBMITTED"}')
+        self.m.prepare_submit("X", "F", None, None, 100)
+        self.assertEqual(calls, [])
+
     def test_set_paramfile(self):
         txt = "fsurdat = '/s.nc'\nfates_paramfile = '/old.json'\nhist_mfilt = 12\n"
         new = self.m.set_paramfile(txt, Path("/new.json"))

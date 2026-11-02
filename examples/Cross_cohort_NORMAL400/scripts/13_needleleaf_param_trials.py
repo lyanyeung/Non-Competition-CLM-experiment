@@ -32,6 +32,7 @@ submitted. Controls are the existing *_DIAG50 re-runs (default parameters, same 
 Steps (login node):
   python -B 13_...py prepare [--sites DE-Obe FI-Sod] [--variants A B C D] [--years 50]   # NO Slurm
   final round:  prepare --final --variants D F --years 100     (--final = the ten FINAL_SITES)
+                run --final --variants D F --years 100         (prepare + submit each case that verifies)
   python -B 13_...py submit  [--sites ...] [--variants ...]
   python -B 13_...py status  [--sites ...] [--variants ...]
   python -B 13_...py reset   --sites X --variants Y        # only a FAILED prepare that never ran
@@ -349,6 +350,22 @@ def reset(site, variant, F7, P, years):
     print(f"{site} {variant}: failed prepare removed; run prepare again", flush=True)
 
 
+def prepare_submit(site, variant, F7, P, years):
+    """prepare, and submit only if this case is now VERIFIED_NOT_SUBMITTED (all submit checks still apply).
+    A case that fails verification is reported as HOLD and never submitted; re-running skips cases already submitted."""
+    i = ident(site, variant, F7, P, years)
+    st = i["case"] / STATE
+    phase = json.loads(st.read_text()).get("phase") if st.is_file() else None
+    if phase in ("SUBMITTED", "SUBMIT_ATTEMPTED_UNCERTAIN"):
+        print(f"{site} {variant}: {phase}; not submitted again", flush=True)
+        return
+    prepare(site, variant, F7, P, years)
+    phase = json.loads(st.read_text()).get("phase") if st.is_file() else None
+    if phase != "VERIFIED_NOT_SUBMITTED":
+        R.fail(f"not verified (phase {phase}); not submitted")
+    submit(site, variant, F7, P, years)
+
+
 def cases(site, variant, F7, P, years):
     i = ident(site, variant, F7, P, years)
     print(f"{site}_{variant}:{i['new']}:{'first50' if years == 50 else 'all'}", flush=True)
@@ -357,7 +374,8 @@ def cases(site, variant, F7, P, years):
 def main(argv=None):
     global PARAM_DIR
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("action", choices=("prepare", "submit", "status", "reset", "cases"))
+    ap.add_argument("action", choices=("prepare", "submit", "run", "status", "reset", "cases"),
+                    help="run = prepare and, only if verified, submit")
     ap.add_argument("--sites", nargs="+", default=["DE-Obe", "FI-Sod"])
     ap.add_argument("--final", action="store_true", help="use the ten FINAL_SITES")
     ap.add_argument("--variants", nargs="+", default=list(VARIANTS), choices=list(VARIANTS))
@@ -374,7 +392,8 @@ def main(argv=None):
     for s in a.sites:
         for v in a.variants:
             try:
-                {"prepare": prepare, "submit": submit, "status": status, "reset": reset, "cases": cases}[a.action](s, v, F7, P, a.years)
+                {"prepare": prepare, "submit": submit, "run": prepare_submit, "status": status, "reset": reset,
+                 "cases": cases}[a.action](s, v, F7, P, a.years)
             except Exception as exc:
                 bad += 1
                 print(f"{s} {v}: HOLD {exc}", flush=True)
