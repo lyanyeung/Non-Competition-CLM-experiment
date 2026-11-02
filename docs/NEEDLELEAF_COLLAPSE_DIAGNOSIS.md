@@ -204,6 +204,14 @@ same executable/inputs/AD settings as the AD case). Parameter copies live in
 `experiments/NonCompetitionObserved22/NeedleleafFixTrials/params/` with a receipt (source file, SHA-256, old/new values).
 Success criteria: needleleaf density stops declining (carbon-starvation mortality ≈ background level), canopy closes
 (cover → ~1, LAI of a few m² m⁻²), GPP in the range of the EC record, no new failure mode (e.g. storage never filling).
+Run status (2026-11-02):
+- A–D finished 50 years at both sites.
+- **E did not run.** Both E cases stopped at model initialisation in FATES' parameter consistency check (`ERROR in
+  EDPftvarcon.F90 at line 1307`, called from `FatesInterfaceMod.F90` line 2739), so `use_fates_dbh_init = .true.` is rejected by
+  this FATES version and parameter set.
+- E was only a falsification control. The carbon-starvation formula already reproduces the needleleaf mortality (section 8), and
+  that formula depends on storage / leaf C, not on stand closure. **E is dropped.**
+
 Results: to be added.
 
 ## 10. 75-site screening: which sites have GPP far below EC (2026-11-01)
