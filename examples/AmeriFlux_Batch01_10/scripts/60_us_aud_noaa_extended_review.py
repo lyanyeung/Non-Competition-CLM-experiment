@@ -151,6 +151,7 @@ def main():
             rows.append(r); window_rows.append(r)
             text=lambda v:'NA' if v is None else f'{v:.2f}' if isinstance(v,float) else str(v)
             print('STAGE60 ROW',label,time,'tower',text(tt),'TQC',text(r['tower_T_QC']),'VPD',text(tv),'VQC',text(r['tower_VPD_QC']),
+                  'selected',text(r['selected_T_C']),'selected_VPD',text(r['selected_VPD_hPa']),
                   'ERA',text(et),'ERA_VPD',text(ev),'NOAA',text(ref['T']),'NOAA_RH',text(ref['RH']),'NOAA_VPD',text(ref['VPD']),
                   'NOAA_5MIN',ref['good'],'candidate',text(r['candidate_T_C']),'candidate_VPD',text(r['candidate_VPD_hPa']),
                   'flags',r['review_flags'] or '-',flush=True)
