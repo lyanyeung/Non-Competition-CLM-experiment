@@ -160,10 +160,31 @@ def asm_candidate_inventory():
     present=[]
     for y,hashval in expected.items():
         p=STAGE14/f"AU-ASM_FSDS0_PROVISIONAL_DATM_{y}.nc"
-        if (str(p)!=listed[y]["path"] or
-            listed[y]["sha256"]!=hashval or
-            sha(p)!=hashval):
-            raise ValueError("AU-ASM six-year FSDS0 source SHA or manifest changed: "+str(p))
+        recorded=Path(str(listed[y]["path"]))
+        # Stage14 wrote out.resolve(), e.g. /iridisfs/home/ly3n24/,
+        # whereas HOME on IRIDIS6 may be /home/ly3n24/. These refer
+        # to the same inode. Do not use a literal string comparison.
+        # strict=True fails closed if either named file is missing.
+        try:
+            real_source=p.resolve(strict=True)
+            real_manifest=recorded.resolve(strict=True)
+        except (FileNotFoundError, OSError) as e:
+            raise ValueError(f"AU-ASM {y} candidate file missing: "+
+                             f"expected={p} manifest={recorded}") from e
+        if not p.is_file() or p.is_symlink() or not recorded.is_file():
+            raise ValueError(f"AU-ASM {y} source is not a regular file")
+        if real_source!=real_manifest:
+            raise ValueError(f"AU-ASM {y} manifest points to DIFFERENT file: "+
+                             f"source={real_source} manifest={real_manifest}")
+        if listed[y]["sha256"]!=hashval:
+            raise ValueError(f"AU-ASM {y} manifest SHA mismatch: "+
+                             f"expected={hashval} manifest={listed[y]['sha256']}")
+        actual=sha(p)
+        if actual!=hashval:
+            raise ValueError(f"AU-ASM {y} FILE SHA mismatch: "+
+                             f"expected={hashval} actual={actual}")
+        print("AU_ASM_FSDS0_SHA_VERIFIED",y,hashval,
+              "CANONICAL_PATH",str(real_source))
         present.append(y)
     return present
 
@@ -174,7 +195,12 @@ def selftest():
     assert 2018 in range(2013,2019)
     assert len(S3_HASHES)==8 and len(set(S3_HASHES.values()))==8
     assert sum((len(S3_HASHES),1))==9
-    print("OZFLUX NC STAGE04 SELF-TEST PASS: 9 immutable surface SHA guards, 169 native source-years, 67 structural candidates, 6 provisional AU-ASM years; READ ONLY")
+    # Real-path equivalence regression: different lexical paths to
+    # HOME must compare by canonical resolved path, not str(p).
+    specimen=HOME/"ozflux_nc_stage04_alias_fixture_not_created"
+    counterpart=HOME.resolve()/"ozflux_nc_stage04_alias_fixture_not_created"
+    assert specimen.resolve()==counterpart.resolve()
+    print("OZFLUX NC STAGE04 SELF-TEST PASS: 9 immutable surface SHA guards, 169 native source-years, 67 structural candidates, 6 provisional AU-ASM years, HOME canonical-path regression; READ ONLY")
 
 def main():
     if sys.argv[1:]==["--self-test"]:return selftest()
