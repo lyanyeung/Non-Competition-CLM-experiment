@@ -708,6 +708,28 @@ Details of the patch and the cases:
   - Sites: CZ-Stn, DE-Lnf (trap), US-SRM (warm-climate DBF).
 - The needleleaf trials are unaffected, because PFT 2 is evergreen.
 
+### Result of the phenology patch (2026-11-02 21:50 UTC; CZ-Stn and US-SRM 50 years, DE-Lnf 45 of 50)
+
+Runs: [16](../figures/AD400_NORMAL400_dbf_collapse_monthly/20261102T215135Z/),
+[08](../figures/AD400_NORMAL400_collapse_diagnostics/20261102T215151Z/).
+
+| Case | Collapse year | GPP max annual (year) | Main mortality |
+|---|---|---|---|
+| CZ-Stn original (DIAG50) | 16 | – | carbon starvation, stand dead |
+| DE-Lnf original (DIAG50) | 15 | – | carbon starvation, stand dead |
+| **CZ-Stn patched** | **none** | 5.19 (year 15) | carbon starvation 69 % of deaths (thinning) |
+| **DE-Lnf patched** | **none** | 5.00 (year 18) | carbon starvation 70 % |
+| US-SRM patched | none | 2.67 (year 15, site total) | termination 100 % (C4 grass focal PFT) |
+
+- **The patch removes the trap.**
+  - CZ-Stn and DE-Lnf pass their old collapse years (15–16) and stay alive to year 50 / 45.
+  - Their last years show no phenology warnings: no leaves kept into winter, no exhausted storage.
+- **US-SRM:** the cold-deciduous tree PFT now has leaves (GPP 0.5–1.3) instead of never leafing out. But in this warm desert
+  it keeps 30–70 % of its leaf C through Dec–Feb, and storage is close to exhausted (minimum 4–14 % of target) at a low
+  density.
+  - The FATES cold-deciduous rule fits poorly a winter/drought-deciduous mesquite.
+  - Survival there is a separate PFT-choice question, not part of the trap.
+
 ## 17. US-Aud AD400 stopped at start-up: "RH is negative" in HumanIndexMod (2026-11-02)
 
 - **What failed:** `US-Aud_AMF_B01SIX_FIXNC_AD400_DIRECT` (AmeriFlux Batch01 six-input forcing) stopped on 2002-03-05
