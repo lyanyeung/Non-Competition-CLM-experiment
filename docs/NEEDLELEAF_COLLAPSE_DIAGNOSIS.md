@@ -452,7 +452,7 @@ Ratio = FATES / EC GPP. The status column says how far each explanation has been
 |---|---|---|---|
 | Needleleaf collapse, GPP ≈ 0 | FI-Sod, CH-Dav, IL-Yat, DE-Obe, IT-Ren, CZ-BK1, CA-Ca3, CA-LP1, US-NC2, US-GLE, FI-Hyy (0–0.03) | FATES carbon-starvation mortality of PFT 2 | confirmed (sections 7–8); fix trials A–E running |
 | Needleleaf part lost, other PFTs alive | US-Ho2 0.08, DE-Tha 0.09, RU-Fyo 0.09, US-Ho1 0.10, BE-Bra 0.18, US-Ho3 0.19, FR-FBn 0.19, FI-Let 0.21, US-SP1 0.22, US-NR1 0.25, BE-Vie 0.31, US-Me2 0.34, IT-Lav 0.42, US-Me6 0.48, CA-TP4 0.55 | same | same |
-| Broadleaf collapse | CZ-Stn, DE-Lnf (≈ 0) | unknown; suspects are template soil, shallow bedrock (DE-Lnf), water stress | 50-year diagnostic re-runs submitted |
+| Broadleaf collapse | CZ-Stn, DE-Lnf (≈ 0) | FATES 'never cold' phenology trap after a warm autumn (section 16) | confirmed; upstream fix in FATES sci.1.94.0 |
 | Groundwater-dependent | US-CMW 0.28 | EC ET 2.5 × precipitation; a single-point column cannot supply it | confirmed; site excluded |
 | Dryland over-estimate | US-Whs 4.22, US-Ses 3.09, ES-LJu 3.02, US-Seg 1.91, US-Wkg 1.84, IT-Noe 1.78, US-SRM 1.27 | GPP per unit water 2–2.4 × too high; bare fraction correct; water use about right | confirmed at US-Seg and ES-LJu; the others are not yet checked |
 | Arctic over-estimate | US-ICh 4.15, US-ICt 4.05, US-EML 2.62 | not diagnosed | open |
@@ -531,24 +531,45 @@ at US-Var, US-Whs, US-Wkg and IT-Noe, but those sites have no cold-deciduous PFT
 
 **Not evaluated** (EC file not found in the default path): US-NR3, US-UiD, US-Whs. They need `--ec-file`.
 
-## 16. CZ-Stn and DE-Lnf (DBF 100) collapse — diagnostic re-run results (2026-11-02)
+## 16. CZ-Stn and DE-Lnf (DBF 100) collapse — cause found: FATES "never cold" phenology trap (2026-11-02)
 
-- **The stand grows normally for about 14 years.** GPP reaches 4.7 g C m⁻² d⁻¹ (EC 4.4 at CZ-Stn), BTRAN stays ≈ 1, and soil
-  water does not limit (all rooted-layer factors ≥ 0.95).
-- **Then the whole stand dies within one autumn and winter, in AD year ≈ 15 at both sites.**
-  - After a normal last growing season, storage falls continuously to zero instead of stopping at the usual spring minimum
-    (≈ 0.3 of target).
-  - Mortality: carbon starvation 70–71 %, termination 18 %, impact 9 %.
-  - Water stress and freezing are ruled out.
-- **Same stand age at both sites, but different calendar years** (CZ-Stn forcing year 2024, DE-Lnf 2016). This points to a
-  stand-development or phenology trigger inside the model rather than a weather event.
-- Candidates:
-  - Leaves kept through the final autumn, so leaf respiration drains storage.
-  - A second leaf flush.
-  - A cohort / canopy-layer event at canopy closure.
-- Both sites share the identical template soil (section 11).
-- Next: extract the monthly leaf C, storage, phenology status and counters, cohort number and respiration by tissue for years
-  12–16, and compare them with the DE-Hai DBF over the same months.
+Monthly detail: [`figures/AD400_NORMAL400_dbf_collapse_monthly/20261102T024853Z`](../figures/AD400_NORMAL400_dbf_collapse_monthly/20261102T024853Z/)
+(script 16).
+
+**What happens.** In normal years the site cold status (`FATES_COLD_STATUS`) follows a fixed cycle:
+- 1 in winter ("is cold", leaves off), with GDD accumulating from January.
+- 2 after leaf-on in March or April.
+- Back to 1 at leaf-off in October.
+
+In the last living year the autumn leaf-off comes late and the status goes **2 → 0 instead of 2 → 1**: CZ-Stn in November of
+AD year 14, DE-Lnf in November of year 13. Status 0 is `phen_cstat_nevercold`. From then on:
+- `FATES_GDD` stays 0, because GDD only accumulates when the status is "is cold".
+- The status never leaves 0, the trees never flush leaves again, and GPP is zero for the whole next year.
+- Fine-root maintenance respiration (≈ 0.17–0.28 g C m⁻² d⁻¹ in winter) drains storage to zero by September.
+- The stand dies of carbon starvation.
+
+Leaves were not kept into winter, and there was no extra flush; winter leaf respiration is negligible.
+
+**Why.** FATES `EDPhysiologyMod.F90` ("LEAF OFF: COLD LIFESPAN THRESHOLD") behaves as follows:
+- If leaves are still on more than **400 days after the previous cold leaf-off**, it drops them and, up to sci.1.93.x, sets the
+  site to `phen_cstat_nevercold`.
+- Leaf-on requires GDD above threshold, and GDD only accumulates in the "is cold" state, so a site sent to "never cold" can never
+  flush again.
+
+In both runs the previous leaf-off was early October, and the following autumn was warm enough that the cold-day leaf-off had not
+happened by day 400 (mid-November). The two years are forcing year 2023 at CZ-Stn and 2014 at DE-Lnf, both exceptionally warm
+autumns in central Europe. This explains why both sites die at a similar stand age while being in different calendar years.
+
+**This is a known FATES issue, fixed upstream.** In NGEET/fates commit `6d9f5b34` (R. Fisher, 19 Nov 2025, first released in
+`sci.1.94.0_api.47.0.0`), "adding nocomp logic for the NCHILL threshold and turning off the 'nevercold' switch":
+- The lifespan leaf-off now sets `phen_cstat_iscold`, so GDD accumulates again and leaves can flush in spring.
+- With fixed biogeography the chilling-day requirement for leaf-on is 0 instead of 1.
+
+All released tags checked up to `sci.1.93.5` still have the trap. The second change is also what keeps cold-deciduous trees
+leafless in warm climates (US-SRM, US-SRG, US-CMW, FR-Pue; sections 14–15), so the same 3-line patch addresses both problems.
+
+**Fix to test.** Backport the patch through the case's `SourceMods/src.clm/EDPhysiologyMod.F90` (case-local, new build) and rerun
+CZ-Stn and DE-Lnf (and US-SRM for the warm-climate case). The needleleaf trials are unaffected, because PFT 2 is evergreen.
 
 ## Scripts (branch `full-sequence-gpp-nee-ec`, commit 80ec742)
 
