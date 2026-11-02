@@ -6,7 +6,7 @@ This folder covers exactly **CH-Aws, DE-Gri, DE-RuR, IT-Tor, ES-Agu, GL-ZaH**, t
 
 ## Current status and final code (updated 2 Nov 2026)
 
-**Rule.** Where Codex prepared and submitted a site, its as-run scripts are the final version. Alternative scripts for those sites were removed from GitHub (see *Superseded* below). The stage-by-stage log further down is history; where it disagrees with this section, this section is current.
+**Rule.** Where Codex prepared and submitted a site, its as-run scripts are the final version. Alternative scripts for those sites are listed under *Superseded* below and must not be run. The stage-by-stage log further down is history; where it disagrees with this section, this section is current.
 
 | Site | Status | Case, model years | Final code |
 | --- | --- | --- | --- |
@@ -27,7 +27,7 @@ Every case uses the same settings:
 
 **No-repeat rule.** Never rerun a prepare or submit script for a site whose case, ledger or submission receipt exists.
 
-**Superseded (deleted from GitHub on 2 Nov 2026).** Two Claude branches were replaced by the Codex work above. Neither was merged, and neither created a case:
+**Superseded, do not run.** Two Claude branches were replaced by the Codex work above. Neither was merged into main, and neither created a case:
 - `icos-b04-stage03v-pass-stage03w-de-gri-case-preflight-20261102` (6834129): a read-only DE-Gri case preflight, replaced by 04a/04b. It is a different script from main's `03w_de_gri_residual_science_gate_READONLY.py`.
 - `icos-b04-stage04-four-site-direct-ad400-20261102` (c49dff7): a four-site prepare/submit with case names `<site>_B04_FIXNC_AD400_DIRECT`. It was replaced by 04c–04e, the pair prepare scripts and 05e. 05e refuses to run if an IT-Tor case with the old name exists.
 
