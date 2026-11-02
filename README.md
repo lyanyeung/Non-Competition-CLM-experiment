@@ -6,6 +6,8 @@
 
 **Needleleaf fix adopted (2 November 2026):** for PFT 2 (needleleaf evergreen) use `fates_alloc_storage_cushion` 2.4 and `fates_leaf_slatop` 0.008 (default 1.2 / 0.005). In 100-year trials at ten sites this keeps the needleleaf alive and stable everywhere (median GPP/EC 1.09; default 0.04). The adopted parameter file changes only PFT 2, so it is used at every site; only sites containing PFT 2 need rerunning. See [section 9 of the log](docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md#decision-2026-11-02-f-is-the-production-needleleaf-parameter-set).
 
+**Maintenance:** deleted model output, stopped runs and replaced cases are recorded in [maintenance/](maintenance/README.md), together with the deletion code and a read-only summary tool.
+
 **Site flags:** **US-CMW is excluded (groundwater-dependent riparian mesquite woodland: tower ET 662 mm/yr against 263 mm/yr precipitation; a single-point CLM column cannot supply that water).** CZ-Stn and DE-Lnf (DBF 100, vegetation gone in AD years 14–15) are under investigation with a 50-year diagnostic re-run. See [section 11 of the log](docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md#11-site-anomaly-checks-us-cmw-cz-stn-de-lnf-2026-11-01).
 
 ## NL-Loo V3 three-phase figures
