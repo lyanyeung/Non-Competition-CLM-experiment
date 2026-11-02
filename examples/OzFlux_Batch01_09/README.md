@@ -54,20 +54,44 @@ Use a **new, isolated FIXNC experiment** (no reuse or overwriting of old competi
 - `data/OZFLUX_09_PRIMARY_PFT_VALIDATION_20261102.csv`: nine PRIMARY values and mapper roundtrip PASS. Git blob **`2106f818b93eefb97323650535af5ec665628665`**.
 - `data/OZFLUX_09_ORIGINAL_L6_SITES_MANIFEST.tsv`: exact ten native NetCDF filenames (AU-ASM two) for source physical-file readiness. Git blob **`de65b38ae838a6b4f7bbaec44e6350a55c255f14`**.
 
+## Stage01 first operator attempt — order-only FALSE STOP, corrected script
+
+**2026-11-02 IRIDIS6 first execution**: script SHA PASS, syntax PASS, selftest PASS,
+but the real nine-site scan stopped before any filesystem/model changes at:
+`ValueError: Nine sites/order not EXACT operator-approved OzFlux cohort`.
+Upstream accepted v1.1 CSV order includes **AU-How before AU-Gin**; the old
+`EXPECTED` tuple had AU-Gin before AU-How. This is **not a numeric PFT
+error** and must not trigger changes to the accepted values or source files.
+
+**FIX PUBLISHED** as script commit
+`f842674c91c62635ec711c4a945bc6d46ffa4159`,
+script Git blob `2ad4d9efdfbf9e425d4034cf75fd542cd05c91c3`.
+Corrected membership validator checks exact 9 IDs, each appearing exactly once,
+regardless of row order, in all three primary matrices and master source.
+Regression fixture tests BOTH canonical and upstream AU-How/Gin order
+and rejects omitted/duplicated rows. The actual five snapshots were
+also independently checked against each other for all nine
+PFT and bare numerics; no mismatch found. Operator corrected-script
+execution on IRIDIS6 is still pending; **not yet a passed remote gate**.
+The same original five data downloads under
+`$HOME/ozflux_nc_stage01_code/pft` may be reused (hash-verified
+again by the code). Only redownload the updated Python script,
+and use a fresh timestamped HOME output directory.
+
 ## Read-only nine-site PFT + IRIDIS6 input gate
 
 Source: `scripts/01_ozflux_09_operator_PFT_snapshot_and_IRIDIS_readiness_READONLY.py`
-Git blob **`0d66a1230526625f5cf6459948041c178452a67e`**.
+Git blob **`2ad4d9efdfbf9e425d4034cf75fd542cd05c91c3`**.
 
 The script validates all five pinned source files, exact nine-site membership and ten-L6-source manifest, live area plus bare sum, CLM-to-FATES one-to-one DEFAULT14 mapping, master per-site numeric JSON, and <=4 live active FATES classes. Bounded read-only IRIDIS6 source and reference-surface checks produce JSON and TSV (direct HOME child). It explicitly reports `AD400_authorised=false` and never creates/sends a job. A `PFT_source_approved_by_operator=true` means PFT numeric choices are finalized for the experiment, NOT the 9-site total science gate.
 
-Operator command (replace `bf49e6fb395b32e89071602af9e4f42ef672bcdd` with the specific commit documenting this README and outputs):
+Operator command (replace `f842674c91c62635ec711c4a945bc6d46ffa4159` with the specific commit documenting this README and outputs):
 
 ```bash
 (
 set -euo pipefail
 conda activate clm_fates_env
-COMMIT="bf49e6fb395b32e89071602af9e4f42ef672bcdd"
+COMMIT="f842674c91c62635ec711c4a945bc6d46ffa4159"
 BASE="https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$COMMIT/examples/OzFlux_Batch01_09"
 CODE="$HOME/ozflux_nc_stage01_code"
 DATA="$CODE/pft"
@@ -75,7 +99,7 @@ SCRIPT="$CODE/ozflux_nc_stage01.py"
 OUT="$HOME/ozflux_nc_stage01_$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$DATA"
 curl -fLsS "$BASE/scripts/01_ozflux_09_operator_PFT_snapshot_and_IRIDIS_readiness_READONLY.py" -o "$SCRIPT"
-test "$(git hash-object "$SCRIPT")" = "0d66a1230526625f5cf6459948041c178452a67e"
+test "$(git hash-object "$SCRIPT")" = "2ad4d9efdfbf9e425d4034cf75fd542cd05c91c3"
 for file in OZ_JP_ORIGINAL_20_SITE_PFT_MASTER_PINNED_20261102.csv OZFLUX_09_PRIMARY_CLM_PCT_NAT_PFT_20261102.csv OZFLUX_09_PRIMARY_FATES_PFT_PERCENT_20261102.csv OZFLUX_09_PRIMARY_PFT_VALIDATION_20261102.csv OZFLUX_09_ORIGINAL_L6_SITES_MANIFEST.tsv; do
     curl -fLsS "$BASE/data/$file" -o "$DATA/$file"
 done
