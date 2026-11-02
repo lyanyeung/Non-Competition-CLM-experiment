@@ -113,10 +113,38 @@ def compare(q,ref,site,year,var):
                              f"{key}: native={actual} stage08={ref[key]}")
     return counts
 
+def read_native_qc(ds,name,time_dim,total,start,end):
+    """Read original numeric QCFlag using the exact Stage07 singleton-axis rule.
+
+    Exactly one time axis, full source time length, and every other axis
+    singleton. Slice on the actual time axis and flatten only after checks.
+    """
+    if name not in ds.variables:
+        raise ValueError("Original QC variable missing: "+name)
+    v=ds.variables[name]
+    if (not np.issubdtype(v.dtype,np.number)
+        or v.dimensions.count(time_dim)!=1):
+        raise ValueError("Original QC numeric/time dimension invalid: "+
+                         name+" dims="+repr(v.dimensions))
+    idx=v.dimensions.index(time_dim)
+    if (v.shape[idx]!=total
+        or any(size!=1 for j,size in enumerate(v.shape) if j!=idx)):
+        raise ValueError("Original QC time length/non-singleton shape: "+
+                         name+" shape="+repr(v.shape))
+    selector=tuple(slice(start,end) if j==idx else slice(None)
+                   for j in range(v.ndim))
+    q=np.ma.asarray(v[selector],dtype=np.float64).filled(np.nan).reshape(-1)
+    if len(q)!=end-start:
+        raise ValueError("Original QC slice length mismatch: "+name)
+    return q
+
+
 def inspect(site,filename,y0,y1,source,index):
     yearly=[];episodes=[];episode_counts={};metadata={}
     with netCDF4.Dataset(str(source),mode="r") as ds:
         t=ds.variables["time"]
+        if t.ndim!=1:raise ValueError(site+" source time axis not 1-D")
+        time_dim=t.dimensions[0]
         native=np.ma.asarray(t[:],dtype=np.float64).filled(np.nan).reshape(-1)
         if len(native)<2 or not np.isfinite(native).all() or not np.all(np.diff(native)>0):
             raise ValueError(site+" invalid original time")
@@ -135,9 +163,7 @@ def inspect(site,filename,y0,y1,source,index):
                   "native_last":time_label(t,native,hi-1)}
         for var in VARS:
             key=var+"_QCFlag"
-            if key not in ds.variables or ds.variables[key].ndim!=1 or len(ds.variables[key])!=len(native):
-                raise ValueError(site+" original QC missing/shape differs "+key)
-            q=np.ma.asarray(ds.variables[key][lo:hi],dtype=np.float64).filled(np.nan).reshape(-1)
+            q=read_native_qc(ds,key,time_dim,len(native),lo,hi)
             for year in range(y0,y1+1):
                 start=int(np.searchsorted(selected,time_bound(t,year),"left"))
                 end=int(np.searchsorted(selected,time_bound(t,year+1),"left"))
@@ -172,7 +198,36 @@ def selftest():
     assert count_codes(np.array([0,0,50,410,420,440,470,np.nan]))=={
         "0":2,"10":0,"50":1,"410":1,"420":1,"430":0,"440":1,
         "other":1,"unavailable":1}
-    print("OZFLUX STAGE05 SELF-TEST PASS | native QC reconciliation & episode segmentation; READ ONLY")
+    class FakeVar:
+        def __init__(self,arr,dims):
+            self.data=np.asarray(arr)
+            self.dimensions=tuple(dims)
+            self.shape=self.data.shape
+            self.dtype=self.data.dtype
+            self.ndim=self.data.ndim
+        def __getitem__(self,item):
+            return self.data[item]
+    class FakeDS:
+        def __init__(self,v):self.variables={"Ta_QCFlag":v}
+    sample=np.array([0,10,420,440,0,50])
+    shapes=((sample,("time",)),(sample.reshape(6,1),("time","x")),
+            (sample.reshape(1,6,1),("lat","time","lon")),
+            (sample.reshape(1,1,6),("lat","lon","time")))
+    for arr,dims in shapes:
+        q=read_native_qc(FakeDS(FakeVar(arr,dims)),
+                         "Ta_QCFlag","time",6,1,5)
+        assert np.array_equal(q,sample[1:5])
+    for arr,dims in ((np.zeros((6,2)),("time","x")),
+                     (np.zeros((6,)),("other",)),
+                     (np.zeros((6,6)),("time","time"))):
+        try:
+            read_native_qc(FakeDS(FakeVar(arr,dims)),
+                           "Ta_QCFlag","time",6,0,6)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Non-singleton/missing/repeated time axis accepted")
+    print("OZFLUX STAGE05 SELF-TEST PASS | Stage07 singleton QC dimensions, native counts & episodes; READ ONLY")
 
 def main():
     if sys.argv[1:]==["--self-test"]:return selftest()
