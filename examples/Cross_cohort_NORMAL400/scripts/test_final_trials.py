@@ -37,12 +37,15 @@ class FinalTrialsTest(unittest.TestCase):
         m = load()
         rows = []
         for s, d, f in (("A", 1.6, 1.1), ("B", 1.1, 0.9), ("C", 1.0, 0.7)):
-            rows += [{"Site": s, "Variant": "control", "Status": "OK", "GPP_ratio_EC": 0.01, "needleleaf_alive": False, "stable": True},
-                     {"Site": s, "Variant": "D", "Status": "OK", "GPP_ratio_EC": d, "needleleaf_alive": True, "stable": s != "A"},
-                     {"Site": s, "Variant": "F", "Status": "OK", "GPP_ratio_EC": f, "needleleaf_alive": True, "stable": True}]
+            rows += [{"Site": s, "Variant": "control", "Status": "OK", "GPP_ratio_EC": 0.01, "needleleaf_alive": False, "stable": True, "years_read": 100},
+                     {"Site": s, "Variant": "D", "Status": "OK", "GPP_ratio_EC": d, "needleleaf_alive": True, "stable": s != "A", "years_read": 100},
+                     {"Site": s, "Variant": "F", "Status": "OK", "GPP_ratio_EC": f, "needleleaf_alive": True, "stable": True, "years_read": 100}]
         lines, score = m.decide(rows, ["D", "F"])
         self.assertIn("RECOMMENDED: F", "\n".join(lines))
         self.assertEqual(score["D"]["within25"], 2)
+        rows[1].update(Status="INCOMPLETE", years_read=60)
+        lines, _ = m.decide(rows, ["D", "F"])
+        self.assertIn("INTERIM: 1 trial cases", "\n".join(lines))
 
     def test_read_year(self):
         m = load()

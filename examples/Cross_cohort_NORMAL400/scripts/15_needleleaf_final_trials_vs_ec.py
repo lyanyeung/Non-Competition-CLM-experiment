@@ -171,10 +171,15 @@ def ec_mean(site, normal, args):
     return ref.get("EC_GPP_mean", np.nan), ref
 
 
-def decide(rows, variants):
+def decide(rows, variants, years=100):
     lines, score = [], {}
+    inc = [f"{r['Site']} {r['Variant']} ({r.get('years_read', 0)} y)" for r in rows
+           if r.get("Status") == "INCOMPLETE" and r["Variant"] != "control"]
+    if inc:
+        lines.append(f"INTERIM: {len(inc)} trial cases have fewer than {years} years yet; numbers use the years available "
+                     f"(stability needs >= 30 years): " + ", ".join(inc))
     for v in ["control"] + list(variants):
-        g = [r for r in rows if r["Variant"] == v and r.get("Status") == "OK"]
+        g = [r for r in rows if r["Variant"] == v and r.get("Status") in ("OK", "INCOMPLETE") and r.get("years_read", 0) >= 20]
         rat = np.array([r.get("GPP_ratio_EC", np.nan) for r in g], float)
         ok = np.isfinite(rat) & (rat > 0)
         s = {"sites": len(g), "alive": sum(bool(r.get("needleleaf_alive")) for r in g),
@@ -193,7 +198,8 @@ def decide(rows, variants):
                      f"then smallest median |log GPP/EC|)")
         over = [r["Site"] for r in rows if r["Variant"] == best and r.get("GPP_ratio_EC", 0) > 1.25]
         under = [r["Site"] for r in rows if r["Variant"] == best and 0 < r.get("GPP_ratio_EC", 0) < 0.75]
-        unstable = [r["Site"] for r in rows if r["Variant"] == best and r.get("Status") == "OK" and not r.get("stable")]
+        unstable = [r["Site"] for r in rows if r["Variant"] == best and r.get("Status") in ("OK", "INCOMPLETE")
+                    and not r.get("stable")]
         lines.append(f"   with {best}: over-estimate (>1.25) {over or 'none'}; under-estimate (<0.75) {under or 'none'}; "
                      f"not yet stable {unstable or 'none'}")
     return lines, score
@@ -284,10 +290,10 @@ def run(a):
     fields = list(dict.fromkeys(k for r in rows for k in r))
     with (a.output_root / "final_trials_summary.csv").open("w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=fields); w.writeheader(); w.writerows(rows)
-    lines, score = decide(rows, a.variants)
+    lines, score = decide(rows, a.variants, a.years)
     (a.output_root / "final_trials_decision.txt").write_text("\n".join(lines) + "\n")
     try:
-        plot_all([r for r in rows if r.get("Status") == "OK"], a.output_root, a.variants)
+        plot_all([r for r in rows if r.get("Status") in ("OK", "INCOMPLETE")], a.output_root, a.variants)
     except Exception as exc:
         print(f"overview plot failed: {exc}", flush=True)
     print("\n" + "\n".join(lines), flush=True)
