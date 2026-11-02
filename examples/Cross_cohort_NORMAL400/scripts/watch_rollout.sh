@@ -3,16 +3,17 @@
 #   bash watch_rollout.sh            one snapshot
 #   watch -n 60 bash watch_rollout.sh   refresh every minute (Ctrl+C only stops watching)
 LOG=${LOG:-$HOME/CLM_FATES_PLOTS/phen_ad_run.log}
+U=${USER:-$(whoami)}
 CASES=/iridisfs/scratch/ly3n24/CLM_FATES/cases
 echo "== $(date -u '+%H:%M UTC')  log: $LOG"
 
-pid=$(pgrep -u "$USER" -f "22_phenology_patch_rollout.py ad-run" | head -1)
+pid=$(pgrep -u "$U" -f "22_phenology_patch_rollout.py ad-run" | head -1)
 if [ -n "$pid" ]; then
   echo "ad-run: RUNNING (pid $pid, $(ps -o etime= -p "$pid" | tr -d ' ') elapsed)"
 else
   echo "ad-run: not running$(grep -q 'sites OK' "$LOG" 2>/dev/null && echo ' (finished)')"
 fi
-b=$(pgrep -u "$USER" -af "case.build" | grep -oE "cases/[^ /]+" | head -1)
+b=$(pgrep -u "$U" -af "case.build" | grep -oE "cases/[^ /]+" | head -1)
 [ -n "$b" ] && echo "building now: ${b#cases/}"
 
 cur=$(grep -E "^=== " "$LOG" 2>/dev/null | tail -1)
@@ -26,7 +27,7 @@ if [ "$n_hold" != "0" ]; then echo "-- HOLD lines:"; grep ": HOLD" "$LOG" | cut 
 echo "-- last submissions:"; grep -E "^  SUBMITTED " "$LOG" 2>/dev/null | tail -3
 tail -1 "$LOG" 2>/dev/null | grep "sites OK"
 
-echo "-- queue ($USER): $(squeue -u "$USER" -h | wc -l) jobs; running: $(squeue -u "$USER" -h -t R | wc -l)"
+echo "-- queue ($U): $(squeue -u "$U" -h | wc -l) jobs; running: $(squeue -u "$U" -h -t R | wc -l)"
 echo "-- first segments finished (case.run success) per new case:"
 for c in "$CASES"/*_PHEN "$CASES"/*_NLFP; do
   [ -f "$c/CaseStatus" ] || continue
