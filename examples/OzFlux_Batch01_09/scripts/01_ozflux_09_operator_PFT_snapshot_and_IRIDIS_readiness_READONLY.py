@@ -73,6 +73,16 @@ def bounded(value,context):
 def close(a,b,atol=0.0005):
     return abs(a-b)<=atol
 
+def require_exact_sites(rows,label):
+    """Same nine exact operator-selected sites, exactly once; any ordering."""
+    got=Counter(r["site"] for r in rows)
+    want=Counter(EXPECTED)
+    if got!=want:
+        raise ValueError("Site membership/count mismatch in "+label+
+                         "; expected="+str(dict(want))+
+                         "; got="+str(dict(got)))
+    return True
+
 def validate_data(data_dir):
     if data_dir.is_symlink() or not data_dir.is_dir():
         raise ValueError("Input data directory missing/symlink")
@@ -87,15 +97,19 @@ def validate_data(data_dir):
     inventory=read_table(data_dir/"OZFLUX_09_ORIGINAL_L6_SITES_MANIFEST.tsv","\t")
     if len(master)!=20 or len(host)!=9 or len(fates)!=9 or len(validation)!=9 or len(inventory)!=10:
         raise ValueError("Snapshot original counts 20/9/9/9/10 mismatch")
-    keys=[r["site"] for r in host]
-    if tuple(keys)!=EXPECTED:
-        raise ValueError("Nine sites/order not EXACT operator-approved OzFlux cohort "+str(keys))
-    if {r["site"] for r in fates}!={*EXPECTED} or {r["site"] for r in validation}!={*EXPECTED}:
-        raise ValueError("Nine-site PFT/validation membership mismatch")
-    if {r["site"] for r in inventory}!={*EXPECTED} or Counter(r["site"] for r in inventory)!={**{s:1 for s in EXPECTED}, "AU-ASM":2}:
-        raise ValueError("10 original source file manifest mismatch")
-    source={r["site"]:r for r in master if r.get("network")=="OzFlux"}
-    if set(source)!={*EXPECTED}:raise ValueError("Master 20-site source missing OzFlux")
+    # Site row ORDER has no scientific meaning. The reviewed upstream
+    # v1.1 CSV correctly has AU-How before AU-Gin, whereas EXPECTED
+    # previously listed AU-Gin first. Validate exact IDs and counts;
+    # do NOT silently accept missing or duplicated sites.
+    require_exact_sites(host,"CLM host PRIMARY")
+    require_exact_sites(fates,"FATES PRIMARY")
+    require_exact_sites(validation,"round-trip PRIMARY")
+    if Counter(r["site"] for r in inventory)!=Counter(
+            {**{site:1 for site in EXPECTED},"AU-ASM":2}):
+        raise ValueError("10 original source file manifest missing/duplicate site")
+    oz_master=[r for r in master if r.get("network")=="OzFlux"]
+    require_exact_sites(oz_master,"20-site original source OzFlux")
+    source={r["site"]:r for r in oz_master}
     f_by={r["site"]:r for r in fates}
     v_by={r["site"]:r for r in validation}
     result=[]
@@ -212,7 +226,17 @@ def self_test():
     assert close((65/71)*100,91.5493,0.00005)
     assert len(DATA)==5 and len(set(DATA.values()))==5
     assert len(EXPECTED)==9 and EXPECTED[0]=="AU-ASM"
-    print("OZFLUX NC STAGE01 SELF-TEST PASS | 9 PFT sites, bare0, DEFAULT14 map, no original/model writes")
+    ordered=[{"site":site} for site in EXPECTED]
+    flipped=[{"site":site} for site in (
+        "AU-ASM","AU-Cow","AU-Cpr","AU-DaS","AU-Dry",
+        "AU-How","AU-Gin","AU-Stp","AU-Tum")]
+    assert require_exact_sites(ordered,"regression ordering")
+    assert require_exact_sites(flipped,"actual v1.1 AU-How/AU-Gin order")
+    for invalid in (flipped[:-1],flipped[:-1]+[{"site":"AU-Gin"}]):
+        try:require_exact_sites(invalid,"missing or duplicate test")
+        except ValueError:pass
+        else:raise AssertionError("Duplicated/missing site accepted")
+    print("OZFLUX NC STAGE01 SELF-TEST PASS | 9 exact distinct PFT sites, AU-How/Gin order regression, duplicates rejected, bare0, DEFAULT14; NO WRITES")
 
 def main():
     if sys.argv[1:]==["--self-test"]:
