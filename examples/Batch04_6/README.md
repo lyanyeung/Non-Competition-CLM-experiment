@@ -15,7 +15,7 @@ This folder covers exactly **CH-Aws, DE-Gri, DE-RuR, IT-Tor, ES-Agu, GL-ZaH**, t
 | ES-Agu | AD400 running; at Stage05B restart 2021, 3/80 | `ES-Agu_ICOS_B04_FIXNC_AD400_DIRECT`, 2006 → 2406 | [ES-Agu_prepare_ad400.py](scripts/ES-Agu_prepare_ad400.py) via [run_pair_prepare.py](scripts/run_pair_prepare.py); submitted the same way |
 | GL-ZaH | AD400 submitted 2 Nov: run 4809211 / archive 4809212 | `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT`, 2000 → 2400 | [05c](scripts/05c_gl_zah_arctic_surface_case_direct_AD400.py): Arctic PFT surface, private FATES map, prepare, audit, submit |
 | IT-Tor | AD400 submitted 2 Nov: run 4809216 / archive 4809217; **one chain, S1 + F1** | `IT-Tor_ICOS_B04_FIXNC_AD400_DIRECT`, 2008 → 2408 | F1 generator [05a](scripts/05a_it_tor_make_f1_candidate.py) (Codex); [05d](scripts/05d_it_tor_S1_soil_and_F1_rebuild.py): S1 soil, F1 rebuild; [05e](scripts/05e_it_tor_S1F1_case_direct_AD400.py): F1 staging, prepare, audit, submit |
-| CH-Aws | HOLD, no case; option A chosen 2 Nov (targeted ERA humidity replacement) | — | [06a](scripts/06a_ch_aws_humidity_scan_case_surface_READONLY.py) read-only scan; repair and case scripts follow |
+| CH-Aws | scripts ready, not yet run on IRIDIS6; option A humidity (F1A) + HINONE | `CH-Aws_ICOS_B04_FIXNC_AD400_DIRECT_HINONE`, 2006 → 2406 | [06a](scripts/06a_ch_aws_humidity_scan_case_surface_READONLY.py) scan; [06b](scripts/06b_ch_aws_F1A_humidity_forcing.py) F1A forcing; [06c](scripts/06c_ch_aws_surface_case_HINONE_direct_AD400.py) surface, phenology class, prepare, audit, submit |
 
 Every case uses the same settings:
 - direct AD400: one `case.submit`, `STOP_N=5`, `RESUBMIT=79`, no separate AD5;
@@ -918,6 +918,59 @@ Run order on IRIDIS6:
 - a PRIVATE candidate half-hour CSV with licensed values, never committed.
 
 The replacement rule, the detached forcing builder and the case/submit script come after the operator has reviewed these counts.
+
+## Stage06A result and Stage06B/06C (2 Nov 2026): CH-Aws F1A humidity + HINONE
+
+**Stage06A result (read only).**
+- *Old cases.*
+  - 7 of the 8 old CH-Aws cases stopped with `ERROR RH is negative` in `HumanIndexMod.F90`.
+  - Only `RH42A_V8_CONT2016` ran its full length (198 restart sets, to 3006).
+  - All eight are old competition runs: accelerated spin-up off, original grid surface.
+- *Grid surface.*
+  - Landunits: NATVEG 96.4, crop 3.6.
+  - Host PFT: 0 bare 11.5, 2 NET boreal 24.2, 8 5.6, 12 arctic C3 grass 55.5, 13 2.1, others < 1.
+  - Soil: sand 43, clay 18, ORGANIC 0 in every level.
+- *FLUXMET VPD_F_QC.* QC0 222,210, QC1 (MDS) 19,119, QC2 (ERA) 91,551 half-hours.
+- *Main rule (QC1, RH_F < 10 %, RH_ERA − RH_F ≥ 50).* 142 half-hours.
+  - By year: 2007 64, 2017 29, 2020 26, 2018 13, 2019 6, 2008 2, 2015 1, 2016 1.
+  - 68 episodes, the longest 10 half-hours, between 06:00 and 15:00 local time.
+  - All 142 have measured TA, MDS quality 1 and no measured RH.
+- *How dry the site really gets.* Measured (QC0) humidity is never below 5 %, and below 10 % at only 25 half-hours (ERA is about 29 % there).
+- *Forcing versions.*
+  - The base (`datm_11_provisional_dynamic_zbot_v1`) equals FLUXMET bit for bit at all 332,244 half-hours with VPD_F < es.
+  - The 636 half-hours with VPD_F > es (77 QC1, 559 QC2) were built from ERA; RH there is at least 28 %. The 77 QC1 ones are part of the 142.
+  - The other 65 are exactly the half-hours that `RH42A_V8` changed. The earlier versions changed 779–957 other half-hours in 2006–2014 under exploratory rules.
+
+**Stage06B, F1A forcing.** [06b](scripts/06b_ch_aws_F1A_humidity_forcing.py) applies the option-A rule.
+- *Rule.* At the main-rule half-hours that the base still carries unchanged (expected 65), QBOT = q(TA_F, VPD_ERA, PSRF). This uses the measured temperature, the packaged ERA VPD and the file's pressure, the same pairing FLUXNET uses for QC2. Everything else is unchanged; a whole-file diff proves it.
+- *Output.* Only the edited years are written, as `CH-Aws_DATM_<year>_F1A.nc`. `annual_input_plan.json` lists all 19 years. `manifest_PRIVATE.json` holds the per-edit values, stays on IRIDIS6 and is never committed.
+
+**Stage06C, surface and case.** [06c](scripts/06c_ch_aws_surface_case_HINONE_direct_AD400.py) builds both.
+- *Surface.* Stage02X method:
+  - NATVEG 100, other landunits 0, host 13 C3 grass 100;
+  - soil and point unchanged.
+  - ORGANIC stays 0 as inherited, because no site SOC measurement was found. Swiss FluxNet describes the soil only as "slightly humous to humous sandy loam".
+- *Phenology class* ([maintenance/RULES_FOR_NEW_CASES.md](../../maintenance/RULES_FOR_NEW_CASES.md)). Script 22 `plan` only knows its own site list, so 06c calls script 22's own `decid_share` and `M18.pft2_share` on the new surface and the case's parameter file. Script 22 comes from branch `full-sequence-gpp-nee-ec`, commit `c092804`, blob-pinned.
+  - Only class UNCHANGED (cold-deciduous 0 %, PFT 2 0 %) may use the shared executable; any other class stops.
+  - Host 13 maps to `cool_c3_grass`, which is not cold-deciduous, so the expected class is UNCHANGED.
+  - For comparison, 06c also prints the class the old grid surface would get (PFT 2 and arctic C3 grass).
+- *HINONE.* `calc_human_stress_indices = 'NONE'`, per the rules file, section 17. This is the documented fix for the `HumanIndexMod` stop that ended 7 of the 8 old cases. It affects diagnostics only, not fluxes.
+- *Case.* `CH-Aws_ICOS_B04_FIXNC_AD400_DIRECT_HINONE`:
+  - cloned from `CH-Aws_FATES_SPINUP500_11P` with `--keepexe` (allowed for class UNCHANGED);
+  - shared default FATES parameters;
+  - CO2 381.15 (NOAA 2006);
+  - FIXNC with `spinup_state=2`;
+  - F1A stream;
+  - one-time direct AD400 80 × 5.
+
+Run order on IRIDIS6:
+1. 06b `check`.
+2. 06b `build`.
+3. 06c `check`.
+4. 06c `build-surface`.
+5. 06c `prepare`.
+6. 06c `audit`.
+7. 06c `submit`.
 
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
