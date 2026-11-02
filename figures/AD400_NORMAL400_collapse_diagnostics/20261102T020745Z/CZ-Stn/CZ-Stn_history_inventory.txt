@@ -1,0 +1,300 @@
+# /scratch/ly3n24/CTSM_FATES_OUTPUTS/archive/CZ-Stn_B03_FIXNC_AD400_DIAG50/lnd/hist/CZ-Stn_B03_FIXNC_AD400_DIAG50.clm2.h0a.2010-01-02-00000.nc
+BTRAN                                         ('time', 'lndgrid')                                     unitless
+FATES_AREA_PLANTS                             ('time', 'lndgrid')                                     m2 m-2
+FATES_AREA_TREES                              ('time', 'lndgrid')                                     m2 m-2
+FATES_AUTORESP                                ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_AUTORESP_CANOPY                         ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_AUTORESP_USTORY                         ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_BASALAREA_SZ                            ('time', 'fates_levscls', 'lndgrid')                    m2 m-2
+FATES_BA_WEIGHTED_HEIGHT                      ('time', 'lndgrid')                                     m
+FATES_BURNEDAREA_LU                           ('time', 'fates_levlanduse', 'lndgrid')                 s-1
+FATES_BURNFRAC                                ('time', 'lndgrid')                                     s-1
+FATES_BURNFRAC_AP                             ('time', 'fates_levage', 'lndgrid')                     s-1
+FATES_CANOPYAREA_AP                           ('time', 'fates_levage', 'lndgrid')                     m2 m-2
+FATES_CANOPYAREA_HT                           ('time', 'fates_levheight', 'lndgrid')                  m2 m-2
+FATES_CANOPYCROWNAREA_PF                      ('time', 'fates_levpft', 'lndgrid')                     m2 m-2
+FATES_CANOPY_SPREAD                           ('time', 'lndgrid')                                     
+FATES_CANOPY_VEGC                             ('time', 'lndgrid')                                     kg m-2
+FATES_CA_WEIGHTED_HEIGHT                      ('time', 'lndgrid')                                     m
+FATES_CBALANCE_ERROR                          ('time', 'lndgrid')                                     kg s-1
+FATES_COLD_STATUS                             ('time', 'lndgrid')                                     
+FATES_CROOTMAINTAR                            ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_CROOT_ALLOC                             ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_CROWNAREA_CL                            ('time', 'fates_levcan', 'lndgrid')                     m2 m-2
+FATES_CROWNAREA_PF                            ('time', 'fates_levpft', 'lndgrid')                     m2 m-2
+FATES_DAYSINCE_COLDLEAFOFF                    ('time', 'lndgrid')                                     days
+FATES_DAYSINCE_COLDLEAFON                     ('time', 'lndgrid')                                     days
+FATES_DAYSINCE_DROUGHTLEAFOFF_PF              ('time', 'fates_levpft', 'lndgrid')                     days
+FATES_DAYSINCE_DROUGHTLEAFON_PF               ('time', 'fates_levpft', 'lndgrid')                     days
+FATES_DDBH_CANOPY_SZ                          ('time', 'fates_levscls', 'lndgrid')                    m m-2 yr-1
+FATES_DDBH_SZPF                               ('time', 'fates_levscpf', 'lndgrid')                    m m-2 yr-1
+FATES_DDBH_USTORY_SZ                          ('time', 'fates_levscls', 'lndgrid')                    m m-2 yr-1
+FATES_DEMOTION_CARBONFLUX                     ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_DISTURBANCE_RATE_FIRE                   ('time', 'lndgrid')                                     m2 m-2 yr-1
+FATES_DISTURBANCE_RATE_LOGGING                ('time', 'lndgrid')                                     m2 m-2 yr-1
+FATES_DISTURBANCE_RATE_MATRIX_LULU            ('time', 'fates_levlulu', 'lndgrid')                    m2 m-2 yr-1
+FATES_DISTURBANCE_RATE_TREEFALL               ('time', 'lndgrid')                                     m2 m-2 yr-1
+FATES_DROUGHT_STATUS_PF                       ('time', 'fates_levpft', 'lndgrid')                     
+FATES_EFFECT_WSPEED                           ('time', 'lndgrid')                                     m s-1
+FATES_ELAI                                    ('time', 'lndgrid')                                     m2 m-2
+FATES_ELONG_FACTOR_PF                         ('time', 'fates_levpft', 'lndgrid')                     1
+FATES_ERROR_EL                                ('time', 'fates_levelem', 'lndgrid')                    kg s-1
+FATES_EXCESS_RESP                             ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_FDI                                     ('time', 'lndgrid')                                     1
+FATES_FIRE_CLOSS                              ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_FIRE_CLOSS_LANDUSECHANGE                ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_FIRE_CLOSS_LIVEFUELS                    ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_FIRE_FLUX_EL                            ('time', 'fates_levelem', 'lndgrid')                    kg m-2 s-1
+FATES_FIRE_INTENSITY                          ('time', 'lndgrid')                                     J m-1 s-1
+FATES_FIRE_INTENSITY_BURNFRAC                 ('time', 'lndgrid')                                     J m-1 s-1
+FATES_FIRE_INTENSITY_BURNFRAC_AP              ('time', 'fates_levage', 'lndgrid')                     J m-1 s-1
+FATES_FRACTION                                ('time', 'lndgrid')                                     m2 m-2
+FATES_FRAGMENTATION_SCALER_SL                 ('time', 'levsoi', 'lndgrid')                           
+FATES_FROOTC                                  ('time', 'lndgrid')                                     kg m-2
+FATES_FROOTC_SL                               ('time', 'levsoi', 'lndgrid')                           kg m-3
+FATES_FROOTMAINTAR                            ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_FROOT_ALLOC                             ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_FUELCONSUMED                            ('time', 'lndgrid')                                     kg m-2
+FATES_FUEL_AMOUNT                             ('time', 'lndgrid')                                     kg m-2
+FATES_FUEL_AMOUNT_AP                          ('time', 'fates_levage', 'lndgrid')                     kg m-2
+FATES_FUEL_AMOUNT_FC                          ('time', 'fates_levfuel', 'lndgrid')                    kg m-2
+FATES_FUEL_BULKD                              ('time', 'lndgrid')                                     kg m-3
+FATES_FUEL_BURNT_BURNFRAC_FC                  ('time', 'fates_levfuel', 'lndgrid')                    1
+FATES_FUEL_EFF_MOIST                          ('time', 'lndgrid')                                     m3 m-3
+FATES_FUEL_MEF                                ('time', 'lndgrid')                                     m3 m-3
+FATES_FUEL_MOISTURE_FC                        ('time', 'fates_levfuel', 'lndgrid')                    m3 m-3
+FATES_FUEL_SAV                                ('time', 'lndgrid')                                     m-1
+FATES_GDD                                     ('time', 'lndgrid')                                     degree_Celsius
+FATES_GPP                                     ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_GPP_CANOPY                              ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_GPP_PF                                  ('time', 'fates_levpft', 'lndgrid')                     kg m-2 s-1
+FATES_GPP_USTORY                              ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_GRAZING                                 ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_GROWTH_RESP                             ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_HARVEST_DEBT                            ('time', 'lndgrid')                                     kg C
+FATES_HARVEST_DEBT_SEC                        ('time', 'lndgrid')                                     kg C
+FATES_HARVEST_WOODPROD_C_FLUX                 ('time', 'lndgrid')                                     kg m-2 yr-1
+FATES_HET_RESP                                ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_IGNITIONS                               ('time', 'lndgrid')                                     m-2 s-1
+FATES_INTERR_LITTER_EL                        ('time', 'fates_levelem', 'lndgrid')                    kg m-2
+FATES_INTERR_LIVEVEG_EL                       ('time', 'fates_levelem', 'lndgrid')                    kg m-2
+FATES_L2FR                                    ('time', 'lndgrid')                                     kg kg-1
+FATES_L2FR_CANOPY_REC_PF                      ('time', 'fates_levpft', 'lndgrid')                     kg kg-1
+FATES_L2FR_USTORY_REC_PF                      ('time', 'fates_levpft', 'lndgrid')                     kg kg-1
+FATES_LAI                                     ('time', 'lndgrid')                                     m2 m-2
+FATES_LAI_AP                                  ('time', 'fates_levage', 'lndgrid')                     m2 m-2
+FATES_LAI_CANOPY_SZ                           ('time', 'fates_levscls', 'lndgrid')                    m2 m-2
+FATES_LAI_USTORY_SZ                           ('time', 'fates_levscls', 'lndgrid')                    m2 m-2
+FATES_LBLAYER_COND                            ('time', 'lndgrid')                                     mol m-2 s-1
+FATES_LEAFAREA_HT                             ('time', 'fates_levheight', 'lndgrid')                  m2 m-2
+FATES_LEAFC                                   ('time', 'lndgrid')                                     kg m-2
+FATES_LEAFC_PF                                ('time', 'fates_levpft', 'lndgrid')                     kg m-2
+FATES_LEAFMAINTAR                             ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_LEAF_ALLOC                              ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_LITTER_AG_CWD_EL                        ('time', 'fates_levelem', 'lndgrid')                    kg m-2
+FATES_LITTER_AG_FINE_EL                       ('time', 'fates_levelem', 'lndgrid')                    kg m-2
+FATES_LITTER_BG_CWD_EL                        ('time', 'fates_levelem', 'lndgrid')                    kg m-2
+FATES_LITTER_BG_FINE_EL                       ('time', 'fates_levelem', 'lndgrid')                    kg m-2
+FATES_LITTER_CWD_ELDC                         ('time', 'fates_levelcwd', 'lndgrid')                   kg m-2
+FATES_LITTER_IN                               ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_LITTER_IN_EL                            ('time', 'fates_levelem', 'lndgrid')                    kg m-2 s-1
+FATES_LITTER_OUT                              ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_LITTER_OUT_EL                           ('time', 'fates_levelem', 'lndgrid')                    kg m-2 s-1
+FATES_LSTEMMAINTAR                            ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_LUCHANGE_WOODPROD_C_FLUX                ('time', 'lndgrid')                                     kg m-2 yr-1
+FATES_MAINT_RESP                              ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_MAINT_RESP_UNREDUCED                    ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_MEANLIQVOL_DROUGHTPHEN_PF               ('time', 'fates_levpft', 'lndgrid')                     m3 m-3
+FATES_MEANSMP_DROUGHTPHEN_PF                  ('time', 'fates_levpft', 'lndgrid')                     Pa
+FATES_MEAN_95PCTILE_HEIGHT                    ('time', 'lndgrid')                                     m
+FATES_MORTALITY_AGESCEN_AC                    ('time', 'fates_levcacls', 'lndgrid')                   m-2 yr-1
+FATES_MORTALITY_AGESCEN_SZ                    ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_AGESCEN_SZPF                  ('time', 'fates_levscpf', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_BACKGROUND_SZ                 ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_BACKGROUND_SZPF               ('time', 'fates_levscpf', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_CANOPY_SE_SZ                  ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_CANOPY_SZ                     ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_CFLUX_CANOPY                  ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_MORTALITY_CFLUX_PF                      ('time', 'fates_levpft', 'lndgrid')                     kg m-2 s-1
+FATES_MORTALITY_CFLUX_USTORY                  ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_MORTALITY_CSTARV_CFLUX_PF               ('time', 'fates_levpft', 'lndgrid')                     kg m-2 s-1
+FATES_MORTALITY_CSTARV_SZ                     ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_CSTARV_SZPF                   ('time', 'fates_levscpf', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_FIRE_CFLUX_PF                 ('time', 'fates_levpft', 'lndgrid')                     kg m-2 s-1
+FATES_MORTALITY_FIRE_SZ                       ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_FREEZING_SZ                   ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_FREEZING_SZPF                 ('time', 'fates_levscpf', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_HYDRAULIC_SZ                  ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_HYDRAULIC_SZPF                ('time', 'fates_levscpf', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_HYDRO_CFLUX_PF                ('time', 'fates_levpft', 'lndgrid')                     kg m-2 s-1
+FATES_MORTALITY_IMPACT_SZ                     ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_IMPACT_SZPF                   ('time', 'fates_levscpf', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_LOGGING_SZ                    ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_PF                            ('time', 'fates_levpft', 'lndgrid')                     m-2 yr-1
+FATES_MORTALITY_RXFIRE_SZ                     ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_SENESCENCE_SZ                 ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_SENESCENCE_SZPF               ('time', 'fates_levscpf', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_TERMINATION_SZ                ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_TERMINATION_SZPF              ('time', 'fates_levscpf', 'lndgrid')                    m-2 yr-1
+FATES_MORTALITY_USTORY_SZ                     ('time', 'fates_levscls', 'lndgrid')                    m-2 yr-1
+FATES_MORT_CSTARV_CONT_CFLUX_PF               ('time', 'fates_levpft', 'lndgrid')                     kg m-2 s-1
+FATES_NCHILLDAYS                              ('time', 'lndgrid')                                     days
+FATES_NCOHORTS                                ('time', 'lndgrid')                                     
+FATES_NCOLDDAYS                               ('time', 'lndgrid')                                     days
+FATES_NEP                                     ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_NESTEROV_INDEX                          ('time', 'lndgrid')                                     
+FATES_NIR_RAD_ERROR                           ('time', 'lndgrid')                                     -
+FATES_NOCOMP_BURNEDAREA_PF                    ('time', 'fates_levpft', 'lndgrid')                     s-1
+FATES_NOCOMP_NPATCHES_PF                      ('time', 'fates_levpft', 'lndgrid')                     
+FATES_NOCOMP_PATCHAREA_LUPF                   ('time', 'fates_levlupft', 'lndgrid')                   m2 m-2
+FATES_NOCOMP_PATCHAREA_PF                     ('time', 'fates_levpft', 'lndgrid')                     m2 m-2
+FATES_NONSTRUCTC                              ('time', 'lndgrid')                                     kg m-2
+FATES_NPATCHES                                ('time', 'lndgrid')                                     
+FATES_NPLANT_AC                               ('time', 'fates_levcacls', 'lndgrid')                   m-2
+FATES_NPLANT_CANOPY_SZ                        ('time', 'fates_levscls', 'lndgrid')                    m-2
+FATES_NPLANT_PF                               ('time', 'fates_levpft', 'lndgrid')                     m-2
+FATES_NPLANT_SZ                               ('time', 'fates_levscls', 'lndgrid')                    m-2
+FATES_NPLANT_SZPF                             ('time', 'fates_levscpf', 'lndgrid')                    m-2
+FATES_NPLANT_USTORY_SZ                        ('time', 'fates_levscls', 'lndgrid')                    m-2
+FATES_NPP                                     ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_NPP_PF                                  ('time', 'fates_levpft', 'lndgrid')                     kg m-2 s-1
+FATES_PATCHAREA_AP                            ('time', 'fates_levage', 'lndgrid')                     m2 m-2
+FATES_PATCHAREA_LU                            ('time', 'fates_levlanduse', 'lndgrid')                 m2 m-2
+FATES_PRIMARY_PATCHFUSION_ERR                 ('time', 'lndgrid')                                     m2 m-2 yr-1
+FATES_PROMOTION_CARBONFLUX                    ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_RECRUITMENT_CFLUX_PF                    ('time', 'fates_levpft', 'lndgrid')                     kg m-2 yr-1
+FATES_RECRUITMENT_PF                          ('time', 'fates_levpft', 'lndgrid')                     m-2 yr-1
+FATES_REPROC                                  ('time', 'lndgrid')                                     kg m-2
+FATES_ROS                                     ('time', 'lndgrid')                                     m s-1
+FATES_RXFIRE_BURNABLE_FI                      ('time', 'lndgrid')                                     
+FATES_RXFIRE_BURNABLE_FINAL                   ('time', 'lndgrid')                                     
+FATES_RXFIRE_BURNABLE_FUEL                    ('time', 'lndgrid')                                     
+FATES_RXFIRE_BURNFRAC                         ('time', 'lndgrid')                                     s-1
+FATES_RXFIRE_BURNFRAC_AP                      ('time', 'fates_levage', 'lndgrid')                     s-1
+FATES_RXFIRE_INTENSITY                        ('time', 'lndgrid')                                     J m-1 s-1
+FATES_RXFIRE_INTENSITY_BURNFRAC               ('time', 'lndgrid')                                     J m-1 s-1
+FATES_RXFIRE_INTENSITY_BURNFRAC_AP            ('time', 'fates_levage', 'lndgrid')                     J m-1 s-1
+FATES_RX_BURN_WINDOW                          ('time', 'lndgrid')                                     
+FATES_SAPWOODC                                ('time', 'lndgrid')                                     kg m-2
+FATES_SEEDLING_POOL                           ('time', 'lndgrid')                                     kg m-2
+FATES_SEEDS_IN                                ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_SEEDS_IN_EXTERN_EL                      ('time', 'fates_levelem', 'lndgrid')                    kg m-2 s-1
+FATES_SEEDS_IN_LOCAL                          ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_SEEDS_IN_LOCAL_EL                       ('time', 'fates_levelem', 'lndgrid')                    kg m-2 s-1
+FATES_SEED_ALLOC                              ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_SEED_BANK                               ('time', 'lndgrid')                                     kg m-2
+FATES_SEED_BANK_EL                            ('time', 'fates_levelem', 'lndgrid')                    kg m-2
+FATES_SEED_BANK_LUPF                          ('time', 'fates_levlupft', 'lndgrid')                   kg m-2
+FATES_SEED_BANK_PF                            ('time', 'fates_levpft', 'lndgrid')                     kg m-2
+FATES_SEED_DECAY_EL                           ('time', 'fates_levelem', 'lndgrid')                    kg m-2 s-1
+FATES_SEED_GERM_EL                            ('time', 'fates_levelem', 'lndgrid')                    kg m-2
+FATES_STEM_ALLOC                              ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_STOMATAL_COND                           ('time', 'lndgrid')                                     mol m-2 s-1
+FATES_STOREC                                  ('time', 'lndgrid')                                     kg m-2
+FATES_STOREC_PF                               ('time', 'fates_levpft', 'lndgrid')                     kg m-2
+FATES_STOREC_TF                               ('time', 'lndgrid')                                     kg kg-1
+FATES_STOREC_TF_CANOPY_SZPF                   ('time', 'fates_levscpf', 'lndgrid')                    kg kg-1
+FATES_STOREC_TF_USTORY_SZPF                   ('time', 'fates_levscpf', 'lndgrid')                    kg kg-1
+FATES_STORE_ALLOC                             ('time', 'lndgrid')                                     kg m-2 s-1
+FATES_STRUCTC                                 ('time', 'lndgrid')                                     kg m-2
+FATES_TRANSITION_MATRIX_LULU                  ('time', 'fates_levlulu', 'lndgrid')                    m2 m-2 yr-1
+FATES_TRIMMING                                ('time', 'lndgrid')                                     1
+FATES_TVEG                                    ('time', 'lndgrid')                                     degree_Celsius
+FATES_TVEG24                                  ('time', 'lndgrid')                                     degree_Celsius
+FATES_UNGERM_SEED_BANK                        ('time', 'lndgrid')                                     kg m-2
+FATES_USTORY_VEGC                             ('time', 'lndgrid')                                     kg m-2
+FATES_VEGC                                    ('time', 'lndgrid')                                     kg m-2
+FATES_VEGC_ABOVEGROUND                        ('time', 'lndgrid')                                     kg m-2
+FATES_VEGC_ABOVEGROUND_SZ                     ('time', 'fates_levscls', 'lndgrid')                    kg m-2
+FATES_VEGC_LU                                 ('time', 'fates_levlanduse', 'lndgrid')                 kg m-2
+FATES_VEGC_LUPF                               ('time', 'fates_levlupft', 'lndgrid')                   kg m-2
+FATES_VEGC_PF                                 ('time', 'fates_levpft', 'lndgrid')                     kg m-2
+FATES_VIS_RAD_ERROR                           ('time', 'lndgrid')                                     -
+FATES_WILDFIRE_BURNFRAC                       ('time', 'lndgrid')                                     s-1
+FATES_WILDFIRE_BURNFRAC_AP                    ('time', 'fates_levage', 'lndgrid')                     s-1
+FATES_WILDFIRE_INTENSITY                      ('time', 'lndgrid')                                     J m-1 s-1
+FATES_WILDFIRE_INTENSITY_BURNFRAC             ('time', 'lndgrid')                                     J m-1 s-1
+FATES_WILDFIRE_INTENSITY_BURNFRAC_AP          ('time', 'fates_levage', 'lndgrid')                     J m-1 s-1
+FATES_ZSTAR                                   ('time', 'lndgrid')                                     m
+FATES_ZSTAR_AP                                ('time', 'fates_levage', 'lndgrid')                     m
+TLAI                                          ('time', 'lndgrid')                                     m^2/m^2
+TSA                                           ('time', 'lndgrid')                                     K
+fates_agmap_levagefuel                        ('fates_levagefuel',)                                   -
+fates_agmap_levagepft                         ('fates_levagepft',)                                    -
+fates_agmap_levscag                           ('fates_levscag',)                                      -
+fates_agmap_levscagpft                        ('fates_levscagpf',)                                    -
+fates_camap_levcapf                           ('fates_levcapf',)                                      -
+fates_canmap_levcnlf                          ('fates_levcnlf',)                                      
+fates_canmap_levcnlfpf                        ('fates_levcnlfpf',)                                    
+fates_cdmap_levcdpf                           ('fates_levcdpf',)                                      
+fates_cdmap_levcdsc                           ('fates_levcdsc',)                                      
+fates_fscmap_levagefuel                       ('fates_levagefuel',)                                   -
+fates_levage                                  ('fates_levage',)                                       
+fates_levcacls                                ('fates_levcacls',)                                     -
+fates_levcan                                  ('fates_levcan',)                                       
+fates_levcdam                                 ('fates_levcdam',)                                      unitless
+fates_levcwdsc                                ('fates_levcwdsc',)                                     
+fates_levfuel                                 ('fates_levfuel',)                                      
+fates_levheight                               ('fates_levheight',)                                    
+fates_levlanduse                              ('fates_levlanduse',)                                   
+fates_levleaf                                 ('fates_levleaf',)                                      VAI
+fates_levpft                                  ('fates_levpft',)                                       
+fates_levscls                                 ('fates_levscls',)                                      cm
+fates_lfmap_levcnlf                           ('fates_levcnlf',)                                      
+fates_lfmap_levcnlfpf                         ('fates_levcnlfpf',)                                    
+fates_pftmap_levagepft                        ('fates_levagepft',)                                    -
+fates_pftmap_levcapf                          ('fates_levcapf',)                                      -
+fates_pftmap_levcdpf                          ('fates_levcdpf',)                                      
+fates_pftmap_levcnlfpf                        ('fates_levcnlfpf',)                                    
+fates_pftmap_levscagpft                       ('fates_levscagpf',)                                    -
+fates_pftmap_levscpf                          ('fates_levscpf',)                                      -
+fates_scmap_levcdpf                           ('fates_levcdpf',)                                      
+fates_scmap_levcdsc                           ('fates_levcdsc',)                                      
+fates_scmap_levscag                           ('fates_levscag',)                                      -
+fates_scmap_levscagpft                        ('fates_levscagpf',)                                    -
+fates_scmap_levscpf                           ('fates_levscpf',)                                      -
+
+# variables used:
+  FATES_GPP -> scalar
+  FATES_NPP -> scalar
+  FATES_AUTORESP -> scalar
+  FATES_MAINT_RESP -> scalar
+  FATES_GROWTH_RESP -> scalar
+  FATES_VEGC -> scalar
+  FATES_STOREC -> scalar
+  FATES_LEAFC -> scalar
+  FATES_STOREC_TF -> scalar
+  FATES_SEED_BANK -> scalar
+  BTRAN -> scalar
+  TSA -> scalar
+  TLAI -> scalar
+  FATES_NCOHORTS -> scalar
+  FATES_NPATCHES -> scalar
+  FATES_NPLANT_PF -> FATES_NPLANT_PF
+  FATES_RECRUITMENT_PF -> FATES_RECRUITMENT_PF
+  FATES_MORTALITY_PF -> FATES_MORTALITY_PF
+  FATES_VEGC_PF -> FATES_VEGC_PF
+  FATES_LEAFC_PF -> FATES_LEAFC_PF
+  FATES_STOREC_PF -> FATES_STOREC_PF
+  FATES_GPP_PF -> FATES_GPP_PF
+  FATES_NPP_PF -> FATES_NPP_PF
+  FATES_MORTALITY_SENESCENCE_SZPF -> MORT_SENESCENCE
+  FATES_MORTALITY_RXFIRE_SZ -> MORT_RXFIRE
+  FATES_MORTALITY_FIRE_SZ -> MORT_FIRE
+  FATES_MORTALITY_FREEZING_SZPF -> MORT_FREEZING
+  FATES_MORTALITY_AGESCEN_SZPF -> MORT_AGESCEN
+  FATES_MORTALITY_HYDRAULIC_SZPF -> MORT_HYDRAULIC
+  FATES_MORTALITY_CSTARV_SZPF -> MORT_CSTARV
+  FATES_MORTALITY_BACKGROUND_SZPF -> MORT_BACKGROUND
+  FATES_MORTALITY_IMPACT_SZPF -> MORT_IMPACT
+  FATES_MORTALITY_LOGGING_SZ -> MORT_LOGGING
+  FATES_MORTALITY_TERMINATION_SZPF -> MORT_TERMINATION
+  FATES_MORTALITY_CFLUX_PF -> FATES_MORTALITY_CFLUX_PF
+  FATES_MORTALITY_CFLUX_USTORY -> FATES_MORTALITY_CFLUX_USTORY
+  FATES_MORTALITY_CSTARV_CFLUX_PF -> FATES_MORTALITY_CSTARV_CFLUX_PF
+  FATES_MORTALITY_CFLUX_CANOPY -> FATES_MORTALITY_CFLUX_CANOPY
+  FATES_MORTALITY_FIRE_CFLUX_PF -> FATES_MORTALITY_FIRE_CFLUX_PF
+  FATES_MORTALITY_HYDRO_CFLUX_PF -> FATES_MORTALITY_HYDRO_CFLUX_PF
+
+# suggested but missing (add to hist_fincl1 in user_nl_clm for the next run;
+# _SZPF variables may also need fates_history_dimlevel = 2,2):
