@@ -35,6 +35,8 @@ Published figures and CSVs in `figures/` stay the record of the deleted runs.
 | RERUN_PHEN (18): cold-deciduous, no PFT 2 | CZ-Stn, DE-Hai, DE-Hzd, DE-Lnf, DK-Sor, FR-Hes, FR-Pue, IT-Col, US-EML, US-ICh, US-ICt, US-MMS, US-NR3, US-Rpf, US-SRG, US-SRM, US-Ton, US-WCr | `<AD>_PHEN` (phenology patch only; script 22) → `<Normal>_PHEN` | original AD400 + NORMAL400 |
 | UNCHANGED (15) | AT-Neu, BR-Ma2, CH-Cha, CH-Fru, ES-LJu, GF-Guy, IT-MBo, IT-Noe, US-Kon, US-Seg, US-Ses, US-UiD, US-Var, US-Whs, US-Wkg | original AD400 + NORMAL400 | – |
 | EXCLUDED (1) | US-CMW (groundwater-dependent, docs section 11) | original, flagged | – |
+| RESTART_AD (1): ICOS Batch04, AD-only, cold-deciduous | GL-ZaH (arctic deciduous shrub 5.3 % + arctic C3 grass 1.8 %, private parameter file) | `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT_PHEN` (script 22) → `GL-ZaH_ICOS_B04_FIXNC_NORMAL400_DIRECT_PHEN` | `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT` stopped after about 10 years (unpatched) |
+| ICOS Batch04, no cold-deciduous PFT, no PFT 2 | DE-Gri, DE-RuR, IT-Tor, ES-Agu (CH-Aws has no Batch04 case yet; cool C3 grass, not cold-deciduous) | their `*_ICOS_B04_FIXNC_AD400_DIRECT` keep running: the patch and the needleleaf fix do not apply | – |
 | Separate fix | US-Aud (not in the 75-site screening) | `US-Aud_AMF_B01SIX_FIXNC_AD400_DIRECT_HINONE` (script 21) → `..._NORMAL400_DIRECT_HINONE` | original AD400 failed in its first segment (no output to keep) |
 
 The classification is read from each site's surface data and parameter file:
@@ -85,3 +87,16 @@ It was printed by `22_phenology_patch_rollout.py plan` on 2026-11-02 22:11 UTC (
 - The stuck `st_archive` job 4800874 of `US-Aud_AMF_B01SIX_FIXNC_AD400_DIRECT` was cancelled. Its run had stopped in
   the first segment (HumanIndexMod negative RH, section 17), so there was no output to keep.
 - It was replaced by `..._HINONE` (`calc_human_stress_indices = 'NONE'`), which was submitted.
+
+### 2026-11-02 22:36 UTC: ICOS Batch04 checked, GL-ZaH to be stopped and replaced (script 22 `cancel-ad`)
+
+- **Check:** none of the Batch04 cases is built with the phenology patch. They all use the shared executable
+  `GF-Guy_FATES_SURF2000_CO2405_1PT/bld`.
+- **Unaffected:** the running FIXNC AD400 cases of DE-Gri (70 y), DE-RuR (60 y), IT-Tor (10 y) and ES-Agu (45 y) have
+  0 % cold-deciduous and 0 % PFT 2. The old code gives the same result for them, so they keep running.
+- **GL-ZaH:** `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT` (about 10 y, `fates_params_GL-ZaH_arctic_private_candidate.json`) has
+  7.1 % cold-deciduous vegetation (arctic deciduous shrub 5.3 %, arctic C3 grass 1.8 %).
+  - It is stopped (RESUBMIT=0, scancel). A JSON record of the stop goes to the ledger.
+  - It is replaced by `..._PHEN`: patch only, same private parameter file.
+- **Older exploratory cases are not part of the nocomp experiment and are not touched:** `*_FATES_SPINUP*`,
+  `*_FATES_RH*`, `*_S30SHARED`, `*_S30EXCL` (different surfaces, accelerated spin-up off).
