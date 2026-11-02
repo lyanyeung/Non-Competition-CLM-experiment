@@ -4,6 +4,33 @@
 
 This folder covers exactly **CH-Aws, DE-Gri, DE-RuR, IT-Tor, ES-Agu, GL-ZaH**, the six ICOS/FLUXNET stations outside the existing three 10-site FIXNC cohorts. **DE-Tha and NL-Loo are separate, protected examples**, not Batch04 reruns. Thus the original 38-site ICOS inventory is 30 in Batch01–03 + 6 in Batch04 + 2 independent examples.
 
+## Current status and final code (updated 2 Nov 2026)
+
+**Rule.** Where Codex prepared and submitted a site, its as-run scripts are the final version. Alternative scripts for those sites were removed from GitHub (see *Superseded* below). The stage-by-stage log further down is history; where it disagrees with this section, this section is current.
+
+| Site | Status | Case, model years | Final code |
+| --- | --- | --- | --- |
+| DE-Gri | AD400 running; at Stage05B restart 2034, 6/80 segments | `DE-Gri_ICOS_B04_FIXNC_AD400_DIRECT`, 2004 → 2404 | 2011/2024 forcing edits [03s](scripts/03s_de_gri_approved_2011_and_2024_boundary.py)–[03v](scripts/03v_de_gri_sensitivity_annual_input_plan.py); preflight [04a](scripts/04a_de_gri_direct_AD400_case_template_preflight_READONLY.py), [04b](scripts/04b_de_gri_direct_AD400_stream_FATES_preflight_READONLY.py); prepare [04c](scripts/04c_de_gri_direct_AD400_isolated_case_prepare.py); lock recovery [04d](scripts/04d_de_gri_recover_existing_case_after_envlock_READONLY_GUARDED.py); submit [04e](scripts/04e_de_gri_one_time_exploratory_direct_AD400_submit.py) |
+| DE-RuR | AD400 running; at Stage05B restart 2026, 3/80 | `DE-RuR_ICOS_B04_FIXNC_AD400_DIRECT`, 2011 → 2411 | [DE-RuR_prepare_ad400.py](scripts/DE-RuR_prepare_ad400.py) via [run_pair_prepare.py](scripts/run_pair_prepare.py); submitted once by the operator with a one-time guard (that submit helper is not in this repository) |
+| ES-Agu | AD400 running; at Stage05B restart 2021, 3/80 | `ES-Agu_ICOS_B04_FIXNC_AD400_DIRECT`, 2006 → 2406 | [ES-Agu_prepare_ad400.py](scripts/ES-Agu_prepare_ad400.py) via [run_pair_prepare.py](scripts/run_pair_prepare.py); submitted the same way |
+| GL-ZaH | script ready, not yet run on IRIDIS6 | `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT`, 2000 → 2400 | [05c](scripts/05c_gl_zah_arctic_surface_case_direct_AD400.py): Arctic PFT surface, private FATES map, prepare, audit, submit |
+| IT-Tor | scripts ready, not yet run on IRIDIS6; **one chain, S1 + F1** | `IT-Tor_ICOS_B04_FIXNC_AD400_DIRECT`, 2008 → 2408 | F1 generator [05a](scripts/05a_it_tor_make_f1_candidate.py) (Codex); [05d](scripts/05d_it_tor_S1_soil_and_F1_rebuild.py): S1 soil, F1 rebuild; [05e](scripts/05e_it_tor_S1F1_case_direct_AD400.py): F1 staging, prepare, audit, submit |
+| CH-Aws | HOLD, no case | — | humidity-source review (Stage02E–02T) |
+
+Every case uses the same settings:
+- direct AD400: one `case.submit`, `STOP_N=5`, `RESUBMIT=79`, no separate AD5;
+- FIXNC: FATES fixed biogeography + nocomp, `spinup_state=2`; cloned from the original case with `--keepexe` and previewed through the private AD namelist overlay;
+- constant CO2 = NOAA global annual mean of the first forcing year (Stage05B confirmed this for the three running cases);
+- history fields `TOTSOMC TOTSOMN TLAI FATES_GPP FATES_NPP TWS H2OSNO`.
+
+**IT-Tor decision (2 Nov 2026).** The original inputs are dropped: S0 (soil ORGANIC = 0) and F0 (forcing as packaged). IT-Tor runs a single chain with S1 soil and F1 forcing, with no S0/F0 control chain.
+
+**No-repeat rule.** Never rerun a prepare or submit script for a site whose case, ledger or submission receipt exists.
+
+**Superseded (deleted from GitHub on 2 Nov 2026).** Two Claude branches were replaced by the Codex work above. Neither was merged, and neither created a case:
+- `icos-b04-stage03v-pass-stage03w-de-gri-case-preflight-20261102` (6834129): a read-only DE-Gri case preflight, replaced by 04a/04b. It is a different script from main's `03w_de_gri_residual_science_gate_READONLY.py`.
+- `icos-b04-stage04-four-site-direct-ad400-20261102` (c49dff7): a four-site prepare/submit with case names `<site>_B04_FIXNC_AD400_DIRECT`. It was replaced by 04c–04e, the pair prepare scripts and 05e. 05e refuses to run if an IT-Tor case with the old name exists.
+
 ## Authoritative scientific decisions
 
 Use the already operator-selected [six-site PFT CSV](../ICOS_Unassigned_6/data/six_site_FIXNC_operator_selected_PFT_20261025.csv) and [source/evidence explanation](../ICOS_Unassigned_6/README.md). The new [review-gate register](data/batch04_review_gates.csv) tracks outstanding scientific and technical validation without changing those choices.
@@ -768,7 +795,7 @@ All three cases were built the same way:
 - The first segments completed: DE-Gri run 4807938 / archive 4807939, DE-RuR 4808040/4808041, ES-Agu 4808042/4808043, all `COMPLETED 0:0`.
 - Later segments are reported running.
 - This is not AD400 completion.
-- The CO2 setting was kept from the template in all three cases. That still has to be checked against the constant first-forcing-year NOAA value used in earlier batches.
+- The CO2 setting was kept from the template in all three cases. That still has to be checked against the constant first-forcing-year NOAA value used in earlier batches. *Stage05B: all three equal the NOAA value.*
 
 **No-repeat rule.** Never rerun `04c`/`04e`, the pair prepare scripts or a submit against an existing case or ledger.
 
@@ -777,7 +804,7 @@ All three cases were built the same way:
   - It replaces TBOT/QBOT at the three QC1 labels 2025-11-13 14:30–15:30 with packaged ERA TA/VPD; pressure is unchanged.
   - The script first proves that the original DATM values equal the source labels, then checks that nothing else changed.
   - It is `DETACHED_EXPLORATORY_NOT_RELEASED`.
-  - **Version note:** the repository copy of `05a` (sha `997f237b…`) is Codex's latest local file. The copy that actually ran on IRIDIS6 was verified as sha `2a537d46…`. [Stage05B](scripts/05b_batch04_status_itTor_soil_glZaH_preflight_READONLY.py) prints the diff between the two; replace the repository copy with the run copy if they differ.
+  - **Version note:** the repository copy of `05a` (sha `997f237b…`) is Codex's latest local file. The copy that actually ran on IRIDIS6 was verified as sha `2a537d46…`. [Stage05B](scripts/05b_batch04_status_itTor_soil_glZaH_preflight_READONLY.py) prints the diff between the two; replace the repository copy with the run copy if they differ. *Stage05B: the run copy is no longer on IRIDIS6. 05d `f1-rebuild` regenerates F1 with the repository copy, and IT-Tor uses that rebuild.*
 - *Soil.* The inherited ORGANIC is 0 in all ten source layers. The S1 soil candidate waits for a review of the pinned CTSM layer mapping (`20SL_8.5m` model layers; 10-level surface data).
 
 **GL-ZaH.** A private Arctic FATES parameter candidate exists:
@@ -818,7 +845,30 @@ All three cases were built the same way:
   - Through the CTSM mapping, the model then holds exactly 6.47 kg C/m² in 0–20 cm; `om_frac` in the top layers is about 0.43.
 - *F1 rebuild.* `f1-rebuild` runs the repository `05a` into a new folder and compares its output with the existing candidate, variable by variable.
 
-How many IT-Tor chains to run (S1/F1 combinations) is an open operator decision.
+*Decided 2 Nov 2026: one chain, S1 + F1 (Stage05E below).*
+
+## Stage05E (2 Nov 2026): IT-Tor single S1 + F1 direct AD400 chain
+
+[05e](scripts/05e_it_tor_S1F1_case_direct_AD400.py) builds the one IT-Tor case with the same method as the running cases and 05c. Its inputs are:
+- **Template:** `IT-Tor_FATES_SPINUP1000_S30SHARED`.
+- **DATM:** the 18 Stage03B annual files, 2008–2025. The template stream must list exactly these files, and their SHA-256 values are re-checked.
+- **Surface:** S1 from 05d `build-s1`. It must differ from the Stage02X surface only in `ORGANIC`.
+- **Forcing:** 2008–2024 unchanged, plus the 2025 file from 05d `f1-rebuild`.
+  - `stage-f1` copies that file to `experiments/NonCompetitionObserved22/Batch04_6/IT-Tor_F1_forcing_v1/`, so the case never reads a HOME temporary folder.
+  - It first checks that F1 differs from the Stage03B 2025 file in exactly 3 TBOT and 3 QBOT values at the three 2025-11-13 labels.
+- **FATES parameters:** the template's file.
+- **CO2:** the NOAA 2008 value.
+- **Ledger:** `experiments/Batch04_IT_Tor_AD400_DIRECT_preparation/stage05e_prepare_state.json`.
+- **Sentinel:** `stage05e_submission_attempt_PRIVATE.json`.
+
+Run order on IRIDIS6:
+1. 05d `build-s1`.
+2. 05d `f1-rebuild`.
+3. 05e `check`.
+4. 05e `stage-f1`.
+5. 05e `prepare`.
+6. 05e `audit`.
+7. 05e `submit`.
 
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
@@ -827,6 +877,8 @@ For each station, the next separate audit must select one verified original sour
 Check actual PCT_NATVEG/other landunits, tower coordinates and original selected point surface, and review sand/clay/silt by depth plus ORGANIC/peat and site vs grid fallback. Host PFT 0 bare is included in conditional NATVEG composition (no automatic renormalisation of green vegetation). Validate **effective FATES HLM→PFT map** against the parameter file in the new case's land namelist. GL-ZaH must independently create and verify its *site-only* Arctic shrub parameter candidate using the existing [six-site GL map tool](../ICOS_Unassigned_6/scripts/01_pft_six_and_GL_arctic_map.py), never modify the shared mapping.
 
 ## Stage 03 and subsequent model runs (NOT authorised by this commit)
+
+*Superseded for the AD phase: the operator chose direct AD400 chains (see the status section at the top).*
 
 Only after per-site forcing, source, surface, soil, host/FATES map and point gates pass should new versioned isolated B04 FIXNC surfaces/cases be prepared. Follow the standard independent **AD5 → AD395 → Normal5 → Normal395** protocol; check case.run/st_archive, CLM/DATM/CPL final restart, AD spinup_state=2 and Normal spinup_state=0, submitting-shell stack guard and inode quota. No AD400/Normal400 completion claim is made here.
 

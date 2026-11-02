@@ -2,6 +2,8 @@
 
 Proposal for review. No forcing, surface, model case or job has been modified.
 
+**Decision, 2 Nov 2026:** the operator dropped S0/F0. IT-Tor runs one chain, S1 + F1 ([05e](../scripts/05e_it_tor_S1F1_case_direct_AD400.py)). The pinned CTSM d5ea9d0 layer mapping was checked in Stage05B/05D, and S1 sets surface levels 1–4 only.
+
 ## Evidence
 
 The inherited surface has ORGANIC = 0 at all ten levels; this is an input value, not a measurement of zero soil carbon. Leolini et al. report 64.7 Mg C ha−1 at 20 cm at Torgnon: [paper](https://www.research-collection.ethz.ch/server/api/core/bitstreams/83a9d331-6f2d-47f0-95eb-5b5f0504ebf7/content). This is an integrated stock, not a measured ten-layer profile. Current [CTSM source](https://github.com/ESCOMP/CTSM/blob/master/src/biogeophys/SoilStateInitTimeConstMod.F90) describes organic matter density in kg/m³ used in soil physics. Verify the actual experiment's pinned source and mapping.
