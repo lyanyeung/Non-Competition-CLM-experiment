@@ -249,6 +249,35 @@ Reading:
   too little storage margin over the long winter (cushion).
 
 
+### Final round (submitted 2026-11-02): choose the parameter set
+
+- **Variants** (PFT 2 only):
+  - **D**: storage cushion 2.4 + slatop 0.010.
+  - **F**: storage cushion 2.4 + slatop 0.008, i.e. D with a smaller SLA increase, aimed at the FI-Sod over-shoot.
+- **Runs:** 100 AD years each (20 × 5-year segments) at ten sites:
+
+  | Site | Climate |
+  |---|---|
+  | DE-Obe | temperate montane spruce |
+  | FI-Sod | northern boreal pine |
+  | FI-Hyy | southern boreal pine |
+  | CH-Dav | subalpine spruce |
+  | CZ-BK1 | montane spruce |
+  | IT-Ren | alpine conifer |
+  | RU-Fyo | spruce, DBF 15 % |
+  | US-Ho1 | spruce–hemlock, Maine |
+  | US-SP1 | warm humid slash pine |
+  | US-Ha1 | mixed survivor; a check that a working site is not made worse |
+
+  The control is each site's original AD400 case over the same years.
+- **Code:**
+  - `13_needleleaf_param_trials.py prepare|submit --final --variants D F --years 100` (branch `full-sequence-gpp-nee-ec`). It
+    writes one private parameter copy per variant and source file, and leaves cases built without the private overlay on the
+    standard namelist.
+  - `15_needleleaf_final_trials_vs_ec.py` compares the last 20 years with the EC mean GPP, checks stability (last-30-year trend
+    within ±5 %/decade) and survival.
+  - It ranks the variants by: sites alive, then sites within ±25 % of EC, then sites stable, then median |log GPP/EC|.
+
 ## 10. 75-site screening: which sites have GPP far below EC (2026-11-01)
 
 Data: [`figures/AD400_NORMAL400_gpp_vs_ec_screening/20261101_from_20261101T042427Z`](../figures/AD400_NORMAL400_gpp_vs_ec_screening/20261101_from_20261101T042427Z/).
@@ -531,6 +560,7 @@ at US-Var, US-Whs, US-Wkg and IT-Noe, but those sites have no cold-deciduous PFT
 | [10_diagnose_btran_soil.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/80ec74268420e560af068b7c2c457005a243407b/examples/Cross_cohort_NORMAL400/scripts/10_diagnose_btran_soil.py) | layer-by-layer BTRAN recomputation, soil water/ice/temperature, roots, canopy cover |
 | [11_diagnose_carbon_budget.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/80ec74268420e560af068b7c2c457005a243407b/examples/Cross_cohort_NORMAL400/scripts/11_diagnose_carbon_budget.py) | per-plant / per-leaf carbon budget, carbon use, PFT parameter differences |
 | [12_check_cstarvation.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/80ec74268420e560af068b7c2c457005a243407b/examples/Cross_cohort_NORMAL400/scripts/12_check_cstarvation.py) | carbon-starvation formula vs history output, settings in use |
+| [15_needleleaf_final_trials_vs_ec.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/a55d1095590850ca3089ba692b5319ce9262dc67/examples/Cross_cohort_NORMAL400/scripts/15_needleleaf_final_trials_vs_ec.py) | final 100-year needleleaf trials vs EC; recommends a parameter set |
 | [14_diagnose_site_anomalies.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/a64fd99ed6188d406e13723fefe1d0c818f04e88/examples/Cross_cohort_NORMAL400/scripts/14_diagnose_site_anomalies.py) | set-up, forcing vs EC, early AD and water-balance check of a site against a working reference |
 | [13_needleleaf_param_trials.py](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/7f4187c4d5a75f11a91679edb7e2f016ed615385/examples/Cross_cohort_NORMAL400/scripts/13_needleleaf_param_trials.py) | needleleaf fix trials: private parameter copies, clone, verify, submit |
 
