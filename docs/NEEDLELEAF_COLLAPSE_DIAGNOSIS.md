@@ -708,6 +708,30 @@ Details of the patch and the cases:
   - Sites: CZ-Stn, DE-Lnf (trap), US-SRM (warm-climate DBF).
 - The needleleaf trials are unaffected, because PFT 2 is evergreen.
 
+## 17. US-Aud AD400 stopped at start-up: "RH is negative" in HumanIndexMod (2026-11-02)
+
+- **What failed:** `US-Aud_AMF_B01SIX_FIXNC_AD400_DIRECT` (AmeriFlux Batch01 six-input forcing) stopped on 2002-03-05
+  at about 15:30, in its first segment. The error was `ENDRUN: ERROR RH is negative` (HumanIndexMod.F90 line 1019,
+  rh = −0.83 %). Its st_archive job was left as DependencyNeverSatisfied.
+- **The forcing is not the cause.** A scan of all 23 yearly files found no negative values and no NaN:
+  - QBOT minimum 5.1e-5 kg kg⁻¹;
+  - RH minimum 1.1 %;
+  - PSRF 83.7–86.7 kPa.
+
+  The other Batch01 six-input sites (CA-Cbo, CA-Man, CA-TP1, CA-TP3, US-Bar) are also clean.
+- **Cause:** CTSM's 2-m *diagnostic* humidity.
+  - It is computed as `q_ref2m = forc_q + similarity extrapolation` (CanopyFluxesMod l. 1537), then
+    `rh_ref2m = q_ref2m / qsat`.
+  - Over very dry, high-elevation air the extrapolation can exceed `forc_q`, so `q_ref2m` goes below zero.
+  - The human heat-stress indices (`Wet_Bulb`) then stop the model.
+  - Both the 2-m reference humidity and the heat-stress indices are diagnostics; neither feeds back into the land
+    physics.
+- **Fix:** `calc_human_stress_indices = 'NONE'`, the only change. Script
+  [`21_fix_humanindex_rerun.py`](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/7d99f9e8df0c483bf6d71c33ee013ee9738f6e08/examples/Cross_cohort_NORMAL400/scripts/21_fix_humanindex_rerun.py)
+  does the rerun:
+  - AD: `<AD>_HINONE`, 400 years. lnd_in must equal the original AD on every key except this one.
+  - Normal: `..._NORMAL400_DIRECT_HINONE`, using the script-01 method.
+
 ## Scripts (branch `full-sequence-gpp-nee-ec`, commit 80ec742)
 
 | Script | Purpose |
