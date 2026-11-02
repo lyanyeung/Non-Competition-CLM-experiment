@@ -61,13 +61,13 @@ Git blob **`0d66a1230526625f5cf6459948041c178452a67e`**.
 
 The script validates all five pinned source files, exact nine-site membership and ten-L6-source manifest, live area plus bare sum, CLM-to-FATES one-to-one DEFAULT14 mapping, master per-site numeric JSON, and <=4 live active FATES classes. Bounded read-only IRIDIS6 source and reference-surface checks produce JSON and TSV (direct HOME child). It explicitly reports `AD400_authorised=false` and never creates/sends a job. A `PFT_source_approved_by_operator=true` means PFT numeric choices are finalized for the experiment, NOT the 9-site total science gate.
 
-Operator command (replace `<PINNED_NONCOMP_COMMIT>` with the specific commit documenting this README and outputs):
+Operator command (replace `bf49e6fb395b32e89071602af9e4f42ef672bcdd` with the specific commit documenting this README and outputs):
 
 ```bash
 (
 set -euo pipefail
 conda activate clm_fates_env
-COMMIT="<PINNED_NONCOMP_COMMIT>"
+COMMIT="bf49e6fb395b32e89071602af9e4f42ef672bcdd"
 BASE="https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$COMMIT/examples/OzFlux_Batch01_09"
 CODE="$HOME/ozflux_nc_stage01_code"
 DATA="$CODE/pft"
