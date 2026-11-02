@@ -60,6 +60,8 @@ def value(v):
 def parse_ts(v):
     t=str(v or "").strip()
     if t.endswith(".0") and t[:-2].isdigit():t=t[:-2]
+    # ICOS UTC T may have a terminal Z; parse and preserve the UTC clock.
+    if t.endswith("Z"):t=t[:-1]
     for fmt in ("%Y%m%d%H%M","%Y-%m-%d %H:%M:%S",
                 "%Y-%m-%dT%H:%M:%S","%Y-%m-%d %H:%M",
                 "%Y-%m-%dT%H:%M"):
@@ -78,8 +80,8 @@ def archive_inventory(archive):
         infos=z.infolist()
         ensure(0<len(infos)<=MAX_FILES and sum(x.file_size for x in infos)<
                MAX_EXPANDED_BYTES,"Unexpected ZIP structure or decompressed size")
-        ensure(all(not x.is_dir() and not x.flag_bits & 1 for x in infos),
-               "Encrypted or folder ZIP entries unsupported")
+        ensure(all(not x.flag_bits & 1 for x in infos),
+               "Encrypted ZIP entries unsupported")
         names=[x.filename for x in infos]
     return {"sha256":found,"archive_bytes":archive.stat().st_size,
             "zip_members":names}
@@ -96,7 +98,7 @@ def inspect(archive):
             # Reject traversal, symlinks and hidden files; do not extract.
             ensure(".." not in path.parts and not path.is_absolute(),
                    "Unsafe ZIP member path")
-            if path.suffix.lower()!=".csv":continue
+            if info.is_dir() or path.suffix.lower()!=".csv":continue
             with z.open(info,"r") as raw:
                 with io.TextIOWrapper(raw,encoding="utf-8-sig",
                                       newline="") as f:
@@ -174,6 +176,7 @@ def selftest():
     assert len(EXPECTED_SHA)==64 and FILENAME.startswith("ICOSETC_IT-TrF")
     assert parse_ts("202511151700")==datetime(2025,11,15,17)
     assert parse_ts("2025-11-15T17:00:00")==datetime(2025,11,15,17)
+    assert parse_ts("2025-11-15T17:00:00Z")==datetime(2025,11,15,17)
     assert parse_ts("n/a") is None
     assert value("-9999")==None and value("-4.5")==-4.5
     assert sum(x[2] for x in TOP3)==156
