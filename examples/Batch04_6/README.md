@@ -13,7 +13,7 @@ This folder covers exactly **CH-Aws, DE-Gri, DE-RuR, IT-Tor, ES-Agu, GL-ZaH**, t
 | DE-Gri | AD400 running; at Stage05B restart 2034, 6/80 segments | `DE-Gri_ICOS_B04_FIXNC_AD400_DIRECT`, 2004 → 2404 | 2011/2024 forcing edits [03s](scripts/03s_de_gri_approved_2011_and_2024_boundary.py)–[03v](scripts/03v_de_gri_sensitivity_annual_input_plan.py); preflight [04a](scripts/04a_de_gri_direct_AD400_case_template_preflight_READONLY.py), [04b](scripts/04b_de_gri_direct_AD400_stream_FATES_preflight_READONLY.py); prepare [04c](scripts/04c_de_gri_direct_AD400_isolated_case_prepare.py); lock recovery [04d](scripts/04d_de_gri_recover_existing_case_after_envlock_READONLY_GUARDED.py); submit [04e](scripts/04e_de_gri_one_time_exploratory_direct_AD400_submit.py) |
 | DE-RuR | AD400 running; at Stage05B restart 2026, 3/80 | `DE-RuR_ICOS_B04_FIXNC_AD400_DIRECT`, 2011 → 2411 | [DE-RuR_prepare_ad400.py](scripts/DE-RuR_prepare_ad400.py) via [run_pair_prepare.py](scripts/run_pair_prepare.py); submitted once by the operator with a one-time guard (that submit helper is not in this repository) |
 | ES-Agu | AD400 running; at Stage05B restart 2021, 3/80 | `ES-Agu_ICOS_B04_FIXNC_AD400_DIRECT`, 2006 → 2406 | [ES-Agu_prepare_ad400.py](scripts/ES-Agu_prepare_ad400.py) via [run_pair_prepare.py](scripts/run_pair_prepare.py); submitted the same way |
-| GL-ZaH | AD400 submitted 2 Nov: run 4809211 / archive 4809212 | `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT`, 2000 → 2400 | [05c](scripts/05c_gl_zah_arctic_surface_case_direct_AD400.py): Arctic PFT surface, private FATES map, prepare, audit, submit |
+| GL-ZaH | first AD400 (run 4809211) stopped after about 10 y: it has cold-deciduous PFTs (7.1 %) and was built without the phenology patch. Replaced by `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT_PHEN` (script 22; [maintenance log](../../maintenance/README.md)) | `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT`, 2000 → 2400 | [05c](scripts/05c_gl_zah_arctic_surface_case_direct_AD400.py): Arctic PFT surface, private FATES map, prepare, audit, submit |
 | IT-Tor | AD400 submitted 2 Nov: run 4809216 / archive 4809217; **one chain, S1 + F1** | `IT-Tor_ICOS_B04_FIXNC_AD400_DIRECT`, 2008 → 2408 | F1 generator [05a](scripts/05a_it_tor_make_f1_candidate.py) (Codex); [05d](scripts/05d_it_tor_S1_soil_and_F1_rebuild.py): S1 soil, F1 rebuild; [05e](scripts/05e_it_tor_S1F1_case_direct_AD400.py): F1 staging, prepare, audit, submit |
 | CH-Aws | scripts ready, not yet run on IRIDIS6; option A humidity (F1A) + HINONE | `CH-Aws_ICOS_B04_FIXNC_AD400_DIRECT_HINONE`, 2006 → 2406 | [06a](scripts/06a_ch_aws_humidity_scan_case_surface_READONLY.py) scan; [06b](scripts/06b_ch_aws_F1A_humidity_forcing.py) F1A forcing; [06c](scripts/06c_ch_aws_surface_case_HINONE_direct_AD400.py) surface, phenology class, prepare, audit, submit |
 
@@ -875,6 +875,7 @@ Run order on IRIDIS6:
 **GL-ZaH**
 - Surface built, sha `5de6ba6c…`. `PCT_NAT_PFT` is host 0 43 / 9 53 / 11 3 / 12 1; NATVEG 100; soil inherited.
 - Case prepared and audited, then submitted once: run 4809211, archive 4809212; `skip_pnl` persisted.
+- *Later on 2 Nov:* this unpatched case was stopped after about 10 years and replaced by `..._PHEN` (phenology patch, same private parameter file). See the maintenance log.
 - Private Arctic map `56d9433f…`; CO2 368.96 (NOAA 2000).
 
 **IT-Tor**
