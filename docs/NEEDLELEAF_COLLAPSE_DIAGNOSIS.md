@@ -278,6 +278,33 @@ Reading:
     within ±5 %/decade) and survival.
   - It ranks the variants by: sites alive, then sites within ±25 % of EC, then sites stable, then median |log GPP/EC|.
 
+#### Interim results (2026-11-02 10:50 UTC; 85–100 of 100 years)
+
+Run: [`figures/AD400_NORMAL400_needleleaf_final_trials/20261102T105215Z`](../figures/AD400_NORMAL400_needleleaf_final_trials/20261102T105215Z/).
+GPP is the mean of the last 20 years; ratio = FATES / EC.
+
+| Site | EC | control | D | F | LAI D / F |
+|---|---:|---:|---:|---:|---|
+| DE-Obe | 4.90 | 0.00 | 1.02 | 1.00 | 4.3 / 3.7 |
+| FI-Sod | 1.73 | 0.00 (dead) | 1.71 | 1.52 (still rising) | 3.1 / 2.4 |
+| CH-Dav | 3.69 | 0.01 | 1.35 | 1.29 | 5.0 / 4.2 |
+| CZ-BK1 | 5.38 | 0.00 | 0.92 | 0.90 | 4.2 / 3.6 |
+| IT-Ren | 4.44 | 0.04 | 1.14 | 1.12 | 4.8 / 4.3 |
+| RU-Fyo | 4.05 | 0.09 | 0.86 | 0.84 | 2.9 / 2.6 |
+| US-Ho1 | 2.65 | 0.11 | 1.53 | 1.53 | 3.5 / 2.9 |
+| US-SP1 | 4.49 | 0.22 | 1.44 | 1.34 | 3.7 / 2.9 |
+| US-Ha1 (mixed survivor) | 4.20 | 0.80 | 1.08 | 1.07 | 2.9 / 2.8 |
+| FI-Hyy | 3.19 | 0.04 | – | – | not run (HOLD in preview_namelists) |
+
+- **Both D and F fix the collapse at every site.** The needleleaf is alive at 9/9 sites, and the trajectories are stable at 9/9 (D)
+  and 8/9 (F). The median ratio is 1.14 (D) and 1.12 (F); the control is 0.04.
+- **D and F differ little.** F reduces the over-estimate at the four high sites (FI-Sod, CH-Dav, US-Ho1, US-SP1) by 0–0.2, and
+  is 0.02 lower at the two sites below EC.
+- **Fixed GPP sits near 4–5 g C m⁻² d⁻¹ at every closed-canopy site** whatever the tower value. The remaining over-estimate at
+  low-productivity sites (FI-Sod, US-Ho1) is therefore a capacity / leaf-area question, not the collapse mechanism.
+- **US-Ha1, the mixed survivor, is not made worse** (0.80 → 1.08).
+- The final choice will be made when all cases reach 100 years and FI-Hyy has run.
+
 ## 10. 75-site screening: which sites have GPP far below EC (2026-11-01)
 
 Data: [`figures/AD400_NORMAL400_gpp_vs_ec_screening/20261101_from_20261101T042427Z`](../figures/AD400_NORMAL400_gpp_vs_ec_screening/20261101_from_20261101T042427Z/).
@@ -568,7 +595,7 @@ autumns in central Europe. This explains why both sites die at a similar stand a
 All released tags checked up to `sci.1.93.5` still have the trap. The second change is also what keeps cold-deciduous trees
 leafless in warm climates (US-SRM, US-SRG, US-CMW, FR-Pue; sections 14–15), so the same 3-line patch addresses both problems.
 
-**Fix being tested.**
+**Fix being tested** (2026-11-02: the first attempt stopped at `case.build` for all three sites; the build log is being checked).
 - The FATES source used here contains the trap: `EDPhysiologyMod.F90` line 1123 `nchilldays >= 1` and line 1170
   `cstatus = phen_cstat_nevercold`. This was checked on IRIDIS, 2026-11-02.
 - Script `17_phenology_patch_rerun.py` (branch `full-sequence-gpp-nee-ec`) backports the 12 upstream lines into
