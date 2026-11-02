@@ -36,9 +36,9 @@ class T(unittest.TestCase):
 
     def test_leaf_habit(self):
         p = self.params(); del p["parameters"]["fates_phen_season_decid"]
-        p["parameters"]["fates_phen_leaf_habit"] = {"dims": ["fates_pft"], "data": [1, 1, 2, 1, 2]}   # 2 = cold deciduous
+        p["parameters"]["fates_phen_leaf_habit"] = {"dims": ["fates_pft"], "data": [1, 1, 2, 2, 1]}   # 2 = cold deciduous
         self.assertAlmostEqual(self.m.decid_share([10, 54, 0, 9, 0, 27, 0], p)[0], 40.0)
-        p["parameters"]["fates_phen_leaf_habit"]["data"] = [1, 1, 3, 1, 3]                           # 3 = stress deciduous
+        p["parameters"]["fates_phen_leaf_habit"]["data"] = [1, 1, 3, 3, 1]                           # 3 = stress deciduous
         self.assertEqual(self.m.decid_share([10, 54, 0, 9, 0, 27, 0], p)[0], 0.0)
 
     def test_missing_param(self):
