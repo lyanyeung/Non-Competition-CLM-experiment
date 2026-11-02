@@ -151,7 +151,15 @@ def locate_annual(b, year):
     if len(matches) != 1 or matches[0].get('literal_path_equal') is not True:
         raise ValueError('Annual file lineage missing')
     annual = Path(matches[0]['current'])
-    with Path(site['historical_DATM_manifest']).open(encoding='utf-8-sig', newline='') as f:
+    manifest_path = Path(site['historical_DATM_manifest'])
+    if manifest_path.is_dir():
+        filenames = {'STAGE30_CONSOLIDATED': '04_consolidated_13site_271_DATM_SHA256_manifest.csv',
+                     'STAGE29B': '10_annual_full_DATM_SHA256_manifest.csv'}
+        selection = site.get('historical_manifest_selected')
+        if selection not in filenames:
+            raise ValueError('Unknown Stage03B historical manifest selection')
+        manifest_path = manifest_path / filenames[selection]
+    with manifest_path.open(encoding='utf-8-sig', newline='') as f:
         manifest_rows = [x for x in csv.DictReader(f) if x.get('site') == 'DE-Gri' and x.get('year') == str(year)]
     if len(manifest_rows) != 1 or manifest_rows[0].get('datm_nc') != str(annual):
         raise ValueError('Historical DATM manifest mismatch')
