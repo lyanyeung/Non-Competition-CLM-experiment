@@ -311,7 +311,8 @@ GPP is the mean of the last 20 years; ratio = FATES / EC.
 
 #### Final results (2026-11-02 18:57 UTC; all 20 cases at 100 years, none failed)
 
-Acceptance run `acceptance_20261102T185446Z` (script 15, compute node). GPP = mean of the last 20 of 100 AD years,
+Acceptance run `acceptance_20261102T185446Z` (script 15, compute node); figures:
+[`figures/AD400_NORMAL400_needleleaf_final_trials/20261102T191319Z`](../figures/AD400_NORMAL400_needleleaf_final_trials/20261102T191319Z/). GPP = mean of the last 20 of 100 AD years,
 g C m⁻² d⁻¹; ratio = FATES / EC; trend = last 30 years, %/decade (stable if within ±5).
 
 | Site | EC | control | D | F | trend D / F | LAI D / F |
@@ -347,6 +348,36 @@ Summary over the ten sites:
 - The remaining over-estimate at FI-Sod, US-Ho1, US-SP1 and CH-Dav (1.3–1.5 with either variant) is not the collapse mechanism.
   Fixed GPP sits near 3–5 g C m⁻² d⁻¹ wherever the canopy closes, while the tower values differ. It is left to site-level
   structure (sparse old pine at FI-Sod, stand age), not tuned further here, to avoid fitting the PFT to single sites.
+
+#### Decision (2026-11-02): F is the production needleleaf parameter set
+
+| Parameter (PFT 2 `needleleaf_evergreen_extratrop_tree` only) | Default | Adopted |
+|---|---:|---:|
+| `fates_alloc_storage_cushion` | 1.2 | **2.4** |
+| `fates_leaf_slatop` (m² gC⁻¹) | 0.005 | **0.008** |
+
+Rule for all further runs:
+- **The changed parameter file is used at every site, not only at "needleleaf sites".** Only the PFT 2 entries differ
+  (checked entry by entry). With fixed biogeography / no competition a PFT exists only where the surface data put it, so
+  sites without PFT 2 give the same results with either file. This avoids per-site switches.
+- **Only sites whose surface data contain PFT 2 need to be rerun** (AD400 → NORMAL400). By the screening composition that is
+  41 of the 75 sites:
+  - needleleaf-dominated sites (collapsed with the default parameters);
+  - mixed forests with a needleleaf share (e.g. US-Ha1, US-Slt, BE-Vie);
+  - dry and arctic sites with a needleleaf share (US-Mpj, US-Wjs, US-Uaf, US-BZS).
+
+  The definitive list comes from the surface data (`18_adopt_needleleaf_params.py plan`). Needleleaf deciduous (NDT,
+  PFT 3) is not affected.
+- **Sites to watch after the rerun:** the needleleaf survivors US-MtB, US-Vcp and US-Vcm (US-Vcm already 2.2 × EC). F raises
+  needleleaf productivity, and the trials included only one survivor (US-Ha1, not made worse). If they over-shoot clearly,
+  that is a site-level issue to look at, not a reason to drop F.
+- **The source parameter files are never edited.**
+  - One adopted copy is written per source file:
+    `experiments/NonCompetitionObserved22/params_adopted/fates_params_needleleaf_F_<sha10>.json`.
+  - Each copy has a receipt (source, SHA-256, changes, sites), and a manifest `ADOPTED_NEEDLELEAF_PARAMS.json` lists them all.
+  - New cases point `fates_paramfile` to the adopted copy.
+- Script: [`18_adopt_needleleaf_params.py`](https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/5f4011fdb2f3ae0d1281e4ef74f27048b45775d9/examples/Cross_cohort_NORMAL400/scripts/18_adopt_needleleaf_params.py)
+  (`plan` / `write` / `check`).
 
 ## 10. 75-site screening: which sites have GPP far below EC (2026-11-01)
 
