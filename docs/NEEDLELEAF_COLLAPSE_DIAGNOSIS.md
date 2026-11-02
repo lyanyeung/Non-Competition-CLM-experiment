@@ -1,6 +1,6 @@
 # Needleleaf collapse in the FATES fixed-biogeography / no-competition spin-up — diagnosis log
 
-Status: **mechanism confirmed (section 8); parameter trials prepared (section 9).** Last updated 1 November 2026.
+Status: **mechanism confirmed (section 8); final needleleaf parameter trials complete, proposed set F (section 9).** Last updated 2 November 2026.
 Scope: the AD400 → NORMAL400 cases of job 4764252 (54 sites), with detailed diagnosis at
 DE-Obe and FI-Sod (needleleaf, collapsed) against DE-Hai (broadleaf, healthy) and FI-Hyy
 (mostly needleleaf, alive only in its 5 % broadleaf patch).
@@ -17,7 +17,11 @@ DE-Obe and FI-Sod (needleleaf, collapsed) against DE-Hai (broadleaf, healthy) an
   - 叶寿命 4 年；
   - 冬天叶子不落，维持呼吸照常消耗储存，每年冬天都跌破 1.0 倍叶碳的门槛，于是持续死亡，补充的新苗赶不上。
 - **公式核对：** 按公式预测的碳饥饿死亡率和模型输出逐月一致（DE-Obe r=0.996、斜率 1.04；FI-Sod r=1.00、斜率 1.02）。储存/叶碳在 DE-Obe 1–4 月、FI-Sod 11–6 月低于 1.0。
-- **下一步：** 针叶 PFT 参数试验（储存缓冲、碳饥饿门槛、slatop），见第 9 节。
+- **参数试验结果（2026-11-02，10 个站点各跑满 100 年）：** 两组方案在 10 个站点上都让针叶林恢复，且都稳定：
+  - D：储存缓冲 2.4 + slatop 0.010；
+  - F：储存缓冲 2.4 + slatop 0.008。
+  - GPP/EC 中位数：D 1.14，F 1.09；对照组仅 0.04。
+  - **建议最终采用 F**：对 slatop 的改动更小，平均更接近 EC，LAI 也更合理。见第 9 节。
 
 ## 1. Full-sequence screening (54 sites)
 
@@ -304,6 +308,45 @@ GPP is the mean of the last 20 years; ratio = FATES / EC.
   low-productivity sites (FI-Sod, US-Ho1) is therefore a capacity / leaf-area question, not the collapse mechanism.
 - **US-Ha1, the mixed survivor, is not made worse** (0.80 → 1.08).
 - The final choice will be made when all cases reach 100 years and FI-Hyy has run.
+
+#### Final results (2026-11-02 18:57 UTC; all 20 cases at 100 years, none failed)
+
+Acceptance run `acceptance_20261102T185446Z` (script 15, compute node). GPP = mean of the last 20 of 100 AD years,
+g C m⁻² d⁻¹; ratio = FATES / EC; trend = last 30 years, %/decade (stable if within ±5).
+
+| Site | EC | control | D | F | trend D / F | LAI D / F |
+|---|---:|---:|---:|---:|---|---|
+| DE-Obe | 4.90 | 0.00 | 1.01 | **1.00** | −0.4 / −0.6 | 4.3 / 3.7 |
+| FI-Sod | 1.73 | 0.00 (dead) | 1.71 | **1.55** | −2.8 / +3.6 | 3.1 / 2.4 |
+| FI-Hyy | 3.19 | 0.04 | 1.15 | **1.08** | +0.8 / −2.5 | 3.3 / 2.8 |
+| CH-Dav | 3.69 | 0.01 | 1.32 | **1.29** | −1.7 / −1.2 | 4.8 / 4.2 |
+| CZ-BK1 | 5.38 | 0.00 | **0.92** | 0.90 | −0.3 / −0.5 | 4.3 / 3.7 |
+| IT-Ren | 4.44 | 0.04 | 1.13 | **1.09** | −0.8 / −1.9 | 4.7 / 4.1 |
+| RU-Fyo | 4.05 | 0.09 | **0.86** | 0.81 | −0.7 / −3.5 | 3.0 / 2.5 |
+| US-Ho1 | 2.65 | 0.11 | **1.52** | 1.53 | −1.7 / −0.4 | 3.6 / 3.0 |
+| US-SP1 | 4.49 | 0.22 | 1.45 | **1.31** | −0.2 / −1.6 | 3.8 / 2.8 |
+| US-Ha1 (mixed survivor) | 4.20 | 0.80 | 1.07 | 1.07 | +1.9 / +1.7 | 2.9 / 2.7 |
+
+Summary over the ten sites:
+
+| | alive | stable | within ±25 % of EC | median GPP/EC | median \|ln ratio\| | mean \|ln ratio\| |
+|---|---:|---:|---:|---:|---:|---:|
+| control | 9/10 | 4/10 | 1/10 | 0.04 | 3.25 | – |
+| D (cushion 2.4, slatop 0.010) | 10/10 | 10/10 | 6/10 | 1.14 | 0.15 | 0.22 |
+| F (cushion 2.4, slatop 0.008) | 10/10 | 10/10 | 6/10 | 1.09 | 0.15 | 0.19 |
+
+- **Both variants fix the collapse at all ten sites, including FI-Hyy, and do not harm the mixed survivor US-Ha1.**
+- The script's ranking printed "RECOMMENDED: D", but only as a tie-break: D and F are equal on survival, stability, sites
+  within ±25 % and the rounded median |ln ratio|.
+- **Proposed final parameter set: F** (PFT 2: `fates_alloc_storage_cushion` 2.4, `fates_leaf_slatop` 0.008), because:
+  - smaller departure from the default SLA (×1.6 instead of ×2);
+  - closer to EC on average (mean |ln ratio| 0.19 vs 0.22; median ratio 1.09 vs 1.14), mainly by reducing the over-estimate at
+    FI-Sod (1.71 → 1.55), US-SP1 (1.45 → 1.31) and FI-Hyy (1.15 → 1.08);
+  - more plausible LAI (2.4–4.2 instead of 2.9–4.8 m² m⁻²);
+  - the cost is 0.02–0.05 lower ratios at the two sites below EC (CZ-BK1, RU-Fyo), both still within ±25 %.
+- The remaining over-estimate at FI-Sod, US-Ho1, US-SP1 and CH-Dav (1.3–1.5 with either variant) is not the collapse mechanism.
+  Fixed GPP sits near 3–5 g C m⁻² d⁻¹ wherever the canopy closes, while the tower values differ. It is left to site-level
+  structure (sparse old pine at FI-Sod, stand age), not tuned further here, to avoid fitting the PFT to single sites.
 
 ## 10. 75-site screening: which sites have GPP far below EC (2026-11-01)
 
@@ -595,7 +638,14 @@ autumns in central Europe. This explains why both sites die at a similar stand a
 All released tags checked up to `sci.1.93.5` still have the trap. The second change is also what keeps cold-deciduous trees
 leafless in warm climates (US-SRM, US-SRG, US-CMW, FR-Pue; sections 14–15), so the same 3-line patch addresses both problems.
 
-**Fix being tested** (2026-11-02: the first attempt stopped at `case.build` for all three sites; the build log is being checked).
+**Fix being tested** (2026-11-02, running since about 18:45 UTC). The first two attempts stopped before submission and were fixed:
+- `case.build` regenerates the namelist with the plain CTSM build-namelist, which refuses FATES with the user_nl_clm
+  `spinup_state = 2`. For the build only, script 17 now comments that line out, then restores user_nl_clm byte-identical and
+  re-verifies lnd_in through the overlay.
+- The compile check looked for the object file in the wrong directory. It now reads the lnd build log, which shows that
+  `<case>/SourceMods/src.clm/EDPhysiologyMod.F90` (the patched copy) was compiled, not the shared FATES file.
+
+Details of the patch and the cases:
 - The FATES source used here contains the trap: `EDPhysiologyMod.F90` line 1123 `nchilldays >= 1` and line 1170
   `cstatus = phen_cstat_nevercold`. This was checked on IRIDIS, 2026-11-02.
 - Script `17_phenology_patch_rerun.py` (branch `full-sequence-gpp-nee-ec`) backports the 12 upstream lines into
