@@ -212,7 +212,42 @@ Run status (2026-11-02):
 - E was only a falsification control. The carbon-starvation formula already reproduces the needleleaf mortality (section 8), and
   that formula depends on storage / leaf C, not on stand closure. **E is dropped.**
 
-Results: to be added.
+### Results (2026-11-02, 50 AD years)
+
+Runs: [08](../figures/AD400_NORMAL400_collapse_diagnostics/20261102T020745Z/),
+[11](../figures/AD400_NORMAL400_carbon_budget_diagnostics/20261102T020821Z/),
+[12](../figures/AD400_NORMAL400_cstarvation_check/20261102T020803Z/). GPP is the needleleaf GPP in g C m⁻² d⁻¹.
+
+| Case | GPP mean (max annual, year) | LAI last 5 y | Canopy cover | Plants ha⁻¹ last 5 y | MR/GPP | CUE | Starvation share of deaths |
+|---|---|---:|---:|---:|---:|---:|---:|
+| DE-Obe control | 0.07 (0.09, y5) | 0.02 | 0.03 | 324 | 0.55 | 0.39 | 75 % |
+| DE-Obe A (cushion 2.4) | 0.21 (0.38, y49) | 0.16 | 0.23 | 2250 | 0.55 | 0.39 | 0 % |
+| DE-Obe B (upthresh 0.5) | 0.24 (0.47, y49) | 0.20 | 0.28 | 2640 | 0.55 | 0.40 | 0 % |
+| DE-Obe C (slatop 0.010) | 3.63 (5.37, y30) | 4.0 | 0.97 | 15 400 | 0.35 | 0.58 | 77 % |
+| **DE-Obe D (A + C)** | **3.73 (5.58, y40)** | 5.1 | 0.98 | 12 000 | 0.36 | 0.57 | 81 % |
+| FI-Sod control | 0.007 (0.04, y1) | 0.00003 | 0.00005 | 0.7 | 0.56 | 0.38 | 88 % |
+| FI-Sod A | 0.056 (0.064, y41) | 0.04 | 0.06 | 1150 | 0.59 | 0.35 | 0 % |
+| FI-Sod B | 0.029 (0.045, y2) | 0.01 | 0.02 | 254 | 0.57 | 0.37 | 67 % |
+| FI-Sod C | 0.11 (0.14, y13) | 0.06 | 0.04 | 331 | 0.33 | 0.59 | 86 % |
+| **FI-Sod D (A + C)** | **1.50 (3.16, y49, still rising)** | 3.2 | 0.95 | 16 100 | 0.36 | 0.56 | 16 % |
+
+EC GPP for comparison: DE-Obe 4.87, FI-Sod 1.71.
+
+Reading:
+- **A and B stop the starvation deaths but do not fix the stand.** Plants survive, but with the heavy needles (slatop 0.005)
+  maintenance respiration takes 55 % of GPP. Carbon-use efficiency is 0.39, so the stand never builds leaf area (LAI ≤ 0.2).
+  Survival alone is not enough.
+- **C fixes the carbon economy.** MR/GPP falls from 0.55 to 0.35 and CUE rises from 0.39 to 0.58.
+  - At DE-Obe the canopy closes and GPP reaches 0.75–1.1 × EC, even though starvation is still the main mortality type: it now
+    only thins a vigorous stand.
+  - At FI-Sod (long boreal winter) C alone fails: storage still drops to 0.35 of target each spring and starvation kills the stand.
+- **Only D works at both sites.**
+  - DE-Obe: GPP up to 5.6 vs EC 4.9.
+  - FI-Sod: needleleaf GPP is still rising at year 49 (3.2 vs EC 1.7) and may over-shoot. A smaller SLA increase with the
+    cushion, and a longer run, are needed before adopting D.
+- The parameter combination, not a single switch, is the fix. The physical reasons: needle mass per area too high (slatop), plus
+  too little storage margin over the long winter (cushion).
+
 
 ## 10. 75-site screening: which sites have GPP far below EC (2026-11-01)
 
@@ -466,6 +501,25 @@ at US-Var, US-Whs, US-Wkg and IT-Noe, but those sites have no cold-deciduous PFT
   after the spring burn, which is not simulated.
 
 **Not evaluated** (EC file not found in the default path): US-NR3, US-UiD, US-Whs. They need `--ec-file`.
+
+## 16. CZ-Stn and DE-Lnf (DBF 100) collapse — diagnostic re-run results (2026-11-02)
+
+- **The stand grows normally for about 14 years.** GPP reaches 4.7 g C m⁻² d⁻¹ (EC 4.4 at CZ-Stn), BTRAN stays ≈ 1, and soil
+  water does not limit (all rooted-layer factors ≥ 0.95).
+- **Then the whole stand dies within one autumn and winter, in AD year ≈ 15 at both sites.**
+  - After a normal last growing season, storage falls continuously to zero instead of stopping at the usual spring minimum
+    (≈ 0.3 of target).
+  - Mortality: carbon starvation 70–71 %, termination 18 %, impact 9 %.
+  - Water stress and freezing are ruled out.
+- **Same stand age at both sites, but different calendar years** (CZ-Stn forcing year 2024, DE-Lnf 2016). This points to a
+  stand-development or phenology trigger inside the model rather than a weather event.
+- Candidates:
+  - Leaves kept through the final autumn, so leaf respiration drains storage.
+  - A second leaf flush.
+  - A cohort / canopy-layer event at canopy closure.
+- Both sites share the identical template soil (section 11).
+- Next: extract the monthly leaf C, storage, phenology status and counters, cohort number and respiration by tissue for years
+  12–16, and compare them with the DE-Hai DBF over the same months.
 
 ## Scripts (branch `full-sequence-gpp-nee-ec`, commit 80ec742)
 
