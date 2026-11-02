@@ -1,0 +1,6 @@
+GPP (monthly, last cycle vs EC; median over sites):
+  D       (cushion 2.4 + slatop 0.010): sites 10, median R² 0.75, median RMSE 1.80, median bias +0.62, median model/EC 1.16
+  F       (cushion 2.4 + slatop 0.008, adopted): sites 10, median R² 0.78, median RMSE 1.69, median bias +0.50, median model/EC 1.13
+NEE (monthly, last cycle vs EC; median over sites):
+  D       (cushion 2.4 + slatop 0.010): sites 10, median R² 0.04, median RMSE 1.65, median bias +0.36
+  F       (cushion 2.4 + slatop 0.008, adopted): sites 10, median R² 0.12, median RMSE 1.55, median bias +0.34
