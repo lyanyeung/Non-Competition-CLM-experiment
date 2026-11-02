@@ -9,23 +9,46 @@
 #   tail -f $HOME/CLM_FATES_PLOTS/acceptance.out            # Ctrl+C only stops watching
 #   cat $(cat $HOME/CLM_FATES_PLOTS/LAST_ACCEPTANCE_DIR)/ACCEPTANCE_SUMMARY.txt
 # Set PUBLISH=0 to skip the GitHub upload.
+#
+# On a compute node (no internet there): download on the login node first, then
+#   srun -p batch -N1 -n1 -c4 --mem=16G -t 02:00:00 --pty bash
+#   SKIP_DOWNLOAD=1 PUBLISH=0 PHENFIX=0 bash acceptance_20261102.sh      # PHENFIX=0: skip 3B/3C (fix runs not started)
+# and back on the login node publish that run:
+#   PUBLISH_ONLY=$(cat $HOME/CLM_FATES_PLOTS/LAST_ACCEPTANCE_DIR) bash acceptance_20261102.sh
 set -u
 SHA=ec3f3b9caf934fc9150f0d2aa0be9c110a31d8b4
 PUBLISH=${PUBLISH:-1}
+SKIP_DOWNLOAD=${SKIP_DOWNLOAD:-0}
+PHENFIX=${PHENFIX:-1}
+PUBLISH_ONLY=${PUBLISH_ONLY:-}
 TOOL=$HOME/CLM_FATES_PLOTS/diag_rerun_tool
 PY=$HOME/.conda/envs/clm_fates_env/bin/python
 CASES=/iridisfs/scratch/ly3n24/CLM_FATES/cases
 B=https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$SHA/examples/Cross_cohort_NORMAL400/scripts
+cd "$TOOL" || exit 1
+say() { echo "$*" | tee -a "$S"; }
+publish() {
+  say ""; say "=== 5. PUBLISH"
+  [ -d "$R/15_needleleaf" ] && $PY -B 15_needleleaf_final_trials_vs_ec.py --publish-run "$R/15_needleleaf" 2>&1 | grep -E "PUSH|http|Error|error" | tee -a "$S"
+  [ -d "$R/16_phenfix" ] && $PY -B 16_dbf_collapse_monthly.py --publish-run "$R/16_phenfix" 2>&1 | grep -E "PUSH|http|Error|error" | tee -a "$S"
+  [ -d "$R/08_phenfix" ] && $PY -B diag.py --publish-run "$R/08_phenfix" 2>&1 | grep -E "PUSH|http|Error|error" | tee -a "$S"
+}
+if [ -n "$PUBLISH_ONLY" ]; then
+  R=$PUBLISH_ONLY; S=$R/ACCEPTANCE_SUMMARY.txt
+  [ -f "$S" ] || { echo "no ACCEPTANCE_SUMMARY.txt in $R"; exit 1; }
+  publish; say "PUBLISHED $(date -u '+%H:%M UTC')"; exit 0
+fi
 R=$HOME/CLM_FATES_PLOTS/acceptance_$(date -u +%Y%m%dT%H%M%SZ)
 mkdir -p "$R"; echo "$R" > $HOME/CLM_FATES_PLOTS/LAST_ACCEPTANCE_DIR
 S=$R/ACCEPTANCE_SUMMARY.txt
-cd "$TOOL" || exit 1
-say() { echo "$*" | tee -a "$S"; }
 
 say "ACCEPTANCE $(date -u '+%Y-%m-%d %H:%M UTC')   output: $R"
-for f in 13_needleleaf_param_trials.py 15_needleleaf_final_trials_vs_ec.py 16_dbf_collapse_monthly.py 17_phenology_patch_rerun.py; do
-  curl -fsSL -o "$f.new" "$B/$f" && mv "$f.new" "$f" || say "WARNING: could not download $f (using the existing copy)"
-done
+say "host $(hostname)"
+if [ "$SKIP_DOWNLOAD" != "1" ]; then
+  for f in 13_needleleaf_param_trials.py 15_needleleaf_final_trials_vs_ec.py 16_dbf_collapse_monthly.py 17_phenology_patch_rerun.py; do
+    curl -fsSL --connect-timeout 15 --max-time 60 -o "$f.new" "$B/$f" && mv "$f.new" "$f" || { rm -f "$f.new"; say "WARNING: could not download $f (using the existing copy)"; }
+  done
+fi
 
 # ---------------------------------------------------------------- 1. status
 say ""; say "=== 1. RUN STATUS"
@@ -59,6 +82,7 @@ $PY -B 15_needleleaf_final_trials_vs_ec.py --output-root "$R/15_needleleaf" > "$
 grep -E "INTERIM|RECOMMENDED|with [DF]:|^control|^D |^F |alive [0-9]" "$R/15.log" | tee -a "$S"
 grep -E "^  [A-Z][A-Z]-[A-Za-z0-9]+ " "$R/15.log" | tee -a "$S"
 
+if [ "$PHENFIX" = "1" ]; then
 FIXCASES=$(echo "$PF" | tr '\n' ' ')
 say ""; say "=== 3B. PHENOLOGY FIX: monthly detail, fixed vs original (script 16)"
 $PY -B 16_dbf_collapse_monthly.py --output-root "$R/16_phenfix" --years 50 --cases $FIXCASES \
@@ -69,6 +93,9 @@ say ""; say "=== 3C. PHENOLOGY FIX: mortality and survival (script 08)"
 AD_ONLY=$(echo "$PF" | sed 's/_phenfix:/_fix:/' | tr '\n' ' ')
 $PY -B diag.py --output-root "$R/08_phenfix" --ad-only $AD_ONLY --first-years 50 --workers 1 > "$R/08.log" 2>&1
 grep -E "^== |GPP year 1|COMPLETE" "$R/08.log" | tee -a "$S"
+else
+say ""; say "=== 3B/3C skipped (PHENFIX=0)"
+fi
 
 say ""; say "=== 4. HOW TO READ"
 say "A: pass = needleleaf alive at (almost) all sites with the recommended variant; GPP/EC within 0.75-1.25 at most sites;"
@@ -78,9 +105,8 @@ say "   after the warm autumn, and US-SRM_fix shows PFT 6 leaf C / GPP > 0."
 
 # ---------------------------------------------------------------- 5. publish
 if [ "$PUBLISH" = "1" ]; then
-  say ""; say "=== 5. PUBLISH"
-  $PY -B 15_needleleaf_final_trials_vs_ec.py --publish-run "$R/15_needleleaf" 2>&1 | grep -E "PUSH|http|Error|error" | tee -a "$S"
-  $PY -B 16_dbf_collapse_monthly.py --publish-run "$R/16_phenfix" 2>&1 | grep -E "PUSH|http|Error|error" | tee -a "$S"
-  $PY -B diag.py --publish-run "$R/08_phenfix" 2>&1 | grep -E "PUSH|http|Error|error" | tee -a "$S"
+  publish
+else
+  say ""; say "not published (PUBLISH=0); on the login node: PUBLISH_ONLY=$R bash acceptance_20261102.sh"
 fi
 say ""; say "DONE $(date -u '+%H:%M UTC'). Summary: $S"
