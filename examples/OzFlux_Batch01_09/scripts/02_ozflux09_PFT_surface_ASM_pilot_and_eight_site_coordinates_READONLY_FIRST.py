@@ -151,12 +151,18 @@ def exact_ref():
 def numeric_attr(v):
     if v is None:return None
     try:
-        if hasattr(v,"__len__") and not isinstance(v,(bytes,str)):
+        if np.ma.is_masked(v):
+            return None
+        if isinstance(v,np.ndarray):
+            if v.size!=1:return None
+            v=v.reshape(-1)[0]
+            if np.ma.is_masked(v):return None
+        elif hasattr(v,"__len__") and not isinstance(v,(bytes,str)):
             if len(v)!=1:return None
             v=v[0]
         x=float(v)
         return x if math.isfinite(x) else None
-    except (ValueError,TypeError,OverflowError):
+    except (ValueError,TypeError,OverflowError,IndexError):
         return None
 
 def coords_from_l6(path):
@@ -301,6 +307,10 @@ def self_test():
     assert coordinate_summary({"lat":[{"from":"a","value":-20},
                                     {"from":"b","value":-23}],
                                "lon":[]})["lat"]["status"]=="CONFLICTING_SOURCE_CANDIDATES"
+    assert numeric_attr(np.array(-22.28))==-22.28
+    assert numeric_attr(np.array([133.25]))==133.25
+    assert numeric_attr(np.array([-20.,-21.])) is None
+    assert numeric_attr(np.ma.masked) is None
     assert CONFIRM.startswith("CREATE_NEW_")
     print("OZFLUX NC STAGE02 SELF-TEST PASS: isolated ASM PFT vector, source coordinate conflict/missing safeguards; NO SOURCE CHANGES")
 
