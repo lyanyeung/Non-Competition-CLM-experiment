@@ -13,6 +13,8 @@ Classification (read from each site's surface data + parameter file; cold-decidu
   RERUN_PHEN    no PFT 2, cold-deciduous: new <AD>_PHEN = patch only (parameters unchanged)
   UNCHANGED     neither: the original runs stand
   EXCLUDED      US-CMW (groundwater site, section 11)
+  RESTART_AD    AD-only case of another cohort (EXTRA_AD, e.g. ICOS Batch04 GL-ZaH) with a cold-deciduous PFT:
+                stop it (cancel-ad), new <AD>_PHEN = patch only, its own (private) parameter file unchanged
 
 New AD case: create_clone of the ORIGINAL AD case WITHOUT --keepexe (own executable, EXEROOT = OUT/<new>/bld),
 patched EDPhysiologyMod.F90 in its own SourceMods (a SourceMods symlink is replaced by a private copy first, so no
@@ -62,11 +64,15 @@ OTHER = {"AT-Neu": "AT-Neu_B03_FIXNC_NORMAL400", "BR-Ma2": "BR-Ma2_AMF_FIXNC_NOR
          "US-Ton": "US-Ton_AMF_B04_FIXNC_NORMAL400_BASETA_V1", "US-UiD": "US-UiD_AMF_B05_FIXNC_NORMAL400_DIRECT",
          "US-Var": "US-Var_AMF_B05_FIXNC_NORMAL400_DIRECT", "US-WCr": "US-WCr_AMF_B05_FIXNC_NORMAL400_DIRECT",
          "US-Whs": "US-Whs_AMF_B05_FIXNC_NORMAL400_DIRECT", "US-Wkg": "US-Wkg_AMF_B05_FIXNC_NORMAL400_DIRECT"}
+# AD-only cases of other cohorts (no Normal case yet), checked on 2026-11-02 22:36: only GL-ZaH has a cold-deciduous
+# PFT (private arctic parameter file); DE-Gri, DE-RuR, IT-Tor, ES-Agu (ICOS Batch04) have none and keep running.
+EXTRA_AD = {"GL-ZaH": "GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT"}
+CONFIRM_CANCEL_AD = "STOP_AD_FOR_PHENOLOGY_PATCH"
 EXCLUDED = {"US-CMW": "groundwater-dependent site, excluded (docs section 11)"}
 DECID_PARAMS = (("fates_phen_leaf_habit", 2), ("fates_phen_season_decid", 1))   # FATES >= ~1.70 / older
 CONFIRM_CANCEL = "STOP_NLF_FOR_PHENOLOGY_PATCH"
 CONFIRM_PURGE = "DELETE_OLD_PHENOLOGY_OUTPUTS"
-PATCH_ACTIONS = ("RESTART_NLF", "RERUN_PHEN")
+PATCH_ACTIONS = ("RESTART_NLF", "RERUN_PHEN", "RESTART_AD")
 M17 = M18 = M20 = M21 = T = R = None
 SITES = {}
 
@@ -88,7 +94,7 @@ def load():
     for need in ((M17, "compile_evidence"), (M17, "hide_spinup_state"), (M20, "carry_streams"), (M18, "ensure_adopted")):
         if not hasattr(need[0], need[1]):
             raise RuntimeError(f"{need[0].__name__} is too old (no {need[1]}); download the current scripts")
-    SITES = {**M20.SITES, **OTHER}
+    SITES = {**M20.SITES, **OTHER, **{k: None for k in EXTRA_AD}}
 
 
 # ------------------------------------------------------------------ classification
@@ -116,13 +122,18 @@ def decid_share(pct_nat_pft, params):
 
 
 def ident(site):
-    n0 = SITES[site]
-    ad0 = R.xq(R.CASES / n0, "RUN_REFCASE")
-    if not ad0:
-        R.fail(f"{n0}: RUN_REFCASE empty")
     needle = site in M20.SITES
     suf = "_NLFP" if needle else "_PHEN"
-    i = {"site": site, "needle": needle, "ad0": ad0, "n0": n0, "nlf": ad0 + M20.SUFFIX, "ad": ad0 + suf, "n": n0 + suf}
+    if site in EXTRA_AD:                      # AD-only case: the Normal name follows the script-01 convention
+        ad0 = EXTRA_AD[site]
+        n0 = ad0.replace("_AD400", "_NORMAL400", 1)
+    else:
+        n0 = SITES[site]
+        ad0 = R.xq(R.CASES / n0, "RUN_REFCASE")
+        if not ad0:
+            R.fail(f"{n0}: RUN_REFCASE empty")
+    i = {"site": site, "needle": needle, "ad0": ad0, "n0": n0, "nlf": ad0 + M20.SUFFIX, "ad": ad0 + suf, "n": n0 + suf,
+         "ad_only": site in EXTRA_AD}
     for k in ("ad0", "n0", "nlf", "ad", "n"):
         i[k + "_case"] = R.CASES / i[k]
         i[k + "_run"] = R.OUT / i[k] / "run"
@@ -139,7 +150,9 @@ def classify(site):
     base, fsur, p2, _ = M20.pft2_check(lnd)
     pct = M18.read_pct(fsur)
     share, present = decid_share(pct, json.loads(Path(base).read_text()))
-    if share > M18.MIN_PCT:
+    if i["ad_only"]:
+        act = "RESTART_AD" if share > M18.MIN_PCT else "UNCHANGED"
+    elif share > M18.MIN_PCT:
         act = "RESTART_NLF" if i["needle"] else "RERUN_PHEN"
     else:
         act = "KEEP_NLF" if i["needle"] else "UNCHANGED"
@@ -152,6 +165,9 @@ def plan(site):
     extra = ""
     if act == "RESTART_NLF":
         extra = f" | NLF: {M20.read_state(i['nlf_case']).get('phase', 'not prepared')}"
+    if act == "RESTART_AD":
+        q = M20.jobs(i["ad0"])
+        extra = f" | original AD {i['ad0']} jobs: {' '.join(r[0] + ':' + r[2] for r in q) or 'none'}"
     print(f"{site:7s} {act:11s} cold-deciduous {share:5.1f} % {present} | {note}{extra}", flush=True)
     return act
 
@@ -188,6 +204,35 @@ def cancel_nlf(site, confirm):
     print(f"{site}: STOPPED {name} after {done} archived years; replaced by {i['ad']}", flush=True)
 
 
+def cancel_ad(site, confirm):
+    """AD-only cases of other cohorts (EXTRA_AD): stop the unpatched original AD so it can be replaced."""
+    i, act, *_ = classify(site)
+    if act != "RESTART_AD":
+        print(f"{site}: {act}, nothing to cancel", flush=True)
+        return
+    case, name = i["ad0_case"], i["ad0"]
+    q = M20.jobs(name)
+    if confirm != CONFIRM_CANCEL_AD:
+        print(f"{site}: DRY RUN would stop {name} (jobs {' '.join(r[0] + ':' + r[2] for r in q) or 'none'})", flush=True)
+        return
+    R.xc(case, "RESUBMIT", "0")
+    import time
+    for _ in range(3):
+        q = M20.jobs(name)
+        if not q:
+            break
+        R.cmd(["scancel", *[r[0] for r in q]], timeout=60)
+        time.sleep(5)
+    if M20.jobs(name):
+        R.fail(f"{name}: jobs still in the queue after scancel")
+    rest = i["ad0_arch"] / "rest"
+    done = len([d for d in rest.iterdir() if d.is_dir()]) * R.SEG if rest.is_dir() else 0
+    (M20.ledger() / f"{site}_original_AD_stopped_{R.utc()[:19].replace(':', '')}.json").write_text(json.dumps(
+        {"case": name, "years_archived_at_stop": done, "replaced_by": i["ad"], "reason": "unpatched FATES phenology",
+         "at": R.utc()}, indent=1) + "\n")
+    print(f"{site}: STOPPED {name} after {done} archived years; replaced by {i['ad']}", flush=True)
+
+
 def ad_prepare(site):
     i, act, share, present, _ = classify(site)
     if act not in PATCH_ACTIONS:
@@ -195,6 +240,8 @@ def ad_prepare(site):
         return None
     if act == "RESTART_NLF" and M20.read_state(i["nlf_case"]).get("phase") not in (None, "CANCELLED_REPLACED"):
         R.fail(f"{i['nlf']} is still {M20.read_state(i['nlf_case']).get('phase')}; run cancel-nlf first")
+    if act == "RESTART_AD" and M20.jobs(i["ad0"]):
+        R.fail(f"original {i['ad0']} still has jobs; run cancel-ad first")
     case = i["ad_case"]
     print(f"\n=== {site} {act}: {i['ad0']} -> {i['ad']} (phenology patch{' + needleleaf F' if i['needle'] else ''})",
           flush=True)
@@ -395,7 +442,8 @@ def purge_old(site, confirm):
 def status(site):
     i, act, *_ = classify(site)
     parts = [f"{act:11s}"]
-    keys = {"RESTART_NLF": ("nlf", "ad", "n"), "KEEP_NLF": ("nlf",), "RERUN_PHEN": ("ad", "n")}.get(act, ())
+    keys = {"RESTART_NLF": ("nlf", "ad", "n"), "KEEP_NLF": ("nlf",), "RERUN_PHEN": ("ad", "n"),
+            "RESTART_AD": ("ad", "n")}.get(act, ())
     for key in keys:
         ph = M20.read_state(i[key + "_case"]).get("phase", "not prepared")
         rest = i[key + "_arch"] / "rest"
@@ -407,7 +455,7 @@ def status(site):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("action", choices=("plan", "cancel-nlf", "ad-run", "normal-run", "purge-old", "status"))
+    ap.add_argument("action", choices=("plan", "cancel-nlf", "cancel-ad", "ad-run", "normal-run", "purge-old", "status"))
     ap.add_argument("--sites", nargs="+", default=None)
     ap.add_argument("--confirm", default="")
     a = ap.parse_args(argv)
@@ -420,7 +468,7 @@ def main(argv=None):
         os.nice(10)
     except OSError:
         pass
-    fn = {"plan": plan, "cancel-nlf": lambda s: cancel_nlf(s, a.confirm), "ad-run": ad_run, "normal-run": normal_run,
+    fn = {"plan": plan, "cancel-nlf": lambda s: cancel_nlf(s, a.confirm), "cancel-ad": lambda s: cancel_ad(s, a.confirm), "ad-run": ad_run, "normal-run": normal_run,
           "purge-old": lambda s: purge_old(s, a.confirm), "status": status}[a.action]
     bad, counts, total = 0, {}, 0
     for s in sites:
