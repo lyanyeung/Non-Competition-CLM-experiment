@@ -1,0 +1,75 @@
+# DBF collapse at CZ-Stn / DE-Lnf: monthly detail vs DE-Hai
+
+```
+REFERENCE (living DBF, per-year medians): leafC_DecFeb_frac_of_max 0.00, leaf_flushes 0.00, leaf_months 7.00, cold_leafon_events 1.00, cold_leafoff_events 1.00, storage_TF_min 0.29
+
+CZ-Stn_phenfix: collapse year None
+  year  45: GPP 5.01, leaf months 9, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.27 (month 3), plants 10067, canopy/understory 1143/8913, cohorts 362.3
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.297; FATES_LEAFMAINTAR 0.039; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.336; FATES_MAINT_RESP_UNREDUCED 0.370
+  year  46: GPP 4.23, leaf months 7, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.36 (month 4), plants 9119, canopy/understory 1077/8033, cohorts 350.7
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.284; FATES_LEAFMAINTAR 0.003; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.288; FATES_MAINT_RESP_UNREDUCED 0.306
+  year  47: GPP 4.38, leaf months 7, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.31 (month 4), plants 8508, canopy/understory 1087/7411, cohorts 351.8
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.271; FATES_LEAFMAINTAR 0.001; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.273; FATES_MAINT_RESP_UNREDUCED 0.292
+  year  48: GPP 4.44, leaf months 7, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.30 (month 4), plants 8424, canopy/understory 1101/7313, cohorts 350.8
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.277; FATES_LEAFMAINTAR 0.002; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.279; FATES_MAINT_RESP_UNREDUCED 0.296
+  year  49: GPP 3.71, leaf months 5, flushes 1, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.29 (month 4), plants 8900, canopy/understory 1123/7769, cohorts 346.4
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.281; FATES_LEAFMAINTAR 0.000; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.281; FATES_MAINT_RESP_UNREDUCED 0.295
+  year  50: GPP 4.61, leaf months 8, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.23 (month 3), plants 8268, canopy/understory 1149/7108, cohorts 351.1
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.285; FATES_LEAFMAINTAR 0.016; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.301; FATES_MAINT_RESP_UNREDUCED 0.339
+
+DE-Lnf_phenfix: collapse year None
+  year  45: GPP 3.35, leaf months 9, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.28 (month 3), plants 9327, canopy/understory 1181/8136, cohorts 394.1
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.299; FATES_LEAFMAINTAR 0.045; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.344; FATES_MAINT_RESP_UNREDUCED 0.377
+
+US-SRM_phenfix: collapse year None
+  year  45: GPP 1.32, leaf months 9, flushes 0, leaf-on/off events 1/2, Dec-Feb leaf C 0.64 of max, storage/target min 0.13 (month 3), plants 19, canopy/understory 271/2780, cohorts 54.3  <-- LEAVES KEPT INTO WINTER
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.041; FATES_LEAFMAINTAR 0.001; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.041; FATES_MAINT_RESP_UNREDUCED 0.052
+  year  46: GPP 0.70, leaf months 10, flushes 0, leaf-on/off events 1/0, Dec-Feb leaf C 0.33 of max, storage/target min 0.05 (month 12), plants 17, canopy/understory 269/1922, cohorts 60.7  <-- LEAVES KEPT INTO WINTER; no cold leaf-off event; storage exhausted
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.033; FATES_LEAFMAINTAR 0.003; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.036; FATES_MAINT_RESP_UNREDUCED 0.054
+  year  47: GPP 0.55, leaf months 10, flushes 0, leaf-on/off events 1/2, Dec-Feb leaf C 0.40 of max, storage/target min 0.04 (month 1), plants 16, canopy/understory 269/5755, cohorts 58.8  <-- LEAVES KEPT INTO WINTER; storage exhausted
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.012; FATES_LEAFMAINTAR 0.003; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.015; FATES_MAINT_RESP_UNREDUCED 0.041
+  year  48: GPP 0.57, leaf months 9, flushes 1, leaf-on/off events 1/1, Dec-Feb leaf C 0.32 of max, storage/target min 0.05 (month 1), plants 16, canopy/understory 269/11814, cohorts 53.1  <-- LEAVES KEPT INTO WINTER; storage exhausted
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.018; FATES_LEAFMAINTAR 0.008; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.026; FATES_MAINT_RESP_UNREDUCED 0.046
+  year  49: GPP 0.82, leaf months 9, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.33 of max, storage/target min 0.12 (month 10), plants 18, canopy/understory 271/9475, cohorts 49.1  <-- LEAVES KEPT INTO WINTER
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.035; FATES_LEAFMAINTAR 0.016; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.051; FATES_MAINT_RESP_UNREDUCED 0.062
+  year  50: GPP 1.09, leaf months 9, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.69 of max, storage/target min 0.14 (month 9), plants 21, canopy/understory 274/5374, cohorts 44.8  <-- LEAVES KEPT INTO WINTER
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.066; FATES_LEAFMAINTAR 0.036; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.102; FATES_MAINT_RESP_UNREDUCED 0.103
+
+CZ-Stn_old: collapse year 16
+  year  11: GPP 4.41, leaf months 7, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.29 (month 3), plants 7213, canopy/understory 1193/6010, cohorts 295.4
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.281; FATES_LEAFMAINTAR 0.005; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.286; FATES_MAINT_RESP_UNREDUCED 0.316
+  year  12: GPP 4.31, leaf months 7, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.23 (month 4), plants 8100, canopy/understory 1189/6901, cohorts 293.1
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.279; FATES_LEAFMAINTAR 0.001; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.280; FATES_MAINT_RESP_UNREDUCED 0.296
+  year  13: GPP 4.18, leaf months 6, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.32 (month 4), plants 7048, canopy/understory 1174/5865, cohorts 307.7
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.278; FATES_LEAFMAINTAR 0.004; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.283; FATES_MAINT_RESP_UNREDUCED 0.308
+  year  14: GPP 4.57, leaf months 7, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.24 (month 3), plants 7793, canopy/understory 1201/6580, cohorts 324.0
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.283; FATES_LEAFMAINTAR 0.006; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.289; FATES_MAINT_RESP_UNREDUCED 0.324
+  year  15: GPP 0.00, leaf months -, flushes -, leaf-on/off events 0/0, Dec-Feb leaf C - of max, storage/target min 0.00 (month 9), plants 3466, canopy/understory 667/2800, cohorts 173.7  <-- storage exhausted
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.173; FATES_LEAFMAINTAR 0.000; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.173; FATES_MAINT_RESP_UNREDUCED 0.186
+  year  16: GPP 0.00, leaf months -, flushes -, leaf-on/off events 0/0, Dec-Feb leaf C - of max, storage/target min 0.00 (month 1), plants 0, canopy/understory 0/0, cohorts 0.0  <-- storage exhausted
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.000; FATES_LEAFMAINTAR 0.000; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.000; FATES_MAINT_RESP_UNREDUCED 0.000
+  year  17: GPP 0.00, leaf months -, flushes -, leaf-on/off events 0/0, Dec-Feb leaf C - of max, storage/target min 0.00 (month 1), plants 0, canopy/understory 0/0, cohorts 0.0  <-- storage exhausted
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.000; FATES_LEAFMAINTAR 0.000; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.000; FATES_MAINT_RESP_UNREDUCED 0.000
+
+DE-Lnf_old: collapse year 15
+  year  10: GPP 4.34, leaf months 7, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.35 (month 3), plants 7701, canopy/understory 1258/6434, cohorts 296.2
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.269; FATES_LEAFMAINTAR 0.005; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.274; FATES_MAINT_RESP_UNREDUCED 0.294
+  year  11: GPP 4.29, leaf months 7, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.31 (month 3), plants 7189, canopy/understory 1213/5967, cohorts 302.6
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.270; FATES_LEAFMAINTAR 0.010; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.280; FATES_MAINT_RESP_UNREDUCED 0.309
+  year  12: GPP 3.85, leaf months 6, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.24 (month 4), plants 7612, canopy/understory 1213/6390, cohorts 304.7
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.276; FATES_LEAFMAINTAR 0.000; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.276; FATES_MAINT_RESP_UNREDUCED 0.289
+  year  13: GPP 4.63, leaf months 9, flushes 0, leaf-on/off events 1/1, Dec-Feb leaf C 0.00 of max, storage/target min 0.24 (month 3), plants 7557, canopy/understory 1211/6335, cohorts 317.7
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.287; FATES_LEAFMAINTAR 0.036; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.323; FATES_MAINT_RESP_UNREDUCED 0.360
+  year  14: GPP 0.00, leaf months -, flushes -, leaf-on/off events 0/0, Dec-Feb leaf C - of max, storage/target min 0.00 (month 9), plants 3638, canopy/understory 713/2925, cohorts 180.7  <-- storage exhausted
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.165; FATES_LEAFMAINTAR 0.000; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.165; FATES_MAINT_RESP_UNREDUCED 0.175
+  year  15: GPP 0.00, leaf months -, flushes -, leaf-on/off events 0/0, Dec-Feb leaf C - of max, storage/target min 0.00 (month 1), plants 0, canopy/understory 0/0, cohorts 0.0  <-- storage exhausted
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.000; FATES_LEAFMAINTAR 0.000; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.000; FATES_MAINT_RESP_UNREDUCED 0.000
+  year  16: GPP 0.00, leaf months -, flushes -, leaf-on/off events 0/0, Dec-Feb leaf C - of max, storage/target min 0.00 (month 1), plants 0, canopy/understory 0/0, cohorts 0.0  <-- storage exhausted
+            winter (Nov-Mar) maintenance respiration: FATES_CROOTMAINTAR 0.000; FATES_FROOTMAINTAR 0.000; FATES_LEAFMAINTAR 0.000; FATES_LSTEMMAINTAR 0.000; FATES_MAINT_RESP 0.000; FATES_MAINT_RESP_UNREDUCED 0.000
+```
+
+![CZ-Stn_old](CZ-Stn_old/CZ-Stn_old_16_monthly_window.png)
+![CZ-Stn_phenfix](CZ-Stn_phenfix/CZ-Stn_phenfix_16_monthly_window.png)
+![DE-Lnf_old](DE-Lnf_old/DE-Lnf_old_16_monthly_window.png)
+![DE-Lnf_phenfix](DE-Lnf_phenfix/DE-Lnf_phenfix_16_monthly_window.png)
+![US-SRM_phenfix](US-SRM_phenfix/US-SRM_phenfix_16_monthly_window.png)
