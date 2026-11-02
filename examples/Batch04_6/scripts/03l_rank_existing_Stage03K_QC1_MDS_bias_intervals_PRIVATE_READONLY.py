@@ -165,7 +165,7 @@ def rank_segments(j,rows):
       "read_only":True,"science_release":False,
       "source_or_model_modified":False,"slurm_submitted":False,
       "bias_is_relative_to_packaged_ERA_not_observed_error":True,
-      "source_stage03k_SHA256_verified_by_current_read":True,
+      "source_stage03k_SHA256_recorded_by_current_read":True,
       "total_QC1_relative_HH":587,
       "long_run_QC1_HH":558,"long_run_QC2_HH":900,
       "short_run_QC1_HH":29,
