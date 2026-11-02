@@ -730,6 +730,24 @@ Runs: [16](../figures/AD400_NORMAL400_dbf_collapse_monthly/20261102T215135Z/),
   - The FATES cold-deciduous rule fits poorly a winter/drought-deciduous mesquite.
   - Survival there is a separate PFT-choice question, not part of the trap.
 
+### Decision (2026-11-02 22:00 UTC): adopt the phenology patch and combine it with the needleleaf rerun
+
+Script `22_phenology_patch_rollout.py` (branch `full-sequence-gpp-nee-ec`) reads each site's surface data and
+parameter file. A site counts as cold-deciduous when it has a PFT with `fates_phen_season_decid = 1` (mapped with
+`fates_hlm_pft_map`). Each site is then classified:
+
+| Class | Condition | What happens |
+|---|---|---|
+| RESTART_NLF | PFT 2 and a cold-deciduous PFT | The `<AD>_NLF` run (started 19:48 without the patch) is stopped. It is replaced by `<AD>_NLFP` = patch + needleleaf F, so 800 years are run once. |
+| KEEP_NLF | PFT 2, no cold-deciduous PFT | `<AD>_NLF` continues. |
+| RERUN_PHEN | cold-deciduous, no PFT 2 | New `<AD>_PHEN`: patch only, parameters unchanged. |
+| UNCHANGED | neither | Original runs stand. |
+| EXCLUDED | US-CMW (groundwater) | Not rerun. |
+
+Each patched case gets its own build: the script-17 procedure plus the build-log compile check. Its lnd_in equals the
+original AD's except `fates_paramfile` (RESTART_NLF only). The Normal phase uses the script-01 method from the patched AD
+case, so it shares the patched executable.
+
 ## 17. US-Aud AD400 stopped at start-up: "RH is negative" in HumanIndexMod (2026-11-02)
 
 - **What failed:** `US-Aud_AMF_B01SIX_FIXNC_AD400_DIRECT` (AmeriFlux Batch01 six-input forcing) stopped on 2002-03-05
