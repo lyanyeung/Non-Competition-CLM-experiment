@@ -15,7 +15,7 @@ This folder covers exactly **CH-Aws, DE-Gri, DE-RuR, IT-Tor, ES-Agu, GL-ZaH**, t
 | ES-Agu | AD400 running; at Stage05B restart 2021, 3/80 | `ES-Agu_ICOS_B04_FIXNC_AD400_DIRECT`, 2006 → 2406 | [ES-Agu_prepare_ad400.py](scripts/ES-Agu_prepare_ad400.py) via [run_pair_prepare.py](scripts/run_pair_prepare.py); submitted the same way |
 | GL-ZaH | AD400 submitted 2 Nov: run 4809211 / archive 4809212 | `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT`, 2000 → 2400 | [05c](scripts/05c_gl_zah_arctic_surface_case_direct_AD400.py): Arctic PFT surface, private FATES map, prepare, audit, submit |
 | IT-Tor | AD400 submitted 2 Nov: run 4809216 / archive 4809217; **one chain, S1 + F1** | `IT-Tor_ICOS_B04_FIXNC_AD400_DIRECT`, 2008 → 2408 | F1 generator [05a](scripts/05a_it_tor_make_f1_candidate.py) (Codex); [05d](scripts/05d_it_tor_S1_soil_and_F1_rebuild.py): S1 soil, F1 rebuild; [05e](scripts/05e_it_tor_S1F1_case_direct_AD400.py): F1 staging, prepare, audit, submit |
-| CH-Aws | HOLD, no case | — | humidity-source review (Stage02E–02T) |
+| CH-Aws | HOLD, no case; option A chosen 2 Nov (targeted ERA humidity replacement) | — | [06a](scripts/06a_ch_aws_humidity_scan_case_surface_READONLY.py) read-only scan; repair and case scripts follow |
 
 Every case uses the same settings:
 - direct AD400: one `case.submit`, `STOP_N=5`, `RESUBMIT=79`, no separate AD5;
@@ -888,6 +888,36 @@ Run order on IRIDIS6:
 **Batch04 queue after submission.** All five ICOS Batch04 chains (DE-Gri, DE-RuR, ES-Agu, GL-ZaH, IT-Tor) were in Slurm. CH-Aws has no case.
 
 **History files.** The pinned CTSM writes `*.clm2.h0a.*`; Stage05B's zero `h0` count was a naming mismatch. Archived `lnd/hist` file counts were DE-Gri 60, DE-RuR 50, ES-Agu 35.
+
+## Stage06A (2 Nov 2026): CH-Aws option A, read-only humidity scan
+
+**Decision.** The operator chose option A on 2 Nov 2026.
+- The CH-Aws forcing starts from the original FLUXNET product.
+- Only physically implausible MDS-filled humidity is replaced, using the packaged ERA value `VPD_ERA`.
+- Measured TA and pressure stay unchanged.
+- This is the same approach as IT-Tor F1 and the DE-Gri edits.
+- The six earlier exploratory repairs (RH21A–RH42A_V8) are not used.
+
+**What [06a](scripts/06a_ch_aws_humidity_scan_case_surface_READONLY.py) does (read only).** It measures the problem before any replacement rule is fixed.
+- *Cases.* For all `cases/CH-Aws*`: build state, start year, CO2, DATM years and folder, effective FATES flags, surface and parameter file, CaseStatus, restart sets and error lines from the newest run logs. This shows which case can serve as the template and why the early case failed.
+- *Surfaces.* Landunits, host PFT (the operator proxy is 13:100), soil sand/clay/ORGANIC and point. CH-Aws has no Stage02X surface.
+- *FLUXMET scan.* All 333,120 half-hours. For each, implied `RH_F` from `VPD_F`/`TA_F` and `RH_ERA` from `VPD_ERA`/`TA_ERA`. The output includes:
+  - per year: QC0/QC1/QC2 counts;
+  - QC1 counts for a grid of rules (RH_F < 5/10/20/30 %, RH_ERA − RH_F ≥ 30/50 points);
+  - the same low-RH counts for measured QC0 half-hours, which show how dry the site really gets (for example under foehn);
+  - episodes, hour of day and measured `RH` availability;
+  - what three ways of using ERA would give at the flagged half-hours.
+- *Main rule.* The Stage02O criterion: `VPD_F_QC = 1`, `RH_F < 10 %` and `RH_ERA − RH_F ≥ 50` points.
+- *Forcing versions.* Each of the 7 case DATM path sets is compared half-hour by half-hour with the FLUXMET `TIMESTAMP_START` labels (29 Feb dropped). The comparison covers:
+  - TBOT alignment;
+  - QBOT differences from the FLUXMET-implied value;
+  - what each version did at the flagged half-hours.
+
+**Output.** Everything goes in a new `~/ICOS_Batch04_stage06a_CH_Aws.*` folder:
+- a summary JSON;
+- a PRIVATE candidate half-hour CSV with licensed values, never committed.
+
+The replacement rule, the detached forcing builder and the case/submit script come after the operator has reviewed these counts.
 
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
