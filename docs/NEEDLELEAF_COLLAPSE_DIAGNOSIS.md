@@ -394,7 +394,7 @@ Ratio = FATES / EC GPP. The status column says how far each explanation has been
 | Arctic over-estimate | US-ICh 4.15, US-ICt 4.05, US-EML 2.62 | not diagnosed | open |
 | Annual-grass phenology | US-Var 2.19 | model GPP 3–4 g C m⁻² d⁻¹ in autumn–winter while EC ≈ 0; the annual-grass life cycle is not representable with perennial C3 grass | inferred from the figure |
 | Other over-estimates | US-Vcm 2.17, US-Rpf 2.01, US-Ton 1.41, US-UiD 1.34 | not diagnosed (US-Ton: possible annual grass and warm-climate DBF) | open |
-| Cold-deciduous DBF never leafs in warm climates | US-SRM (DBF 35 %), US-CMW; probably US-SRG, US-Ton | FATES cold-deciduous phenology needs chilling; no leaf-on for ~770 years | confirmed at US-SRM and US-CMW (counters, PFT GPP); US-SRG and US-Ton to check |
+| Cold-deciduous DBF never leafs in warm climates | US-SRM (DBF 35 %), US-SRG (11 %), US-CMW, FR-Pue (5 %); US-Ton DBF alive | FATES cold-deciduous phenology needs chilling; no leaf-on for ~770 years | confirmed at US-SRM and US-CMW (counters, PFT GPP); US-SRG and US-Ton to check |
 | Mild under-estimate | FR-Pue 0.75, DK-Sor 0.76, US-BZS 0.68 | not diagnosed | open |
 | Tropical under-estimate | GF-Guy 0.57, BR-Ma2 0.68 | not diagnosed | deferred |
 | Annual mean right, seasonal shape wrong | CH-Cha (R² 0.23), CH-Fru 0.41, IT-MBo 0.32, US-Kon −0.06, US-Mpj −2.1, US-Wjs −6.1, US-SRG −1.8 | CH-Cha: model grass drops all leaves in dry summers; managed grasslands: mowing and grazing not simulated; drylands: monsoon timing | partly inferred from figures |
@@ -403,6 +403,69 @@ Ratio = FATES / EC GPP. The status column says how far each explanation has been
 
 NEE in all forest sites is systematically a weaker sink than the towers (section 12). This follows from the steady-state
 spin-up, not from per-site errors.
+
+## 15. Remaining 26 sites screened with script 14 (2026-11-02)
+
+Run: [`figures/AD400_NORMAL400_site_anomaly_diagnostics/20261102T010543Z`](../figures/AD400_NORMAL400_site_anomaly_diagnostics/20261102T010543Z/).
+Every site was screened on its own, over the last Normal forcing cycle vs EC climatology. WUE = GPP / ET, in g C per kg water.
+
+**Needleleaf also dead at US-Mpj, US-Wjs and US-BZS.**
+- PFT 2 is leafless with zero canopy at all three: US-Mpj (PFT 2 = 60 %), US-Wjs (26 %), US-BZS (20 %).
+- US-Mpj's near-correct annual GPP (0.92) is the C4 grass over-producing, so US-Mpj is not a survivor.
+- Survivors are now US-MtB, US-Vcp, US-Vcm, US-Ha1 and US-Slt.
+- At US-Vcm the surviving needleleaf photosynthesises all winter: model GPP 1.2–2.5 g C m⁻² d⁻¹ in February–March at
+  −3 to 0 °C, against an EC value of 0.2–0.5. This is consistent with survival through winter carbon income (section 10
+  hypothesis).
+
+**Cold-deciduous trees never leaf in warm climates — confirmed.** PFT 6 is leafless all year at US-SRM (35 %), US-SRG (11 %)
+and FR-Pue (5 %), with no leaf-on for 670–780 years. At US-Ton (DBF 43 %) the DBF is alive. The "no leaf-on" flag also appears
+at US-Var, US-Whs, US-Wkg and IT-Noe, but those sites have no cold-deciduous PFT, so it is irrelevant there.
+
+**Drylands** (US-Ses 3.1, US-Wkg 1.9, US-Seg 1.9, US-SRM 1.27; Mediterranean ES-LJu 3.0, IT-Noe 1.75). Two errors:
+1. **The C4 grass greens up in spring instead of waiting for the monsoon.**
+   - Model peak in April vs EC peak in August (US-Ses, US-SRM, US-Seg, US-Wjs).
+   - Model active 9–10 months vs EC 3–7.
+   - In March–April the model gives 1.3–2 g C m⁻² d⁻¹ while EC is 0.2–0.6.
+2. **WUE is 1.3–3.1 × too high**, while ET is close to EC (US-Ses 218 vs 218, US-Seg 213 vs 223, US-Wkg 305 vs 290).
+- At ES-LJu and IT-Noe the evergreen shrub (PFT 7) is too productive in summer (2 ×), and model ET exceeds EC ET (445 vs 341,
+  316 vs 252).
+
+**Arctic tundra** (US-ICh 3.3, US-ICt 3.6, US-EML 2.5):
+- Timing is right: seasonal correlation 0.87–0.97 and the same number of active months.
+- The model peaks a month early (June vs July) and is 2–5 × too high from May to July. Model LAI is 1.6–2.8.
+- In May, at about 0 °C with snow still present, the model already gives 2–3 g C m⁻² d⁻¹ against 0.2–0.3 from EC.
+- WUE is 1.7–3 × too high.
+- Arctic C3 grass (PFT 12) supplies 58–75 % of GPP. The arctic evergreen shrub (PFT 10) is dead at US-ICh and US-ICt.
+- These cases use the custom `fates_params_ARCTIC_PURE_stage06_v1.json`.
+- Likely causes:
+  - Arctic-PFT photosynthetic capacity / leaf area too high.
+  - Early spring activity.
+  - No nutrient limitation, if FATES runs carbon-only (strongly N-limited tundra).
+- US-BZS (0.68) is the opposite: the growing season is too short (4 vs 6 months; April water-stressed, BTRAN 0.24), EC ET
+  exceeds P by 12 %, and its needleleaf is dead.
+
+**Annual grass.**
+- US-Var (2.1): model active 9 months vs EC 4. EC ≈ 0 from June to October (the annual grass has died), while the model gives
+  1.3–3.5. The model May peak is 8.9 vs 3.2. Model ET is 445 vs 308.
+- US-Ton (1.4): the C3 grass understory supplies 59 % of GPP and November is over-estimated. This is the same annual-grass issue.
+
+**Other over-estimates.**
+- US-Rpf (1.8): timing perfect (r 0.99), but May–June are 2 × too high (LAI 3.1) and WUE 1.6 ×. The DBF/shrub mapping should be
+  confirmed for this Alaskan site.
+- US-Vcm (2.1): winter activity (above) plus WUE 2.5 ×.
+
+**Under-estimates.**
+- FR-Pue (0.75): in winter (December–January) evergreen oak is half the EC value without water limitation. The canopy is not
+  closed (crown 0.74 of patch 0.95).
+- DK-Sor (0.76): timing (r 0.99) and WUE (4.3 vs 4.9) are right; overall productivity and ET are lower (364 vs 429 mm).
+
+**Grasslands.**
+- CH-Cha, CH-Fru, IT-MBo: the climatological timing is good (r 0.96–0.97) and WUE is close. Their low monthly R² comes from
+  individual drought years (section 14) and a shorter model season (CH-Cha 8 vs 10 months).
+- US-Kon: the model greens up in March–April and stays active into November (7 vs 5 months). The real prairie greens in May,
+  after the spring burn, which is not simulated.
+
+**Not evaluated** (EC file not found in the default path): US-NR3, US-UiD, US-Whs. They need `--ec-file`.
 
 ## Scripts (branch `full-sequence-gpp-nee-ec`, commit 80ec742)
 
