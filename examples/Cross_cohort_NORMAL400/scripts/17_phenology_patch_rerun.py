@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import gzip
 import importlib.util
 import json
 import os
@@ -202,6 +203,43 @@ def prepare(site, F7, P, years):
     build(i)
 
 
+OBJ_RE = re.compile(r"^edphysiologymod(\.f90)?\.(o|mod)$", re.I)
+
+
+def compile_evidence(exeroot, new, patched_mtime):
+    """Was the private SourceMods copy compiled into this build (and not the shared FATES file)?
+    gmake builds put objects in lnd/obj, CMake builds under cmake-bld/..., so the whole EXEROOT is searched; the
+    latest lnd build log with a compile line for EDPhysiologyMod.F90 must compile <case>/SourceMods/src.clm/ and
+    not the shared copy (an incremental rebuild that recompiles nothing is decided by the earlier full build log)."""
+    exeroot = Path(exeroot)
+    objs = [p for p in exeroot.rglob("*") if OBJ_RE.match(p.name) and p.is_file()]
+    logs = sorted(exeroot.glob("lnd.bldlog.*"), key=lambda p: (p.stat().st_mtime, p.name))
+    if not logs:
+        return False, f"no lnd.bldlog.* in {exeroot}"
+    own = f"{new}/SourceMods/src.clm/EDPhysiologyMod.F90"
+    shared = "fates/biogeochem/EDPhysiologyMod.F90"
+    log, lines = logs[-1], []
+    for lg in reversed(logs):          # an incremental rebuild does not recompile it: use the latest log that did
+        raw = lg.read_bytes()
+        text = (gzip.decompress(raw) if raw[:2] == b"\x1f\x8b" else raw).decode(errors="replace")
+        lines = [ln for ln in text.splitlines() if "EDPhysiologyMod.F90" in ln and " -c " in f" {ln} "]  # compile lines
+        if lines:
+            log = lg
+            break
+    own_compiled = any(own in ln for ln in lines)
+    shared_compiled = any(shared in ln for ln in lines)
+    newest = max((p.stat().st_mtime for p in objs), default=0)
+    facts = (f"{len(objs)} object/module file(s) {[str(p.relative_to(exeroot)) for p in objs][:4]}, "
+             f"log {log.name}: SourceMods copy compiled={own_compiled}, shared copy compiled={shared_compiled}")
+    if shared_compiled:
+        return False, "the SHARED FATES EDPhysiologyMod.F90 was compiled, not the patch; " + facts
+    if not own_compiled:
+        return False, "the lnd build log does not show the patched SourceMods file being compiled; " + facts
+    if objs and newest < patched_mtime:
+        return False, "EDPhysiologyMod object is older than the patched source; " + facts
+    return True, "patched SourceMods file compiled; " + facts
+
+
 SPINUP_LINE = re.compile(r"^([ \t]*spinup_state[ \t]*=.*)$", re.I | re.M)
 BUILD_TAG = "! [17: hidden during case.build only, restored byte-identical] "
 
@@ -234,6 +272,8 @@ def build(i):
         R.fail(f"spinup_state is set in CLM_NAMELIST_OPTS ({opts!r}); not handled, nothing built")
     unl = case / "user_nl_clm"
     orig = unl.read_bytes()
+    if BUILD_TAG.encode() in orig:
+        R.fail("user_nl_clm still has a line hidden by an interrupted build; restore it by hand (remove the tag)")
     hidden, n = hide_spinup_state(orig.decode())
     print(f"  build-only: CLM_ACCELERATED_SPINUP=off, {n} spinup_state line(s) in user_nl_clm commented out", flush=True)
     try:
@@ -256,14 +296,10 @@ def build(i):
     if not exe.is_file():
         R.fail(f"build finished but {exe} is missing")
     patched = case / "SourceMods" / "src.clm" / "EDPhysiologyMod.F90"
-    objs = [p for p in (exeroot / "lnd" / "obj").glob("*") if p.name.lower() in ("edphysiologymod.o", "edphysiologymod.mod")]
-    if not objs:
-        R.fail("EDPhysiologyMod object not found in the build; cannot confirm the patch was compiled")
-    if max(p.stat().st_mtime for p in objs) < patched.stat().st_mtime:
-        R.fail("EDPhysiologyMod object is older than the patched source: patch not compiled")
-    fp = exeroot / "lnd" / "obj" / "Filepath"
-    if fp.is_file() and str(case / "SourceMods" / "src.clm") not in fp.read_text():
-        R.fail("SourceMods/src.clm is not in the land build Filepath")
+    ok, msg = compile_evidence(exeroot, i["new"], patched.stat().st_mtime)
+    print(f"  compile check: {msg}", flush=True)
+    if not ok:
+        R.fail(msg)
     write_state(i, phase="VERIFIED_BUILT_NOT_SUBMITTED", exe=str(exe), exe_sha256=R.digest(exe))
     print(f"  {i['new']} BUILT AND VERIFIED, NOT SUBMITTED", flush=True)
 

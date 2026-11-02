@@ -61,6 +61,30 @@ class PhenologyPatchTest(unittest.TestCase):
         self.assertEqual(m.hide_spinup_state("hist_nhtfrq = 0\n"), ("hist_nhtfrq = 0\n", 0))
 
 
+    def test_compile_evidence(self):
+        import gzip, tempfile, time
+        m = load()
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            (d / "cmake-bld" / "x").mkdir(parents=True)
+            (d / "cmake-bld" / "x" / "EDPhysiologyMod.F90.o").write_text("o")
+            own = "ifort -c /iridisfs/scratch/u/cases/CASE_PHENFIX50/SourceMods/src.clm/EDPhysiologyMod.F90"
+            (d / "lnd.bldlog.1").write_bytes(gzip.compress(own.encode()))
+            ok, msg = m.compile_evidence(d, "CASE_PHENFIX50", time.time() - 100)
+            self.assertTrue(ok, msg)
+            time.sleep(0.01)
+            bad = "ifort -c /x/CTSM/src/fates/biogeochem/EDPhysiologyMod.F90"
+            (d / "lnd.bldlog.2").write_bytes(gzip.compress(bad.encode()))
+            ok, msg = m.compile_evidence(d, "CASE_PHENFIX50", time.time() - 100)
+            self.assertFalse(ok)
+            self.assertIn("SHARED", msg)
+            (d / "lnd.bldlog.3").write_text("nothing recompiled")   # incremental rebuild: decided by bldlog.2
+            self.assertFalse(m.compile_evidence(d, "CASE_PHENFIX50", 0)[0])
+            (d / "lnd.bldlog.2").unlink()
+            self.assertTrue(m.compile_evidence(d, "CASE_PHENFIX50", 0)[0])
+        with tempfile.TemporaryDirectory() as d:
+            self.assertFalse(m.compile_evidence(d, "CASE_PHENFIX50", 0)[0])
+
     def test_refuses(self):
         m = load()
         with self.assertRaises(RuntimeError):
