@@ -133,9 +133,14 @@ def read_months(paths):
     if df.empty:
         return df, found
     g = df.groupby(["ModelYear", "Month"], sort=True)
-    out = g.apply(lambda x: pd.Series({c: np.average(x[c], weights=x["w"]) if x[c].notna().all() else np.nan
-                                       for c in x.columns if c not in ("ModelYear", "Month", "w")}))
-    return out.reset_index(), found
+    cols = [c for c in df.columns if c not in ("ModelYear", "Month", "w")]
+    rows = []
+    for (y, m), x in g:
+        r = {"ModelYear": y, "Month": m}
+        for c in cols:
+            r[c] = np.average(x[c], weights=x["w"]) if x[c].notna().all() else np.nan
+        rows.append(r)
+    return pd.DataFrame(rows), found
 
 
 def collapse_year(df, var):
@@ -161,6 +166,13 @@ def mr_cols(df):
     return [c for c in df.columns if re.search(r"MAINT|_MR($|_)|MAINTAR", c) and not c.endswith("_PF")]
 
 
+def reset_events(d):
+    """Resets of a days-since counter from monthly means: a reset lowers the mean of its month and of the
+    next one, so consecutive drops count as one event."""
+    drop = np.concatenate([[d[0] < 31], np.diff(d) < -15])
+    return int(np.sum(drop & ~np.concatenate([[False], drop[:-1]])))
+
+
 def yearly_checks(df, label):
     rows = []
     lc, sc = leaf_col(df), store_col(df)
@@ -181,10 +193,10 @@ def yearly_checks(df, label):
                 r["leaf_months"] = int(len(on))
         if "FATES_DAYSINCE_COLDLEAFON" in g:
             d = g["FATES_DAYSINCE_COLDLEAFON"].to_numpy(float)
-            r["cold_leafon_events"] = int(np.sum(np.diff(d) < -15) + (d[0] < 31))
+            r["cold_leafon_events"] = reset_events(d)
         if "FATES_DAYSINCE_COLDLEAFOFF" in g:
             d = g["FATES_DAYSINCE_COLDLEAFOFF"].to_numpy(float)
-            r["cold_leafoff_events"] = int(np.sum(np.diff(d) < -15) + (d[0] < 31))
+            r["cold_leafoff_events"] = reset_events(d)
         if tf:
             s = g[tf].to_numpy(float)
             if np.isfinite(s).any():
