@@ -141,6 +141,31 @@ def adopted_name(base):
     return adopted_dir() / f"fates_params_needleleaf_{ADOPTED_VARIANT}_{sha(base)[:10]}.json"
 
 
+def ensure_adopted(base, sites=()):
+    """Create (or verify) the adopted copy of one source parameter file; returns (path, sha256). Used by script 20 too."""
+    trial, tsha, _ = T.make_param(base, ADOPTED_VARIANT, hashed=True)    # all checks of script 13
+    dest = adopted_name(base)
+    if dest.exists():
+        if sha(dest) != tsha:
+            R.fail(f"{dest} exists with different content; not overwritten")
+        print(f"  exists, verified: {dest.name}", flush=True)
+    else:
+        adopted_dir().mkdir(parents=True, exist_ok=True)
+        tmp = Path(str(dest) + ".tmp")
+        shutil.copyfile(trial, tmp)
+        if sha(tmp) != tsha:
+            R.fail(f"copy of {trial} differs")
+        tmp.replace(dest)
+        print(f"  written: {dest.name}", flush=True)
+    rec = Path(str(dest) + ".receipt.json")
+    old = json.loads(rec.read_text()) if rec.is_file() else {}
+    srcs = sorted(set(old.get("sources", [])) | {str(base)})
+    rec.write_text(json.dumps({"decision": DECISION, "sources": srcs, "source_sha256": sha(base), "adopted": str(dest),
+                               "adopted_sha256": tsha, "pft": PFT, "changes": CHANGES,
+                               "sites": sorted(set(old.get("sites", [])) | set(sites))}, indent=1) + "\n")
+    return dest, tsha
+
+
 def write(F7, P):
     rows = plan(F7, P)
     if any(r["action"] == "CHECK" for r in rows):
@@ -148,22 +173,9 @@ def write(F7, P):
     bases = sorted({r["base_param"] for r in rows if r["action"] == "RERUN"})
     manifest = {}
     for b in bases:
-        trial, tsha, changes = T.make_param(b, ADOPTED_VARIANT, hashed=True)    # all checks of script 13
-        dest = adopted_name(b)
-        if dest.exists():
-            if sha(dest) != tsha:
-                R.fail(f"{dest} exists with different content; not overwritten")
-            print(f"  exists, verified: {dest.name}")
-        else:
-            shutil.copyfile(trial, dest)
-            if sha(dest) != tsha:
-                R.fail(f"copy of {trial} differs")
-            print(f"  written: {dest.name}")
-        rec = {"decision": DECISION, "source": b, "source_sha256": sha(b), "adopted": str(dest),
-               "adopted_sha256": tsha, "pft": PFT, "changes": CHANGES,
-               "sites": sorted(r["site"] for r in rows if r["action"] == "RERUN" and r["base_param"] == b)}
-        Path(str(dest) + ".receipt.json").write_text(json.dumps(rec, indent=1) + "\n")
-        manifest[b] = {"adopted": str(dest), "sha256": tsha, "sites": rec["sites"]}
+        dest, tsha = ensure_adopted(b, sorted(r["site"] for r in rows if r["action"] == "RERUN" and r["base_param"] == b))
+        manifest[b] = {"adopted": str(dest), "sha256": tsha,
+                       "sites": sorted(r["site"] for r in rows if r["action"] == "RERUN" and r["base_param"] == b)}
     (adopted_dir() / "ADOPTED_NEEDLELEAF_PARAMS.json").write_text(
         json.dumps({"decision": DECISION, "pft": PFT, "changes": CHANGES, "files": manifest}, indent=1) + "\n")
     print(f"\nmanifest: {adopted_dir() / 'ADOPTED_NEEDLELEAF_PARAMS.json'}")
