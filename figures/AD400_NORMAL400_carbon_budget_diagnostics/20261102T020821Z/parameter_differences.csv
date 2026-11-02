@@ -1,0 +1,33 @@
+parameter,max_abs_log10_ratio,key_parameter,units,long_name,PFT2 needleleaf_evergreen_extratrop_tree,PFT6 broadleaf_colddecid_extratrop_tree
+fates_leaf_slatop,0.7781512503836436,True,m^2/gC,"Specific Leaf Area (SLA) at top of canopy, projected area basis",0.005,0.03
+fates_turnover_leaf_canopy,0.6020599913279624,True,yr,"Leaf longevity (ie turnover timescale) of canopy plants. For drought-deciduous PFTs, this also indicates the maximum len",4,1
+fates_allom_d2ca_coefficient_max,0.49525404293161757,True,m2 cm^(-1/beta),max (savanna) dbh to area multiplier factor where  area  n*d2ca_coeff*dbh^beta,0.3694,1.155
+fates_turnover_fnrt,0.3010299956639812,True,yr,"root longevity (alternatively, turnover time)",2,1
+fates_stoich_nitr,0.13966199342900626,True,gN/gC,target nitrogen concentration (ratio with carbon) of organs,0.029 0.024 1e-08 0.0047,0.04 0.024 1e-08 0.0047
+fates_wood_density,0.10739708291261434,True,g/cm3,mean density of woody tissue in plant,0.4424,0.5665
+fates_maintresp_leaf_atkin2017_baserate,0.0685780414745378,True,umol CO2/m^2/s,Leaf maintenance respiration base rate parameter (r0) per Atkin et al 2017,1.5,1.756
+fates_leaf_vcmax25top,0.028963695935316617,True,umol CO2/m^2/s,"maximum carboxylation rate of Rub. at 25C, canopy top",62,58
+fates_phen_flush_fraction,inf,False,fraction,"Upon bud-burst, the maximum fraction of storage carbon used for flushing leaves",nan,0.5
+fates_hlm_pft_map,inf,False,area fraction,"In fixed biogeog mode, fraction of HLM area associated with each FATES PFT",1 1 0 0 0 0,0 0 0 0 0 0
+fates_rad_leaf_xl,1.7708520116421442,False,unitless,Leaf/stem orientation index,0.01,0.59
+fates_allom_d2h3,1.0738545708772058,False,variable,Parameter 3 for d2h allometry (optional),196.7,16.59
+fates_allom_d2h1,0.9892163297702088,False,variable,"Parameter 1 for d2h allometry (intercept, or c)",306.8,31.46
+fates_allom_agb1,0.6921049832703233,False,variable,Parameter 1 for agb allometry,0.3956,0.08038
+fates_turnover_leaf_ustory,0.6020599913279624,False,yr,Leaf longevity (ie turnover timescale) of understory plants.,4,1
+fates_allom_d2ca_coefficient_min,0.49525404293161757,False,m2 cm^(-1/beta),min (forest) dbh to area multiplier factor where  area  n*d2ca_coeff*dbh^beta,0.3694,1.155
+fates_allom_zroot_min_dbh,0.3979400086720376,False,cm,dbh at which the maximum rooting depth for a recruit is defined,1,2.5
+fates_phen_leaf_habit,0.3010299956639812,False,flag,Flag for leaf phenology habit. 1 - evergreen 2 - season (cold) deciduous 3 - stress (hydro) deciduous 4 - stress (hydro),1,2
+fates_leaf_stomatal_slope_medlyn,0.28172484046859464,False,KPa**0.5,"stomatal slope parameter, as per Medlyn",2.3,4.4
+fates_rad_stem_rhovis,0.24303804868629444,False,fraction,Stem reflectance  visible,0.12,0.21
+fates_rad_leaf_tauvis,0.17609125905568124,False,fraction,Leaf transmittance  visible,0.04,0.06
+fates_mort_freezetol,0.16272729749769976,False,degrees C,minimum temperature tolerance,-55,-80
+fates_stoich_phos,0.13966199342900634,False,gP/gC,target phosphorus concentration (ratio with carbon) of organs,0.0029 0.0024 1e-09 0.00047,0.004 0.0024 1e-09 0.00047
+fates_rad_stem_rhonir,0.13389357926122641,False,fraction,Stem reflectance  near-IR,0.36,0.49
+fates_rad_leaf_taunir,0.12831847725968054,False,fraction,Leaf transmittance  near-IR,0.32,0.43
+fates_allom_d2h2,0.11185975732474461,False,variable,"Parameter 2 for d2h allometry (slope, or m)",0.7524,0.9734
+fates_allom_agb2,0.09069860363655188,False,variable,Parameter 2 for agb allometry,0.8295,1.022
+fates_allom_fnrt_prof_a,0.06694678963061322,False,unitless,"Fine root profile function, parameter a",7,6
+fates_rad_leaf_rhovis,0.051152522447381256,False,fraction,Leaf reflectance  visible,0.09,0.08
+fates_allom_d2bl2,0.036729463586101525,False,variable,Parameter 2 for d2bl allometry,1.523,1.4
+fates_rad_leaf_clumping_index,0.024823583725032145,False,fraction (0-1),factor describing how much self-occlusion of leaf scattering elements decreases light interception,0.85,0.9
+fates_allom_blca_expnt_diff,0.012589127308020467,False,unitless,difference between allometric DBH bleaf and DBH crown area exponents,-0.34,-0.35
