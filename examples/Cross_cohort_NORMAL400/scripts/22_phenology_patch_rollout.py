@@ -29,8 +29,9 @@ Actions:
   ad-run                       RESTART_NLF (only once its NLF is cancelled) and RERUN_PHEN sites: prepare, build, verify,
                                submit (about 5-8 min per site, sequential; run with setsid nohup)
   normal-run                   sites whose new AD finished 400 years
-  purge-old   [--confirm DELETE_OLD_PHENOLOGY_OUTPUTS]   .nc output of the original AD/Normal of RERUN_PHEN sites and of
-                               the cancelled <AD>_NLF cases (dry run without --confirm); build dirs never touched
+  purge-old   [--confirm DELETE_OLD_PHENOLOGY_OUTPUTS]   .nc output of every replaced case: original AD/Normal of
+                               RERUN_PHEN, RESTART_NLF and KEEP_NLF sites, and the cancelled <AD>_NLF cases (dry run without
+                               --confirm); never a running case, never a build dir, never CaseDocs / namelists / stream xml
   status
 """
 from __future__ import annotations
@@ -354,17 +355,19 @@ def normal_run(site):
 
 def purge_old(site, confirm):
     i, act, *_ = classify(site)
-    targets = []
+    # Only *.nc of cases that are replaced: a new case needs nothing of them but CaseDocs / user_nl / stream xml (kept).
     if act == "RERUN_PHEN":
-        if M20.read_state(i["ad_case"]).get("phase") not in ("VERIFIED_NOT_SUBMITTED", "SUBMIT_ATTEMPTED_UNCERTAIN", "SUBMITTED"):
-            R.fail(f"new AD case {i['ad']} not verified yet; old output kept")
         targets = [("ad0", i["ad0"]), ("n0", i["n0"])]
     elif act == "RESTART_NLF":
-        if M20.read_state(i["nlf_case"]).get("phase") != "CANCELLED_REPLACED":
-            R.fail(f"{i['nlf']} not cancelled; kept")
-        targets = [("nlf", i["nlf"])]
+        if i["nlf_case"].is_dir() and M20.read_state(i["nlf_case"]).get("phase") != "CANCELLED_REPLACED":
+            R.fail(f"{i['nlf']} not cancelled; run cancel-nlf first")
+        targets = [("nlf", i["nlf"]), ("ad0", i["ad0"]), ("n0", i["n0"])]
+    elif act == "KEEP_NLF":
+        if M20.read_state(i["nlf_case"]).get("phase") not in ("VERIFIED_NOT_SUBMITTED", "SUBMIT_ATTEMPTED_UNCERTAIN", "SUBMITTED"):
+            R.fail(f"{i['nlf']} not verified; originals kept")
+        targets = [("ad0", i["ad0"]), ("n0", i["n0"])]
     else:
-        print(f"{site}: {act}, nothing to purge here", flush=True)
+        print(f"{site}: {act}, nothing to purge", flush=True)
         return 0
     total, plan_ = 0, []
     for key, name in targets:
