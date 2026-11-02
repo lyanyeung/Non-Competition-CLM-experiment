@@ -789,6 +789,37 @@ All three cases were built the same way:
 
 **Next read-only step:** [Stage05B](scripts/05b_batch04_status_itTor_soil_glZaH_preflight_READONLY.py) audits the three running chains (restart sets, `spinup_state`, CO2 versus the NOAA first-year convention), diffs the F1 script, prints the pinned CTSM ORGANIC/soil-layer mapping for IT-Tor S1 and preflights the GL-ZaH template, surface and private map.
 
+## Stage05B result and Stage05C/05D (2 Nov 2026)
+
+**Stage05B (read only) result.**
+- *Running chains.* All three chains are healthy:
+  - DE-Gri: 6 restart sets, latest 2034, RESUBMIT 73 left.
+  - DE-RuR: 3 sets, latest 2026.
+  - ES-Agu: 3 sets, latest 2021.
+  - Every set has clm2/datm/cpl files and `spinup_state=2`.
+  - The CO2 of every case equals the NOAA first-forcing-year value (376.95 / 390.62 / 381.15 ppm), the same convention as the earlier batches.
+- *F1 provenance.* The F1 run copy `2a537d46` is not on IRIDIS6, and the existing F1 file (`result/candidate.nc`) was not written by `05a`.
+- *IT-Tor soil mapping.* The pinned CTSM `d5ea9d0` maps each 20SL_8.5m model layer to the surface-data level that contains its node depth. Model layers 1–4 (0–0.20 m) therefore use levels 1–4.
+
+**Stage05C, GL-ZaH.** [05c](scripts/05c_gl_zah_arctic_surface_case_direct_AD400.py) works in four steps:
+1. Builds a point surface from the template surface with only `PCT_NAT_PFT` changed to host 0 bare 43 / 9 evergreen shrub 53 / 11 deciduous shrub 3 / 12 Arctic C3 grass 1. Landunits, soil and point are unchanged, proven by a whole-file comparison.
+2. Prepares `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT` from `GL-ZaH_FATES_SPINUP500_11P`:
+   - same method as the DE-RuR/ES-Agu cases;
+   - private Arctic FATES map `56d9433f…`, checked identical to the shared default outside host rows 9/11;
+   - 26 annual DATM files 2000–2025;
+   - CO2 368.96 (NOAA 2000);
+   - FIXNC with `spinup_state=2`.
+3. Audits the prepared case.
+4. Submits it once as direct AD400 80 x 5.
+
+**Stage05D, IT-Tor (detached inputs, no case).** [05d](scripts/05d_it_tor_S1_soil_and_F1_rebuild.py) builds two inputs:
+- *S1.* ORGANIC levels 1–4 = 55.776 kg/m³ and levels 5–10 = 0.
+  - Source: Leolini et al. 2025, AFM 367:110486, Table 1 — measured topsoil SOC 64.7 Mg C/ha in 0–20 cm, converted at 0.58 gC/g organic matter.
+  - Through the CTSM mapping, the model then holds exactly 6.47 kg C/m² in 0–20 cm; `om_frac` in the top layers is about 0.43.
+- *F1 rebuild.* `f1-rebuild` runs the repository `05a` into a new folder and compares its output with the existing candidate, variable by variable.
+
+How many IT-Tor chains to run (S1/F1 combinations) is an open operator decision.
+
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
