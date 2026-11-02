@@ -1,6 +1,6 @@
 # OzFlux 9-site Non-Competition CLM-FATES — operator-selected v1.1 PFT inputs
 
-**Status 2026-11-02: Nine-site PFT hypothesis SELECTED by operator, source snapshot and source-lock/readiness audit published, actual IRIDIS preflight pending. No new site PFT surface, case, DATM, AD5, AD400 or Slurm job submitted.**
+**Status 2026-11-02: Stage01 operator SUCCESS on IRIDIS6, 9/9 PFT snapshots PASS and 10/10 original OzFlux L6 present; AU-ASM alone has a previous exact-hashed CTSM2000 gridded reference surface. NO nine-site FIXNC PFT-specific point surfaces exist yet. Stage02 isolated AU-ASM PFT surface candidate builder plus 9-site original-L6 coordinate/source gate PUBLISHED, operator run pending. No CIME cases, DATM approval, AD5/AD400 or Slurm jobs submitted.**
 
 The operator instructed: *use all the OzFlux PFT numbers already updated on GitHub for the non-competition experiment, and proceed*. Do **not** continue the AU-ASM historical 2018 derived-AGB forensic stages as a prerequisite to FIXNC PFT input selection. All SOURCE AGB evidence remains preserved in `CLM-FATES-single-site-workflows`; 2018 derived AGB is not validated observation.
 
@@ -34,6 +34,90 @@ Percentages are of **CLM natural vegetation landunit including bare host0** (not
 | AU-Tum | FATES4 EBT 100 | 0 | Pre-2019 tall eucalyptus-forest state |
 
 All nine primaries have `DEFAULT14` mapping, zero to four nonzero PFTs, total natland 100% **including bare** and per-source `round_trip=PASS`. Example host FATES mapping: CLM host4→FATES1, host5→FATES4, host9→FATES7, host13→FATES13, host14→FATES14. Do not confuse this host mapping with FATES indexing; compare the actual `fates_hlm_pft_map` in each submitted CIME case before running.
+
+## Stage01 operator successful completion — verified inputs
+
+**Actual IRIDIS6 output:** `/home/ly3n24/ozflux_nc_stage01_20261102T215107Z`.
+Corrected script `--self-test` PASS; original five snapshotted
+source Git blobs verified; EXACT 9/9 accepted v1.1 PFT vectors and
+DEFAULT14 host0 bare closure PASS.
+ALL **10/10 original L6 NetCDFs for 9 site IDs** physically present:
+AU-ASM 2/2, each remaining site 1/1. These are ORIGINAL meteorological
+files and are NOT approved model DATM.
+Only **AU-ASM** has an existing point CTSM-2000 reference
+`/home/ly3n24/ozflux_stage16_reference_20261102T023647Z/surfdata_AU-ASM_hist_2000_16pfts_c261102.nc`,
+SHA256 `18edace32d8e356c7d73269329dca7ed6338140e1ad1456f1a88691522c307fa`,
+which still contains the unchanged generic GRID PFT proportions and
+SOIL textures; it is not an existing AU-ASM FIXNC PFT-specific surface.
+All 9 sites reported `new_FIXNC_surface_science_verified=False`.
+The corrected script retained source inputs unchanged; no Slurm.
+
+## Stage02 (published, operator pending) — isolated AU-ASM FIXNC surface candidate, eight-site source coordinate audit
+
+Source `scripts/02_ozflux09_PFT_surface_ASM_pilot_and_eight_site_coordinates_READONLY_FIRST.py`
+pinned commit **`c6d3ce3f4d170184e7a601c81d9e6db2ec13b5fd`**,
+Git blob SHA **`1ec989b277031b4bbee4d5aac46b46492a91c411`**.
+
+Two explicit modes:
+- `--preflight`: reload actual Stage01 successful JSON and original
+  source-blobs, check all 10 native NetCDF source files and **metadata-only**
+  site latitude/longitude candidates, and verify exact SHA256, coordinate,
+  15/16 PFT slot, 10-layer PCT_SAND/PCT_CLAY/ORGANIC properties of the
+  AU-ASM Stage16 reference. Does not generate a new surface.
+- `--build-asm --confirm CREATE_NEW_AU_ASM_FIXNC_PFT_SURFACE_CANDIDATE_ONLY`:
+  repeats preflight and then copies the **unchanged original Stage16 reference**
+  to a fresh direct HOME folder. Modifies **only**
+  `PCT_NAT_PFT` **in the new copy** to natural-land host0 bare 29,
+  host5 EBT FATES4 65, host13 CoolC3 2, host14 C4 4; other host classes
+  and extra slot set to zero. Checks all other NetCDF variable values
+  against the original reference by variable-by-variable equality,
+  checks coordinates and source properties, and records SHA256/provenance.
+  Original source, existing CIME cases and original DATM are unchanged.
+  The original gridded **10-layer soil is retained** as a *reference,
+  not yet an approved site-measured soil profile*.
+- The same run produces a nine-site metadata-only coordinate report:
+  any missing/conflicting L6 latitude/longitude is marked clearly
+  and cannot be used to build a new CTSM point surface.
+  There is **no guessing or automatic 8-site surface creation**.
+- **No forcing or soil scientific approval, no effective runtime
+  FATES parameter mapping verification, and no AD5/AD400 authorization**
+  come from this candidate. In particular AU-How's existing COMPETITION
+  case remains untouched.
+
+Operator IRIDIS6 use (commit/git blob immutable, no original/Slurm writes):
+
+```bash
+(
+set -euo pipefail
+conda activate clm_fates_env
+COMMIT="c6d3ce3f4d170184e7a601c81d9e6db2ec13b5fd"
+BASE="https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$COMMIT/examples/OzFlux_Batch01_09"
+CODE="$HOME/ozflux_nc_stage02_code"
+SCRIPT="$CODE/stage02.py"
+PRE="$HOME/ozflux_nc_stage02_pre_$(date -u +%Y%m%dT%H%M%SZ)"
+OUT="$HOME/ozflux_nc_stage02_ASM_$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "$CODE"
+curl -fLsS --retry 3 "$BASE/scripts/02_ozflux09_PFT_surface_ASM_pilot_and_eight_site_coordinates_READONLY_FIRST.py" -o "$CODE/stage02.py.download"
+test "$(git hash-object "$CODE/stage02.py.download")" = "1ec989b277031b4bbee4d5aac46b46492a91c411"
+mv "$CODE/stage02.py.download" "$SCRIPT"
+python3 -B -m py_compile "$SCRIPT"
+python3 -B "$SCRIPT" --self-test
+python3 -B "$SCRIPT" --preflight --out "$PRE"
+python3 -B "$SCRIPT" --build-asm --confirm CREATE_NEW_AU_ASM_FIXNC_PFT_SURFACE_CANDIDATE_ONLY --out "$OUT"
+echo "STAGE02_PREFLIGHT=$PRE"
+echo "STAGE02_ASM_SURFACE_CANDIDATE=$OUT"
+)
+```
+
+**After operator execution:** review exact copied NetCDF
+`surfdata_AU-ASM_NC_FIXNC_PFT_v1p1_CTSM2000_SOIL_REFERENCE.nc`
+and the Stage02 JSON/TSV register. Next step: generate
+separate CTSM2000 source-point references for the other 8 sites
+ONLY at independently verified tower coordinates, then apply
+the same Git-locked v1.1 host PFT vectors while keeping
+site-specific soil/forcing gates clear. Build new isolated
+FIXNC cases and test AD5 only after DATM/soil/effective-map checks.
+Do not launch AD400 from the Stage02 candidate alone.
 
 ## Candidate model mode (not submitted)
 
