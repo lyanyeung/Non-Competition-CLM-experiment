@@ -168,7 +168,11 @@ def filesystem_preview(rows,inventory):
     # No recursion and no writer actions; bounded exact known directories.
     raw_root=BASE/"sites"/"MY_EC_SITE"
     asm_ref=HOME/"ozflux_stage16_reference_20261102T023647Z"/"surfdata_AU-ASM_hist_2000_16pfts_c261102.nc"
-    asm_stage14_home=list(HOME.glob("ozflux_stage14*"))
+    # Stage14 candidates may be named ozflux_ASM_* rather than
+    # ozflux_stage14_* on the operator host. This is existence-only;
+    # it is never a DATM physics or science approval.
+    asm_stage14_home=sorted({*HOME.glob("ozflux_stage14*"),
+                             *HOME.glob("ozflux_ASM*")})[:60]
     asm_stage14_candidate=sum(len(list(d.glob("*201?.nc"))) for d in asm_stage14_home if d.is_dir() and not d.is_symlink())
     # Raw source L6 counts are NOT converted simulation forcing.
     out=[]
@@ -206,7 +210,7 @@ def self_test():
     assert HOST_TO_FATES[5]==4 and HOST_TO_FATES[4]==1 and HOST_TO_FATES[9]==7
     assert HOST_TO_FATES[13]==13 and HOST_TO_FATES[14]==14
     assert close((65/71)*100,91.5493,0.00005)
-    assert "blob" in blob_hash.__code__.co_consts or True
+    assert len(DATA)==5 and len(set(DATA.values()))==5
     assert len(EXPECTED)==9 and EXPECTED[0]=="AU-ASM"
     print("OZFLUX NC STAGE01 SELF-TEST PASS | 9 PFT sites, bare0, DEFAULT14 map, no original/model writes")
 
