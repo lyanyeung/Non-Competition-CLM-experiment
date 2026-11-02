@@ -772,6 +772,26 @@ case, so it shares the patched executable.
   - AD: `<AD>_HINONE`, 400 years. lnd_in must equal the original AD on every key except this one.
   - Normal: `..._NORMAL400_DIRECT_HINONE`, using the script-01 method.
 
+## 18. Remaining problems after the needleleaf and phenology fixes (2026-11-02)
+
+Sorted by what kind of fix they need. Every rerun site must be re-evaluated first: the phenology patch also touches the
+arctic C3 grass and deciduous shrubs, and needleleaf F changes US-Vcm.
+
+| Kind | Problem | Sites | Lever |
+|---|---|---|---|
+| PFT parameters | Dryland GPP per unit water 1.3–3 × too high; ET about right | US-Ses, US-Seg, US-Wkg, US-Whs, ES-LJu, IT-Noe, US-SRM, US-Mpj (grass) | C4 grass / C3 grass / evergreen shrub `fates_leaf_vcmax25top`, stomatal slope, `fates_leaf_slatop`, rooting depth (T/ET) |
+| PFT parameters | Dryland C4 grass greens in spring instead of with the monsoon | US-Ses, US-SRM, US-Seg, US-Wjs, US-SRG | drought-deciduous (`fates_phen_leaf_habit` 3) thresholds: `fates_phen_drought_threshold`, `fates_phen_moist_threshold`, `fates_phen_mindayson` |
+| PFT parameters + process | Arctic GPP 2–5 × too high May–July, active under snow | US-ICh, US-ICt, US-EML (US-Uaf, US-NR3) | arctic C3 grass / shrub Vcmax, SLA; spring activation; carbon-only FATES has no N limitation (structural) |
+| check after rerun | Needleleaf winter photosynthesis; GPP 2.1 × EC | US-Vcm | rerun with F first; then low-temperature photosynthesis / frozen-soil water |
+| site structure (not tuned) | Closed-canopy needleleaf above sparse/old stands, 1.3–1.5 × EC | FI-Sod, US-Ho1, US-SP1, CH-Dav | stand structure / age; not a PFT parameter |
+| missing process | Annual grass dies in summer in reality | US-Var, US-Ton (understory) | no annual life cycle in FATES |
+| missing process | Mowing, grazing, spring burning | CH-Cha, CH-Fru, IT-MBo, US-Kon | management / fire not simulated |
+| missing process / PFT choice | Mesquite as cold-deciduous tree in a warm desert | US-SRM, US-SRG | PFT mapping (drought-deciduous would fit better) |
+| by construction | Forest NEE a weaker sink than the towers by about 270 g C m⁻² yr⁻¹ | most forests | steady-state spin-up; needs stand-age / disturbance history, forward run, data assimilation |
+| site / data | Groundwater | US-CMW | excluded |
+| site / data | EC GPP ≈ 0 (US-NR3); precipitation 3169 mm yr⁻¹ (DE-Hzd); EC files not in the default path (US-NR3, US-UiD, US-Whs); PFT mapping to confirm (US-Rpf); short season with EC ET > P (US-BZS) | as listed | data checks |
+| deferred | Tropical under-estimate | GF-Guy, BR-Ma2 | later |
+
 ## Scripts (branch `full-sequence-gpp-nee-ec`, commit 80ec742)
 
 | Script | Purpose |
