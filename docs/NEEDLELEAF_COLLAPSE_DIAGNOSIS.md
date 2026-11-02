@@ -568,8 +568,16 @@ autumns in central Europe. This explains why both sites die at a similar stand a
 All released tags checked up to `sci.1.93.5` still have the trap. The second change is also what keeps cold-deciduous trees
 leafless in warm climates (US-SRM, US-SRG, US-CMW, FR-Pue; sections 14–15), so the same 3-line patch addresses both problems.
 
-**Fix to test.** Backport the patch through the case's `SourceMods/src.clm/EDPhysiologyMod.F90` (case-local, new build) and rerun
-CZ-Stn and DE-Lnf (and US-SRM for the warm-climate case). The needleleaf trials are unaffected, because PFT 2 is evergreen.
+**Fix being tested.**
+- The FATES source used here contains the trap: `EDPhysiologyMod.F90` line 1123 `nchilldays >= 1` and line 1170
+  `cstatus = phen_cstat_nevercold`. This was checked on IRIDIS, 2026-11-02.
+- Script `17_phenology_patch_rerun.py` (branch `full-sequence-gpp-nee-ec`) backports the 12 upstream lines into
+  `<case>/SourceMods/src.clm/EDPhysiologyMod.F90` of a new clone of each site's AD case (`*_AD400_PHENFIX50`).
+  - Each anchor must match exactly once, and the diff is kept in the case.
+  - It builds its own executable (EXEROOT checked not to be the shared one) and confirms the patched object was compiled.
+  - The lnd_in must equal the AD case's except history keys.
+  - Sites: CZ-Stn, DE-Lnf (trap), US-SRM (warm-climate DBF).
+- The needleleaf trials are unaffected, because PFT 2 is evergreen.
 
 ## Scripts (branch `full-sequence-gpp-nee-ec`, commit 80ec742)
 
