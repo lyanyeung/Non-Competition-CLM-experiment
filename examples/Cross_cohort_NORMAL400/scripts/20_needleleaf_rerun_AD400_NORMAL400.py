@@ -387,6 +387,10 @@ def normal_prepare(site):
 
 def normal_run(site):
     i = ident(site)
+    if read_state(i["ad_case"]).get("phase") == "CANCELLED_REPLACED":
+        print(f"{site}: {i['ad']} was replaced by {read_state(i['ad_case']).get('replaced_by')} (script 22); skipped",
+              flush=True)
+        return
     if read_state(i["n_case"]).get("phase") in ("SUBMITTED", "SUBMIT_ATTEMPTED_UNCERTAIN"):
         print(f"{site}: NORMAL {read_state(i['n_case'])['phase']}; not submitted again", flush=True)
         return
