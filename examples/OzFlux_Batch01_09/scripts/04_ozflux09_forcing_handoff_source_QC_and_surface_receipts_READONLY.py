@@ -148,13 +148,23 @@ def asm_candidate_inventory():
       2016:"8b5576e424625a0bf62f0fb0fa552230ff7c01e26e440a565242e169fe455c7f",
       2017:"634d8d395e95331cf9f13dcbf5d48edbc2e881af4ca913acb75abe1333032951",
       2018:"8ce901670486469358525c95f6a78db82698a5712312c4b1bf610aff744be55d"}
+    manifest=load_json(STAGE14/"stage14_FSDS0_provisional_manifest.json")
+    if (manifest.get("mode")!="WRITTEN_NEW_PROVISIONAL_FILES"
+        or manifest.get("science_approval") is not False
+        or manifest.get("model_submission_authorised") is not False
+        or len(manifest.get("new_outputs",[]))!=6):
+        raise ValueError("AU-ASM Stage14 operator six-file provisional manifest missing/changed")
+    listed={int(v["year"]):v for v in manifest["new_outputs"]}
+    if set(listed)!=set(expected):
+        raise ValueError("Stage14 manifest file-year membership mismatch")
     present=[]
     for y,hashval in expected.items():
         p=STAGE14/f"AU-ASM_FSDS0_PROVISIONAL_DATM_{y}.nc"
-        if p.is_file() and not p.is_symlink() and sha(p)==hashval:
-            present.append(y)
-        elif p.exists():
-            raise ValueError("AU-ASM six-year FSDS0 candidate source SHA changed: "+str(p))
+        if (str(p)!=listed[y]["path"] or
+            listed[y]["sha256"]!=hashval or
+            sha(p)!=hashval):
+            raise ValueError("AU-ASM six-year FSDS0 source SHA or manifest changed: "+str(p))
+        present.append(y)
     return present
 
 def selftest():
@@ -162,7 +172,9 @@ def selftest():
     assert len({*SITES})==9
     assert S2_ASM.startswith("d06ad3")
     assert 2018 in range(2013,2019)
-    print("OZFLUX NC STAGE04 SELF-TEST PASS: 9 surface SHA guard, 169 native source-years, 67 structural candidate years, 2018 forcing provisional HOLD; READ ONLY")
+    assert len(S3_HASHES)==8 and len(set(S3_HASHES.values()))==8
+    assert sum((len(S3_HASHES),1))==9
+    print("OZFLUX NC STAGE04 SELF-TEST PASS: 9 immutable surface SHA guards, 169 native source-years, 67 structural candidates, 6 provisional AU-ASM years; READ ONLY")
 
 def main():
     if sys.argv[1:]==["--self-test"]:return selftest()
