@@ -742,6 +742,50 @@ The actual IT-TrF 2025 Nov 12–20 station source was **read directly locally**,
 
 [Actual uploaded nested ZIP provenance, detailed Nov TA availability, four matched handoff steps and final science decision](docs/stage03n_actual_uploaded_IT_TrF_nested_archive_verified_Nov2025_neighbor_evidence_final_decision_20261102.md). [Official ICOS source](https://meta.icos-cp.eu/objects/mwN98ExGR4uPnaUKi5mWoISl). No licensed original ZIP or per-record data was committed to GitHub.
 
+## Stage04 (2 Nov 2026): three direct AD400 chains running, IT-Tor sensitivities, GL-ZaH private map
+
+The user decided to run these as **direct AD400 chains**:
+- one `case.submit`;
+- `STOP_N=5`;
+- `RESUBMIT=79`;
+- the first five years are part of the chain, not a separate AD5.
+
+Operator record: [Stage04F handoff](docs/stage04f_operator_direct_ad400_and_it_tor_sensitivity_20261102.md).
+
+| Site | Case | Forcing | Start → target | Preparation |
+| --- | --- | --- | --- | --- |
+| DE-Gri | `DE-Gri_ICOS_B04_FIXNC_AD400_DIRECT` | 22 annual DATM files 2004–2025; 2011 and 2024 are the operator-approved edits (Stage03U/V) | 2004 → 2404 | [04c](scripts/04c_de_gri_direct_AD400_isolated_case_prepare.py), [04e](scripts/04e_de_gri_one_time_exploratory_direct_AD400_submit.py) |
+| DE-RuR | `DE-RuR_ICOS_B04_FIXNC_AD400_DIRECT` | 15 historical files 2011–2025 | 2011 → 2411 | [DE-RuR_prepare_ad400.py](scripts/DE-RuR_prepare_ad400.py) via [run_pair_prepare.py](scripts/run_pair_prepare.py) |
+| ES-Agu | `ES-Agu_ICOS_B04_FIXNC_AD400_DIRECT` | 19 historical files 2006–2024 | 2006 → 2406 | [ES-Agu_prepare_ad400.py](scripts/ES-Agu_prepare_ad400.py) via [run_pair_prepare.py](scripts/run_pair_prepare.py) |
+
+All three cases were built the same way:
+- cloned from `<site>_FATES_SPINUP1000_S30SHARED` with `--keepexe`;
+- Stage02X SHA-pinned PFT surface;
+- FATES fixed biogeography + nocomp, `spinup_state=2`, preview through the private AD overlay;
+- history fields `FATES_GPP`/`FATES_NPP`.
+
+**Operator-reported status, 2 Nov:**
+- The first segments completed: DE-Gri run 4807938 / archive 4807939, DE-RuR 4808040/4808041, ES-Agu 4808042/4808043, all `COMPLETED 0:0`.
+- Later segments are reported running.
+- This is not AD400 completion.
+- The CO2 setting was kept from the template in all three cases. That still has to be checked against the constant first-forcing-year NOAA value used in earlier batches.
+
+**No-repeat rule.** Never rerun `04c`/`04e`, the pair prepare scripts or a submit against an existing case or ledger.
+
+**IT-Tor (not started; design: [IT_Tor_sensitivity_design_20261102.md](docs/IT_Tor_sensitivity_design_20261102.md))**
+- *F1 forcing candidate.* [05a](scripts/05a_it_tor_make_f1_candidate.py) wrote a detached 2025 file.
+  - It replaces TBOT/QBOT at the three QC1 labels 2025-11-13 14:30–15:30 with packaged ERA TA/VPD; pressure is unchanged.
+  - The script first proves that the original DATM values equal the source labels, then checks that nothing else changed.
+  - It is `DETACHED_EXPLORATORY_NOT_RELEASED`.
+- *Soil.* The inherited ORGANIC is 0 in all ten source layers. The S1 soil candidate waits for a review of the pinned CTSM layer mapping (`20SL_8.5m` model layers; 10-level surface data).
+
+**GL-ZaH.** A private Arctic FATES parameter candidate exists:
+- File: `experiments/NonCompetitionObserved22/ICOS_Unassigned_6/GL-ZaH_private_arctic_map_candidate_v1/`, SHA256 `56d9433f…31cd62`.
+- Only host rows 9 → `broadleaf_evergreen_arctic_shrub` and 11 → `broadleaf_colddecid_arctic_shrub` differ from the shared default, and the shared default was hash-checked unchanged.
+- No GL surface or case exists yet. The template is `GL-ZaH_FATES_SPINUP500_11P` (DATM 2000–2025).
+
+**CH-Aws.** The native-sensor humidity source is still under review.
+
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
 For each station, the next separate audit must select one verified original source case and pin input checksums and true source years; cross-check DATM streams against annual NC and native tower half-hourly data; verify UTC/local-time convention, no-leap calendar, leap days, counts, gaps, year seams, VPD from T/RH/pressure, nonphysical humidity, precipitation timing, radiation and long flat runs. ERA5/ERA5-Land fallback must be checked against tower source QC, with every replacement documented and unresolved events retained as scientific HOLD. Do not blindly interpolate or relabel QC.
