@@ -72,7 +72,8 @@ def main():
     check(Path(aud2012['candidate']).resolve(strict=True)==Path(latest['prior_2012_candidate']).resolve(strict=True),'2012 candidate identity')
     for site,year,record in [('US-Aud',2012,aud2012),('US-Aud',2023,aud2023)]:
         prior=canonical[(site,year)]
-        check(Path(record['original']).resolve(strict=True)==Path(prior['original']).resolve(strict=True) and record['original_sha256']==prior['original_sha256'],'candidate original mismatch')
+        prior_original=prior.get('original',prior.get('source')); prior_sha=prior.get('original_sha256',prior.get('source_sha256'))
+        check(Path(record['original']).resolve(strict=True)==Path(prior_original).resolve(strict=True) and record['original_sha256']==prior_sha,'candidate original mismatch')
         check(stage.sha256(record['candidate'])==record['candidate_sha256'],'candidate SHA mismatch')
         canonical[(site,year)]=record
     check(set(canonical)==set(COUNTS),'candidate inventory mismatch')
