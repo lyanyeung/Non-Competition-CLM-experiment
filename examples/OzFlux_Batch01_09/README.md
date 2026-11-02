@@ -57,7 +57,7 @@ Use a **new, isolated FIXNC experiment** (no reuse or overwriting of old competi
 ## Read-only nine-site PFT + IRIDIS6 input gate
 
 Source: `scripts/01_ozflux_09_operator_PFT_snapshot_and_IRIDIS_readiness_READONLY.py`
-Git blob **`b35348089c1830f9ce88b8a46b0d4ac29a520811`**.
+Git blob **`0d66a1230526625f5cf6459948041c178452a67e`**.
 
 The script validates all five pinned source files, exact nine-site membership and ten-L6-source manifest, live area plus bare sum, CLM-to-FATES one-to-one DEFAULT14 mapping, master per-site numeric JSON, and <=4 live active FATES classes. Bounded read-only IRIDIS6 source and reference-surface checks produce JSON and TSV (direct HOME child). It explicitly reports `AD400_authorised=false` and never creates/sends a job. A `PFT_source_approved_by_operator=true` means PFT numeric choices are finalized for the experiment, NOT the 9-site total science gate.
 
@@ -75,7 +75,7 @@ SCRIPT="$CODE/ozflux_nc_stage01.py"
 OUT="$HOME/ozflux_nc_stage01_$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$DATA"
 curl -fLsS "$BASE/scripts/01_ozflux_09_operator_PFT_snapshot_and_IRIDIS_readiness_READONLY.py" -o "$SCRIPT"
-test "$(git hash-object "$SCRIPT")" = "b35348089c1830f9ce88b8a46b0d4ac29a520811"
+test "$(git hash-object "$SCRIPT")" = "0d66a1230526625f5cf6459948041c178452a67e"
 for file in OZ_JP_ORIGINAL_20_SITE_PFT_MASTER_PINNED_20261102.csv OZFLUX_09_PRIMARY_CLM_PCT_NAT_PFT_20261102.csv OZFLUX_09_PRIMARY_FATES_PFT_PERCENT_20261102.csv OZFLUX_09_PRIMARY_PFT_VALIDATION_20261102.csv OZFLUX_09_ORIGINAL_L6_SITES_MANIFEST.tsv; do
     curl -fLsS "$BASE/data/$file" -o "$DATA/$file"
 done
