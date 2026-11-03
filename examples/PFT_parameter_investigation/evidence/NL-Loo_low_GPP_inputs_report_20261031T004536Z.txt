@@ -1,0 +1,219 @@
+# Output of scripts/18_NL_Loo_low_GPP_inputs_report.py on IRIDIS6 (31 Oct 2026, read only)
+NL-Loo V3 low-GPP input report  2026-10-31T00:45:36.396009+00:00  (read only)
+  lnd_in fsurdat = /iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/NL-Loo/surface/surfdata_NL-Loo_obsPFT_grass_proxy_v1.nc
+  lnd_in fates_paramfile = /iridisfs/scratch/ly3n24/CLM_FATES/CTSM/cime/../src/fates/parameter_files/fates_params_default.json
+  lnd_in paramfile = /iridisfs/scratch/ly3n24/CLM_FATES/inputdata/lnd/clm2/paramdata/ctsm60_params.c260518.nc
+  lnd_in co2_ppmv = 363.04
+  lnd_in finidat =
+  lnd_in hist_fincl1 = None
+  lnd_in hist_nhtfrq = -24
+
+==============================================================================
+1 SURFACE  /iridisfs/scratch/ly3n24/CLM_FATES/experiments/NonCompetitionObserved22/NL-Loo/surface/surfdata_NL-Loo_obsPFT_grass_proxy_v1.nc
+==============================================================================
+  LATIXY       = 52.17 degrees north
+  LONGXY       = 5.744 degrees east
+  PCT_NATVEG   = 100
+  PCT_CROP     = 0
+  PCT_LAKE     = 0 unitless
+  PCT_WETLAND  = 0 unitless
+  PCT_GLACIER  = 0 unitless
+  PCT_OCEAN    = 0 unitless
+  FMAX         = 0.4351 unitless
+  zbedrock     = 47.58 m
+  SOIL_COLOR   = 13 unitless
+  SLOPE        = 0.1152 degrees
+  STD_ELEV     = 15.52 m
+  peatf        = 0.07536 unitless
+  LAKEDEPTH    = 9.956 m
+  PCT_URBAN    = 0 (sum of density classes)
+  PCT_NAT_PFT (% of natural vegetated landunit; index 0 = bare ground), sum 100:
+     HLM pft  1: 93.6 %
+     HLM pft  7: 2.9 %
+     HLM pft 13: 3.5 %
+  PCT_SAND  by layer: 75, 75, 75, 75, 77, 77, 80, 79, 92, 92
+  PCT_CLAY  by layer: 5, 5, 5, 5, 5, 7, 7, 8, 3, 3
+  ORGANIC   by layer: 58.56, 58.56, 58.56, 58.56, 28.79, 20.11, 13.12, 10.36, 4.091, 4.091
+
+==============================================================================
+2 FATES PARAMETERS  /iridisfs/scratch/ly3n24/CLM_FATES/CTSM/cime/../src/fates/parameter_files/fates_params_default.json
+==============================================================================
+  FATES PFTs: 1=broadleaf_evergreen_tropical_tree; 2=needleleaf_evergreen_extratrop_tree; 3=needleleaf_colddecid_extratrop_tree; 4=broadleaf_evergreen_extratrop_tree; 5=broadleaf_hydrodecid_tropical_tree; 6=broadleaf_colddecid_extratrop_tree; 7=broadleaf_evergreen_extratrop_shrub; 8=broadleaf_hydrodecid_extratrop_shrub; 9=broadleaf_colddecid_extratrop_shrub; 10=broadleaf_evergreen_arctic_shrub; 11=broadleaf_colddecid_arctic_shrub; 12=arctic_c3_grass; 13=cool_c3_grass; 14=c4_grass
+  fates_hlm_pft_map dims: ['fates_hlm_pftno', 'fates_pft']
+  map shape (14, 14)
+  map rows = HLM pfts 1..14
+  HLM pft  1 -> FATES 2 (needleleaf_evergreen_extratrop_tree) x1
+  HLM pft  7 -> FATES 6 (broadleaf_colddecid_extratrop_tree) x1
+  HLM pft 13 -> FATES 13 (cool_c3_grass) x1
+  traits for FATES PFT(s) [2, 6, 13]:
+    fates_woody                            pft2=1, pft6=1, pft13=0 logical flag
+    fates_leaf_vcmax25top                  pft2=62, pft6=58, pft13=78 umol CO2/m^2/s (first of 1 rows)
+    fates_leaf_slatop                      pft2=0.005, pft6=0.03, pft13=0.05 m^2/gC
+    fates_leaf_slamax                      pft2=0.0954, pft6=0.0954, pft13=0.05 m^2/gC
+    fates_leaf_stomatal_slope_ballberry    pft2=8, pft6=8, pft13=8 unitless
+    fates_leaf_stomatal_intercept          pft2=1e+04, pft6=1e+04, pft13=1e+04 umol H2O/m**2/s
+    fates_nonhydro_smpsc                   pft2=-2.5500e+05, pft6=-2.5500e+05, pft13=-2.5500e+05 mm
+    fates_nonhydro_smpso                   pft2=-6.6e+04, pft6=-6.6e+04, pft13=-6.6e+04 mm
+    fates_allom_smode                      pft2=1, pft6=1, pft13=2 index
+    fates_recruit_init_density             pft2=0.2, pft6=0.2, pft13=0.2 stems/m2
+    fates_recruit_height_min               pft2=1.3, pft6=1.3, pft13=0.2 m
+    fates_mort_bmort                       pft2=0.014, pft6=0.014, pft13=0.014 1/yr
+    fates_mort_scalar_cstarvation          pft2=0.6, pft6=0.6, pft13=0.6 1/yr
+    fates_alloc_storage_cushion            pft2=1.2, pft6=1.2, pft13=1.2 fraction
+    fates_allom_fnrt_prof_a                pft2=7, pft6=6, pft13=11 unitless
+    fates_allom_fnrt_prof_b                pft2=2, pft6=2, pft13=2 unitless
+
+==============================================================================
+3 FORCING  /iridisfs/scratch/ly3n24/CLM_FATES/cases/NL-Loo_OBSPFT_NC_V3_PRE50/CaseDocs/datm.streams.xml
+==============================================================================
+  33 files; year_first/last/align: 1997/2025/1997/2000/2000/1/2000/2000/1/2000/2000/1/1/1/1
+  stream variable map (file name -> model name): PRECTmms Faxa_precn; FSDS Faxa_swdn; ZBOT Sa_z; TBOT Sa_tbot; WIND Sa_wind; QBOT Sa_shum; PSRF Sa_pbot; FLDS Faxa_lwdn; BCDEPWET Faxa_bcphiwet; BCPHODRY Faxa_bcphodry; BCPHIDRY Faxa_bcphidry; OCDEPWET Faxa_ocphiwet; OCPHIDRY Faxa_ocphidry; OCPHODRY Faxa_ocphodry; DSTX01WD Faxa_dstwet1; DSTX01DD Faxa_dstdry1; DSTX02WD Faxa_dstwet2; DSTX02DD Faxa_dstdry2; DSTX03WD Faxa_dstwet3; DSTX03DD Faxa_dstdry3; DSTX04WD Faxa_dstwet4; DSTX04DD Faxa_dstdry4; NDEP_NHx_month Faxa_ndep_nhx; NDEP_NOy_month Faxa_ndep_noy; O3 Sa_o3; TOPO Sa_topo
+  --- /iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/NL-Loo/forcing/datm_v5_candidate_timevarying_zbot/NL-Loo_DATM_1997.nc
+      time: 17520 steps, step 1800 s, units 'days since 1997-01-01 00:00:00', calendar 'noleap'
+      TBOT       [K] mean 283 min 258.3 max 304.2 nan 0
+      QBOT       [kg/kg] mean 0.006283 min 0.001019 max 0.01656 nan 0
+      PSRF       [Pa] mean 1.0109e+05 min 9.759e+04 max 1.0360e+05 nan 0
+      FSDS       [W/m2] mean 112.6 min 0 max 965 nan 0
+      FLDS       [W/m2] mean 324 min 181.5 max 445.7 nan 0
+      WIND       [m/s] mean 2.657 min 0.185 max 9.608 nan 0
+      PRECTmms   [mm/s] mean 2.4974e-05 min 0 max 0.002985 nan 0  -> annual total if mm/s: 787.6 mm
+      ZBOT       [m] mean 23.5 min 23.5 max 23.5 nan 0
+  --- /iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/NL-Loo/forcing/datm_v5_candidate_timevarying_zbot/NL-Loo_DATM_2003.nc
+      time: 17520 steps, step 1800 s, units 'days since 2003-01-01 00:00:00', calendar 'noleap'
+      TBOT       [K] mean 283.4 min 261 max 308.3 nan 0
+      QBOT       [kg/kg] mean 0.006302 min 0.001062 max 0.01722 nan 0
+      PSRF       [Pa] mean 1.0113e+05 min 9.74e+04 max 1.0374e+05 nan 0
+      FSDS       [W/m2] mean 128.8 min 0 max 977 nan 0
+      FLDS       [W/m2] mean 321.6 min 188.4 max 450 nan 0
+      WIND       [m/s] mean 2.496 min 0.119 max 8.315 nan 0
+      PRECTmms   [mm/s] mean 2.8408e-05 min 0 max 0.003111 nan 0  -> annual total if mm/s: 895.9 mm
+      ZBOT       [m] mean 23.5 min 23.5 max 23.5 nan 0
+  --- /iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/NL-Loo/forcing/datm_v5_candidate_timevarying_zbot/NL-Loo_DATM_2010.nc
+      time: 17520 steps, step 1800 s, units 'days since 2010-01-01 00:00:00', calendar 'noleap'
+      TBOT       [K] mean 281.7 min 261.4 max 306.6 nan 0
+      QBOT       [kg/kg] mean 0.006078 min 0.001173 max 0.01691 nan 0
+      PSRF       [Pa] mean 1.0085e+05 min 9.71e+04 max 1.0370e+05 nan 0
+      FSDS       [W/m2] mean 117.5 min 0 max 968 nan 0
+      FLDS       [W/m2] mean 339 min 222 max 449.9 nan 0
+      WIND       [m/s] mean 2.252 min 0.158 max 8.79 nan 0
+      PRECTmms   [mm/s] mean 3.0522e-05 min 0 max 0.003667 nan 0  -> annual total if mm/s: 962.5 mm
+      ZBOT       [m] mean 23.5 min 23.5 max 23.5 nan 0
+  --- /iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/NL-Loo/forcing/datm_v5_candidate_timevarying_zbot/NL-Loo_DATM_2018.nc
+      time: 17520 steps, step 1800 s, units 'days since 2018-01-01 00:00:00', calendar 'noleap'
+      TBOT       [K] mean 284.4 min 264 max 308 nan 0
+      QBOT       [kg/kg] mean 0.005215 min 9.7432e-07 max 0.02536 nan 0
+      PSRF       [Pa] mean 1.0101e+05 min 9.77e+04 max 1.0350e+05 nan 0
+      FSDS       [W/m2] mean 134.7 min 0 max 943 nan 0
+      FLDS       [W/m2] mean 348.4 min 219.4 max 450 nan 0
+      WIND       [m/s] mean 2.367 min 0.15 max 9.86 nan 0
+      PRECTmms   [mm/s] mean 2.5146e-05 min 0 max 0.004444 nan 0  -> annual total if mm/s: 793 mm
+      ZBOT       [m] mean 23.5 min 23.5 max 23.5 nan 0
+  --- /iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/NL-Loo/forcing/datm_v5_candidate_timevarying_zbot/NL-Loo_DATM_2025.nc
+      time: 17520 steps, step 1800 s, units 'days since 2025-01-01 00:00:00', calendar 'noleap'
+      TBOT       [K] mean 284.2 min 266.9 max 308 nan 0
+      QBOT       [kg/kg] mean 0.006467 min 0.001428 max 0.01552 nan 0
+      PSRF       [Pa] mean 1.0119e+05 min 9.721e+04 max 1.0389e+05 nan 0
+      FSDS       [W/m2] mean 129.3 min 0 max 965.2 nan 0
+      FLDS       [W/m2] mean 327.3 min 204.6 max 453 nan 0
+      WIND       [m/s] mean 2.781 min 0.06 max 35.73 nan 0
+      PRECTmms   [mm/s] mean 2.1866e-05 min 0 max 0.006406 nan 0  -> annual total if mm/s: 689.6 mm
+      ZBOT       [m] mean 38.2 min 38.2 max 38.2 nan 0
+
+==============================================================================
+4 HISTORY  PRE50: /scratch/ly3n24/CTSM_FATES_OUTPUTS/archive/NL-Loo_OBSPFT_NC_V3_PRE50/lnd/hist/NL-Loo_OBSPFT_NC_V3_PRE50.clm2.h0a.2046-01-02-00000.nc
+==============================================================================
+  365 time samples in file
+  FATES fields written (205): FATES_AREA_PLANTS, FATES_AREA_TREES, FATES_AUTORESP, FATES_AUTORESP_CANOPY, FATES_AUTORESP_USTORY, FATES_BASALAREA_SZ, FATES_BA_WEIGHTED_HEIGHT, FATES_BURNEDAREA_LU, FATES_BURNFRAC, FATES_BURNFRAC_AP, FATES_CANOPYAREA_AP, FATES_CANOPYAREA_HT, FATES_CANOPYCROWNAREA_PF, FATES_CANOPY_SPREAD, FATES_CANOPY_VEGC, FATES_CA_WEIGHTED_HEIGHT, FATES_CBALANCE_ERROR, FATES_COLD_STATUS, FATES_CROOTMAINTAR, FATES_CROOT_ALLOC, FATES_CROWNAREA_CL, FATES_CROWNAREA_PF, FATES_DAYSINCE_COLDLEAFOFF, FATES_DAYSINCE_COLDLEAFON, FATES_DAYSINCE_DROUGHTLEAFOFF_PF, FATES_DAYSINCE_DROUGHTLEAFON_PF, FATES_DDBH_CANOPY_SZ, FATES_DDBH_USTORY_SZ, FATES_DEMOTION_CARBONFLUX, FATES_DISTURBANCE_RATE_FIRE, FATES_DISTURBANCE_RATE_LOGGING, FATES_DISTURBANCE_RATE_MATRIX_LULU, FATES_DISTURBANCE_RATE_TREEFALL, FATES_DROUGHT_STATUS_PF, FATES_EFFECT_WSPEED, FATES_ELAI, FATES_ELONG_FACTOR_PF, FATES_ERROR_EL, FATES_EXCESS_RESP, FATES_FDI, FATES_FIRE_CLOSS, FATES_FIRE_CLOSS_LANDUSECHANGE, FATES_FIRE_CLOSS_LIVEFUELS, FATES_FIRE_FLUX_EL, FATES_FIRE_INTENSITY, FATES_FIRE_INTENSITY_BURNFRAC, FATES_FIRE_INTENSITY_BURNFRAC_AP, FATES_FRACTION, FATES_FRAGMENTATION_SCALER_SL, FATES_FROOTC, FATES_FROOTC_SL, FATES_FROOTMAINTAR, FATES_FROOT_ALLOC, FATES_FUELCONSUMED, FATES_FUEL_AMOUNT, FATES_FUEL_AMOUNT_AP, FATES_FUEL_AMOUNT_FC, FATES_FUEL_BULKD, FATES_FUEL_BURNT_BURNFRAC_FC, FATES_FUEL_EFF_MOIST, FATES_FUEL_MEF, FATES_FUEL_MOISTURE_FC, FATES_FUEL_SAV, FATES_GDD, FATES_GPP, FATES_GPP_CANOPY, FATES_GPP_PF, FATES_GPP_USTORY, FATES_GRAZING, FATES_GROWTH_RESP, FATES_HARVEST_DEBT, FATES_HARVEST_DEBT_SEC, FATES_HARVEST_WOODPROD_C_FLUX, FATES_HET_RESP, FATES_IGNITIONS, FATES_INTERR_LITTER_EL, FATES_INTERR_LIVEVEG_EL, FATES_L2FR, FATES_L2FR_CANOPY_REC_PF, FATES_L2FR_USTORY_REC_PF, FATES_LAI, FATES_LAI_AP, FATES_LAI_CANOPY_SZ, FATES_LAI_USTORY_SZ, FATES_LBLAYER_COND, FATES_LEAFAREA_HT, FATES_LEAFC, FATES_LEAFC_PF, FATES_LEAFMAINTAR, FATES_LEAF_ALLOC, FATES_LITTER_AG_CWD_EL, FATES_LITTER_AG_FINE_EL, FATES_LITTER_BG_CWD_EL, FATES_LITTER_BG_FINE_EL, FATES_LITTER_CWD_ELDC, FATES_LITTER_IN, FATES_LITTER_IN_EL, FATES_LITTER_OUT, FATES_LITTER_OUT_EL, FATES_LSTEMMAINTAR, FATES_LUCHANGE_WOODPROD_C_FLUX, FATES_MAINT_RESP, FATES_MAINT_RESP_UNREDUCED, FATES_MEANLIQVOL_DROUGHTPHEN_PF, FATES_MEANSMP_DROUGHTPHEN_PF, FATES_MEAN_95PCTILE_HEIGHT, FATES_MORTALITY_AGESCEN_AC, FATES_MORTALITY_AGESCEN_SZ, FATES_MORTALITY_BACKGROUND_SZ, FATES_MORTALITY_CANOPY_SE_SZ, FATES_MORTALITY_CANOPY_SZ, FATES_MORTALITY_CFLUX_CANOPY, FATES_MORTALITY_CFLUX_PF, FATES_MORTALITY_CFLUX_USTORY, FATES_MORTALITY_CSTARV_CFLUX_PF, FATES_MORTALITY_CSTARV_SZ, FATES_MORTALITY_FIRE_CFLUX_PF, FATES_MORTALITY_FIRE_SZ, FATES_MORTALITY_FREEZING_SZ, FATES_MORTALITY_HYDRAULIC_SZ, FATES_MORTALITY_HYDRO_CFLUX_PF, FATES_MORTALITY_IMPACT_SZ, FATES_MORTALITY_LOGGING_SZ, FATES_MORTALITY_PF, FATES_MORTALITY_RXFIRE_SZ, FATES_MORTALITY_SENESCENCE_SZ, FATES_MORTALITY_TERMINATION_SZ, FATES_MORTALITY_USTORY_SZ, FATES_MORT_CSTARV_CONT_CFLUX_PF, FATES_NCHILLDAYS, FATES_NCOHORTS, FAT
+  FATES_GPP                [kg m-2 s-1] annual mean 4.3637e-09  min 1.1160e-10  max 1.1574e-08
+  FATES_NPP                [kg m-2 s-1] annual mean 3.2105e-09  min -2.2789e-10  max 9.2920e-09
+  FATES_AUTORESP           [kg m-2 s-1] annual mean 1.1525e-09  min 3.2798e-10  max 2.3589e-09
+  FATES_NEP                [kg m-2 s-1] annual mean 5.3857e-11  min -3.2186e-09  max 5.4269e-09
+  TLAI                     [m^2/m^2] annual mean 0.2014  min 0.09417  max 0.2848
+  FATES_LAI                [m2 m-2] annual mean 0.2001  min 0.09127  max 0.2848
+  ELAI                     [m^2/m^2] annual mean 0.2013  min 0.09417  max 0.2848
+  FATES_VEGC               [kg m-2] annual mean 0.3073  min 0.291  max 0.3214
+  FATES_STOREC             [kg m-2] annual mean 0.008518  min 0.005292  max 0.0103
+  FATES_LEAFC              [kg m-2] annual mean 0.006745  min 0.004271  max 0.008521
+  FATES_CA_WEIGHTED_HEIGHT [m] annual mean 3.565  min 3.507  max 3.597
+  FATES_CROWNAREA_CL       [m2 m-2] dims ['fates_levcan', 'lndgrid'] annual mean by level: 0.0861, 0.06167, 0.04525
+  BTRAN                    [unitless] annual mean 0.08607  min 0.08459  max 0.08735
+  BTRANMN                  [unitless] annual mean 0.086  min 0.0784  max 0.08735
+  SOILWATER_10CM           [kg/m2] annual mean 28.7  min 19.7  max 38.45
+  H2OSOI                   [mm3/mm3] dims ['levsoi', 'lndgrid'] annual mean by level: 0.2663, 0.2811, 0.3034, 0.3296, 0.2766, 0.2757, 0.2533, 0.2553, 0.258, 0.2751, 0.1912, 0.1917, 0.1928, 0.2528, 0.3815
+  SMP                      [mm] dims ['levgrnd', 'lndgrid'] annual mean by level: -1244, -999.1, -964.3, -942.8, -932.8, -882.9, -854.6, -815.9, -729.6, -542.6, -630, -622.1, -599.7, -295.7, -49.21
+  ZWT                      [m] annual mean 3.403  min 2.964  max 3.572
+  TWS                      [mm] annual mean 2843  min 2771  max 2936
+  QVEGT                    [mm/s] annual mean 8.1140e-07  min 2.9640e-09  max 3.3654e-06
+  QVEGE                    [mm/s] annual mean 3.1349e-07  min -4.1455e-08  max 1.3261e-06
+  QSOIL                    [mm/s] annual mean 6.2550e-06  min -1.5559e-06  max 2.3187e-05
+  QOVER                    [mm/s] annual mean 6.3457e-06  min 0  max 5.7448e-05
+  QDRAI                    [mm/s] annual mean 1.8143e-05  min 1.7551e-05  max 1.9674e-05
+  QRUNOFF                  [mm/s] annual mean 2.4488e-05  min 1.7569e-05  max 7.6353e-05
+  RAIN                     [mm/s] annual mean 3.2315e-05  min 0  max 3.1069e-04
+  SNOW                     [mm/s] annual mean 2.4127e-06  min 0  max 2.0395e-04
+  H2OSNO                   [mm] annual mean 0.3341  min 0  max 29.8
+  FSDS                     [W/m^2] annual mean 115.9  min 3.852  max 350.4
+  FSA                      [W/m^2] annual mean 94.09  min 0.9873  max 284.2
+  PARVEGLN                 [W/m^2] annual mean 9.3  min 0  max 25.77
+  TSA                      [K] annual mean 284  min 269.3  max 297.8
+  TBOT                     [K] annual mean 283.5  min 268.8  max 297.1
+  TV                       [K] annual mean 283.7  min 269  max 297.4
+  TSOI_10CM                [K] annual mean 287.4  min 273.4  max 302.9
+  RH2M                     [%] annual mean 84.97  min 59.74  max 96.87
+  VPD_CAN                  [kPa] annual mean nan  min nan  max nan
+  Q2M                      [kg/kg] annual mean 0.007222  min 0.002315  max 0.01345
+  FATES_BASALAREA_SZ       [m2 m-2] dims ['fates_levscls']: nonzero bin0=1.3566e-05, bin1=5.4861e-06, bin2=5.2945e-06, bin3=3.5711e-06, bin4=6.3094e-06, bin5=3.6192e-06
+  FATES_CANOPYAREA_AP      [m2 m-2] dims ['fates_levage']: nonzero bin0=0.00287, bin1=0.00602, bin2=0.01359, bin3=0.008369, bin4=0.02135, bin5=0.1405, bin6=3.4525e-04
+  FATES_CANOPYAREA_HT      [m2 m-2] dims ['fates_levheight']: nonzero bin3=0.05783, bin4=0.009832, bin5=0.01844
+  FATES_CANOPYCROWNAREA_PF [m2 m-2] dims ['fates_levpft']: nonzero pft2=0.02235, pft6=0.02875, pft13=0.035
+  FATES_CROWNAREA_CL       [m2 m-2] dims ['fates_levcan']: nonzero bin0=0.0861, bin1=0.06167, bin2=0.04525
+  FATES_CROWNAREA_PF       [m2 m-2] dims ['fates_levpft']: nonzero pft2=0.02235, pft6=0.06568, pft13=0.105
+  FATES_DDBH_CANOPY_SZ     [m m-2 yr-1] dims ['fates_levscls']: nonzero bin0=2.8380e-05, bin1=6.8794e-06, bin2=2.7439e-06, bin3=9.9628e-07, bin4=8.8521e-07, bin5=2.0844e-07
+  FATES_DDBH_USTORY_SZ     [m m-2 yr-1] dims ['fates_levscls']: nonzero bin0=2.4387e-04, bin1=1.5688e-04, bin2=9.4369e-05, bin3=7.7059e-05, bin4=7.2791e-05, bin5=7.6264e-05, bin6=7.6077e-05, bin7=6.7566e-04, bin8=6.6877e-04, bin9=2.7058e-04, bin10=1.6505e-04, bin11=1.0862e-04, bin12=0.001385
+  FATES_GPP_PF             [kg m-2 s-1] dims ['fates_levpft']: nonzero pft2=3.9654e-10, pft6=1.5330e-09, pft13=2.4335e-09
+  FATES_LAI_AP             [m2 m-2] dims ['fates_levage']: nonzero bin0=0.001828, bin1=0.004992, bin2=0.0165, bin3=0.008996, bin4=0.03196, bin5=0.1356, bin6=2.9300e-04
+  FATES_LAI_CANOPY_SZ      [m2 m-2] dims ['fates_levscls']: nonzero bin0=0.01855, bin1=0.009247, bin2=0.01168, bin3=0.04229, bin4=0.01027, bin5=0.005029, bin9=1.9580e-11, bin12=2.1068e-11
+  FATES_LAI_USTORY_SZ      [m2 m-2] dims ['fates_levscls']: nonzero bin0=0.02816, bin1=0.007737, bin2=2.9350e-04, bin3=0.03569, bin4=0.001635, bin5=1.8404e-04, bin6=2.0661e-04, bin7=0.005513, bin8=0.002752, bin9=0.003468, bin10=7.1548e-04, bin11=0.001265, bin12=0.01543
+  FATES_MORTALITY_AGESCEN_AC [m-2 yr-1] dims ['fates_levcacls']: nonzero none
+  FATES_MORTALITY_AGESCEN_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero none
+  FATES_MORTALITY_BACKGROUND_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero bin0=7.8189e-04, bin1=2.7684e-05, bin2=9.3111e-06, bin3=6.3234e-04, bin4=1.8188e-05, bin5=2.0411e-06, bin6=1.9416e-06, bin7=4.3865e-05, bin8=2.0924e-05, bin9=4.1897e-05, bin10=6.0773e-06, bin11=1.3956e-05, bin12=1.4157e-04
+  FATES_MORTALITY_CANOPY_SE_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero none
+  FATES_MORTALITY_CANOPY_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero bin0=0.002169, bin1=6.6722e-05, bin2=3.1986e-05, bin3=4.8351e-04, bin4=1.2561e-05, bin5=3.5903e-06, bin6=7.7211e-11, bin7=4.3416e-09, bin8=8.5390e-10, bin9=1.7280e-08, bin10=2.4494e-10, bin11=6.0903e-09, bin12=4.3238e-08
+  FATES_MORTALITY_CFLUX_PF [kg m-2 s-1] dims ['fates_levpft']: nonzero pft2=9.9050e-11, pft6=3.6267e-08, pft13=4.9860e-11
+  FATES_MORTALITY_CSTARV_CFLUX_PF [kg m-2 s-1] dims ['fates_levpft']: nonzero pft2=8.0974e-11, pft6=5.6245e-10, pft13=3.2513e-11
+  FATES_MORTALITY_CSTARV_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero bin0=0.01139, bin1=1.5226e-04, bin2=2.6653e-05, bin3=6.3714e-04, bin4=4.1034e-05, bin5=3.0473e-06, bin7=1.8173e-05, bin9=1.8963e-04, bin11=4.3036e-05, bin12=2.9601e-04
+  FATES_MORTALITY_FIRE_CFLUX_PF [kg m-2 s-1] dims ['fates_levpft']: nonzero none
+  FATES_MORTALITY_FIRE_SZ  [m-2 yr-1] dims ['fates_levscls']: nonzero none
+  FATES_MORTALITY_FREEZING_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero none
+  FATES_MORTALITY_HYDRAULIC_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero none
+  FATES_MORTALITY_HYDRO_CFLUX_PF [kg m-2 s-1] dims ['fates_levpft']: nonzero none
+  FATES_MORTALITY_IMPACT_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero bin0=9.0150e-04, bin1=2.6947e-05, bin2=2.4936e-08, bin3=3.2845e-07, bin4=1.0830e-07, bin5=8.7258e-09
+  FATES_MORTALITY_LOGGING_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero none
+  FATES_MORTALITY_PF       [m-2 yr-1] dims ['fates_levpft']: nonzero pft2=0.002038, pft6=0.01213, pft13=53.88
+  FATES_MORTALITY_RXFIRE_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero none
+  FATES_MORTALITY_SENESCENCE_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero none
+  FATES_MORTALITY_TERMINATION_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero bin0=53.87, bin1=0.002199, bin2=6.9066e-04, bin3=1.8956e-04, bin4=7.5134e-11, bin5=5.8493e-11, bin6=7.7211e-11, bin7=4.3416e-09, bin8=8.5390e-10, bin9=1.7276e-08, bin10=2.4494e-10, bin11=6.0903e-09, bin12=4.3233e-08
+  FATES_MORTALITY_USTORY_SZ [m-2 yr-1] dims ['fates_levscls']: nonzero bin0=53.88, bin1=0.002339, bin2=6.9466e-04, bin3=9.7585e-04, bin4=4.6769e-05, bin5=1.5068e-06, bin6=1.9416e-06, bin7=6.2038e-05, bin8=2.0924e-05, bin9=2.3153e-04, bin10=6.0773e-06, bin11=5.6992e-05, bin12=4.3758e-04
+  FATES_NPLANT_AC          [m-2] dims ['fates_levcacls']: nonzero none
+  FATES_NPLANT_CANOPY_SZ   [m-2] dims ['fates_levscls']: nonzero bin0=0.02853, bin1=8.0460e-04, bin2=3.8427e-04, bin3=0.0222, bin4=1.5307e-04, bin5=4.3413e-05, bin9=2.0515e-11, bin12=2.2492e-11
+  FATES_NPLANT_PF          [m-2] dims ['fates_levpft']: nonzero pft2=0.02695, pft6=0.02592, pft13=0.07232
+  FATES_NPLANT_SZ          [m-2] dims ['fates_levscls']: nonzero bin0=0.05585, bin1=0.001977, bin2=6.6508e-04, bin3=0.04517, bin4=0.001299, bin5=1.4579e-04, bin6=1.3869e-04, bin7=0.003133, bin8=0.001495, bin9=0.002993, bin10=4.3409e-04, bin11=9.9689e-04, bin12=0.01011
+  FATES_NPLANT_USTORY_SZ   [m-2] dims ['fates_levscls']: nonzero bin0=0.02732, bin1=0.001173, bin2=2.8081e-04, bin3=0.02297, bin4=0.001146, bin5=1.0238e-04, bin6=1.3869e-04, bin7=0.003133, bin8=0.001495, bin9=0.002993, bin10=4.3409e-04, bin11=9.9689e-04, bin12=0.01011
+  FATES_STOREC_PF          [kg m-2] dims ['fates_levpft']: nonzero pft2=0.002695, pft6=0.003119, pft13=0.002704
+  FATES_VEGC_ABOVEGROUND_SZ [kg m-2] dims ['fates_levscls']: nonzero bin0=0.03306, bin1=0.01772, bin2=0.02514, bin3=0.02836, bin4=0.0398, bin5=0.02639, bin6=6.2188e-05, bin7=0.001779, bin8=0.001151, bin9=0.002614, bin10=4.9009e-04, bin11=0.001259, bin12=0.02221
+  FATES_VEGC_LU            [kg m-2] dims ['fates_levlanduse']: nonzero bin0=0.3073
+  FATES_VEGC_LUPF          [kg m-2] dims ['fates_levlupft']: nonzero bin5=0.04072, bin25=0.2275, bin60=0.03908
+  FATES_VEGC_PF            [kg m-2] dims ['fates_levpft']: nonzero pft2=0.04072, pft6=0.2275, pft13=0.03908
+
+==============================================================================
+4 HISTORY  AD200: /scratch/ly3n24/CTSM_FATES_OUTPUTS/archive/NL-Loo_OBSPFT_NC_V3_AD200/lnd/hist/NL-Loo_OBSPFT_NC_V3_AD200.clm2.h0a.2246-01-02-00000.nc
+==============================================================================
+  365 time samples in file
+  FATES fields written (2): FATES_GPP, FATES_NPP
+  FATES_GPP                [kg m-2 s-1] annual mean 4.1414e-09  min 0  max 1.0467e-08
+  FATES_NPP                [kg m-2 s-1] annual mean 3.2390e-09  min -1.9156e-10  max 8.7157e-09
+  TLAI                     [m^2/m^2] annual mean 0.1921  min 0.006396  max 0.269
+  TWS                      [mm] annual mean 2903  min 2864  max 2948
+  H2OSNO                   [mm] annual mean 0.002601  min 0  max 0.8737
+
+REPORT WRITTEN: /home/ly3n24/NL_Loo_low_GPP_report_20261031T004536Z.txt

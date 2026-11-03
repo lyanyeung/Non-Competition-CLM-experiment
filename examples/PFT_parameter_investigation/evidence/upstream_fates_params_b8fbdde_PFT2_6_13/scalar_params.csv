@@ -1,0 +1,16 @@
+parameter,value,units,long_name
+fates_canopy_closure_thresh,0.8,unitless,tree canopy coverage at which crown area allometry changes from savanna to forest value
+fates_leaf_photo_temp_acclim_thome_time,30.0,years,Length of the window for the long-term (i.e. T_home in Kumarathunge et al 2019) exponential moving average (ema) of vegetation temperature used in photosynthesis temperature acclimation (used if fates_leaf_photo_tempsens_model  2)
+fates_leaf_photo_temp_acclim_timescale,30.0,days,Length of the window for the exponential moving average (ema) of vegetation temperature used in photosynthesis temperature acclimation (used if fates_maintresp_leaf_model2 or fates_leaf_photo_tempsens_model  2)
+fates_maintresp_nonleaf_baserate,2.525e-06,gC/gN/s,"Base maintenance respiration rate for plant tissues, using Ryan 1991"
+fates_mort_disturb_frac,1.0,fraction,fraction of canopy mortality that results in disturbance (i.e. transfer of area from old to new patch)
+fates_mort_understorey_death,0.55983,fraction,fraction of plants in understorey cohort impacted by overstorey tree-fall
+fates_phen_chilltemp,5.0,degrees C,chilling day counting threshold for vegetation
+fates_phen_coldtemp,7.5,degrees C,vegetation temperature exceedance that flags a cold-day for leaf-drop
+fates_phen_gddthresh_a,-68.0,none,"GDD accumulation function, intercept parameter  gdd_thesh  a + b exp(c*ncd)"
+fates_phen_gddthresh_b,638.0,none,"GDD accumulation function, multiplier parameter  gdd_thesh  a + b exp(c*ncd)"
+fates_phen_gddthresh_c,-0.01,none,"GDD accumulation function, exponent parameter  gdd_thesh  a + b exp(c*ncd)"
+fates_phen_mindayson,90.0,days,day threshold compared against days since leaves became on-allometry
+fates_phen_ncolddayslim,5.0,days,day threshold exceedance for temperature leaf-drop
+fates_q10_froz,1.5,unitless,Q10 for frozen-soil respiration rates
+fates_q10_mr,1.5,unitless,Q10 for maintenance respiration

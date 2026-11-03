@@ -10,6 +10,8 @@
 
 ## Plot all completed sites
 
+[Full-sequence GPP / NEE / NPP / LAI with EC reference](FULL_SEQUENCE_GPP_NEE.md): one 800-year AD400 → Normal400 time series per site for the 54 cases of job 4764252, with EC tower GPP and NEE reference lines, automatic collapse/step/bias flags and all-site overview figures (`scripts/07_plot_full_sequence_GPP_NEE_with_EC.py`).
+
 [All-completed AD400 + Normal400 plotting runbook](ALL_COMPLETED_PLOTS.md): live status and reference-pair selection, NT-first EC comparison, and separate per-case carbon diagnostics. The analysis runs as a read-only-input Slurm job and writes new derived files under Home. Completion is not convergence.
 
 
