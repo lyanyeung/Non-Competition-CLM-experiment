@@ -110,8 +110,8 @@ def build_other_sensor_inventory(ds,td,n,a,b,i):
            or name.startswith("Wd") or name.startswith("Ta_") or name.startswith("Fld_")
            or "aws" in low or "access" in low):
             continue
-        if name in FIELDS or name.endswith("_QCFlag") or name in
-                ("Ws_QCFlag","Ta_QCFlag","Fld_QCFlag"):continue
+        if (name in FIELDS or name.endswith("_QCFlag")
+            or name in ("Ws_QCFlag","Ta_QCFlag","Fld_QCFlag")):continue
         if len(candidates)>=90:break
         x=maybe_time(v,td,n,a,b)
         if x is None:continue
