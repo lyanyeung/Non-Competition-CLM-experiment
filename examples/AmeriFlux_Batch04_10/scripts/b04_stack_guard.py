@@ -82,10 +82,15 @@ def verify_slurm_propagation():
         raise RuntimeError("B04 SLURM PropagateResourceLimits unavailable; do NOT submit")
     value=m.group(1).strip().split()[0]
     propagated={t.upper() for t in value.split(",")}
+    excluded=re.search(r"(?mi)^\s*PropagateResourceLimitsExcept\s*=\s*(\S.*)$",p.stdout)
+    excluded_value=excluded.group(1).strip().split()[0] if excluded else ""
+    if {"ALL","STACK"} & {t.upper() for t in excluded_value.split(",")}:
+        raise RuntimeError("B04 SLURM STACK EXPLICITLY EXCLUDED "+excluded_value)
     if "ALL" not in propagated and "STACK" not in propagated:
         raise RuntimeError("B04 SLURM PROPAGATION HOLD "+value+
                            " must include STACK or ALL")
-    result={"PropagateResourceLimits":value,"stack_propagated":True}
+    result={"PropagateResourceLimits":value,
+            "PropagateResourceLimitsExcept":excluded_value,"stack_propagated":True}
     print("B04 SLURM STACK PROPAGATION PASS",json.dumps(result),flush=True)
     return result
 
@@ -95,7 +100,7 @@ def require_for_submission(*,site,phase,may_raise=True):
     Returned proof MUST be written to the attempt-before-submit ledger.
     This resource check never substitutes for scientific/case readiness.
     """
-    if phase not in ("AD5","AD395","NORMAL5","NORMAL395"):
+    if phase not in ("AD400","NORMAL400","AD5","AD395","NORMAL5","NORMAL395"):
         raise RuntimeError("B04 invalid stage "+str(phase))
     if not re.fullmatch(r"US-[A-Za-z0-9]{3}",site):
         raise RuntimeError("B04 wrong site "+str(site))
@@ -135,3 +140,4 @@ def main():
     print("B04 NO CIME/SLURM SUBMISSION")
 
 if __name__=="__main__":main()
+

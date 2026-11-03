@@ -101,7 +101,7 @@ def phase_pair_checks(plant,plan):
             sha(surface)==item["new_surface_SHA256"] and
             item["FULL_FATES_start_surface"]==str(surface) and
             item["FIXED_NO_COMP_START_SURFACE"]==str(surface) and
-            item["ZBOT_verified"] is False and
+            item.get("ZBOT_verified", False) is False and
             item["case_submitted"] is False,
             "Research PFT surface proof/source changed "+site)
         print("AMF_B04 AD5 SHARED START PFT SHA VERIFIED",site,
@@ -137,3 +137,4 @@ def main():
     print("AMF_B04 NO NETCDF/DATM/CIME/CASE/SLURM JOB WRITES")
     raise SystemExit(2)
 if __name__=="__main__":main()
+
