@@ -15,8 +15,8 @@ Outputs (in --out):
   co2_global_annual_ISIMIP.csv  global annual CO2 (identical at all sites): historical 1765-2015 and the four
                                 RCPs 2006-2100, wide.
 
-Licences: database CC BY-NC 4.0; STAND/TREE/SOIL follow site-specific policies (POLICY_<site_id> views).
-Keep these derived tables off public repositories until those policies are checked.
+Licences: CC BY-NC 4.0 (database). Site-specific conditions are in POLICY_SITES_master: CZ-BK1 requires a
+CzeCOS acknowledgement and notification of publications; see post_spinup/ICOS38/PROFOUND/DATA_LICENSE.md.
 
 Usage:
   python3 06_derive_PROFOUND_targets.py --extract ICOS38_extract --out PROFOUND_derived

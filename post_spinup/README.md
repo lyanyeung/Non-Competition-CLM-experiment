@@ -15,7 +15,7 @@ Status, 3 November 2026: the information tables are built. On top of the BADM da
 4. Flechard et al. (2020) supplement (uploaded PDF) parsed for 17 of our sites (script 03): species, density, DBH, basal area, thinning fractions, tissue and topsoil C/N, soil texture and hydraulics, soil respiration and Rhet/Rsoil.
 5. PROFOUND v0.3 downloaded to IRIDIS scratch and backed up to the Research File Store (script 04); CZ-BK1, IT-Col, FI-Hyy and DK-Sor exported (script 05) and turned into yearly stand totals, thinning events, SOC stocks and a CO2 table (script 06).
 6. Results merged: 429 literature values for 35 sites; new thinning years for DK-Sor, CZ-BK1 and FI-Hyy; IT-Col established ~1892; SOC for three sites; texture conflicts flagged at IT-Col and CZ-BK1.
-7. PROFOUND site data-policy check: the first query (14:08) matched no rows on a dataset name, so the policies are still unread. Until they are read, the derived yearly PROFOUND tables stay on IRIDIS (`PROFOUND_v0.3/derived/`), not in this public repo.
+7. PROFOUND site data policies read (from `POLICY_SITES_master`): IT-Col, FI-Hyy and DK-Sor follow the standard PROFOUND policy (CC BY-NC 4.0, cite the database). CZ-BK1 asks for a CzeCOS funding acknowledgement and for Lenka Krupkova to be notified of any publication. The derived tables are therefore committed in `ICOS38/PROFOUND/` with a licence note; the raw extract stays on IRIDIS. Script 06 was also run on IRIDIS (`PROFOUND_v0.3/derived/`).
 
 ## What a post-spin-up run needs, and where each item stands
 
@@ -66,6 +66,7 @@ How to make a stand-replacing reset (a FATES logging/harvest event, or a new cas
 | [`ICOS38/ICOS38_post_spinup_start_info.csv`](ICOS38/ICOS38_post_spinup_start_info.csv) | **Main table**, one row per site: PFTs, spin-up class and expected NORMAL400 case, EC years, stand history, start-mode proposal, observed structure, sources |
 | [`ICOS38/ICOS38_stand_history_management.csv`](ICOS38/ICOS38_stand_history_management.csv) | Curated stand origin and management history with source URLs. `evidence_status`: DOCUMENTED / DERIVED (year computed from an age at a reference year) / DOCUMENTED_AGE_ONLY / DOCUMENTED_PARTIAL(_EVENTS) |
 | [`ICOS38/ICOS38_literature_observations.csv`](ICOS38/ICOS38_literature_observations.csv) | One row per value found in a site paper, site page or data-paper supplement: category, variable, value, unit, reference year, scope (which plot or footprint), `preferred` (1 = used in the main table), source and URL |
+| [`ICOS38/PROFOUND/`](ICOS38/PROFOUND/) | Derived from PROFOUND v0.3 for CZ-BK1, IT-Col, FI-Hyy, DK-Sor: `PROFOUND_stand_totals.csv` (yearly density, basal area, height, DBH, biomass by component, LAI), `PROFOUND_thinning_events.csv`, `PROFOUND_soil_carbon.csv`, `co2_global_annual_ISIMIP.csv`. **CC BY-NC 4.0; read [`DATA_LICENSE.md`](ICOS38/PROFOUND/DATA_LICENSE.md) before use** (CZ-BK1 has publication conditions) |
 | [`ICOS38/Flechard2020_supplement_ICOS38.csv`](ICOS38/Flechard2020_supplement_ICOS38.csv) | Tables S2–S5 and S7 of the Flechard et al. (2020) supplement for the 17 of our sites it covers, one row per site. Also merged into the literature table |
 | [`ICOS38/ICOS38_BIF_structure_summary.csv`](ICOS38/ICOS38_BIF_structure_summary.csv) | One reference value per site and variable from the BADM, with year, plot type and flags |
 | [`ICOS38/ICOS38_BIF_observations_long.csv`](ICOS38/ICOS38_BIF_observations_long.csv) | Every mean/single-value BADM record behind the summary |
@@ -76,7 +77,7 @@ How to make a stand-replacing reset (a FATES logging/harvest event, or a new cas
 | [`scripts/03_extract_Flechard2020_supplement.py`](scripts/03_extract_Flechard2020_supplement.py) | Parses the Flechard et al. (2020) supplement PDF (not committed) into `Flechard2020_supplement_ICOS38.csv` |
 | [`scripts/04_get_PROFOUND_on_IRIDIS.sh`](scripts/04_get_PROFOUND_on_IRIDIS.sh) | Downloads PROFOUND v0.3 (2.6 GB zip) to IRIDIS scratch, checks and unzips it, optionally copies the zip to Research File Storage, then runs script 05 |
 | [`scripts/05_extract_PROFOUND_ICOS38.py`](scripts/05_extract_PROFOUND_ICOS38.py) | Read-only export of CZ-BK1, IT-Col, FI-Hyy and DK-Sor from the PROFOUND SQLite (stand, tree, soil, N deposition, CO2, site description, data policies) |
-| [`scripts/06_derive_PROFOUND_targets.py`](scripts/06_derive_PROFOUND_targets.py) | Extract → yearly stand totals, detected thinnings, SOC stocks, global CO2 table. Outputs are kept on IRIDIS, not in this repo, until the site data policies are checked; summary values with citations are in the literature table |
+| [`scripts/06_derive_PROFOUND_targets.py`](scripts/06_derive_PROFOUND_targets.py) | Extract → yearly stand totals, detected thinnings, SOC stocks, global CO2 table (written to `ICOS38/PROFOUND/`) |
 
 Regenerate the tables. The raw `bif_key_groups_rows.csv` (96 MB) stays on IRIDIS and is not committed.
 
@@ -133,7 +134,7 @@ What the literature changes for the NEE comparison:
 4. **NL-Loo:** its legacy PRE50/AD200/POST300 case used the default needleleaf parameters and is not in the 2 Nov rollout. Rerun it with AD400 → NORMAL400 and variant F, or exclude it.
 5. Remaining literature gaps:
    - **Soil organic carbon stocks.** The Flechard et al. (2020) supplement has only topsoil SOC *concentration* (gC/kg). Their main Table 1 (site characteristics and multi-year NEP, GPP, Reco per site) is published as a spreadsheet: https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-t01.xlsx. It cannot be downloaded from here; it needs to be uploaded.
-   - **PROFOUND site data policies.** STAND, TREE and SOIL follow site-specific policies stored in the `POLICY_<site_id>` views (3, 5, 12, 21); script 05 now exports them. A first query on 3 Nov matched no rows on a dataset name, so the view layout must be printed in full and read before the derived yearly tables are committed.
+   - **PROFOUND, CZ-BK1 publication condition.** Any paper that uses the CZ-BK1 stand, tree or soil data must carry the CzeCOS acknowledgement (grant LM2015061), and Lenka Krupkova must be notified (see `ICOS38/PROFOUND/DATA_LICENSE.md`).
    - **FATES inventory initialisation.** PROFOUND's TREE view has individual tree DBH and height for the 4 sites (CZ-BK1 8131 records 1997–2015, DK-Sor 7514 records 1994–2017). If our FATES version supports inventory initialisation (`use_fates_inventory_init`), these could start the EC-period run from the observed size distribution instead of a reset at establishment. Check before designing the start modes.
    - DE-Obe: no structure beyond ~53 yr / 15 m around 2008.
    - Thinning intensities for FR-Hes after 2000; thinning years before 2013 for DK-Sor; harvest extent at DE-Tha in 2020; planting year and density at DE-Hzd; IL-Yat thinning years.
