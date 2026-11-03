@@ -62,7 +62,7 @@ def scan(root):
             p=Path(base)/name
             if p.is_symlink():continue
             seen+=1
-            if len(found)>=MAX_SCAN:
+            if seen>MAX_SCAN:
                 truncated=True;break
             lower=name.lower()
             chosen=any(x in lower for x in ("l1","l2","l3","aws","access","era5",
@@ -164,7 +164,8 @@ def main():
         L6_metadata={"exact_L6_SHA256":L6_SHA,
           "time_variable_attributes":tm,"relevant_global_attributes":glob,
           "Ws_variable":meta(ds.variables["Ws"]),"Wd_variable":meta(ds.variables["Wd"]),
-          "timestamp_altered_by_PyFluxPro":False,
+          "PyFluxPro_general_rule_preserves_source_labels":True,
+          "site_specific_L1_end_of_period_proven":False,
           "original_end_interval_vs_center_independently_certified":False,
           "clock_science_release":False}
     roots=[SITE]
