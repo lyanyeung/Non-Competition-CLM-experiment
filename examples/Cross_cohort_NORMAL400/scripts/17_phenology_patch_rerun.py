@@ -1,0 +1,378 @@
+#!/usr/bin/env python3
+"""Rerun the first AD years with the upstream FATES fix for the cold-deciduous "never cold" trap.
+
+Diagnosis (docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md, section 16): after a warm autumn the FATES
+"cold lifespan" leaf-off (leaves still on > 400 days after the last cold leaf-off) sets the site to
+phen_cstat_nevercold. GDD only accumulates in the "is cold" state, so the trees never flush again and
+starve (CZ-Stn, DE-Lnf). In warm climates the leaf-on rule also needs >= 1 chilling day, so
+cold-deciduous trees stay leafless (US-SRM, US-SRG, US-CMW, FR-Pue).
+
+Upstream fix: NGEET/fates 6d9f5b34 (R. Fisher, 2025-11-19; first in sci.1.94.0_api.47.0.0):
+  1. lifespan leaf-off sets phen_cstat_iscold instead of phen_cstat_nevercold
+  2. with fixed biogeography the chilling-day requirement for leaf-on is 0 instead of 1
+This script backports exactly those lines into a private copy of the case's own
+EDPhysiologyMod.F90 in <new case>/SourceMods/src.clm/ (the shared FATES source is not touched) and:
+
+  prepare: create_clone of the site's AD case WITHOUT --keepexe (own executable, EXEROOT checked to be
+           the new case's own), the 09 diagnostic history, <years> years in 5-year segments, patched
+           SourceMods file (each replacement must match exactly once, diff kept in the case),
+           preview_namelists through the AD case's overlay -> lnd_in must equal the AD case's except
+           history keys; then case.build and a check that the patched file was compiled.
+  submit:  case.submit --skip-preview-namelist (only a verified, built case; never twice)
+  run:     prepare, then submit only if verified and built
+  status / cases (LABEL:CASE list for scripts 08 and 16)
+
+Usage (login node; the build takes a while, run it with setsid nohup):
+  python -B 17_...py run [--sites CZ-Stn DE-Lnf US-SRM] [--years 50]
+  python -B 17_...py status
+"""
+from __future__ import annotations
+
+import argparse
+import difflib
+import gzip
+import importlib.util
+import json
+import os
+import re
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+SITES = ["CZ-Stn", "DE-Lnf", "US-SRM"]
+STATE = "PHENFIX_STATE.json"
+UPSTREAM = "NGEET/fates 6d9f5b34 (sci.1.94.0_api.47.0.0)"
+R = None
+T = None   # module 13 (overlay candidates / verified preview)
+
+
+def load09():
+    """Module 13 (which loads module 09) supplies the verified-preview helpers; R is its module 09."""
+    global R, T
+    c = HERE / "13_needleleaf_param_trials.py"
+    if not c.is_file():
+        raise FileNotFoundError("13_needleleaf_param_trials.py not found beside this script")
+    spec = importlib.util.spec_from_file_location("trial13", c)
+    T = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(T)
+    if not hasattr(T, "preview_verified"):
+        raise RuntimeError("13_needleleaf_param_trials.py is too old (no preview_verified); download the current version")
+    T.load09()
+    R = T.R
+
+
+# ------------------------------------------------------------------ the patch
+DECL_ANCHOR = re.compile(r"^([ \t]*integer\s*::\s*ncdstart\b.*)$", re.M)
+LEAFON_IF = re.compile(r"^([ \t]*)if \( any\(currentSite%cstatus == \[phen_cstat_iscold,phen_cstat_nevercold\]\) \.and\. &\s*\n"
+                       r"\s*\(currentSite%grow_deg_days > gdd_threshold\)", re.M)
+NCHILL_OLD = "(currentSite%nchilldays >= 1)) then"
+NCHILL_NEW = "(currentSite%nchilldays >= nchill_threshold)) then"
+NEVER_OLD = re.compile(r"currentSite%cstatus = phen_cstat_nevercold(\s*! alter status of site to imply that this)")
+NCHILL_BLOCK = ("{i}! [phenology patch, backport of {up}]\n"
+                "{i}! if fixed biogeography is on, we don't have an nchill threshold logic, because\n"
+                "{i}! we are only growing cold deciduous trees where they are in real life\n"
+                "{i}if(hlm_use_fixed_biogeog .eq. ifalse)then\n"
+                "{i}   nchill_threshold=1\n"
+                "{i}else\n"
+                "{i}   nchill_threshold=0\n"
+                "{i}endif\n\n")
+
+
+def patch_source(text):
+    """Return the patched EDPhysiologyMod.F90 text; refuse unless every anchor matches exactly once."""
+    def once(n, what):
+        if n != 1:
+            R.fail(f"phenology patch: expected exactly one {what}, found {n}; FATES version differs, not patching")
+    if "nchill_threshold" in text:
+        R.fail("source already contains nchill_threshold (already patched or newer FATES); nothing to do")
+    for need in ("hlm_use_fixed_biogeog", "ifalse"):
+        if not re.search(rf"use\s+\w+\s*,\s*only\s*:[^\n]*\b{need}\b", text, re.I):
+            R.fail(f"phenology patch: {need} is not imported in this EDPhysiologyMod.F90")
+    once(len(DECL_ANCHOR.findall(text)), "'integer :: ncdstart' declaration")
+    once(len(LEAFON_IF.findall(text)), "cold leaf-on IF block")
+    once(text.count(NCHILL_OLD), f"'{NCHILL_OLD}'")
+    once(len(NEVER_OLD.findall(text)), "lifespan 'cstatus = phen_cstat_nevercold'")
+    t = DECL_ANCHOR.sub(lambda m: m.group(1) + "\n    integer  :: nchill_threshold  ! chill days for cold-decid. budburst [patch: NGEET/fates 6d9f5b34]", text, count=1)
+    t = LEAFON_IF.sub(lambda m: NCHILL_BLOCK.format(i=m.group(1), up=UPSTREAM) + m.group(0), t, count=1)
+    t = t.replace(NCHILL_OLD, NCHILL_NEW, 1)
+    t = NEVER_OLD.sub(r"currentSite%cstatus = phen_cstat_iscold\1 [patch 6d9f5b34]", t, count=1)
+    # self-check: only the intended lines changed
+    ud = list(difflib.unified_diff(text.splitlines(), t.splitlines(), n=0, lineterm=""))
+    added = [l for l in ud if l.startswith("+") and not l.startswith("+++")]
+    removed = [l for l in ud if l.startswith("-") and not l.startswith("---")]
+    if len(removed) != 2 or len(added) != 12:   # 1 declaration + 9-line block + 2 changed lines
+        R.fail(f"phenology patch self-check failed: {len(removed)} lines removed, {len(added)} added")
+    long = [l for l in t.splitlines() if len(l) > 132 and l not in text.splitlines()]
+    if long:
+        R.fail(f"phenology patch would add Fortran lines longer than 132 characters: {long[0][:60]}...")
+    return t
+
+
+# ------------------------------------------------------------------ cases
+def ident(site, F7, P, years):
+    i = R.ident(site, F7, P, years)
+    new = f"{i['ad']}_PHENFIX{years}"
+    i.update(new=new, case=R.CASES / new, rundir=R.OUT / new / "run", archive=R.OUT / "archive" / new,
+             exeroot=R.OUT / new / "bld")
+    return i
+
+
+def read_state(i):
+    st = i["case"] / STATE
+    return json.loads(st.read_text()) if st.is_file() else {}
+
+
+def write_state(i, **kw):
+    s = read_state(i)
+    s.update(kw, at=R.utc())
+    (i["case"] / STATE).write_text(json.dumps(s, indent=2) + "\n")
+    return s
+
+
+def prepare(site, F7, P, years):
+    i = ident(site, F7, P, years)
+    ad, case = i["ad_case"], i["case"]
+    print(f"\n=== {site}: {i['ad']} -> {i['new']} (FATES phenology patch, own build)", flush=True)
+    s = read_state(i)
+    if s.get("phase") in ("VERIFIED_BUILT_NOT_SUBMITTED", "SUBMITTED", "SUBMIT_ATTEMPTED_UNCERTAIN"):
+        print(f"  already {s['phase']}; nothing changed", flush=True)
+        return
+    if s.get("phase") == "PATCHED_NOT_BUILT":
+        print("  patched and verified earlier; building", flush=True)
+        return build(i)
+    for p in (case, i["rundir"].parent, i["archive"]):
+        if p.exists():
+            R.fail(f"path exists without a completed prepare: {p} (inspect and remove by hand if it is a failed attempt)")
+    if R.xq(ad, "CLM_ACCELERATED_SPINUP").lower() != "on":
+        R.fail("AD case is not accelerated spin-up")
+    srcroot = R.xq(ad, "SRCROOT")
+    ad_exe = R.xq(ad, "EXEROOT")
+    adv = {k: R.xq(ad, k) for k in ("RUN_TYPE", "RUN_STARTDATE", "CLM_FORCE_COLDSTART", "CLM_BLDNML_OPTS")}
+    src = Path(srcroot) / "src" / "fates" / "biogeochem" / "EDPhysiologyMod.F90"
+    if (ad / "SourceMods" / "src.clm" / "EDPhysiologyMod.F90").is_file():
+        R.fail("the AD case already has its own SourceMods EDPhysiologyMod.F90; not stacking patches")
+    original = src.read_text()
+    patched = patch_source(original)                      # fails before anything is created
+    ad_lnd = (ad / "CaseDocs" / "lnd_in").read_text()
+    ad_streams = (ad / "CaseDocs" / "datm.streams.xml").read_bytes()
+    found = R.fates_has(srcroot, R.DIAG_FIELDS)
+    nl, old_hist, fields = R.edit_user_nl((ad / "user_nl_clm").read_text(), found)
+    cimescripts = Path(srcroot) / "cime" / "scripts"
+    R.cmd([cimescripts / "create_clone", "--case", case, "--clone", ad], cwd=cimescripts, timeout=420)
+    write_state(i, phase="PREPARE_ATTEMPTED")
+    if R.xq(case, "CASE") != i["new"]:
+        R.fail("clone identity")
+    settings = {"CONTINUE_RUN": "FALSE", "STOP_OPTION": "nyears", "STOP_N": str(R.SEG), "REST_OPTION": "nyears",
+                "REST_N": str(R.SEG), "RESUBMIT": str(years // R.SEG - 1), "RESUBMIT_SETS_CONTINUE_RUN": "TRUE",
+                "DOUT_S": "TRUE", "RUNDIR": str(i["rundir"]), "DOUT_S_ROOT": str(i["archive"]),
+                "EXEROOT": str(i["exeroot"])}
+    for k, v in settings.items():
+        R.xc(case, k, v)
+    for k, v in settings.items():
+        if R.xq(case, k).lower() != v.lower():
+            R.fail(f"XML {k}={R.xq(case, k)} expected {v}")
+    if Path(R.xq(case, "EXEROOT")).resolve() == Path(ad_exe).resolve():
+        R.fail("EXEROOT equals the AD case's (shared executable); refusing to build into it")
+    for k, v in adv.items():
+        if R.xq(case, k) != v:
+            R.fail(f"clone differs from AD in {k}")
+    (case / "user_nl_clm").write_text(nl)
+    sm = case / "SourceMods" / "src.clm"
+    sm.mkdir(parents=True, exist_ok=True)
+    (sm / "EDPhysiologyMod.F90").write_text(patched)
+    diff = "".join(difflib.unified_diff(original.splitlines(True), patched.splitlines(True),
+                                        fromfile=str(src), tofile="SourceMods/src.clm/EDPhysiologyMod.F90"))
+    (case / "PHENFIX_patch.diff").write_text(diff)
+    i["rundir"].mkdir(parents=True, exist_ok=True)
+    if not (case / ".case.run").is_file():
+        R.cmd([case / "case.setup"], cwd=case, timeout=300)
+    overlay, a, n, keys = T.preview_verified(case, ad_lnd)
+    if (case / "CaseDocs" / "datm.streams.xml").read_bytes() != ad_streams:
+        R.fail("datm.streams.xml differs from the AD case")
+    fin = next((v for k, v in n.items() if k.endswith(".hist_fincl1")), "")
+    if any(f not in fin for f in fields):
+        R.fail("hist_fincl1 incomplete in new lnd_in")
+    write_state(i, phase="PATCHED_NOT_BUILT", **{k: str(v) for k, v in i.items()}, years=years, settings=settings,
+                upstream=UPSTREAM, fates_source=str(src), fates_source_sha256=R.digest(src),
+                patched_sha256=R.digest(sm / "EDPhysiologyMod.F90"), overlay=str(overlay) if overlay else "none",
+                hist_fincl1=fields, lnd_in_keys_changed=keys, ad_exeroot=ad_exe,
+                lnd_in_sha256=R.digest(case / "CaseDocs" / "lnd_in"),
+                datm_streams_sha256=R.digest(case / "CaseDocs" / "datm.streams.xml"))
+    print(f"  patch: {len(diff.splitlines())} diff lines (saved as {case / 'PHENFIX_patch.diff'})", flush=True)
+    print(f"  lnd_in vs AD: only these keys differ: {', '.join(k.split('.', 1)[1] for k in keys)}", flush=True)
+    print(f"  EXEROOT {i['exeroot']} (AD case: {ad_exe})", flush=True)
+    build(i)
+
+
+OBJ_RE = re.compile(r"^edphysiologymod(\.f90)?\.(o|mod)$", re.I)
+
+
+def compile_evidence(exeroot, new, patched_mtime):
+    """Was the private SourceMods copy compiled into this build (and not the shared FATES file)?
+    gmake builds put objects in lnd/obj, CMake builds under cmake-bld/..., so the whole EXEROOT is searched; the
+    latest lnd build log with a compile line for EDPhysiologyMod.F90 must compile <case>/SourceMods/src.clm/ and
+    not the shared copy (an incremental rebuild that recompiles nothing is decided by the earlier full build log)."""
+    exeroot = Path(exeroot)
+    objs = [p for p in exeroot.rglob("*") if OBJ_RE.match(p.name) and p.is_file()]
+    logs = sorted(exeroot.glob("lnd.bldlog.*"), key=lambda p: (p.stat().st_mtime, p.name))
+    if not logs:
+        return False, f"no lnd.bldlog.* in {exeroot}"
+    own = f"{new}/SourceMods/src.clm/EDPhysiologyMod.F90"
+    shared = "fates/biogeochem/EDPhysiologyMod.F90"
+    log, lines = logs[-1], []
+    for lg in reversed(logs):          # an incremental rebuild does not recompile it: use the latest log that did
+        raw = lg.read_bytes()
+        text = (gzip.decompress(raw) if raw[:2] == b"\x1f\x8b" else raw).decode(errors="replace")
+        lines = [ln for ln in text.splitlines() if "EDPhysiologyMod.F90" in ln and " -c " in f" {ln} "]  # compile lines
+        if lines:
+            log = lg
+            break
+    own_compiled = any(own in ln for ln in lines)
+    shared_compiled = any(shared in ln for ln in lines)
+    newest = max((p.stat().st_mtime for p in objs), default=0)
+    facts = (f"{len(objs)} object/module file(s) {[str(p.relative_to(exeroot)) for p in objs][:4]}, "
+             f"log {log.name}: SourceMods copy compiled={own_compiled}, shared copy compiled={shared_compiled}")
+    if shared_compiled:
+        return False, "the SHARED FATES EDPhysiologyMod.F90 was compiled, not the patch; " + facts
+    if not own_compiled:
+        return False, "the lnd build log does not show the patched SourceMods file being compiled; " + facts
+    if objs and newest < patched_mtime:
+        return False, "EDPhysiologyMod object is older than the patched source; " + facts
+    return True, "patched SourceMods file compiled; " + facts
+
+
+SPINUP_LINE = re.compile(r"^([ \t]*spinup_state[ \t]*=.*)$", re.I | re.M)
+BUILD_TAG = "! [17: hidden during case.build only, restored byte-identical] "
+
+
+def hide_spinup_state(text):
+    """Comment out the user_nl_clm spinup_state line(s) for the build. The plain CTSM build-namelist that case.build
+    runs refuses any spinup_state with FATES ("BGC mode is Satellite Phenology"); only the private overlay allows it."""
+    new, n = SPINUP_LINE.subn(lambda m: BUILD_TAG + m.group(1), text)
+    return new, n
+
+
+def build(i):
+    """case.build regenerates the namelists with the plain CTSM build-namelist, which refuses accelerated spin-up
+    with FATES (only the private overlay allows it, and the overlay cannot be used here: case.build rejects a changed
+    env_case.xml). Nothing compiled depends on the namelist, so for the build only CLM_ACCELERATED_SPINUP is off and
+    the spinup_state line(s) of user_nl_clm are commented out. Both are restored (user_nl_clm byte-identical), then
+    the namelist is regenerated through the verified overlay and must be byte-identical to the one verified in
+    prepare."""
+    case = i["case"]
+    st = read_state(i)
+    print(f"  building {i['new']} (own executable) ...", flush=True)
+    spin = R.xq(case, "CLM_ACCELERATED_SPINUP")
+    if spin.lower() != "on":
+        R.fail(f"CLM_ACCELERATED_SPINUP is {spin!r} before the build, expected 'on'")
+    try:
+        opts = R.xq(case, "CLM_NAMELIST_OPTS")
+    except RuntimeError:
+        opts = ""
+    if "spinup_state" in (opts or ""):
+        R.fail(f"spinup_state is set in CLM_NAMELIST_OPTS ({opts!r}); not handled, nothing built")
+    unl = case / "user_nl_clm"
+    orig = unl.read_bytes()
+    if BUILD_TAG.encode() in orig:
+        R.fail("user_nl_clm still has a line hidden by an interrupted build; restore it by hand (remove the tag)")
+    hidden, n = hide_spinup_state(orig.decode())
+    print(f"  build-only: CLM_ACCELERATED_SPINUP=off, {n} spinup_state line(s) in user_nl_clm commented out", flush=True)
+    try:
+        R.xc(case, "CLM_ACCELERATED_SPINUP", "off")
+        unl.write_text(hidden)
+        R.cmd([case / "case.build"], cwd=case, timeout=7200)
+    finally:
+        unl.write_bytes(orig)
+        R.xc(case, "CLM_ACCELERATED_SPINUP", spin)
+    if unl.read_bytes() != orig:
+        R.fail("user_nl_clm not restored after the build")
+    if R.xq(case, "CLM_ACCELERATED_SPINUP") != spin:
+        R.fail("CLM_ACCELERATED_SPINUP not restored after the build")
+    ov = st.get("overlay", "none")
+    T.run_preview(case, None if ov in ("none", "", None) else Path(ov))
+    if R.digest(case / "CaseDocs" / "lnd_in") != st["lnd_in_sha256"]:
+        R.fail("lnd_in regenerated after the build differs from the verified one")
+    exeroot = Path(R.xq(case, "EXEROOT"))
+    exe = exeroot / "cesm.exe"
+    if not exe.is_file():
+        R.fail(f"build finished but {exe} is missing")
+    patched = case / "SourceMods" / "src.clm" / "EDPhysiologyMod.F90"
+    ok, msg = compile_evidence(exeroot, i["new"], patched.stat().st_mtime)
+    print(f"  compile check: {msg}", flush=True)
+    if not ok:
+        R.fail(msg)
+    write_state(i, phase="VERIFIED_BUILT_NOT_SUBMITTED", exe=str(exe), exe_sha256=R.digest(exe))
+    print(f"  {i['new']} BUILT AND VERIFIED, NOT SUBMITTED", flush=True)
+
+
+def submit(site, F7, P, years):
+    i = ident(site, F7, P, years)
+    case = i["case"]
+    s = read_state(i)
+    if s.get("phase") != "VERIFIED_BUILT_NOT_SUBMITTED":
+        R.fail(f"phase is {s.get('phase')}; not submitting")
+    if R.digest(case / "CaseDocs" / "lnd_in") != s["lnd_in_sha256"] or \
+            R.digest(case / "SourceMods" / "src.clm" / "EDPhysiologyMod.F90") != s["patched_sha256"]:
+        R.fail("lnd_in or patched source changed after verification")
+    cs = (case / "CaseStatus").read_text(errors="replace") if (case / "CaseStatus").is_file() else ""
+    if re.search(r"case\.submit starting|case\.run starting", cs) or R.queued(i["new"]):
+        R.fail("already submitted or jobs exist")
+    write_state(i, phase="SUBMIT_ATTEMPTED_UNCERTAIN")
+    out = R.cmd([case / "case.submit", "--skip-preview-namelist"], cwd=case, timeout=650)
+    r, a = R.RUN_RE.search(out), R.ARCH_RE.search(out)
+    if not r:
+        R.fail("job id not parsed; DO NOT RETRY, check squeue. " + out[-600:])
+    write_state(i, phase="SUBMITTED", run_job=r.group(1), archive_job=a.group(1) if a else "")
+    print(f"{site}: SUBMITTED {i['new']} run={r.group(1)} archive={a.group(1) if a else '?'}", flush=True)
+
+
+def run_one(site, F7, P, years):
+    i = ident(site, F7, P, years)
+    if read_state(i).get("phase") in ("SUBMITTED", "SUBMIT_ATTEMPTED_UNCERTAIN"):
+        print(f"{site}: {read_state(i)['phase']}; not submitted again", flush=True)
+        return
+    prepare(site, F7, P, years)
+    if read_state(i).get("phase") != "VERIFIED_BUILT_NOT_SUBMITTED":
+        R.fail(f"not verified/built (phase {read_state(i).get('phase')}); not submitted")
+    submit(site, F7, P, years)
+
+
+def status(site, F7, P, years):
+    i = ident(site, F7, P, years)
+    h = i["archive"] / "lnd" / "hist"
+    yrs = sorted({m.group(1) for p in (h.glob(f"{i['new']}.clm2.h0*.nc") if h.is_dir() else [])
+                  for m in [re.search(r"\.h0a?\.(\d{4})-", p.name)] if m})
+    q = R.queued(i["new"])
+    print(f"{site}: {i['new']} | {read_state(i).get('phase', 'not prepared')} | archived years: {len(yrs)} | "
+          f"queue: {', '.join(r[2] for r in q) or 'none'}", flush=True)
+
+
+def cases(site, F7, P, years):
+    print(f"{site}_phenfix:{ident(site, F7, P, years)['new']}", flush=True)
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("action", choices=("prepare", "submit", "run", "status", "cases"))
+    ap.add_argument("--sites", nargs="+", default=SITES)
+    ap.add_argument("--years", type=int, default=50)
+    a = ap.parse_args(argv)
+    load09()
+    if a.years % R.SEG or a.years < R.SEG:
+        ap.error(f"--years must be a multiple of {R.SEG}")
+    try:
+        os.nice(10)
+    except OSError:
+        pass
+    F7, P = R.load07()
+    bad = 0
+    for s in a.sites:
+        try:
+            {"prepare": prepare, "submit": submit, "run": run_one, "status": status, "cases": cases}[a.action](s, F7, P, a.years)
+        except Exception as exc:
+            bad += 1
+            print(f"{s}: HOLD {exc}", flush=True)
+    return 1 if bad else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
