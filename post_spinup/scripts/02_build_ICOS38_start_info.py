@@ -88,10 +88,15 @@ LIT_COLUMNS = {
     "soc_change_0_70cm": "lit_soc_change", "nep_mean": "lit_nep_or_nee_mean", "NEE_mean": "lit_nep_or_nee_mean",
     "NBP_mean": "lit_nep_or_nee_mean", "cumulative_uptake": "lit_nep_or_nee_mean",
     "nep_trend": "lit_nep_trend", "ec_measurement_height": "lit_ec_height",
+    "soil_texture": "lit_soil_texture", "soil_hydraulics": "lit_soil_texture",
+    "topsoil_SOC_concentration": "lit_topsoil_chemistry", "topsoil_CN": "lit_topsoil_chemistry",
+    "topsoil_pH": "lit_topsoil_chemistry", "foliar_N": "lit_tissue_cn", "foliar_CN": "lit_tissue_cn",
+    "organ_CN": "lit_tissue_cn", "Rsoil_mean": "lit_soil_respiration", "Rhet_over_Rsoil": "lit_soil_respiration",
 }
 MULTI_VAR_COLUMNS = pd.Series(LIT_COLUMNS).value_counts().to_dict()
 LIT_ORDER = ["lit_stand_age", "lit_tree_density", "lit_canopy_height", "lit_mean_dbh", "lit_basal_area",
              "lit_lai", "lit_agb", "lit_species", "lit_soc", "lit_soc_change", "lit_soil_depth",
+             "lit_soil_texture", "lit_topsoil_chemistry", "lit_tissue_cn", "lit_soil_respiration",
              "lit_nep_or_nee_mean", "lit_nep_trend", "lit_ec_height", "lit_management_events", "lit_flux_notes",
              "lit_n_values"]
 

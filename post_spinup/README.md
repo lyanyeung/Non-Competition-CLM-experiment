@@ -35,14 +35,14 @@ Fixed biogeography with no competition, run for 800 years, ends in an old-growth
 - BE-Bra: thinning in winter 1999 (stem number −30%, 538 → 375 trees/ha), storm in autumn 2002 (→ 360 trees/ha), thinning in summer 2016.
 - CZ-BK1: thinnings in 2002 and 2005–06 (stem number −30%, LAI −26%).
 - DE-Lnf: selective harvest 2002–06 (~23 tC/ha, ~10% of biomass); otherwise thinning every 10–20 years.
-- DE-Tha: thinnings in April 2002 and February 2011; harvest near the station in September 2020.
+- DE-Tha: thinnings in April 2002 (stem number −~30%; Flechard et al. 2020 give 15% removed) and February 2011; harvest near the station in September 2020.
 - DK-Sor: thinning in 2013 (stem number −10%); earlier thinnings not found yet.
-- FI-Hyy: thinnings in 2002, 2019–20, and a commercial thinning in 2020 that removed ~40% of tree biomass. The ICOS CP basal area falls from 28.6 m²/ha (2018) to 17.1 m²/ha (2020).
+- FI-Hyy: thinnings in 2002 (25% removed), 2019–20, and a commercial thinning in 2020 that removed ~40% of tree biomass. The ICOS CP basal area falls from 28.6 m²/ha (2018) to 17.1 m²/ha (2020).
 - FI-Let: spring 2016, partial harvest (~75% of tree biomass in the EC footprint plot) and a 2.35 ha clear-cut next to it.
 - FR-Fon: thinning 2010–11 (LAI −36%).
-- FR-Hes: thinnings in 1999, 2005, 2010 and 2016 (intensities not found). The EC height also changed: 18 m (1997–99), 23.34 m (2000–12), 27.1 m (2013–20).
+- FR-Hes: thinnings in 1999–2000 (25% removed), 2005, 2010 and 2016 (later intensities not found). The EC height also changed: 18 m (1997–99), 23.34 m (2000–12), 27.1 m (2013–20).
 - BE-Vie: thinning every 6 years.
-- FR-Pue: experiments from 2003.
+- FR-Pue: experiments from 2003; thinning in 2005 (15% removed).
 
 Grasslands export carbon with every cut or grazing period, so NEE alone is not their carbon balance. CH-Fru, for example, has a mean NEE of −357 ± 76 gC m⁻² yr⁻¹ but a net biome production of only −154 ± 80 gC m⁻² yr⁻¹ (Rogger et al. 2022). CH-Cha had a sward renewal (ploughing and reseeding) in 2012. Event tables exist for CH-Cha (ETH dataset doi:10.3929/ethz-b-000747025) and CH-Fru (CH-FRU_Management_2005-2023.xlsx on the Swiss FluxNet site page). They are not downloaded yet.
 
@@ -55,12 +55,16 @@ How to make a stand-replacing reset (a FATES logging/harvest event, or a new cas
 | [`ICOS38/ICOS38_post_spinup_start_info.csv`](ICOS38/ICOS38_post_spinup_start_info.csv) | **Main table**, one row per site: PFTs, spin-up class and expected NORMAL400 case, EC years, stand history, start-mode proposal, observed structure, sources |
 | [`ICOS38/ICOS38_stand_history_management.csv`](ICOS38/ICOS38_stand_history_management.csv) | Curated stand origin and management history with source URLs. `evidence_status`: DOCUMENTED / DERIVED (year computed from an age at a reference year) / DOCUMENTED_AGE_ONLY / DOCUMENTED_PARTIAL(_EVENTS) |
 | [`ICOS38/ICOS38_literature_observations.csv`](ICOS38/ICOS38_literature_observations.csv) | One row per value found in a site paper, site page or data-paper supplement: category, variable, value, unit, reference year, scope (which plot or footprint), `preferred` (1 = used in the main table), source and URL |
+| [`ICOS38/Flechard2020_supplement_ICOS38.csv`](ICOS38/Flechard2020_supplement_ICOS38.csv) | Tables S2–S5 and S7 of the Flechard et al. (2020) supplement for the 17 of our sites it covers, one row per site. Also merged into the literature table |
 | [`ICOS38/ICOS38_BIF_structure_summary.csv`](ICOS38/ICOS38_BIF_structure_summary.csv) | One reference value per site and variable from the BADM, with year, plot type and flags |
 | [`ICOS38/ICOS38_BIF_observations_long.csv`](ICOS38/ICOS38_BIF_observations_long.csv) | Every mean/single-value BADM record behind the summary |
 | [`ICOS38/inputs/FINAL_38_SITE_FIXNC_PFT_20261026_ICOS.csv`](ICOS38/inputs/) | Copy of the PFT register (CLM-FATES-single-site-workflows, commit `a1579ebc`) |
 | [`scripts/00_inventory_site_BIF_badm_readonly.py`](scripts/00_inventory_site_BIF_badm_readonly.py) | Read-only scan of every site's BIF on IRIDIS (`MY_EC_SITE/<SITE>/forcing/raw/` or the package zip) |
 | [`scripts/01_extract_ICOS38_BIF_observations.py`](scripts/01_extract_ICOS38_BIF_observations.py) | BIF rows → long table and per-site summary |
 | [`scripts/02_build_ICOS38_start_info.py`](scripts/02_build_ICOS38_start_info.py) | Merges the summary, the stand history, the literature table (`preferred=1` rows → `lit_*` columns) and the PFT register into the main table |
+| [`scripts/03_extract_Flechard2020_supplement.py`](scripts/03_extract_Flechard2020_supplement.py) | Parses the Flechard et al. (2020) supplement PDF (not committed) into `Flechard2020_supplement_ICOS38.csv` |
+| [`scripts/04_get_PROFOUND_on_IRIDIS.sh`](scripts/04_get_PROFOUND_on_IRIDIS.sh) | Downloads PROFOUND v0.3 (2.6 GB zip) to IRIDIS scratch, checks and unzips it, optionally copies the zip to Research File Storage, then runs script 05 |
+| [`scripts/05_extract_PROFOUND_ICOS38.py`](scripts/05_extract_PROFOUND_ICOS38.py) | Read-only export of CZ-BK1, IT-Col, FI-Hyy and DK-Sor from the PROFOUND SQLite (stand, tree, soil, N deposition, CO2, site description, data policies) |
 
 Regenerate the tables. The raw `bif_key_groups_rows.csv` (96 MB) stays on IRIDIS and is not committed.
 
@@ -69,6 +73,8 @@ python3 post_spinup/scripts/00_inventory_site_BIF_badm_readonly.py --out ~/BIF_i
 python3 post_spinup/scripts/01_extract_ICOS38_BIF_observations.py \
         --bif-rows ~/BIF_inventory/bif_key_groups_rows.csv --out post_spinup/ICOS38
 python3 post_spinup/scripts/02_build_ICOS38_start_info.py
+python3 post_spinup/scripts/03_extract_Flechard2020_supplement.py --pdf bg-17-1583-2020-supplement.pdf
+bash post_spinup/scripts/04_get_PROFOUND_on_IRIDIS.sh      # on an IRIDIS login node; RFS_DIR=... to back up the zip
 ```
 
 ## Observed-data notes
@@ -87,7 +93,7 @@ python3 post_spinup/scripts/02_build_ICOS38_start_info.py
 
 ## Literature layer and NEE
 
-`ICOS38_literature_observations.csv` holds 154 values for 34 sites. Every row has a source and a URL. A value is used in the main table only if `preferred=1`. Rows with `preferred=0` are kept as cross-checks: secondary compilations, values for a plot that is not the EC footprint, or values that look wrong.
+`ICOS38_literature_observations.csv` holds 377 values for 35 sites (223 of them from the Flechard et al. 2020 supplement). Every row has a source and a URL. A value is used in the main table only if `preferred=1`. Rows with `preferred=0` are kept as cross-checks: secondary compilations, values for a plot that is not the EC footprint, or values that look wrong.
 
 What the literature changes for the NEE comparison:
 
@@ -95,19 +101,22 @@ What the literature changes for the NEE comparison:
 - **NEE trends.** Fernández-Martínez et al. (2017) give NEP trends for 13 of our forests. Strong increases at IT-Lav (+41.8 gC m⁻² yr⁻¹ per year), IT-Ren (+37.9), DK-Sor (+27.3) and FR-Hes (+26.4); declines at FR-Pue (−10.3) and DE-Hai (−7.3). Run with constant CO2, an unmanaged model cannot produce these trends. This is one reason the transient CO2 series (item 4) matters.
 - **Long-term means for checks.** Mean NEP: DE-Lnf 590 ± 190, DE-Hai 512 ± 89, DE-Tha 430, DK-Sor 115 (1996–2008), DE-Gri 90 gC m⁻² yr⁻¹. A secondary compilation (Biogeosciences 22:4729, 2025, Table S1) gives NEE/GPP/Reco for 10 of our forests. These are `preferred=0`: GPP − Reco does not match −NEE at four sites, and IT-Lav (−1844 gC m⁻² yr⁻¹) is implausible. Use them to sense-check our own FLUXNET means, not as targets.
 - **Non-biological CO2 signals.** At DE-Hai, advection makes the EC sink 100–200 gC m⁻² yr⁻¹ larger than bottom-up estimates. At ES-LJu and ES-Agu (also called Balsa Blanca), turbulence ventilates CO2 out of the subsoil and the tower records it. CLM-FATES will not reproduce either; expect a bias there that is not a model error.
+- **Soil texture and water.** Flechard et al. (2020) Table S4 gives clay/sand/silt and wilting point, field capacity and saturation for 17 sites. Soil water stress drives summer NEE, so compare these with `PCT_SAND`/`PCT_CLAY` in each site's surface file before the runs. Check the extremes first: BE-Bra and NL-Loo are almost pure sand (89–96% sand), DE-Hai and IT-Col are clay-rich (40–59% clay), and RU-Fyo is peat.
+- **Soil respiration partitioning.** Published annual soil respiration (Table S7) exists for 12 of our forests and the heterotrophic fraction for 11, for example DE-Hai 884 gC m⁻² yr⁻¹ with Rhet/Rsoil 0.52, and FR-Hes 620 with 0.37. These help tell whether an NEE bias comes from photosynthesis or from respiration.
+- **Leaf C:N.** Foliar C/N ranges from 20 (DK-Sor, IT-Col) to 47 (BE-Vie) across the 17 sites. Compare it with the leaf C:N in the FATES parameter file for each site's PFT.
 - **Measurement height.** FR-Hes raised its EC system twice (18 → 23.34 → 27.1 m). The forcing reference height should follow the year.
 
 ## Open items
 
 1. When the replacement NORMAL400 runs finish: write a read-only IRIDIS script that reads each case's final restart (path, model year, `spinup_state`), `CCSM_CO2_PPMV`, DATM years, surface and parameter file. Merge these into the main table.
 2. Decide the start-mode design (the table above) and how to make a stand-replacing reset in FATES.
-3. Choose the transient CO2 series.
+3. Choose the transient CO2 series. PROFOUND's CO2_ISIMIP view (exported by script 05) is one candidate.
 4. **NL-Loo:** its legacy PRE50/AD200/POST300 case used the default needleleaf parameters and is not in the 2 Nov rollout. Rerun it with AD400 → NORMAL400 and variant F, or exclude it.
 5. Remaining literature gaps:
-   - **Soil organic carbon** for most forests. Flechard et al. (2020, Biogeosciences 17:1583, supplement Tables S1–S3) gives SOC and stand data for nearly all of these sites, but the PDF cannot be fetched from here; it needs to be uploaded.
-   - **Stand inventory time series** (biomass, density, height by year) for CZ-BK1, IT-Col, FI-Hyy and DK-Sor are in the PROFOUND database (doi:10.5880/PIK.2020.006). Not downloaded yet.
+   - **Soil organic carbon stocks.** The Flechard et al. (2020) supplement has only topsoil SOC *concentration* (gC/kg). Their main Table 1 (site characteristics and multi-year NEP, GPP, Reco per site) is published as a spreadsheet: https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-t01.xlsx. It cannot be downloaded from here; it needs to be uploaded.
+   - **PROFOUND** (CZ-BK1, IT-Col, FI-Hyy, DK-Sor stand time series, soil profiles, CO2 and N deposition series): run `04_get_PROFOUND_on_IRIDIS.sh`, then bring back `ICOS38_extract/`. Check the exported POLICY/SOURCE files before committing any of it (CC BY-NC 4.0 plus site-specific policies).
    - DE-Obe: no structure beyond ~53 yr / 15 m around 2008.
-   - Thinning intensities for FR-Hes; thinning years before 2013 for DK-Sor; harvest extent at DE-Tha in 2020; planting year and density at DE-Hzd; IL-Yat thinning years.
+   - Thinning intensities for FR-Hes after 2000; thinning years before 2013 for DK-Sor; harvest extent at DE-Tha in 2020; planting year and density at DE-Hzd; IL-Yat thinning years.
    - Management event tables for CH-Cha and CH-Fru (exist, not downloaded).
    - The EC record for GL-ZaH.
 6. Sites without a BIF in the scan (FI-Sod, FR-Fon, IT-Col, IT-Noe, GL-ZaH): check whether their ICOS v1.3 packages on IRIDIS contain one.
