@@ -236,11 +236,14 @@ def run(a):
             r = surf_rows[-1]
             loc = {"lat": r["cell_lat"], "lon": r["cell_lon"], "elevation_m": "",
                    "coord_source": f"point surface LATIXY/LONGXY of {r['case']} (no BIF)"}
+        if loc and loc.get("lon") not in ("", None) and float(loc["lon"]) > 180:  # 0-360 -> -180..180
+            loc["lon"] = round(float(loc["lon"]) - 360, 6)
+            loc["coord_source"] += "; longitude converted from 0-360"
         coords.append({"site": site, "network": "ICOS", "site_name": "",
                        "lat": loc["lat"] if loc else "", "lon": loc["lon"] if loc else "",
                        "elevation_m": loc.get("elevation_m", "") if loc else "",
                        "coord_source": loc["coord_source"] if loc else "MISSING",
-                       "coord_verification": ("IRIDIS6_SOURCE_FILE" if loc and "BIF" in loc["coord_source"]
+                       "coord_verification": ("IRIDIS6_SOURCE_FILE" if loc and loc["coord_source"].startswith("BIF")
                                               else "IRIDIS6_CASE_SURFACE" if loc else "MISSING")})
         meta["sites"][site] = m
         print(f"{site:7s} coords={coords[-1]['lat']},{coords[-1]['lon']} ({coords[-1]['coord_verification']}) "
@@ -272,7 +275,16 @@ def self_test():
     import numpy as np
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
-        (td / "info.csv").write_text("site,normal400_case_expected\nXX-Aaa,XX-Aaa_B01_FIXNC_NORMAL400\nYY-Bbb,\n")
+        (td / "info.csv").write_text("site,normal400_case_expected\nXX-Aaa,XX-Aaa_B01_FIXNC_NORMAL400\nYY-Bbb,\n"
+                                     "ZZ-Ccc,\n")
+        surf2 = td / "surf2.nc"
+        with open_nc(surf2, "w") as ds:
+            ds.createDimension("lsmlat", 1); ds.createDimension("lsmlon", 1)
+            ds.createVariable("LATIXY", "f8", ("lsmlat", "lsmlon"))[:] = 74.473
+            ds.createVariable("LONGXY", "f8", ("lsmlat", "lsmlon"))[:] = 339.449
+        c2 = td / "cases" / "ZZ-Ccc_B04_NORMAL400"
+        (c2 / "CaseDocs").mkdir(parents=True)
+        (c2 / "CaseDocs" / "lnd_in").write_text(f" fsurdat = '{surf2}'\n")
         pk = td / "sites" / "XX-Aaa" / "forcing" / "packages"
         pk.mkdir(parents=True)
         bif = ("SITE_ID,GROUP_ID,VARIABLE_GROUP,VARIABLE,DATAVALUE\nXX-Aaa,1,GRP_LOCATION,LOCATION_LAT,50.95\n"
@@ -302,8 +314,9 @@ def self_test():
         co = list(csv.DictReader(open(o / "ICOS38_COORDINATES.csv")))
         assert co[0]["lat"] == "50.95" and co[0]["coord_verification"] == "IRIDIS6_SOURCE_FILE", co[0]
         assert co[1]["coord_verification"] == "MISSING"
+        assert co[2]["coord_verification"] == "IRIDIS6_CASE_SURFACE" and abs(float(co[2]["lon"]) + 20.551) < 1e-6, co[2]
         cs = list(csv.DictReader(open(o / "stage07_cases.tsv"), delimiter="\t"))
-        assert len(cs) == 2 and cs[0]["CCSM_CO2_PPMV"] == "376.95" and "DATM_YR_START=2004" in cs[0]["datm_years"]
+        assert len(cs) == 3 and cs[0]["CCSM_CO2_PPMV"] == "376.95" and "DATM_YR_START=2004" in cs[0]["datm_years"]
         sl = list(csv.DictReader(open(o / "stage07_surface_soil_long.csv")))
         assert len(sl) == 20 and float(sl[0]["PCT_SAND"]) == 40.0
         sf = list(csv.DictReader(open(o / "stage07_surface_fields.tsv"), delimiter="\t"))
