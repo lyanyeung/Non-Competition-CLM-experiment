@@ -210,8 +210,8 @@ def main():
         print("LOCAL SITE CANDIDATES",r["root"],r["file_count_relevant"],
               "SCAN TRUNCATED",r["scan_truncated"])
         for p in r["files"]:
-            if "2018" in p["path"].lower() or
-                    ("l3" in Path(p["path"]).name.lower()):
+            if ("2018" in p["path"].lower()
+                or "l3" in Path(p["path"]).name.lower()):
                 print("CANDIDATE FILE",p["path"],"SIZE",p["size_bytes"])
     for r in records:
         print("LOWER-LEVEL INSPECTION",r["path"],
