@@ -61,3 +61,15 @@ Stage11 full L6 SHA / Stage09/10 receipt validation **PASSED**. Operator output 
 ## Stage12 next original-meteorology evidence (script published, IRIDIS run pending)
 
 `scripts/12_asm_wind_spike_AWS_ACCESS_native_source_forensics_READONLY.py` Git blob `1161b3bfdacbc063ae26ef05debc2947a51613c9` (PR #65). Read-only source original L6 SHA `b9381c4ed0744d03ae609cfbf3805e30bbb9223851a05f4e5b63b149dd0b10eb` and Stage11 verified science HOLD. Records original wind sensor metadata and any *possible* backup/matching-name variables, full seven-met and QC context before/after the 2018 isolated peak, ranks all similar six-year QC0 wind spikes, unpacks original 2017 Fld ACCESS, 2018 87.5h 410 AWS and 2014 ps alternative fill source QC and boundary jumps. A donor-variable name is not proof of independent observation. Does not edit original, candidate, selected Surface, CIME, Slurm or release AD400.
+
+## Actual Stage12 operator results (2026-11-03)
+
+Script SHA pinned and IRIDIS source QC run passed. Output root: `/home/ly3n24/ozflux_nc_stage12_20261103T074301Z`. Native L6 original SHA verified; no model case/job submitted, no Surface/forcing changed.
+
+- 2018-03-10 20:30 original `Ws` = **16.29613 m/s**, PyFluxPro `Ws_QCFlag=0`, **statistic_type=average** (thus not a reported gust statistic). Neighbor ±4h median 3.6628965 m/s, ratio 4.44897, 30-min step +12.624171 then −12.326063 m/s. Six full years contain exactly **3 isolated original QC0 wind candidates** under the diagnostic screening. This is a strong *instrument/time-resolution review trigger*, not proof of faulty observation. No separately named `Ws` backup sensor was discovered by Stage12 (candidate list only `Wd`, wind direction, which cannot independently replace wind speed).
+- 2017-08-17 to 2017-09-03 Fld ACCESS 395h: all 790 Fld source QC420; all 790 concurrent Ta/SH/ps/Fsd/Ws/Precip source QC0. The sky-emissivity and QC0-shoulder comparison from Stage11 is consistent with a plausible retained-candidate fill, **not independent truth**.
+- 2018-06-09 to 2018-06-13 AWS class: 175 consecutive halfhours with Ta/SH/ps/Ws/Precip QC410; concurrent Fsd and Fld 56 QC0 and 119 QC420 ACCESS. Different source-donor classes coexist and should not be conflated with a fully AWS-observed met period.
+- 2014 96h ps QC410-only replacement: all 192 halfhours for Ta/SH/Fsd/Fld/Ws/Precip QC0. Pressure boundaries and donor origin still need reviewing.
+- 2018 annual class counts: 1416 QC410 Ta/SH/ps/Ws, 1425 QC410 Precip, 1290 QC420 and 11 QC440 for each Fsd/Fld.
+
+**Next:** inspect the three exact isolated QC0 wind candidates (source seven-variable context, direction, any neighbouring gust metadata), review WS validity, and assess independently validated AWS/ACCESS donor overlap. Separately build a new SITE-SOIL candidate from the **2026-11-03 upstream OzFlux_JapanFlux_Soil v1 recommendation** only after freezing the source CSV commit/hash; the old GRIDREF must remain unchanged. Both forcing and soil science gates remain HOLD; no AD400.
