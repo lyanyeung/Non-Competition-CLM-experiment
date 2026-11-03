@@ -197,13 +197,28 @@ def main():
                 "entry_jump_Ws_mps":jump(values,"Ws",ii-1,ii),
                 "exit_jump_Ws_mps":jump(values,"Ws",jj-1,jj)})
         joint_rows.sort(key=lambda x:-x["hours"])
-        # The exact previously reported 87.5h five-var source nonzero run.
+        # Reproduce the exact Stage10 87.5h alternate-source interval.
+        # A union of ALL nonzero QC codes can legitimately extend beyond
+        # that interval (e.g. adjacent QC50), so do not require that the
+        # wider all-five non-QC0 spell has identical start/end boundaries.
         known_start="2018-06-09 18:00:00"
         known_end="2018-06-13 09:00:00"
-        matches=[x for x in joint_rows if x["start_native"]==known_start
-                 and x["end_native"]==known_end and x["hours"]==87.5]
-        need(len(matches)==1,
-             "2018 87.5h source all-five alternate episode not matched")
+        ii=at(t,known_start,time)
+        jj=at(t,known_end,time)+1
+        need(jj-ii==175 and all(np.all(qc[v][ii:jj]!=0) for v in f),
+             "2018 87.5h original 5-variable non-QC0 interval not reproduced")
+        exact_codes={v:sorted(set(int(x) for x in qc[v][ii:jj]
+                     if np.isfinite(x))) for v in f}
+        matching_joint=[x for x in joint_rows
+                        if x["start_native"]<=known_start
+                        and x["end_native"]>=known_end]
+        need(len(matching_joint)==1,
+             "2018 original all-five non-QC0 parent run not found")
+        focus_record={"start_native":known_start,"end_native":known_end,
+                      "hours":87.5,"rows":175,
+                      "distinct_QCFlag_by_variable":json.dumps(exact_codes,sort_keys=True),
+                      "parent_joint_run_start":matching_joint[0]["start_native"],
+                      "parent_joint_run_end":matching_joint[0]["end_native"]}
         out.mkdir(mode=0o700,parents=False,exist_ok=False)
         write_tsv(out/"stage11_seven_event_original_before_after_HH.tsv",B_FIELDS,windows)
         write_tsv(out/"stage11_2018_joint_5variable_nonQC0_runs.tsv",J_FIELDS,joint_rows)
@@ -215,7 +230,7 @@ def main():
          "2018_original_QC_exact_code_percentages":annual,
          "2018_all_five_nonQC0_total_HH":int(joint.sum()),
          "2018_all_five_nonQC0_runs":len(joint_rows),
-         "2018_87p5hour_joint_episode":matches[0],
+         "2018_87p5hour_joint_episode":focus_record,
          "2018_peak_wind":wind,
          "report_before_after_rows":len(windows),
          "science_release":False,"AD400_authorised":False,
@@ -229,7 +244,7 @@ def main():
     print("2017 Fld ACCESS",json.dumps(fld_obs_baseline))
     print("2018 ORIGINAL QC CODE COUNTS",json.dumps(annual))
     print("2018 JOINT 5-MET NON-QC0",len(joint_rows),"RUNS",int(joint.sum()),"HALF HOURS")
-    print("2018 87.5H SHARED NON-QC0 FLAGS",json.dumps(matches[0]["distinct_QCFlag_by_variable"]))
+    print("2018 87.5H SHARED NON-QC0 FLAGS",focus_record["distinct_QCFlag_by_variable"])
     print("2018 WIND QC",wind["source_QCFlag"],"VALUE",wind["value"])
     print("AU-ASM STAGE11 READONLY SOURCE FORENSICS PASS; SCIENCE RELEASE FALSE; AD400 HOLD")
     print("REPORT_DIR",out)
