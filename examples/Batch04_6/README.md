@@ -4,7 +4,7 @@
 
 This folder covers exactly **CH-Aws, DE-Gri, DE-RuR, IT-Tor, ES-Agu, GL-ZaH**, the six ICOS/FLUXNET stations outside the existing three 10-site FIXNC cohorts. **DE-Tha and NL-Loo are separate, protected examples**, not Batch04 reruns. Thus the original 38-site ICOS inventory is 30 in Batch01–03 + 6 in Batch04 + 2 independent examples.
 
-## Current status and final code (updated 2 Nov 2026)
+## Current status and final code (updated 3 Nov 2026)
 
 **Rule.** Where Codex prepared and submitted a site, its as-run scripts are the final version. Alternative scripts for those sites are listed under *Superseded* below and must not be run. The stage-by-stage log further down is history; where it disagrees with this section, this section is current.
 
@@ -13,9 +13,9 @@ This folder covers exactly **CH-Aws, DE-Gri, DE-RuR, IT-Tor, ES-Agu, GL-ZaH**, t
 | DE-Gri | AD400 running; at Stage05B restart 2034, 6/80 segments | `DE-Gri_ICOS_B04_FIXNC_AD400_DIRECT`, 2004 → 2404 | 2011/2024 forcing edits [03s](scripts/03s_de_gri_approved_2011_and_2024_boundary.py)–[03v](scripts/03v_de_gri_sensitivity_annual_input_plan.py); preflight [04a](scripts/04a_de_gri_direct_AD400_case_template_preflight_READONLY.py), [04b](scripts/04b_de_gri_direct_AD400_stream_FATES_preflight_READONLY.py); prepare [04c](scripts/04c_de_gri_direct_AD400_isolated_case_prepare.py); lock recovery [04d](scripts/04d_de_gri_recover_existing_case_after_envlock_READONLY_GUARDED.py); submit [04e](scripts/04e_de_gri_one_time_exploratory_direct_AD400_submit.py) |
 | DE-RuR | AD400 running; at Stage05B restart 2026, 3/80 | `DE-RuR_ICOS_B04_FIXNC_AD400_DIRECT`, 2011 → 2411 | [DE-RuR_prepare_ad400.py](scripts/DE-RuR_prepare_ad400.py) via [run_pair_prepare.py](scripts/run_pair_prepare.py); submitted once by the operator with a one-time guard (that submit helper is not in this repository) |
 | ES-Agu | AD400 running; at Stage05B restart 2021, 3/80 | `ES-Agu_ICOS_B04_FIXNC_AD400_DIRECT`, 2006 → 2406 | [ES-Agu_prepare_ad400.py](scripts/ES-Agu_prepare_ad400.py) via [run_pair_prepare.py](scripts/run_pair_prepare.py); submitted the same way |
-| GL-ZaH | first AD400 (run 4809211) stopped after about 10 y: it has cold-deciduous PFTs (7.1 %) and was built without the phenology patch. Replaced by `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT_PHEN` (script 22; [maintenance log](../../maintenance/README.md)) | `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT`, 2000 → 2400 | [05c](scripts/05c_gl_zah_arctic_surface_case_direct_AD400.py): Arctic PFT surface, private FATES map, prepare, audit, submit |
+| GL-ZaH | first AD400 (run 4809211) stopped after about 10 y: it has cold-deciduous PFTs (7.1 %) and was built without the phenology patch. Replaced by `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT_PHEN` (script 22; [maintenance log](../../maintenance/README.md)); `_PHEN` run 4812836 / archive 4812837 pending on 3 Nov | `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT`, 2000 → 2400 | [05c](scripts/05c_gl_zah_arctic_surface_case_direct_AD400.py): Arctic PFT surface, private FATES map, prepare, audit, submit |
 | IT-Tor | AD400 submitted 2 Nov: run 4809216 / archive 4809217; **one chain, S1 + F1** | `IT-Tor_ICOS_B04_FIXNC_AD400_DIRECT`, 2008 → 2408 | F1 generator [05a](scripts/05a_it_tor_make_f1_candidate.py) (Codex); [05d](scripts/05d_it_tor_S1_soil_and_F1_rebuild.py): S1 soil, F1 rebuild; [05e](scripts/05e_it_tor_S1F1_case_direct_AD400.py): F1 staging, prepare, audit, submit |
-| CH-Aws | scripts ready, not yet run on IRIDIS6; option A humidity (F1A) + HINONE | `CH-Aws_ICOS_B04_FIXNC_AD400_DIRECT_HINONE`, 2006 → 2406 | [06a](scripts/06a_ch_aws_humidity_scan_case_surface_READONLY.py) scan; [06b](scripts/06b_ch_aws_F1A_humidity_forcing.py) F1A forcing; [06c](scripts/06c_ch_aws_surface_case_HINONE_direct_AD400.py) surface, phenology class, prepare, audit, submit |
+| CH-Aws | AD400 submitted 3 Nov: run 4812874 / archive 4812875; F1A humidity (65 half-hours) + HINONE; phenology class UNCHANGED | `CH-Aws_ICOS_B04_FIXNC_AD400_DIRECT_HINONE`, 2006 → 2406 | [06a](scripts/06a_ch_aws_humidity_scan_case_surface_READONLY.py) scan; [06b](scripts/06b_ch_aws_F1A_humidity_forcing.py) F1A forcing; [06c](scripts/06c_ch_aws_surface_case_HINONE_direct_AD400.py) surface, phenology class, prepare, audit, submit |
 
 Every case uses the same settings:
 - direct AD400: one `case.submit`, `STOP_N=5`, `RESUBMIT=79`, no separate AD5;
@@ -972,6 +972,41 @@ Run order on IRIDIS6:
 5. 06c `prepare`.
 6. 06c `audit`.
 7. 06c `submit`.
+
+## Stage06B / 06C result (3 Nov 2026): CH-Aws submitted
+
+**06b, F1A forcing.**
+- Main rule 142 half-hours = 65 targets + 77 kept as built. At the 77 the base was already built from ERA (RH 40.6–86.9 %, median 71.0).
+- Targets by year: 2007 22, 2008 2, 2016 1, 2017 21, 2018 4, 2019 3, 2020 12.
+- RH at the 65 targets:
+
+  | | min | median | max |
+  | --- | --- | --- | --- |
+  | before (MDS) | 0.01 | 6.8 | 9.96 |
+  | after (F1A) | 36.8 | 67.7 | 87.2 |
+  | ERA's own | 55.3 | 71.4 | 87.3 |
+
+  The F1A values are a little below ERA's own because they pair the ERA VPD with the measured, warmer TA.
+- The 7 edited years are written to `Batch04_6/CH-Aws_F1A_forcing_v1/`, with the 19-year `annual_input_plan.json`.
+
+**06c, surface.**
+- Built, sha `067e0de5…`: NATVEG 100, other landunits 0, host 13 cool C3 grass 100.
+- Soil (sand 43, clay 18, ORGANIC 0) and point (46.5831, 9.7906) are unchanged.
+
+**06c, phenology class** (script 22 functions, `c092804`).
+- The new surface is **UNCHANGED**: cold-deciduous 0 %, PFT 2 0 %. So the shared executable with `--keepexe` and the shared default FATES parameters are used.
+- For comparison, the old grid surface would have been NEEDS_PATCH_AND_F:
+  - cold-deciduous 69.9 % of vegetation (arctic C3 grass 62.7, cold-deciduous tree 6.5, arctic shrub 0.6, shrub 0.1);
+  - PFT 2 27.6 %.
+
+**06c, case.**
+- CO2 381.15 = NOAA 2006 = template; `calc_human_stress_indices = 'NONE'` in `lnd_in`.
+- Prepared, verified and audited, then submitted once: run 4812874, archive 4812875. The run is 2006 → 2406 in 80 × 5 segments, with `skip_pnl` persisted.
+
+**Batch04 queue on 3 Nov.** All six sites now have a direct AD400 chain:
+- DE-Gri, DE-RuR and ES-Agu running;
+- IT-Tor submitted 2 Nov;
+- GL-ZaH `_PHEN` (4812836 / 4812837) and CH-Aws (4812874 / 4812875) pending.
 
 ## Stage03: full native-source forcing / soil / PFT science release (future)
 
