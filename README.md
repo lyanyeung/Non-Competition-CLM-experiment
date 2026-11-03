@@ -1,5 +1,9 @@
 # Fixed Biogeography & no competition FATES experiment
 
+## Post-spin-up start information (3 November 2026)
+
+[post_spinup/](post_spinup/README.md) collects, per site, what a run starting from the spun-up state needs: the NORMAL400 case that will hold the restart, the EC years, stand origin and management history (with sources), and the observed structure from the ICOS ancillary (BADM) data for evaluation. ICOS 38 first. No post-spin-up run can start yet: the replacement AD400 → NORMAL400 runs began on 2 November.
+
 ## Needleleaf collapse diagnosis (1 November 2026)
 
 [Diagnosis log](docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md): needleleaf-dominated sites lose their vegetation in AD400 through FATES carbon-starvation mortality (storage falls below 1 × leaf carbon every winter with the default needleleaf parameters), not water stress — the history BTRAN ≈ 0.05 is canopy-cover dilution. Figures, numbers, source-code references, corrections and the fix plan are in the log.

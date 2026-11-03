@@ -1,0 +1,17 @@
+site,top_cm,bottom_cm,horizon,C_percent,bulk_density_gcm3,bulk_density_source,gravel_percent,soc_kgC_m2,layer,soc_kgC_m2_sum,depth_top_cm,depth_bottom_cm,n_layers
+IT-Col,0.0,10.0,,11.375,0.482,same layer,,5.483,layer,,,,
+IT-Col,10.0,20.0,,6.868,0.537,same layer,,3.688,layer,,,,
+IT-Col,20.0,40.0,,5.313,0.575,same layer,,6.11,layer,,,,
+IT-Col,40.0,80.0,,2.947,0.72,same layer,,8.487,layer,,,,
+FI-Hyy,0.0,5.5,A,3.89,0.74,same layer,26.17,1.583,layer,,,,
+FI-Hyy,5.5,22.5,B,2.71,0.73,same layer,28.06,3.363,layer,,,,
+FI-Hyy,22.5,56.0,C1,0.37,1.27,same layer,30.97,1.574,layer,,,,
+FI-Hyy,56.0,89.0,C2,0.14,1.45,same layer,43.5,0.67,layer,,,,
+DK-Sor,0.0,12.0,,4.29,0.954,thickness-weighted from BD profile,,4.911,layer,,,,
+DK-Sor,12.0,25.0,,1.03,1.265,thickness-weighted from BD profile,,1.694,layer,,,,
+DK-Sor,25.0,35.0,,0.62,1.45,thickness-weighted from BD profile,,0.899,layer,,,,
+DK-Sor,35.0,45.0,,0.28,1.528,thickness-weighted from BD profile,,0.428,layer,,,,
+DK-Sor,45.0,55.0,,0.3,1.606,thickness-weighted from BD profile,,0.482,layer,,,,
+DK-Sor,,,,,,,,,"TOTAL (mineral soil, no stone correction, organic layer excluded)",8.41,0.0,55.0,5.0
+FI-Hyy,,,,,,,,,"TOTAL (mineral soil, no stone correction, organic layer excluded)",7.19,0.0,89.0,4.0
+IT-Col,,,,,,,,,"TOTAL (mineral soil, no stone correction, organic layer excluded)",23.77,0.0,80.0,4.0

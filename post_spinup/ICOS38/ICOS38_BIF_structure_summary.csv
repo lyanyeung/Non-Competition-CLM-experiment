@@ -1,0 +1,39 @@
+site,igbp_bif,agb_tree_kgDM_m2,agb_year,agb_plot,agb_flags,basal_area_m2_ha,basal_area_m2_ha_year,basal_area_m2_ha_plot,basal_area_m2_ha_flags,tree_density_ha,tree_density_ha_year,tree_density_ha_plot,tree_density_ha_flags,mean_dbh_cm,mean_dbh_cm_year,mean_dbh_cm_plot,mean_dbh_cm_flags,canopy_height_m,canopy_height_year,canopy_height_flags,lai_peak_median,lai_type,lai_canopy,lai_years,lai_n_years,species_pct,species_year,species_plot,bif_source_file,soc_kgC_m2,soc_depth_cm,soc_year,soc_flags
+DE-Tha,ENF,20.592,2026.0,CP,,28.189,2026.0,CP,,251.0,2026.0,CP,,38.122,2026.0,CP,,28.56,2025.0,,2.48,PAI,Overstory,2020-2024,5.0,Picea abies 63%; Fagus sylvatica L. 15%; Larix decidua Mill. 8%; Betula pendula Roth 4%; Abies alba Mill. 4%; Pseudotsuga menziesii 4%,2026.0,CP,ICOS_DE-Tha_FLUXNET_BIF_1996-2026_v1.3_r1.csv,,,,
+NL-Loo,ENF,12.077,2023.0,CP,,27.609,2023.0,CP,,470.0,2023.0,CP,,23.866,2023.0,CP,,14.22,2023.0,,2.95,PAI,Overstory,2023-2026,4.0,Pinus sylvestris L. 66%; Prunus serotina Ehrh. 34%,2023.0,CP,ICOS_NL-Loo_FLUXNET_BIF_1997-2026_v1.3_r1.csv,,,,
+DE-Hai,DBF,38.806,2017.0,OTHER,wood AG only (no foliage); gC m-2 converted with C fraction 0.5,36.62,2017.0,OTHER,,337.0,2017.0,OTHER,,29.84,2017.0,OTHER,,28.67,2011.0,mean of species means (no stand record),6.21,PAI,Total,2001-2012,11.0,Fagus sylvatica 80%; Acer pseudoplantanus 10%; Fraxinus excelsior 7%,2017.0,OTHER,ICOS_DE-Hai_FLUXNET_BIF_2000-2025_v1.3_r1.csv,,,,
+RU-Fyo,ENF,,,,,,,,,,,,,,,,,21.0,2025.0,mean of species means (no stand record),,,,,,,,,EUF_RU-Fyo_FLUXNET_BIF_1998-2025_v1.3_r1.csv,,,,
+DK-Sor,DBF,27.882,2023.0,CP,,26.85,2023.0,CP,,223.75,2023.0,CP,,33.901,2023.0,CP,,22.67,2023.0,,6.25,PAI,Overstory,2021-2024,4.0,Fagus sylvatica L. 98%; Ulmus glabra Huds. 1%,2023.0,CP,ICOS_DK-Sor_FLUXNET_BIF_1996-2024_v1.3_r1.csv,1.12,0 to 68.6,2024.0,non-ETC soil record; depth and unit not verified; single record; implausibly low for a 30+ cm profile; verify unit
+IL-Yat,ENF,,,,,,,,,,,,,,,,,11.0,2014.0,,,,,,,,,,EUF_IL-Yat_FLUXNET_BIF_2000-2024_v1.3_r1.csv,,,,
+CZ-BK1,ENF,11.48,2026.0,CP,,31.628,2026.0,CP,,647.5,2026.0,CP,,24.464,2026.0,CP,,19.5,2026.0,,4.9,PAI,Overstory,2018-2026,7.0,Picea abies 98%; Fagus sylvatica L. 1%,2026.0,CP,ICOS_CZ-BK1_FLUXNET_BIF_2004-2026_v1.3_r1.csv,12.38,-6.7 to 60,2022.0,O+M layers sum 15270 differs from cumulative 12376 gC m-2
+IT-Ren,ENF,21.41,2023.0,CP,,42.039,2023.0,CP,,615.0,2023.0,CP,,24.009,2023.0,CP,,14.12,2023.0,,3.94,PAI,Overstory,2021-2025,3.0,Picea abies 70%; Pinus cembra L. 26%; Larix decidua Mill. 3%,2023.0,CP,ICOS_IT-Ren_FLUXNET_BIF_1999-2026_v1.3_r1.csv,16.81,-0.5 to 100,2020.0,
+FR-Hes,DBF,18.826,2025.0,CP,,22.94,2025.0,CP,,1393.75,2025.0,CP,,11.87,2025.0,CP,,14.17,2025.0,,6.36,PAI,Overstory,2022-2026,5.0,Fagus sylvatica L. 80%; Carpinus betulus L. 16%; Quercus petraea 3%,2025.0,CP,ICOS_FR-Hes_FLUXNET_BIF_1997-2026_v1.3_r1.csv,,,,
+FR-FBn,ENF,8.72,2020.0,CP,,26.14,2020.0,CP,,1342.5,2020.0,CP,,13.425,2020.0,CP,,7.21,2020.0,,2.84,PAI,Overstory,2021-2025,5.0,Quercus ilex L. 70%; Pinus halepensis Mill. 25%; Phillyrea latifolia L. 4%; Quercus pubescens Willd. 1%,2020.0,CP,ICOS_FR-FBn_FLUXNET_BIF_2008-2024_v1.3_r1.csv,,,,
+DE-Hzd,DBF,,,,,,,,,8046.0,2026.0,OTHER,summed over species (no stand record),4.984,2026.0,OTHER,mean of species values,12.0,2026.0,,7.79,GAI,Total,2023-2023,1.0,Quercus robur L. 48%; Betula pendula Roth 27%; Picea abies L. 12%; Quercus rubra L. 4%; Salix cinerea L. 3%; Sorbus aucuparia L. 2%,2026.0,OTHER,ICOS_DE-Hzd_FLUXNET_BIF_2010-2025_v1.3_r1.csv,2.7,0 to 1.5,2020.0,non-ETC soil record; depth and unit not verified; single record
+CH-Dav,ENF,35.816,2025.0,CP,,56.378,2025.0,CP,,932.5,2025.0,CP,,25.176,2025.0,CP,,18.56,2025.0,,3.7,PAI,Overstory,2020-2026,7.0,Picea abies 100%,2025.0,CP,ICOS_CH-Dav_FLUXNET_BIF_1997-2026_v1.3_r1.csv,14.01,-9.8 to 100,2018.0,
+BE-Vie,MF,26.186,2025.0,CP,,32.888,2025.0,CP,,391.667,2025.0,CP,,30.234,2025.0,CP,,20.92,2025.0,,3.55,PAI,Overstory,2018-2026,7.0,Picea abies 57%; Fagus sylvatica L. 25%; Abies alba Mill. 13%; Pseudotsuga menziesii 4%; Pinus sylvestris L. 1%,2025.0,CP,ICOS_BE-Vie_FLUXNET_BIF_1996-2026_v1.3_r1.csv,13.93,-6.9 to 100,2019.0,
+IT-Lav,ENF,,,,,,,,,,,,,,,,,13.18,2012.0,mean of species means (no stand record),,,,,,,,,EUF_IT-Lav_FLUXNET_BIF_2003-2020_v1.3_r1.csv,,,,
+BE-Bra,ENF,11.725,2023.0,CP,,24.148,2023.0,CP,,868.0,2023.0,CP,,14.521,2023.0,CP,,10.79,2023.0,,3.28,PAI,Overstory,2021-2024,4.0,Pinus sylvestris L. 40%; Betula pendula Roth 18%; Frangula alnus Mill. 11%; Sorbus aucuparia L. 11%; Quercus robur L. 8%; Fagus sylvatica L. 4%,2023.0,CP,ICOS_BE-Bra_FLUXNET_BIF_1999-2024_v1.3_r1.csv,1.32,0 to 68.6,2024.0,non-ETC soil record; depth and unit not verified; single record; implausibly low for a 30+ cm profile; verify unit
+FR-Fon,,,,,,,,,,,,,,,,,,,,,,,,,,,,,NO_BIF,,,,
+GL-ZaH,,,,,,,,,,,,,,,,,,,,,,,,,,,,,NO_BIF,,,,
+IT-Noe,,,,,,,,,,,,,,,,,,,,,,,,,,,,,NO_BIF,,,,
+AT-Neu,GRA,,,,,,,,,,,,,,,,,0.3,2001.0,expert estimate,,,,,,,,,EUF_AT-Neu_FLUXNET_BIF_2002-2020_v1.3_r1.csv,,,,
+FI-Sod,,,,,,,,,,,,,,,,,,,,,,,,,,,,,NO_BIF,,,,
+CH-Aws,GRA,,,,,,,,,,,,,,,,,0.07,2013.0,,,,,,,,,,EUF_CH-Aws_FLUXNET_BIF_2006-2024_v1.3_r2.csv,,,,
+CH-Cha,GRA,,,,,,,,,,,,,,,,,0.1,2020.0,,,,,,,,,,EUF_CH-Cha_FLUXNET_BIF_2005-2024_v1.3_r1.csv,,,,
+CH-Fru,GRA,,,,,,,,,,,,,,,,,0.15,2013.0,,,,,,,,,,EUF_CH-Fru_FLUXNET_BIF_2005-2024_v1.3_r1.csv,,,,
+CH-Lae,MF,,,,,,,,,,,,,,,,,30.6,2011.0,,,,,,,,,,EUF_CH-Lae_FLUXNET_BIF_2004-2024_v1.3_r1.csv,,,,
+CZ-Stn,DBF,,,,,,,,,,,,,,,,,31.29,2019.0,,,,,,,,,,EUF_CZ-Stn_FLUXNET_BIF_2010-2024_v1.3_r1.csv,,,,
+DE-Lnf,DBF,,,,,,,,,,,,,,,,,34.0,2002.0,,3.98,LAI,unspecified,2002-2012,11.0,,,,EUF_DE-Lnf_FLUXNET_BIF_2002-2024_v1.3_r1.csv,,,,
+DE-Obe,ENF,,,,,,,,,,,,,,,,,20.5,2011.0,mean of species means (no stand record),,,,,,,,,EUF_DE-Obe_FLUXNET_BIF_2008-2025_v1.3_r1.csv,,,,
+ES-Agu,OSH,,,,,,,,,,,,,,,,,0.3,2010.0,,0.32,LAI,Total,2010-2010,1.0,,,,EUF_ES-Agu_FLUXNET_BIF_2006-2024_v1.3_r1.csv,,,,
+ES-LJu,OSH,,,,,,,,,,,,,,,,,0.3,2010.0,,1.5,LAI,Total,2004-2004,1.0,,,,EUF_ES-LJu_FLUXNET_BIF_2004-2024_v1.3_r1.csv,,,,
+IT-Col,,,,,,,,,,,,,,,,,,,,,,,,,,,,,NO_BIF,,,,
+DE-Gri,GRA,,,,,,,,,,,,,,,,,0.07,2020.0,,4.64,PAI,Total,2004-2006,3.0,Poaceae 100%,2018.0,OTHER,ICOS_DE-Gri_FLUXNET_BIF_2004-2025_v1.3_r1.csv,8.57,nan to 72,2019.0,non-ETC soil record; depth and unit not verified; single record
+DE-RuR,GRA,,,,,,,,,,,,,,,,,0.56,2026.0,,4.21,PAI,Total,2013-2026,10.0,,,,ICOS_DE-RuR_FLUXNET_BIF_2011-2025_v1.3_r1.csv,,,,
+FI-Hyy,ENF,7.81,2023.0,CP,,17.947,2023.0,CP,,430.0,2023.0,CP,,22.725,2023.0,CP,,21.45,2023.0,,1.72,PAI,Overstory,2018-2025,8.0,Pinus sylvestris L. 86%; Picea abies 9%; Betula pendula Roth 4%,2023.0,CP,ICOS_FI-Hyy_FLUXNET_BIF_1997-2026_v1.3_r1.csv,7.65,-8.1 to 60,2018.0,
+FI-Let,ENF,,,,,,,,,,,,,,,,,14.8,2024.0,,1.81,LAI,Total,2019-2025,7.0,,,,ICOS_FI-Let_FLUXNET_BIF_2010-2025_v1.3_r1.csv,38.97,0 to 50,2011.0,non-ETC soil record; depth and unit not verified; single record
+FR-Pue,EBF,10.235,2024.0,CP,,26.495,2024.0,CP,,3485.0,2024.0,CP,,9.486,2024.0,CP,,5.07,2024.0,,2.51,PAI,Overstory,2021-2025,5.0,Quercus ilex L. 98%; Phillyrea latifolia L. 2%,2024.0,CP,ICOS_FR-Pue_FLUXNET_BIF_2000-2026_v1.3_r1.csv,,,,
+GF-Guy,EBF,30.5,2025.0,OTHER,,28.66,2017.0,OTHER,,466.0,2017.0,OTHER,,22.77,2017.0,OTHER,,35.0,2015.0,,7.16,PAI,Total,2018-2024,6.0,Other/Not in list 95%,2024.0,OTHER,ICOS_GF-Guy_FLUXNET_BIF_2004-2025_v1.3_r1.csv,,,,
+IT-MBo,GRA,,,,,,,,,,,,,,,,,0.11,2025.0,,3.94,GAI,Total,2023-2025,3.0,Bistorta vivipara 82%; Festuca nigrescens Lam. 67%; Ranunculus montanus Willd. 64%; Alpagrostis alpina 63%; Nardus stricta L. 60%; Plantago atrata Hoppe 60%,2018.0,OTHER,ICOS_IT-MBo_FLUXNET_BIF_2003-2026_v1.3_r1.csv,11.4,-5.4 to 100,2017.0,
+IT-Tor,GRA,,,,,,,,,,,,,,,,,0.06,2022.0,,1.98,PAI,Total,2017-2025,9.0,Nardus stricta L. 35%; Festuca nigrescens Lam. 11%; Arnica montana L. 8%; Geum montanum L. 5%; Carex sempervirens Vill. 5%; Potentilla aurea L. 4%,2016.0,OTHER,ICOS_IT-Tor_FLUXNET_BIF_2008-2025_v1.3_r1.csv,,,,

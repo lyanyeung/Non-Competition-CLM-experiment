@@ -1,0 +1,51 @@
+site,start,end,event_type,magnitude,scope,inside_ec_record,source
+DE-Tha,2002-04,2002-04,thinning,stems -~30% (station page); 15% removed (Flechard 2020 S2),stand,YES,TU Dresden station page; Flechard et al. 2020 Table S2
+DE-Tha,2011-02,2011-02,thinning,not given,stand,YES,TU Dresden station page
+DE-Tha,2020-09,2020-09,harvest,extent near the station not given,near station,YES,Saxony LfULG report (Gruenwald et al.)
+RU-Fyo,,,windthrow patches,patches of different ages 200-300 m from the tower,nearby,RECURRING/UNDATED,Forests 2023 14:1968; NEESPI site page
+DK-Sor,1996,1997,thinning,stems -6% (PROFOUND reconstruction),stand,YES,PROFOUND v0.3 STAND
+DK-Sor,2000,2001,thinning,"stems -15%, BA -12%",stand,YES,PROFOUND v0.3 STAND
+DK-Sor,2006,2007,thinning,"stems -12%, BA -8%",stand,YES,PROFOUND v0.3 STAND
+DK-Sor,2013,2014,thinning,"stems -31%, BA -25% (PROFOUND); stems -10% (Biogeosciences 22:4729 S3)",stand,YES,PROFOUND v0.3 STAND; Biogeosciences 22:4729 suppl. Table S3
+IL-Yat,1964,1969,planting,afforestation of semi-arid shrubland,stand,BEFORE,BIF site description; Weizmann site pages
+IL-Yat,,,thinning,several cycles; ~300 trees/ha now; years not found,stand,RECURRING/UNDATED,Weizmann site pages
+CZ-BK1,2000,2001,thinning,"stems -23%, BA -4%",stand,BEFORE,PROFOUND v0.3 STAND
+CZ-BK1,2002,2002,thinning,experimental plot; LAI response reported,plot,BEFORE,worldwidescience summary
+CZ-BK1,2005,2006,thinning,"stems -30%, LAI -26% (literature); PROFOUND shows small-tree loss only",stand,YES,Biogeosciences 22:4729 suppl. Table S3; PROFOUND
+CZ-BK1,2011,2012,thinning,"stems -15%, BA -5%",stand,YES,PROFOUND v0.3 STAND
+FR-Hes,1999,2000,thinning,25% removed,stand,YES,Flechard et al. 2020 Table S2; Biogeosciences 23:6491 suppl.
+FR-Hes,2005,2005,thinning,not given,stand,YES,Biogeosciences 23:6491 suppl.
+FR-Hes,2010,2010,thinning,not given,stand,YES,Biogeosciences 23:6491 suppl.
+FR-Hes,2016,2016,thinning,not given,stand,YES,Biogeosciences 23:6491 suppl.
+FR-Hes,2000,2000,instrument,EC height 18 -> 23.34 m,tower,YES,Biogeosciences 23:6491 suppl.
+FR-Hes,2013,2013,instrument,EC height 23.34 -> 27.1 m,tower,YES,Biogeosciences 23:6491 suppl.
+DE-Hzd,2007-01,2007-01,windthrow,"Kyrill storm, 40 ha cleared; oaks planted afterwards",stand-replacing,BEFORE,ICOS station catalogue (DEIMS)
+CH-Dav,,,harvest,continuous small-group selection in the EC footprint; core plots unthinned,footprint,RECURRING/UNDATED,WSL Seehornwald site page
+BE-Vie,,,thinning,every 6 years (years not found),stand,RECURRING/UNDATED,site literature
+BE-Bra,1999,1999,thinning,winter; stems -30% (538 -> 375 trees/ha),stand,YES,ACP 18:13321 suppl.; Biogeosciences 22:4729 S3; Flechard 2020 S2
+BE-Bra,2002,2002,storm,autumn; 375 -> 360 trees/ha,stand,YES,ACP 18:13321 suppl.
+BE-Bra,2016,2016,thinning,summer,stand,YES,Parkbode 2016
+FR-Fon,2010,2011,thinning,LAI -36%,stand,YES,Biogeosciences 22:4729 suppl. Table S3
+CH-Lae,1999-12,1999-12,storm,western part damaged (secondary source),part of footprint,BEFORE,ResearchGate figure context
+DE-Lnf,2002,2006,selective harvest,~23.1 tC/ha removed (~10% of biomass),stand,YES,Biogeosciences 22:4729 suppl. Table S3
+FI-Hyy,1991,1995,thinning,northern part of the stand,part,BEFORE,BIF site description
+FI-Hyy,2002-02,2002-03,thinning,"about half of the stand; 25% removed (Flechard); stems -17%, BA -6% (PROFOUND)",stand,YES,BIF; Flechard 2020 S2; PROFOUND
+FI-Hyy,2009,2010,thinning,"Scots pine stems -9%, BA -4% (PROFOUND only)",stand,YES,PROFOUND v0.3 STAND
+FI-Hyy,2019-12,2020-01,thinning,~1 ha,part,YES,BIF site description
+FI-Hyy,2020,2020,commercial thinning,~40% of tree biomass within 400 m; ICOS CP BA 28.6 -> 17.1 m2/ha,footprint,YES,BIF; ICOS CP
+FI-Let,1969,1969,drainage,effective drainage with P and K fertilisation (light ditching ~1930s),site,BEFORE,Korkiakoski et al. 2019
+FI-Let,2016-02-29,2016-03-16,partial harvest,~75% of tree biomass in the EC footprint plot; adjacent 2.35 ha clear-cut,footprint,YES,Korkiakoski et al. 2019; EGU2018-12014
+FR-Pue,2003,2003,experiment,30% throughfall exclusion and thinning experiments (plots),plots,YES,site literature
+FR-Pue,2005,2005,thinning,15% removed,stand,YES,Flechard et al. 2020 Table S2
+CH-Cha,2012,2012,sward renewal,ploughing and reseeding,site,YES,Feigenwinter et al. 2023
+CH-Cha,,,mowing / grazing,"4-6 events per year, slurry after cuts (~271 kg N/ha/yr)",site,RECURRING/UNDATED,EGU25-6469; ETH dataset doi:10.3929/ethz-b-000747025
+CH-Fru,,,mowing / grazing,two grazing periods + 1-2 cuts + 2-3 manure applications per year (intensive parcels),site,RECURRING/UNDATED,Swiss FluxNet site page
+CH-Aws,,,grazing,"summer cattle grazing, mid-June to mid-September",site,RECURRING/UNDATED,Michna et al. 2013 Geogr. Helv.
+DE-RuR,,,mowing,3 cuts + 1 fertiliser application per year,site,RECURRING/UNDATED,eLTER/TERENO metadata
+AT-Neu,,,mowing,3-4 cuts per year,site,RECURRING/UNDATED,BIF site description
+DE-Gri,,,mowing,"1-3 cuts per year, occasional autumn grazing; unfertilised since 1987",site,RECURRING/UNDATED,BIF site description
+IT-MBo,,,mowing,one cut in mid-July; low mineral fertilisation,site,RECURRING/UNDATED,BIF site description
+IT-Tor,,,abandonment,abandoned Nardus grassland,site,RECURRING/UNDATED,BIF site description
+ES-LJu,,,non-biological CO2 flux,wind-driven subsoil CO2 ventilation seen by EC,tower,RECURRING/UNDATED,Sanchez-Canete PhD thesis
+ES-Agu,,,non-biological CO2 flux,soil CO2 ventilation (SCARCE campaign 2023-24),tower,RECURRING/UNDATED,Biogeosciences 23:2569 (2026)
+DE-Hai,,,advection,EC sink 100-200 gC/m2/yr larger than bottom-up estimates,tower,RECURRING/UNDATED,Mund et al. EGU06
