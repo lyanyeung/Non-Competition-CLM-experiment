@@ -73,3 +73,15 @@ Script SHA pinned and IRIDIS source QC run passed. Output root: `/home/ly3n24/oz
 - 2018 annual class counts: 1416 QC410 Ta/SH/ps/Ws, 1425 QC410 Precip, 1290 QC420 and 11 QC440 for each Fsd/Fld.
 
 **Next:** inspect the three exact isolated QC0 wind candidates (source seven-variable context, direction, any neighbouring gust metadata), review WS validity, and assess independently validated AWS/ACCESS donor overlap. Separately build a new SITE-SOIL candidate from the **2026-11-03 upstream OzFlux_JapanFlux_Soil v1 recommendation** only after freezing the source CSV commit/hash; the old GRIDREF must remain unchanged. Both forcing and soil science gates remain HOLD; no AD400.
+
+## Stage14 source-wind three-event targeted review published (operator run pending)
+
+`scripts/14_asm_3wind_native_Wd_met_context_READONLY.py` blob `dd3cbd61c89e9429afeafe513a0878a1cba53ab0` (Git commit `daaf46cda624fa6cf89f756343750271a1ee2339`) independently pins the original L6 SHA and the successful Stage12 science-HOLD receipt. It inspects +/-24 hours of native half-hour L6 **seven meteorology fields and all QC flags** for all three actual Stage12 wind peaks, plus `Wd`/QC if available and the actual wind statistics metadata, to distinguish:
+
+- **2018-03-10 20:30** `Ws=16.29613`, previous 3.671959, next 3.970067 m s-1: *HIGH_PRIORITY_SINGLE_SAMPLE_SPIKE_REVIEW* (not a confirmed error).
+- **2013-01-05 18:00** `Ws=9.747453`, previous 2.697516, next 7.202567 m s-1: transition/variability candidate; **not automatically isolated erroneous**.
+- **2014-11-23 01:00** `Ws=7.483473`, previous 7.258892, next 6.650625 m s-1: **contiguous high-wind episode**; the Stage12 longer-window median criterion alone was insufficient to call this a single-time spike.
+
+Output is one isolated JSON scientific HOLD + TSV with exactly three 97-row native before/after windows. Absence of backup `Ws` in the L6 (Stage12 named-candidate inventory found only `Wd`) means **wind direction cannot replace wind speed**, and no ERA5 or donor values are invented. Stage14 is evidence only, does not validate the AWS/ACCESS model fills, source time-zone semantics or site-soil decisions. **No AD400 approval, no Slurm.**
+
+The upstream OzFlux/JapanFlux soil science branch changed during this QC process; separate [PR #67](https://github.com/lyanyeung/Non-Competition-CLM-experiment/pull/67) records the actual 2026-11-03 IRIDIS verified independent `SITE_SOIL_v2_20261103_INTERIM` candidate SHA `2c3de9a54b11189ab4d6413eb29fe91fe36b6ec0f87b9a3ae999d6a7a3a7e8a1`; only `PCT_SAND`/`PCT_CLAY` changed, other 87 NetCDF variables preserved. **Do not silently bind the old GRIDREF surface to the future v2 model case.** Both source forcing and soil scientific acceptance remain HOLD.
