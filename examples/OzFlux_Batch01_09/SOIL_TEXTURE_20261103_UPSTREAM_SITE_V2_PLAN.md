@@ -29,3 +29,19 @@ Script `scripts/13_asm_stage13_GitHub_site_soil_v2_isolated.py` checks the three
 4. **Direct AD400 without AD5 only after independent science approval of forcing and final soil profile**, and a new CIME case controller explicitly binding verified v2, rather than reusing the older `AU-ASM_OZ_FIXNC_GRIDREF_AD400_DIRECT` path or old GRIDREF Surface by accident. Prior protected AD400 controller in PR #64 remains fail-closed.
 
 **Current authorization: `soil_science_approval=false`, `forcing_science_approval=false`, `AD400_authorised=false`.**
+
+## Actual Stage13 IRIDIS6 operator evidence — PASS on 2026-11-03
+
+Exact source-pinned stage13 script `32a23136ff4bab13a97dd0002a6a80c1fae83939` returned **SELF-TEST, PLAN, ISOLATED BUILD and INDEPENDENT VERIFY PASS**. The operator verified all three upstream WIDE/LONG/manual Git blobs; frozen old Stage02 surface SHA256 `d06ad3111d93de69e7f2dd7f048b02a9161aee4ff853afafedcdfed71a54f3a1`.
+
+New independent Surface:
+`/home/ly3n24/ozflux_nc_stage13_soil_20261103T130125Z/surfdata_AU-ASM_NC_FIXNC_PFT_v1p1_SITE_SOIL_v2_20261103_INTERIM.nc`
+
+**Candidate SHA256:** `2c3de9a54b11189ab4d6413eb29fe91fe36b6ec0f87b9a3ae999d6a7a3a7e8a1`
+
+Stage13 receipt:
+`/home/ly3n24/ozflux_nc_stage13_soil_20261103T130125Z/stage13_AU_ASM_v2_SITE_SOIL_candidate_NOT_MODEL_APPROVED.json`
+
+Changed *only* `PCT_SAND` L1–L7 74%, L8–L10 70.6%; `PCT_CLAY` L1–L7 15%, L8–L10 23.9%. Independent verification asserts **87 other NetCDF variables unchanged** (including PFT, NATVEG/CROP, ORGANIC), original reference SHA intact and exact upstream provenance. No forced `zbedrock` or `ORGANIC` edits; prior GRIDREF remains unchanged. **This is scientifically provisional**: L1–L7 0–100 cm extrapolation is not depth-resolved tower observations; ~1m siliceous hardpan / hydraulic effects, SLGA, soil particle-size scheme are unresolved.
+
+The next model case, when authorized, must use this SHA-pinned **new v2** or a documented later scientifically improved variant; old GRIDREF CIME/AD400 controller remains invalid for any v2 scientific model claim. Source forcing QC remains HOLD (Stage12 unresolved WS QC0 spikes and 2018 AWS/ACCESS joins). **NO CASE, AD400 OR Slurm SUBMITTED.**
