@@ -82,7 +82,7 @@ EC_SOURCES = {  # provenance JSON "ec_sources" where the BIF package does not gi
 LIT_COLUMNS = {
     "stand_age": "lit_stand_age", "tree_density": "lit_tree_density", "canopy_height": "lit_canopy_height",
     "dominant_height": "lit_canopy_height", "mean_dbh": "lit_mean_dbh", "basal_area": "lit_basal_area",
-    "lai": "lit_lai", "agb_C": "lit_agb", "agb_woody_C": "lit_agb", "species_pct": "lit_species",
+    "lai": "lit_lai", "agb_C": "lit_agb", "agb_woody_C": "lit_agb", "biomass_components": "lit_agb", "species_pct": "lit_species",
     "species": "lit_species", "soc_stock": "lit_soc", "soil_depth": "lit_soil_depth",
     "soil_type": "lit_soil_depth", "water_table": "lit_soil_depth", "soc_change": "lit_soc_change",
     "soc_change_0_70cm": "lit_soc_change", "nep_mean": "lit_nep_or_nee_mean", "NEE_mean": "lit_nep_or_nee_mean",

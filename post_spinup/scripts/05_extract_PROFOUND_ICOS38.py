@@ -7,7 +7,7 @@ Site ids are looked up in the SITES view by name; the ids above are only a fallb
 
 Exported (one CSV per view, only our four sites, plus a summary):
   default  SITES, SITEDESCRIPTION, STAND, TREE, SOIL, NDEPOSITION_EMEP, NDEPOSITION_ISIMIP2B, CO2_ISIMIP,
-           POLICY / SOURCE / METADATA_* views for these datasets (licences differ per site and dataset)
+           POLICY / SOURCE (dataset level and POLICY_<id> / SOURCE_<id> per site), METADATA_* views
   --with-timeseries  also FLUX, METEOROLOGICAL, SOILTS, CLIMATE_LOCAL (large; we already have FLUXNET)
 
 Only the Python standard library is used. The database is opened read-only.
@@ -85,6 +85,7 @@ def main():
     print("site ids:", ids)
 
     views = DEFAULT_VIEWS + (TIMESERIES_VIEWS if a.with_timeseries else [])
+    views += [f"{v}_{i}" for v in ("POLICY", "SOURCE") for i in ids.values()]  # site-specific data policies
     keep = ("SITES", "SITEDESCRIPTION", "STAND", "TREE", "SOIL", "NDEPOSITION", "CO2")
     ours = tuple(f"_{i}" for i in ids.values())
     for n in sorted(objs):  # dataset-level metadata, site-level metadata tables, and our sites' metadata views

@@ -25,19 +25,19 @@ Fixed biogeography with no competition, run for 800 years, ends in an old-growth
 |---|---|---|
 | `CONTINUE_FROM_EQUILIBRIUM` | Old-growth or uneven-aged with no known stand-replacing event: start the run from the spun-up state | DE-Hai, RU-Fyo (190 yr, reserve since 1931), IT-Ren, GF-Guy |
 | `CONTINUE_FROM_EQUILIBRIUM_CHECK` | Old but managed around the tower; check footprint age | CH-Lae (reserve on the upper slope since 1998, storm damage December 1999) |
-| `RESET_AT_ESTABLISHMENT` | Even-aged stand with a known start year: keep the spun-up soil, restart the vegetation at the establishment year, grow to the EC start with recycled forcing, then run the EC years | DE-Lnf ~1885, DE-Tha 1887, CZ-Stn ~1903, NL-Loo 1909, DK-Sor 1921, BE-Bra 1929, FR-Pue 1942 (coppice), DE-Obe ~1955, FR-Hes ~1961, FI-Hyy 1962, IL-Yat 1966 (planted 1964–69), FI-Let 1969 (drainage), CZ-BK1 1981 |
+| `RESET_AT_ESTABLISHMENT` | Even-aged stand with a known start year: keep the spun-up soil, restart the vegetation at the establishment year, grow to the EC start with recycled forcing, then run the EC years | DE-Lnf ~1885, DE-Tha 1887, IT-Col ~1892 (age 100 in 1992, PROFOUND), CZ-Stn ~1903, NL-Loo 1909, DK-Sor 1921, BE-Bra 1929, FR-Pue 1942 (coppice), DE-Obe ~1955, FR-Hes ~1961, FI-Hyy 1962, IL-Yat 1966 (planted 1964–69), FI-Let 1969 (drainage), CZ-BK1 1981 |
 | `RESET_AT_DISTURBANCE` | Stand-replacing disturbance just before the EC record | DE-Hzd (40 ha Kyrill windthrow in January 2007, oaks planted) |
 | `RESET_COMPLEX` | Several cohorts, or a footprint much younger than the plots | BE-Vie (pine 1882, beech 1908, Douglas fir 1935 and 1950–61); CH-Dav (group selection: EC footprint ~60 yr, 9.9 m; unthinned core plots ~106 yr, 18.3 m) |
-| `RESET_UNCERTAIN` | Age known only roughly | FR-FBn (~1954), FR-Fon (~1880, 100–150 yr in 2005), IT-Lav (~1888, mean age 120 yr over 2003–2012), IT-Col (~1890), FI-Sod (60–160 yr after fire) |
+| `RESET_UNCERTAIN` | Age known only roughly | FR-FBn (~1954), FR-Fon (~1880, 100–150 yr in 2005), IT-Lav (~1888, mean age 120 yr over 2003–2012), FI-Sod (60–160 yr after fire) |
 | `NOT_APPLICABLE` | Grassland, shrubland, tundra | 12 sites. Mowing and grazing are recorded where known; FATES does not represent them. |
 
 **Management events inside the EC record** that a model without management will not reproduce. Each one changes NEE for several years (less leaf area, more litter and dead roots to decompose):
 - BE-Bra: thinning in winter 1999 (stem number −30%, 538 → 375 trees/ha), storm in autumn 2002 (→ 360 trees/ha), thinning in summer 2016.
-- CZ-BK1: thinnings in 2002 and 2005–06 (stem number −30%, LAI −26%).
+- CZ-BK1: PROFOUND's yearly inventory shows thinnings in 2000–01 (stems −23%) and 2011–12 (stems −15%). The literature gives 2002 and 2005–06 (stems −30%, LAI −26%); PROFOUND shows only a gradual loss of small trees in 2003–07.
 - DE-Lnf: selective harvest 2002–06 (~23 tC/ha, ~10% of biomass); otherwise thinning every 10–20 years.
 - DE-Tha: thinnings in April 2002 (stem number −~30%; Flechard et al. 2020 give 15% removed) and February 2011; harvest near the station in September 2020.
-- DK-Sor: thinning in 2013 (stem number −10%); earlier thinnings not found yet.
-- FI-Hyy: thinnings in 2002 (25% removed), 2019–20, and a commercial thinning in 2020 that removed ~40% of tree biomass. The ICOS CP basal area falls from 28.6 m²/ha (2018) to 17.1 m²/ha (2020).
+- DK-Sor: PROFOUND's stand reconstruction shows thinnings in 1996–97 (stems −6%), 2000–01 (−15%, BA −12%), 2006–07 (−12%, BA −8%) and 2013–14 (−31%, BA −25%).
+- FI-Hyy: thinnings in 2002 (25% removed; PROFOUND stems −17%), a Scots pine reduction in 2009–10 (stems −9%, PROFOUND only), 2019–20, and a commercial thinning in 2020 that removed ~40% of tree biomass. The ICOS CP basal area falls from 28.6 m²/ha (2018) to 17.1 m²/ha (2020).
 - FI-Let: spring 2016, partial harvest (~75% of tree biomass in the EC footprint plot) and a 2.35 ha clear-cut next to it.
 - FR-Fon: thinning 2010–11 (LAI −36%).
 - FR-Hes: thinnings in 1999–2000 (25% removed), 2005, 2010 and 2016 (later intensities not found). The EC height also changed: 18 m (1997–99), 23.34 m (2000–12), 27.1 m (2013–20).
@@ -65,6 +65,7 @@ How to make a stand-replacing reset (a FATES logging/harvest event, or a new cas
 | [`scripts/03_extract_Flechard2020_supplement.py`](scripts/03_extract_Flechard2020_supplement.py) | Parses the Flechard et al. (2020) supplement PDF (not committed) into `Flechard2020_supplement_ICOS38.csv` |
 | [`scripts/04_get_PROFOUND_on_IRIDIS.sh`](scripts/04_get_PROFOUND_on_IRIDIS.sh) | Downloads PROFOUND v0.3 (2.6 GB zip) to IRIDIS scratch, checks and unzips it, optionally copies the zip to Research File Storage, then runs script 05 |
 | [`scripts/05_extract_PROFOUND_ICOS38.py`](scripts/05_extract_PROFOUND_ICOS38.py) | Read-only export of CZ-BK1, IT-Col, FI-Hyy and DK-Sor from the PROFOUND SQLite (stand, tree, soil, N deposition, CO2, site description, data policies) |
+| [`scripts/06_derive_PROFOUND_targets.py`](scripts/06_derive_PROFOUND_targets.py) | Extract → yearly stand totals, detected thinnings, SOC stocks, global CO2 table. Outputs are kept on IRIDIS, not in this repo, until the site data policies are checked; summary values with citations are in the literature table |
 
 Regenerate the tables. The raw `bif_key_groups_rows.csv` (96 MB) stays on IRIDIS and is not committed.
 
@@ -75,7 +76,10 @@ python3 post_spinup/scripts/01_extract_ICOS38_BIF_observations.py \
 python3 post_spinup/scripts/02_build_ICOS38_start_info.py
 python3 post_spinup/scripts/03_extract_Flechard2020_supplement.py --pdf bg-17-1583-2020-supplement.pdf
 bash post_spinup/scripts/04_get_PROFOUND_on_IRIDIS.sh      # on an IRIDIS login node; RFS_DIR=... to back up the zip
+python3 post_spinup/scripts/06_derive_PROFOUND_targets.py --extract <PROFOUND_DIR>/ICOS38_extract --out <PROFOUND_DIR>/derived
 ```
+
+PROFOUND v0.3 is on IRIDIS at `/iridisfs/scratch/ly3n24/CLM_FATES/external/PROFOUND_v0.3/` (zip, unzipped SQLite, `ICOS38_extract/`). A backup copy of the zip is on the Research File Store at `/research/xclimatetbm/ly3n24/CLM_FATES/External_Data/PROFOUND_v0.3/`.
 
 ## Observed-data notes
 
@@ -93,7 +97,7 @@ bash post_spinup/scripts/04_get_PROFOUND_on_IRIDIS.sh      # on an IRIDIS login 
 
 ## Literature layer and NEE
 
-`ICOS38_literature_observations.csv` holds 377 values for 35 sites (223 of them from the Flechard et al. 2020 supplement). Every row has a source and a URL. A value is used in the main table only if `preferred=1`. Rows with `preferred=0` are kept as cross-checks: secondary compilations, values for a plot that is not the EC footprint, or values that look wrong.
+`ICOS38_literature_observations.csv` holds 429 values for 35 sites (223 from the Flechard et al. 2020 supplement, 52 from PROFOUND). Every row has a source and a URL. A value is used in the main table only if `preferred=1`. Rows with `preferred=0` are kept as cross-checks: secondary compilations, values for a plot that is not the EC footprint, or values that look wrong.
 
 What the literature changes for the NEE comparison:
 
@@ -101,20 +105,25 @@ What the literature changes for the NEE comparison:
 - **NEE trends.** Fernández-Martínez et al. (2017) give NEP trends for 13 of our forests. Strong increases at IT-Lav (+41.8 gC m⁻² yr⁻¹ per year), IT-Ren (+37.9), DK-Sor (+27.3) and FR-Hes (+26.4); declines at FR-Pue (−10.3) and DE-Hai (−7.3). Run with constant CO2, an unmanaged model cannot produce these trends. This is one reason the transient CO2 series (item 4) matters.
 - **Long-term means for checks.** Mean NEP: DE-Lnf 590 ± 190, DE-Hai 512 ± 89, DE-Tha 430, DK-Sor 115 (1996–2008), DE-Gri 90 gC m⁻² yr⁻¹. A secondary compilation (Biogeosciences 22:4729, 2025, Table S1) gives NEE/GPP/Reco for 10 of our forests. These are `preferred=0`: GPP − Reco does not match −NEE at four sites, and IT-Lav (−1844 gC m⁻² yr⁻¹) is implausible. Use them to sense-check our own FLUXNET means, not as targets.
 - **Non-biological CO2 signals.** At DE-Hai, advection makes the EC sink 100–200 gC m⁻² yr⁻¹ larger than bottom-up estimates. At ES-LJu and ES-Agu (also called Balsa Blanca), turbulence ventilates CO2 out of the subsoil and the tower records it. CLM-FATES will not reproduce either; expect a bias there that is not a model error.
-- **Soil texture and water.** Flechard et al. (2020) Table S4 gives clay/sand/silt and wilting point, field capacity and saturation for 17 sites. Soil water stress drives summer NEE, so compare these with `PCT_SAND`/`PCT_CLAY` in each site's surface file before the runs. Check the extremes first: BE-Bra and NL-Loo are almost pure sand (89–96% sand), DE-Hai and IT-Col are clay-rich (40–59% clay), and RU-Fyo is peat.
+- **Soil texture and water.** Flechard et al. (2020) Table S4 gives clay/sand/silt and wilting point, field capacity and saturation for 17 sites. Soil water stress drives summer NEE, so compare these with `PCT_SAND`/`PCT_CLAY` in each site's surface file before the runs. Check the extremes first: BE-Bra and NL-Loo are almost pure sand (89–96% sand), DE-Hai and IT-Col are clay-rich (40–59% clay; but see the IT-Col conflict below), and RU-Fyo is peat.
 - **Soil respiration partitioning.** Published annual soil respiration (Table S7) exists for 12 of our forests and the heterotrophic fraction for 11, for example DE-Hai 884 gC m⁻² yr⁻¹ with Rhet/Rsoil 0.52, and FR-Hes 620 with 0.37. These help tell whether an NEE bias comes from photosynthesis or from respiration.
 - **Leaf C:N.** Foliar C/N ranges from 20 (DK-Sor, IT-Col) to 47 (BE-Vie) across the 17 sites. Compare it with the leaf C:N in the FATES parameter file for each site's PFT.
+- **Yearly stand data for four sites (PROFOUND).** CZ-BK1 (1997–2015, yearly), DK-Sor (1994–2017, yearly, reconstructed from tree rings), FI-Hyy (1995–2011, yearly, three species groups) and IT-Col (1992–2012, every 5 years). They give density, basal area, height, DBH and biomass by component, so the regrowth after a reset and the effect of each thinning can be checked year by year, not only against a single value. Latest aboveground biomass (stem + branches + foliage): CZ-BK1 12.0 (2015), FI-Hyy 11.7 (2011), DK-Sor 30.8 (2017, stem + branches; no foliage for beech) kg DM m⁻².
+- **Soil carbon for three sites (PROFOUND).** From C %, bulk density and layer thickness: DK-Sor 8.4 kgC m⁻² (0–55 cm), FI-Hyy 7.2 (0–89 cm, gravel and O horizon not handled), IT-Col 23.8 (0–80 cm, stony soil, so an overestimate). The DK-Sor BIF value (1.1–1.3 kgC m⁻²) is therefore wrong. Compare these with the spun-up soil C before the runs: a large mismatch will show up as a bias in heterotrophic respiration and NEE.
+- **Soil texture disagrees between sources** at IT-Col (PROFOUND: sandy, clay 2–23%; Flechard: silty clay, clay 59%) and CZ-BK1 (PROFOUND sand 54–64%; Flechard sand 22%, silt 58%). Resolve these before using either to check the surface file.
+- **CO2 during the spin-up versus history.** The spin-ups used a constant 376.95 ppm, which is the global level of about 2004. A reset at establishment means regrowth under much lower CO2 (about 294 ppm in 1887, 307 ppm in 1929, 340 ppm in 1981; ISIMIP series in PROFOUND). The soil pools, however, were spun up under 2004 CO2. Keep this in mind when reading soil respiration after a reset.
 - **Measurement height.** FR-Hes raised its EC system twice (18 → 23.34 → 27.1 m). The forcing reference height should follow the year.
 
 ## Open items
 
 1. When the replacement NORMAL400 runs finish: write a read-only IRIDIS script that reads each case's final restart (path, model year, `spinup_state`), `CCSM_CO2_PPMV`, DATM years, surface and parameter file. Merge these into the main table.
 2. Decide the start-mode design (the table above) and how to make a stand-replacing reset in FATES.
-3. Choose the transient CO2 series. PROFOUND's CO2_ISIMIP view (exported by script 05) is one candidate.
+3. Choose the transient CO2 series. PROFOUND's ISIMIP series (global annual, historical 1765–2015, RCPs from 2006) ends in 2015, before most EC records end. Prefer CTSM's own CMIP6 historical + SSP CO2 stream for the runs (check which file the installed CTSM uses), and use the ISIMIP series only as a cross-check; the two agree in 2015 (399.4 ppm).
 4. **NL-Loo:** its legacy PRE50/AD200/POST300 case used the default needleleaf parameters and is not in the 2 Nov rollout. Rerun it with AD400 → NORMAL400 and variant F, or exclude it.
 5. Remaining literature gaps:
    - **Soil organic carbon stocks.** The Flechard et al. (2020) supplement has only topsoil SOC *concentration* (gC/kg). Their main Table 1 (site characteristics and multi-year NEP, GPP, Reco per site) is published as a spreadsheet: https://bg.copernicus.org/articles/17/1583/2020/bg-17-1583-2020-t01.xlsx. It cannot be downloaded from here; it needs to be uploaded.
-   - **PROFOUND** (CZ-BK1, IT-Col, FI-Hyy, DK-Sor stand time series, soil profiles, CO2 and N deposition series): run `04_get_PROFOUND_on_IRIDIS.sh`, then bring back `ICOS38_extract/`. Check the exported POLICY/SOURCE files before committing any of it (CC BY-NC 4.0 plus site-specific policies).
+   - **PROFOUND site data policies.** STAND, TREE and SOIL follow site-specific policies stored in the `POLICY_<site_id>` views (3, 5, 12, 21), which script 05 does not export yet. Check them before committing the derived yearly tables.
+   - **FATES inventory initialisation.** PROFOUND's TREE view has individual tree DBH and height for the 4 sites (CZ-BK1 8131 records 1997–2015, DK-Sor 7514 records 1994–2017). If our FATES version supports inventory initialisation (`use_fates_inventory_init`), these could start the EC-period run from the observed size distribution instead of a reset at establishment. Check before designing the start modes.
    - DE-Obe: no structure beyond ~53 yr / 15 m around 2008.
    - Thinning intensities for FR-Hes after 2000; thinning years before 2013 for DK-Sor; harvest extent at DE-Tha in 2020; planting year and density at DE-Hzd; IL-Yat thinning years.
    - Management event tables for CH-Cha and CH-Fru (exist, not downloaded).
