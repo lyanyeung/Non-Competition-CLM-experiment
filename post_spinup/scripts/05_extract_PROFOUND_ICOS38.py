@@ -46,17 +46,27 @@ def site_ids(con, objs):
     return ids
 
 
-def export(con, name, where, out):
+def export(con, name, where, out, objs=None, ids=None):
+    """Export a view filtered by site. If that gives no rows and per-site views <name>_<id> exist
+    (as for CO2_ISIMIP), export the union of those instead, with an added site_id column."""
     cols = columns(con, name)
     sql = f'SELECT * FROM "{name}"' + (f" WHERE {where}" if where and "site_id" in cols else "")
-    n = 0
+    rows = list(con.execute(sql))
+    source = name
+    if not rows and objs and ids:
+        per_site = [(sid, f"{name}_{sid}") for sid in ids.values() if f"{name}_{sid}" in objs]
+        if per_site:
+            pcols = columns(con, per_site[0][1])
+            add_id = "site_id" not in pcols
+            cols = (["site_id"] if add_id else []) + pcols
+            for sid, v in per_site:
+                rows += [((sid,) if add_id else ()) + tuple(r) for r in con.execute(f'SELECT * FROM "{v}"')]
+            source = "per-site views " + ",".join(v for _, v in per_site)
     with open(out / f"{name}.csv", "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(cols)
-        for row in con.execute(sql):
-            w.writerow(row)
-            n += 1
-    return n, cols
+        w.writerows(rows)
+    return len(rows), cols, source
 
 
 def main():
@@ -76,15 +86,22 @@ def main():
 
     views = DEFAULT_VIEWS + (TIMESERIES_VIEWS if a.with_timeseries else [])
     keep = ("SITES", "SITEDESCRIPTION", "STAND", "TREE", "SOIL", "NDEPOSITION", "CO2")
-    views += sorted(n for n in objs if n.startswith("METADATA_") and n[len("METADATA_"):].startswith(keep))
+    ours = tuple(f"_{i}" for i in ids.values())
+    for n in sorted(objs):  # dataset-level metadata, site-level metadata tables, and our sites' metadata views
+        if not (n.startswith("METADATA_") and n[len("METADATA_"):].startswith(keep)):
+            continue
+        tail = n.rsplit("_", 1)[-1]
+        if (tail.isdigit() and not n.endswith(ours)) or (n.endswith("_master") and "SITES_master" not in n):
+            continue
+        views.append(n)
     summary = []
     for v in views:
         if v not in objs:
             summary.append((v, "absent", "", ""))
             continue
-        n, cols = export(con, v, where, a.out)
+        n, cols, source = export(con, v, where, a.out, objs, ids)
         summary.append((v, n, "site_id" in cols, ";".join(cols)))
-        print(f"{v:28s} {n:>9} rows")
+        print(f"{v:36s} {n:>9} rows" + ("" if source == v else f"  (from {source})"))
 
     # quick per-site overview of the STAND view (years, ages, variables with data)
     if "STAND" in objs:
