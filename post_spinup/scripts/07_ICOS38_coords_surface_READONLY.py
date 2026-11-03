@@ -318,7 +318,7 @@ def self_test():
         cs = list(csv.DictReader(open(o / "stage07_cases.tsv"), delimiter="\t"))
         assert len(cs) == 3 and cs[0]["CCSM_CO2_PPMV"] == "376.95" and "DATM_YR_START=2004" in cs[0]["datm_years"]
         sl = list(csv.DictReader(open(o / "stage07_surface_soil_long.csv")))
-        assert len(sl) == 20 and float(sl[0]["PCT_SAND"]) == 40.0
+        assert len(sl) == 30 and float(sl[0]["PCT_SAND"]) == 40.0
         sf = list(csv.DictReader(open(o / "stage07_surface_fields.tsv"), delimiter="\t"))
         assert sf[0]["PCT_NAT_PFT_nonzero"] == "1:100.0" and float(sf[0]["zbedrock"]) == 5.0
     print("SELF-TEST PASS")
