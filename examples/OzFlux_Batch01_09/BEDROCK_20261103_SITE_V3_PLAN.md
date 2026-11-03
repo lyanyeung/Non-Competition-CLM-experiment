@@ -1,0 +1,81 @@
+# OzFlux AU-ASM bedrock (zbedrock) v3 on the verified SITE-SOIL v2 Surface (2026-11-03)
+
+## Operator decision (2026-11-03)
+
+- **`use_bedrock = .true.` for the OzFlux / JapanFlux sites** (option B of the upstream SurfaceFields topic), starting with AU-ASM.
+- **Sensitivity pair for the fissured-lava and permeable-pumice sites JP-Fjy, JP-Tmd and JP-Tom:** run each with `use_bedrock` on and off.
+- **Other networks unchanged.** The 78 finished ICOS / AmeriFlux NORMAL400 spin-ups keep the FATES default (`.false.`), so OZ / JP differ from them here by design.
+
+## Upstream authority
+
+Branch [`oz-jp-surface-carbon-20261103`](https://github.com/lyanyeung/CLM-FATES-single-site-workflows/tree/oz-jp-surface-carbon-20261103/examples/OzFlux_JapanFlux_SurfaceFields), commit `b10377c624e7fbd4712be29ce04d99c4858cc676`, of `CLM-FATES-single-site-workflows`.
+
+**Frozen blob:** `OZ_JP_RECOMMENDED_SURFACE_FIELDS_20_SITES_20261103.csv` = `abb142ab5ab8adb82ed53df220e38bf29ee12af0`.
+
+**AU-ASM row:**
+
+| Field | Value |
+| --- | --- |
+| `zbedrock_class` | RESTRICT |
+| `zbedrock` | **1.0 m**, tier T1_SITE_RESTRICTIVE_LAYER |
+| CLM mapping | bedrock layer 9, column bottom 1.20 m |
+| `ORGANIC` | f09 |
+
+**Evidence** (`data/soil_depth_evidence_20261103.csv`, AU-ASM-D01–D05):
+- siliceous hardpan at ~1 m (1–1.5 m) under the tower (Eamus et al. 2016; Rumman et al. 2018);
+- mulga roots above it (< 2 m);
+- perched water above the hardpan;
+- regional water table at 49 m;
+- TDR probes to 1.2 m.
+
+## Why the namelist switch is needed
+
+- **The default ignores `zbedrock`.** Pinned CTSM `d5ea9d01` sets `use_bedrock = .false.` when `use_fates = .true.` (`namelist_defaults_ctsm.xml`), and no case here overrides it. With the switch off, `zbedrock` is ignored and every site gets the full 20-layer column to 8.60 m.
+- **Rooting depth does not limit it either.** FATES default `zroot_min_z` = `zroot_max_z` = 100 m.
+- **Current AU-ASM value.** Stage02 / Stage13 carry the f09 `zbedrock` of 31.04 m (Pelletier soil thickness), which is irrelevant while the switch is off.
+- **How CLM picks the bedrock layer** (`initVerticalMod`). The search starts at the layer that contains `zmin_bedrock` = 0.4 m, which is layer 6 (0.32–0.48 m).
+  - 1.0 m falls in layer 9 (0.92–1.20 m).
+  - A value of 0.32 m or less matches no layer and silently gives the full column.
+- **Lower boundary.** With the switch on, build-namelist requires `lower_boundary_condition = 2` (zero flux), which is already the default. This zero-flux base at the hardpan matches the perched reservoir.
+
+## Stage22 isolated builder
+
+Script: `scripts/22_asm_stage22_bedrock_zbedrock_v3_isolated.py`. It follows the Stage13 pattern.
+
+**Actions:**
+- `self-test`: synthetic only.
+- `plan`: read-only.
+- `build`: confirm token `BUILD_ISOLATED_AU_ASM_BEDROCK_V3_NO_MODEL`; writes a new, unused direct-HOME directory.
+- `verify`: independent re-check.
+
+**Source checks:**
+- Stage13 v2 candidate `surfdata_AU-ASM_NC_FIXNC_PFT_v1p1_SITE_SOIL_v2_20261103_INTERIM.nc`, SHA256 `2c3de9a54b11189ab4d6413eb29fe91fe36b6ec0f87b9a3ae999d6a7a3a7e8a1`;
+- the Stage13 receipt;
+- the inherited `zbedrock` of 31.043 m;
+- the AU-ASM coordinates;
+- the upstream Git blob and the AU-ASM row.
+
+**Change.** Only `zbedrock` is set, to 1.0 m. Every other variable, its attributes, the dimensions and the global attributes must stay byte-identical to v2: texture v2, PFT, landunits (NATVEG 99.9994 as Stage16) and `ORGANIC`.
+
+**Receipt:**
+- `use_bedrock_required = true`;
+- `lower_boundary_condition_required = 2`;
+- `science_approved = false`;
+- `AD400_authorised = false`;
+- `forcing_science_hold = true`.
+
+## Requirements for any later controller binding v3
+
+These apply to AD400, NORMAL400 and the observation run alike.
+
+1. Bind the v3 candidate by its SHA256 from the Stage22 receipt, not by the GRIDREF or v2 path.
+2. Add `use_bedrock = .true.` to `user_nl_clm`. Verify `CaseDocs/lnd_in` shows `use_bedrock = .true.` and `lower_boundary_condition = 2`.
+3. `create_clone --keepexe` carries `user_nl_clm` into NORMAL400 and the observation run. Re-verify `lnd_in` there.
+
+## Holds unchanged
+
+- Forcing science QC (Stage12–21 wind / AWS / ACCESS / SH issues) remains HOLD.
+- The Stage08 hard block on AU-ASM AD400 prepare / submit remains.
+- No case is created and nothing is submitted by Stage22.
+
+**Current authorization: `soil_science_approval=false`, `forcing_science_approval=false`, `AD400_authorised=false`.**
