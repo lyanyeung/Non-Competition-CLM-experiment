@@ -28,14 +28,14 @@ for C in "$@"; do
   latest=$(ls "$ar/rest" 2>/dev/null | sort | tail -1)
   # rpointer names: newer CIME/CMEPS write rpointer.<comp>.<YYYY-MM-DD-SSSSS>, older ones rpointer.<comp>
   rp() { if [ -s "$rd/rpointer.$1.$latest" ]; then echo "$rd/rpointer.$1.$latest"; elif [ -s "$rd/rpointer.$1" ]; then echo "$rd/rpointer.$1"; fi; }
-  ptrf=$(rp lnd); ptr=$( [ -n "$ptrf" ] && head -1 "$ptrf")
+  ptrf=$(rp lnd); ptr=$( [ -n "$ptrf" ] && head -1 "$ptrf" | awk '{print $1}')
   echo "  CONTINUE_RUN=$cr RESUBMIT=$rs | latest archived restart: ${latest:-none} | $(basename "${ptrf:-rpointer.lnd*}") -> ${ptr:-missing}"
   if [ "$cr" != "TRUE" ]; then echo "  HOLD: CONTINUE_RUN is not TRUE (first segment?) - check by hand"; continue; fi
   if [ -z "$latest" ] || ! echo "$ptr" | grep -q "$latest"; then
     echo "  HOLD: no rpointer for the latest archived restart; RUNDIR has: $(cd "$rd" && ls rpointer* 2>/dev/null | tr '\n' ' ')"; continue; fi
   miss=0
   for comp in lnd atm cpl; do
-    pf=$(rp $comp); f=$( [ -n "$pf" ] && head -1 "$pf")
+    pf=$(rp $comp); f=$( [ -n "$pf" ] && head -1 "$pf" | awk '{print $1}')   # Fortran pads the line with blanks
     [ -n "$f" ] && [ -s "$rd/$f" ] || { echo "  HOLD: rpointer for $comp -> ${f:-none}, file missing in RUNDIR"; miss=1; }
   done
   [ $miss = 1 ] && continue
