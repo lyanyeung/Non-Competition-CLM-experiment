@@ -4,6 +4,7 @@
 Inputs (all in post_spinup/ICOS38/ unless given):
   ICOS38_BIF_structure_summary.csv        from 01_extract_ICOS38_BIF_observations.py
   ICOS38_stand_history_management.csv     curated stand origin / management history, with sources
+  ICOS38_evaluation_plan.csv              observation window, flagged years, carbon-state class, soil tier
   ICOS38_literature_observations.csv      values from site papers (one row per value, with source);
                                           rows with preferred=1 are merged as lit_* text columns
   inputs/FINAL_38_SITE_FIXNC_PFT_20261026_ICOS.csv
@@ -153,6 +154,11 @@ def main():
     df = (pft.merge(hist, on="site", how="left").merge(summ, on="site", how="left")
           .merge(litw, on="site", how="left"))
     df["lit_n_values"] = df["lit_n_values"].fillna(0).astype(int)
+    plan_f = a.dir / "ICOS38_evaluation_plan.csv"
+    if plan_f.is_file():
+        plan = pd.read_csv(plan_f, dtype=str, keep_default_na=False)[
+            ["site", "obs_window_for_fixed_PFT_state", "flag_years", "carbon_state_class", "soil_tier_proposal"]]
+        df = df.merge(plan, on="site", how="left")
     df["spinup_class_20261102"] = df.site.map(SPINUP_CLASS)
     df["normal400_case_expected"] = [
         (NORMAL400_BASE.get(s, "") + SUFFIX[c]) if NORMAL400_BASE.get(s) else "" for s, c in
@@ -176,7 +182,8 @@ def main():
              "ec_first_year", "ec_last_year", "ec_sources",
              "stand_origin", "establishment_year", "establishment_year_basis", "stand_age_at_ec_start",
              "age_note", "last_stand_replacing_event", "management_regime", "management_events",
-             "suggested_start_mode", "evidence_status"]
+             "suggested_start_mode", "evidence_status", "obs_window_for_fixed_PFT_state", "flag_years",
+             "carbon_state_class", "soil_tier_proposal"]
     obs = [c for c in summ.columns if c not in ("site", "igbp_bif", "bif_source_file")]
     rest = ["sources", "pft_register_status", "bif_source_file"]
     df = df[first + obs + LIT_ORDER + rest]
