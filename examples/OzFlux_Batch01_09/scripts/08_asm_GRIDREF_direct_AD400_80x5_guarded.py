@@ -7,7 +7,12 @@ operator-verified, already existing AU-ASM Stage14 provisional DATM NCs.
 It NEVER rebuilds/changes the original L6, six DATM, reference or FIXNC
 Surface, FATES parameter file, shared CTSM, or historical AU-How case.
 
-Actions:
+Actions (2026-11-03 science HOLD):
+  self-test: no IRIDIS files; static protocol tests
+  check: read-only provenance, FATES, template; DOES NOT RELEASE MET QC
+  prepare / submit: FAIL-CLOSED until new, science-reviewed versioned QC release;
+       old code cannot be used as an alternative. No job may be submitted.
+Historical design (NOT CURRENTLY AUTHORISED):
   self-test: no IRIDIS files; static monkeypatch protocol tests
   check: read-only provenance, effective FATES default14 and template checks
   prepare: explicit consent; creates one isolated CIME case; preview and verify;
@@ -325,6 +330,17 @@ def main():
     p.add_argument("--confirm",default="")
     args=p.parse_args()
     if args.action=="self-test":return selftest()
+    # Operator science release requirement 2026-11-03:
+    # Stage04/05 original QC reconciliation does NOT approve 2017 Fld 395h
+    # ACCESS/ERA substitution, source clock, 2014/16/18 radiative fills
+    # or independently confirmed source meteorology. Never let case creation
+    # or CIME submission silently proceed from a purely structural check.
+    # This is intentionally FAIL-CLOSED even with explicit old --confirm.
+    if args.action in ("prepare","submit"):
+        fail("FORCING_SCIENCE_HOLD: AU-ASM Stage09 original-tower/ACCESS/ERA "
+             "event-by-event and before/after boundary QC is not science-approved. "
+             "NO AD400 CASE PREPARE OR SUBMIT. Preserve original Surface/forcing; "
+             "do not bypass this guard by reverting to an old script.")
     if args.helper is None:fail("Provide --helper path, validated against pinned source blob")
     m=helper_module(args.helper)
     # status does not need site forcing re-hashes
