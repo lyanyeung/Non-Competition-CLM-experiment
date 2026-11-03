@@ -26,13 +26,17 @@ for C in "$@"; do
   cr=$(./xmlquery --value CONTINUE_RUN); rs=$(./xmlquery --value RESUBMIT); rd=$(./xmlquery --value RUNDIR)
   ar=$(./xmlquery --value DOUT_S_ROOT)
   latest=$(ls "$ar/rest" 2>/dev/null | sort | tail -1)
-  ptr=$(head -1 "$rd/rpointer.lnd" 2>/dev/null)
-  echo "  CONTINUE_RUN=$cr RESUBMIT=$rs | latest archived restart: ${latest:-none} | rpointer.lnd: ${ptr:-missing}"
+  # rpointer names: newer CIME/CMEPS write rpointer.<comp>.<YYYY-MM-DD-SSSSS>, older ones rpointer.<comp>
+  rp() { if [ -s "$rd/rpointer.$1.$latest" ]; then echo "$rd/rpointer.$1.$latest"; elif [ -s "$rd/rpointer.$1" ]; then echo "$rd/rpointer.$1"; fi; }
+  ptrf=$(rp lnd); ptr=$( [ -n "$ptrf" ] && head -1 "$ptrf")
+  echo "  CONTINUE_RUN=$cr RESUBMIT=$rs | latest archived restart: ${latest:-none} | $(basename "${ptrf:-rpointer.lnd*}") -> ${ptr:-missing}"
   if [ "$cr" != "TRUE" ]; then echo "  HOLD: CONTINUE_RUN is not TRUE (first segment?) - check by hand"; continue; fi
-  if [ -z "$latest" ] || ! echo "$ptr" | grep -q "$latest"; then echo "  HOLD: rpointer does not point to the latest archived restart"; continue; fi
+  if [ -z "$latest" ] || ! echo "$ptr" | grep -q "$latest"; then
+    echo "  HOLD: no rpointer for the latest archived restart; RUNDIR has: $(cd "$rd" && ls rpointer* 2>/dev/null | tr '\n' ' ')"; continue; fi
   miss=0
-  for p in rpointer.lnd rpointer.atm rpointer.cpl; do
-    f=$(head -1 "$rd/$p" 2>/dev/null); [ -s "$rd/$f" ] || { echo "  HOLD: $p -> $f missing in RUNDIR"; miss=1; }
+  for comp in lnd atm cpl; do
+    pf=$(rp $comp); f=$( [ -n "$pf" ] && head -1 "$pf")
+    [ -n "$f" ] && [ -s "$rd/$f" ] || { echo "  HOLD: rpointer for $comp -> ${f:-none}, file missing in RUNDIR"; miss=1; }
   done
   [ $miss = 1 ] && continue
   if [ $SUBMIT = 0 ]; then echo "  OK to resume from $latest (dry run; add --submit)"; continue; fi
