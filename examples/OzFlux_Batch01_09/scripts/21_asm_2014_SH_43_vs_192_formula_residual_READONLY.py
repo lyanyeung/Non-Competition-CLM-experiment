@@ -73,7 +73,7 @@ def implied_pressure(sh,ah,ta):
     if sh<=0 or ah<0 or not(-80<ta<70):return None
     e=ah*(ta+273.15)/216.7
     p_hpa=.622*e/sh+.378*e
-    return p_hpa/10 if 20<p_hpa/10<150 else None
+    return p_hpa/10 if math.isfinite(p_hpa) and p_hpa>0 else None
 def qv(row,key):
     return value(row.get(key))
 def best_time_lag(rows):
@@ -90,10 +90,12 @@ def best_time_lag(rows):
                 errors.append(abs(p-source[j])*1000)
         scores[str(offset)]={"pairs":len(errors),"MAE_gkg":mean(errors),
                   "max_absolute_gkg":max(errors) if errors else None}
-    best=min((v["MAE_gkg"],int(k)) for k,v in scores.items()
-             if v["MAE_gkg"] is not None)[1]
+    candidates=[(v["MAE_gkg"],int(k)) for k,v in scores.items()
+                if v["MAE_gkg"] is not None]
+    best=min(candidates)[1] if candidates else None
     return {"offsets_HH":scores,"lowest_MAE_offset_HH":best,
-            "lag_is_only_a_hypothesis":True}
+            "lag_is_only_a_hypothesis":True,
+            "no_comparable_calculated_humidity":not bool(candidates)}
 def selftest():
     need(abs(implied_pressure(.00732,8.64,20)-100)<5,"pressure inverse")
     need(value("-9999")==None and value("0.0")==0,"QC parse")
