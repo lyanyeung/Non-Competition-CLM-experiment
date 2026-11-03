@@ -16,6 +16,20 @@
 
 **Scientific status:** exploratory GRIDREF/met provisional `science_approval=false`, **direct AD400 requested**, no AD5. Submission requires explicit acknowledgment of the provisional inputs and exact confirmed case settings.
 
+## Operator source-of-truth and actual direct AD400 CHECK (2026-11-03)
+
+**Operator instruction:** Surface MUST follow the GitHub-reviewed OzFlux v1.1 model choice and actual Stage02 source-SHA-pinned candidate exactly; change only if a demonstrated GitHub scientific or implementation mistake is documented and explicitly revised. Do not replace or renormalise gridded soil/landunits based on coarse external texture descriptions.
+
+**Actual operator `check` PASSED after fixing an overly strict natural-landunit assertion (code commit `bbb502ddcb50186192ff6e29b6d57b9dab494e8d`, script blob `f5fda6ec3141eab4b9f933e045c4bf2e88978663`):**
+- Immutable Stage02 Surface source SHA PASS; host 0 bare 29%, 5 EBT 65%, 13 Cool C3 2%, 14 C4 4%; FATES effective map verified: FATES4 65%, FATES13 2%, FATES14 4%.
+- Actual original Stage16 landunits preserved (unmodified): `PCT_NATVEG=99.99938922457994`, `PCT_CROP=0.0006107754200530493`, all other landunits 0; landunit sum=100 and natural-land host PFT conditional sum=100 separately. The originally demanded `PCT_NATVEG=100.000000` was a **script bug** and has been corrected; no Surface data was modified.
+- CH-Dav compiled CIME FATES reference exe passed: `/scratch/ly3n24/CTSM_FATES_OUTPUTS/GF-Guy_FATES_SURF2000_CO2405_1PT/bld/cesm.exe` SHA prefix `83778648c7fee38b1666`.
+- Six Stage14 original 2013–2018 DATM SHA receipts verified, 2013 NOAA global CO2 `395.4 ppm`, CSV SHA256 `d82714c8a014a232b08e8bc150ddaaedf2ec4a80db65d6fe0eb93eb84f9db7db`.
+- Requested independent case `AU-ASM_OZ_FIXNC_GRIDREF_AD400_DIRECT`: 2013→2413, `STOP_N=5`, `RESUBMIT=79`; AD5 omitted. **CHECK is read-only; no case created, no Slurm submitted by this run.**
+- Source limitation remains: existing GRID_REFERENCE soil, provisional local-END/UTC clock hypothesis and 2017 FLDS ACCESS 395h interval are explicitly exploratory. This is a scientifically transparent experimental choice, not certification that field soil observations establish the 10-layer grid profile.
+
+**Next:** Run the existing guarded Stage08 `prepare` once, inspect its `CASE_VERIFIED_NOT_SUBMITTED` ledger and effective CIME CaseDocs, then the existing guarded `submit` once if verified. Do not rerun a partially failed stateful attempt without forensic inspection; do not replace or modify pinned Surface or forcing to get through a model gate.
+
 ## Extension to remaining eight OzFlux sites
 
 Use the same direct AD400 protocol only after each site's actual forcing/candidate/soil/PFT/clock/CIME checks pass; do not assume that AU-ASM success applies to AU-DaS, AU-Dry, AU-Gin, AU-How, AU-Cpr, AU-Cow, AU-Stp or AU-Tum. Preserve all original data and old AU-How experiment.
