@@ -124,3 +124,24 @@ It was printed by `22_phenology_patch_rollout.py plan` on 2026-11-02 22:11 UTC (
 - **Checks before each resubmission:** the latest archived restart, the dated rpointer files (`rpointer.<comp>.<date>`;
   Fortran pads the file name with blanks), `CONTINUE_RUN=TRUE`, RESUBMIT left (67–70), and an empty queue.
 - **Ledger:** `Needleleaf_F_rerun/resubmits.log`.
+
+### 2026-11-03 06:50 UTC: rollout complete; every replacement case submitted
+
+- **Overnight `22 ad-run`:** 72/76 sites OK, 4 HOLD.
+  - CA-TP4, CZ-Stn and DE-Hzd were HOLD lines left by the duplicate process (22:26–22:59 UTC, two `ad-run`
+    processes ran at once). All three had been built, verified and submitted by the other process; at 06:41 UTC they
+    were at 80 years.
+  - DE-Tha's build had been interrupted when the duplicate process was stopped.
+- **DE-Tha:** `22 ad-run --sites DE-Tha` repaired the interrupted build (spinup on, user_nl_clm line restored).
+  - The build log shows the SourceMods copy of `EDPhysiologyMod.F90` compiled, not the shared copy.
+  - `DE-Tha_OBSPFT_NC_V1_AD400_NLFP` was submitted: run 4813067, archive 4813068.
+- **GL-ZaH:** the original unpatched AD was stopped. `GL-ZaH_ICOS_B04_FIXNC_AD400_DIRECT_PHEN` is running and was at
+  75 years at 06:41 UTC.
+- **Result:** all 42 replacement AD400 cases are submitted:
+  - 23 `_NLFP`;
+  - 18 `_PHEN` (75-site screening);
+  - GL-ZaH `_PHEN`.
+
+  The 18 KEEP_NLF `_NLF` cases and US-Aud `_HINONE` continue.
+- **Since then, script 22 refuses a second concurrent action**, and `watch_rollout.sh` warns about duplicate `ad-run`
+  processes.
