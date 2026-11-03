@@ -4,6 +4,8 @@
 Inputs (all in post_spinup/ICOS38/ unless given):
   ICOS38_BIF_structure_summary.csv        from 01_extract_ICOS38_BIF_observations.py
   ICOS38_stand_history_management.csv     curated stand origin / management history, with sources
+  ICOS38_literature_observations.csv      values from site papers (one row per value, with source);
+                                          rows with preferred=1 are merged as lit_* text columns
   inputs/FINAL_38_SITE_FIXNC_PFT_20261026_ICOS.csv
       copy of CLM-FATES-single-site-workflows/examples/ICOS_sites/ICOS_PFT/ at commit a1579ebc
 
@@ -76,6 +78,55 @@ EC_SOURCES = {  # provenance JSON "ec_sources" where the BIF package does not gi
 }
 
 
+# literature variable -> lit_* column (preferred=1 rows only; several values are joined with " | ")
+LIT_COLUMNS = {
+    "stand_age": "lit_stand_age", "tree_density": "lit_tree_density", "canopy_height": "lit_canopy_height",
+    "dominant_height": "lit_canopy_height", "mean_dbh": "lit_mean_dbh", "basal_area": "lit_basal_area",
+    "lai": "lit_lai", "agb_C": "lit_agb", "agb_woody_C": "lit_agb", "species_pct": "lit_species",
+    "species": "lit_species", "soc_stock": "lit_soc", "soil_depth": "lit_soil_depth",
+    "soil_type": "lit_soil_depth", "water_table": "lit_soil_depth", "soc_change": "lit_soc_change",
+    "soc_change_0_70cm": "lit_soc_change", "nep_mean": "lit_nep_or_nee_mean", "NEE_mean": "lit_nep_or_nee_mean",
+    "NBP_mean": "lit_nep_or_nee_mean", "cumulative_uptake": "lit_nep_or_nee_mean",
+    "nep_trend": "lit_nep_trend", "ec_measurement_height": "lit_ec_height",
+}
+MULTI_VAR_COLUMNS = pd.Series(LIT_COLUMNS).value_counts().to_dict()
+LIT_ORDER = ["lit_stand_age", "lit_tree_density", "lit_canopy_height", "lit_mean_dbh", "lit_basal_area",
+             "lit_lai", "lit_agb", "lit_species", "lit_soc", "lit_soc_change", "lit_soil_depth",
+             "lit_nep_or_nee_mean", "lit_nep_trend", "lit_ec_height", "lit_management_events", "lit_flux_notes",
+             "lit_n_values"]
+
+
+def fmt_lit(r):
+    s = f"{r.value} {r.unit}".strip()
+    return s + (f" ({r.ref_year})" if r.ref_year else "")
+
+
+def literature_columns(lit):
+    """One row per site; text columns built from preferred=1 literature rows."""
+    lit = lit[lit.preferred.astype(str) == "1"].copy()
+    out = {}
+    for site, g in lit.groupby("site"):
+        row = {c: [] for c in LIT_ORDER[:-1]}
+        for r in g.itertuples():
+            col = LIT_COLUMNS.get(r.variable)
+            if col is None and r.category in ("management", "stand_history"):
+                col = "lit_management_events"
+            if col is None and r.category == "flux":
+                col = "lit_flux_notes"
+            if col is None:
+                continue
+            if col in ("lit_management_events", "lit_flux_notes"):
+                txt = f"{r.variable}: {r.value}" + (f" ({r.ref_year})" if r.ref_year else "")
+            elif MULTI_VAR_COLUMNS.get(col, 0) > 1:  # say which variable when a column mixes several
+                txt = f"{r.variable}: {fmt_lit(r)}"
+            else:
+                txt = fmt_lit(r)
+            row[col].append(txt)
+        out[site] = {c: " | ".join(v) for c, v in row.items()}
+        out[site]["lit_n_values"] = len(g)
+    return pd.DataFrame.from_dict(out, orient="index").rename_axis("site").reset_index()
+
+
 def ec_years(src):
     yrs = [int(y) for a, b in re.findall(r"_(\d{4})-(\d{4})", src or "") for y in (a, b)]
     return (min(yrs), max(yrs)) if yrs else (None, None)
@@ -91,7 +142,12 @@ def main():
     pft = pft[["site", "fixnc_cohort", "reported_igbp", "final_PCT_NAT_PFT", "status"]].rename(
         columns={"status": "pft_register_status"})
 
-    df = pft.merge(hist, on="site", how="left").merge(summ, on="site", how="left")
+    lit = pd.read_csv(a.dir / "ICOS38_literature_observations.csv", dtype=str, keep_default_na=False)
+    litw = literature_columns(lit)
+
+    df = (pft.merge(hist, on="site", how="left").merge(summ, on="site", how="left")
+          .merge(litw, on="site", how="left"))
+    df["lit_n_values"] = df["lit_n_values"].fillna(0).astype(int)
     df["spinup_class_20261102"] = df.site.map(SPINUP_CLASS)
     df["normal400_case_expected"] = [
         (NORMAL400_BASE.get(s, "") + SUFFIX[c]) if NORMAL400_BASE.get(s) else "" for s, c in
@@ -118,10 +174,10 @@ def main():
              "suggested_start_mode", "evidence_status"]
     obs = [c for c in summ.columns if c not in ("site", "igbp_bif", "bif_source_file")]
     rest = ["sources", "pft_register_status", "bif_source_file"]
-    df = df[first + obs + rest]
+    df = df[first + obs + LIT_ORDER + rest]
     df.to_csv(a.dir / "ICOS38_post_spinup_start_info.csv", index=False)
     print(df[["site", "spinup_class_20261102", "ec_first_year", "ec_last_year", "establishment_year",
-              "stand_age_at_ec_start", "suggested_start_mode", "agb_tree_kgDM_m2"]].to_string())
+              "stand_age_at_ec_start", "suggested_start_mode", "agb_tree_kgDM_m2", "lit_n_values"]].to_string())
 
 
 if __name__ == "__main__":
