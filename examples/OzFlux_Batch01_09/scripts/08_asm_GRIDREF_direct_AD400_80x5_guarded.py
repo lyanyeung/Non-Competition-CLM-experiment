@@ -110,8 +110,32 @@ def verify_sources():
         la=float(np.asarray(ds.variables["LATIXY"][:]).ravel()[0])
         lo=float(np.asarray(ds.variables["LONGXY"][:]).ravel()[0])
         if abs(la+22.2828)>1e-6 or abs(lo-133.2493)>1e-6:fail("Surface coordinates changed")
-        nat=float(np.asarray(ds.variables["PCT_NATVEG"][:]).ravel()[0])
-        if abs(nat-100)>1e-5:fail("Cannot use a point surface with NATVEG !=100")
+        # The exact immutable Stage16/Stage02 CTSM grid has a tiny crop
+        # fraction, despite its NAT_PFT conditional fractions summing to 100:
+        # PCT_NATVEG=99.99938922%, PCT_CROP=0.00061078%.
+        # It is scientifically WRONG to replace PCT_NATVEG with 100 or
+        # silently renormalize landunits just to satisfy this case gate.
+        land_fields=("PCT_NATVEG","PCT_CROP","PCT_LAKE",
+                     "PCT_WETLAND","PCT_GLACIER","PCT_URBAN")
+        land={}
+        for key in land_fields:
+            if key not in ds.variables:
+                fail("Required source landunit missing "+key)
+            z=np.ma.asarray(ds.variables[key][:],dtype=float).filled(np.nan).reshape(-1)
+            if not len(z) or not np.isfinite(z).all() or np.any(z<0) or np.any(z>100):
+                fail("Nonfinite/invalid reference landunit "+key)
+            land[key]=float(np.sum(z))
+        expected={"PCT_NATVEG":99.99938922,"PCT_CROP":0.00061078,
+                  "PCT_LAKE":0.0,"PCT_WETLAND":0.0,
+                  "PCT_GLACIER":0.0,"PCT_URBAN":0.0}
+        for key,want in expected.items():
+            if abs(land[key]-want)>1e-4:
+                fail("AU-ASM Stage16 original landunit provenance differs: "
+                     +key+" actual="+str(land[key])+" expected="+str(want))
+        if abs(sum(land.values())-100.0)>1e-4:
+            fail("Surface landunit total not 100 percent: "+str(land))
+        print("AU-ASM NATIVE LANDUNIT PASS (exact gridded reference)",
+              json.dumps(land,sort_keys=True),flush=True)
         for v in ("PCT_SAND","PCT_CLAY","ORGANIC"):
             z=np.ma.asarray(ds.variables[v][:],dtype=float).filled(np.nan).ravel()
             if len(z)!=10 or not np.isfinite(z).all():fail("gridref soil malformed "+v)
@@ -286,7 +310,11 @@ def selftest():
     assert len(FIELDS)==8 and FIELDS["QBOT"]=="Sa_shum"
     assert 80*5==400 and 80-1==79 and 2013+400==2413
     assert "AD400" in CASE_NAME and "AD5" not in CASE_NAME
-    print("OZFLUX AU-ASM STAGE08 DIRECT AD400 SELF-TEST PASS | 80x5 RESUBMIT79, no AD5",flush=True)
+    # Original Stage16 reference is 99.99938922 natural + 0.00061078
+    # crop landunit percent; NAT_PFT still independently sums to 100.
+    assert abs(99.99938922+0.00061078-100.0)<1e-8
+    assert abs(99.99938922-100)>1e-5
+    print("OZFLUX AU-ASM STAGE08 DIRECT AD400 SELF-TEST PASS | 80x5 RESUBMIT79; original 99.99938922 NATVEG landunit guard; no AD5",flush=True)
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
