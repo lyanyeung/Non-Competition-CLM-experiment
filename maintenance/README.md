@@ -102,3 +102,25 @@ It was printed by `22_phenology_patch_rollout.py plan` on 2026-11-02 22:11 UTC (
   - It is replaced by `..._PHEN`: patch only, same private parameter file.
 - **Older exploratory cases are not part of the nocomp experiment and are not touched:** `*_FATES_SPINUP*`,
   `*_FATES_RH*`, `*_S30SHARED`, `*_S30EXCL` (different surfaces, accelerated spin-up off).
+
+### 2026-11-03 06:38 UTC: five segment chains resumed after node failures (`resume_failed_segment.sh`)
+
+- **NODE_FAIL** on node red6131, 2026-11-03 05:13–05:17 UTC; no model error. The chain was resumed from its last
+  archived restart:
+
+  | Case | Resumed from | New run / archive jobs |
+  |---|---|---|
+  | `US-Uaf_AMF_B04_FIXNC_AD400_BASETA_V1_NLFP` | 2048-01-01 | 4812992 / 4812993 |
+  | `FR-Hes_B02_FIXNC_AD400_PHEN` | 2052-01-01 | 4812994 / 4812995 |
+  | `US-SRM_AMF_B04_FIXNC_AD400_BASETA_V1_PHEN` | 2064-01-01 | 4812996 / 4812997 |
+  | `US-ICt_AMF_B02_FIXNC_AD400_DIRECT_PHEN` | 2062-01-01 | 4813005 / 4813006 |
+
+- **CZ-BK1:** `CZ-BK1_B01_FIXNC_AD400_NLF` died 22 s into segment 10 (2026-11-02 22:58, red6081).
+  - It was a segmentation fault during land initialisation (Prigent roughness stream), after 9 good segments with the
+    same executable and inputs, so it was treated as transient.
+  - Resumed from 2049-01-01: 4813007 / 4813008.
+  - If it fails at the same point again, it is investigated instead of resumed.
+- **Orphaned st_archive jobs cancelled:** 4812574, 4812572, 4812570, 4812569, 4809520.
+- **Checks before each resubmission:** the latest archived restart, the dated rpointer files (`rpointer.<comp>.<date>`;
+  Fortran pads the file name with blanks), `CONTINUE_RUN=TRUE`, RESUBMIT left (67–70), and an empty queue.
+- **Ledger:** `Needleleaf_F_rerun/resubmits.log`.
