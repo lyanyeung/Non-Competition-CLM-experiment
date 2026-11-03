@@ -76,7 +76,7 @@ def check_model(year):
 def selftest():
     need(dt.datetime(2018,3,10,20,30)-SHIFT == dt.datetime(2018,3,10,10,45),"UTC midpoint hypothesis")
     need(dt.datetime(2014,11,23,1,0)-SHIFT == dt.datetime(2014,11,22,15,15),"day boundary shift")
-    need(0.5*(3.671959+3.970067)==3.8210130000000002,"Hypothetical interpolation")
+    need(abs(0.5*(3.671959+3.970067)-3.821013)<1e-10,"Hypothetical interpolation")
     need(len(SHA14)==6 and 80*5==400,"Direct400 protocol")
     print("OZFLUX STAGE15 SELF-TEST PASS | source→DATM 3-event crosswalk, no edits or AD400 release")
 
