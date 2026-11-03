@@ -31,3 +31,9 @@ The prior `AmeriFlux_Batch01_10/scripts/59_three_site_extended_met_episode_audit
 - Surface remains the GitHub Stage02 SHA-pinned selected PFT and unchanged gridded soil; this is a separate site-soil scientific limitation, **not a reason to mutate existing Surface**.
 
 **Current disposition: `FORCING_SCIENCE_HOLD`; `science_release=false`; `AD400_authorised=false`; `AD5_required=false`.**
+
+## Actual operator Stage09 science-audit result (2026-11-03)
+
+Operator ran the exact Git blob `95a5d7f28ec20f8f36de2e1758a34e55a19ea540` on IRIDIS6; source-hash, syntax and selftest verified. Report: `/iridisfs/home/ly3n24/ozflux_nc_stage09_20261103T070958Z/`. 42/42 original source year-variable QC series reconciled with Stage05; 1,860 contiguous QC spells and 9,291 native meteorology source-context rows recorded; 2017 Fld 395h QC420 ACCESS run reproduced. Native source thermodynamics: RHwater>100% 0; RHwater>105% 0; VPD<-0.1 hPa 0; maximum RHwater 96.523%; source Fsd negative 360 records, corresponding to existing separate, original-preserving Stage14 FSDS0 correction ledger. Peak original Ws 16.29613 m/s at **native source label 2018-03-10 20:30:00**; peak wind by itself is not evidence of corruption. All 1,860 QC spells are *review evidence*, not automatically 1,860 scientifically faulty episodes. Operator reported **NO AU-ASM AD400 CIME case directory**, no model submission. Stage09 explicitly did **not** release forcing science QC.
+
+Next: scrutinise full 395-hour Fld and all longest ACCESS/ERA5 radiation runs (especially 2014/16/18) and model-fill joins; rank the source native QC nonzero segments across all seven variables, check donor independence, and validate original source clock convention. Do not modify Stage02 Surface, original L6 or six Stage14 inputs. `FORCING_SCIENCE_HOLD` continues.
