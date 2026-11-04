@@ -7,7 +7,7 @@
 - **Partial years** 2010 (from 2010-09-03) and 2023 (to 2023-03-08) are left out.
 - **Mulga2** (2024-08-21 to 2026-04-23) stays a separate record and is not in the spin-up cycle. See [below](#mulga1-and-mulga2).
 - **The evaluation window is unchanged:** 2013–2017, pre-dieback. The observation run runs 2011–2022 once, and the other years are run but not scored.
-- **The same rule applies to the other 19 OzFlux / JapanFlux sites** when their forcing is built. Per-site notes are in CLM-FATES-single-site-workflows `examples/OzFlux_JapanFlux_PostSpinup/README.md` (branch `oz-jp-surface-carbon-20261103`). AU-DaS has an open question about its post-November-2022 cleared years.
+- **The same rule applies to the other OzFlux / JapanFlux sites** when their forcing is built. Per-site notes are in CLM-FATES-single-site-workflows `examples/OzFlux_JapanFlux_PostSpinup/README.md` (branch `oz-jp-surface-carbon-20261103`). **AU-DaS is no longer processed** (operator decision 2026-11-04). The land was cleared for crop development, and data are excluded from 2022-11-01. Only 14 complete years (2008–2021) precede the clearing, fewer than the 15-year minimum. Do not build AU-DaS forcing or cases. Its existing Stage03 surface candidate stays as a record.
 
 ## What this changes for the forcing work
 
