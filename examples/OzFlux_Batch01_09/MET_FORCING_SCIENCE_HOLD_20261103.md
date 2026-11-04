@@ -1,3 +1,5 @@
+> **SCOPE STOP — 2026-11-04: AU-ASM EXCLUDED BY OPERATOR.** The first Mulga tower record (2010-09 to 2023-03) does not meet the >=15-year continuous-period requirement. Its NOAA/Stage25 and all future forcing-QC/AD400 work are CANCELLED; this file is retained strictly for historical evidence only. **2022-Nov crop clearing belongs to AU-DaS, not AU-ASM.** See [15-year scope and exclusion decision](OZFLUX_15YEAR_SCOPE_AND_AU_ASM_EXCLUSION_20261104.md). Do not execute the older commands below. Next active work: Stage26 seven-site source eligibility, likely AU-Dry thereafter. Source and model files preserved without modifications.
+
 # OzFlux meteorological science-QC release gate — 2026-11-03
 
 ## Mandatory operator rule
