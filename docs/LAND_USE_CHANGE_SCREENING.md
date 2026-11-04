@@ -6,12 +6,12 @@ undisturbed stand of the same vegetation. Which sites break that assumption beca
 stand changed: forest cleared for farming, farmland or heath planted with trees, clear-cut and replanted,
 burned, killed by insects, or experimentally disturbed?
 
-**Answer.** No site in the five AmeriFlux and four ICOS batches is a forest converted to cropland. But 19
+**Answer.** No site in the five AmeriFlux and four ICOS batches is a forest converted to cropland. But 20
 sites have a land-use change or a stand-replacing disturbance that matters for the comparison:
 
 - **8 have a break inside the flux record**: a fire, insect outbreak, girdling, harvest or grassland renewal.
   The model has no such break, so tower years before and after it are not the same ecosystem.
-- **6 are young stands after clear-cut, windthrow or fire.** The tower sees a regrowing stand, far from the
+- **7 are young stands after clear-cut, windthrow, fire or planting.** The tower sees a regrowing stand, far from the
   equilibrium the spin-up produces.
 - **5 are planted on former farmland, heath or shrubland** (decades ago). The vegetation is old enough, but
   the soil carbon carries the earlier land use, so NEE and soil respiration cannot match an 800-year spin-up.
@@ -44,13 +44,15 @@ Nothing is excluded or deleted by this screen. It decides which years and which 
 | US-Me6 | AmeriFlux B03 | **YOUNG STAND** | Severe fire 1979, salvage-logged, replanted 1990; ~26-year-old ponderosa pine in 2017, LAI 0.6–0.8 | [OSTI US-Me6](https://www.osti.gov/dataexplorer/biblio/dataset/1246128), [OSU TERRA](https://terraweb.forestry.oregonstate.edu/node/239) |
 | US-Rpf | AmeriFlux B04 | **YOUNG STAND** | Burned black spruce forest now dominated by deciduous trees and shrubs (succession from a fire scar) | [OSTI US-Rpf](https://www.osti.gov/dataexplorer/biblio/dataset/1579540) |
 | US-NC2 | AmeriFlux B03 | **YOUNG STAND (managed rotation)** | Intensively managed loblolly plantation, 15–28 years old during the record, on drained forested wetland; now in its fifth ~30-year rotation | [Forests 2021](https://www.mdpi.com/1238472) |
+| CZ-BK1 | ICOS B01 | **YOUNG STAND (plantation)** | Managed secondary pure Norway spruce stand planted in 1981 with 4-year-old seedlings | [DEIMS CZ-BK1](https://training.deims.org/a61dd7df-5fd7-47b4-8172-b7dfaf969748) |
 | IL-Yat | ICOS B03 | **FORMER SHRUBLAND** | Aleppo pine planted from 1964 on former semi-arid shrubland; soil carbon still accumulating | [ICOS IL-Yat](https://meta.icos-cp.eu/resources/stations/ES_IL-Yat), [Weizmann](https://www.weizmann.ac.il/EPS/print/3076) |
 | BE-Bra | ICOS B02 | **FORMER HEATH** | Scots pine planted in 1929 on former heathland | [DEIMS/LTER Brasschaat](https://deims.org/api/sites/68e6a8e5-d6d2-4c8c-91c4-10e7f87ac556) |
 | CA-TP3, CA-TP4 | AmeriFlux B01 | **FORMER FARMLAND** | White pine plantations established 1974 and 1939 on sandy abandoned land | [OSTI CA-TP3](https://www.osti.gov/dataexplorer/biblio/dataset/1881566), [OSTI CA-TP4](https://www.osti.gov/biblio/1246012) |
 | US-UiD | AmeriFlux B05 | **RESTORED GRASSLAND** | Restored native prairie at the University of Illinois energy-farm cluster; prior land use most likely cropland (not confirmed in the sources found) | [AmeriFlux US-UiD](https://ameriflux.lbl.gov/sites/siteinfo/US-UiD) |
 
 To check, not yet confirmed: **US-Vcp** (the 2013 Thompson Ridge fire burned the same preserve; whether
-the ponderosa site burned was not found); **CZ-BK1** (spruce plantation; planting history not checked).
+the ponderosa site burned was not found). Open years: US-Ho3 harvest, US-Rpf fire, US-UiD restoration
+(the Energy Farm is described as prime farmland, so former cropland is likely).
 
 All other sites were not flagged: their site descriptions used for the PFT set-up describe old or
 semi-natural stands, permanent grassland, or shrubland without a recorded land-use change. They were not
@@ -72,4 +74,6 @@ already flagged as implausible (3169 mm/yr). Consider DE-Hai as the reference in
    report pre- and post-disturbance statistics separately (or drop the post years).
 2. For young stands and former farmland/heath, compare GPP and seasonality only; leave NEE and soil carbon out
    of the equilibrium assessment.
-3. Confirm US-Vcp, CZ-BK1 and US-UiD history from the AmeriFlux/ICOS BADM disturbance records.
+3. Run `examples/Cross_cohort_NORMAL400/scripts/31_site_events_vs_flux_record.py --all-sites` on IRIDIS: it
+   lines the events up with each site's EC years and prints the BADM `GRP_DM_*` disturbance entries that settle
+   the open years. The register is [`data/site_special_events.csv`](../data/site_special_events.csv).

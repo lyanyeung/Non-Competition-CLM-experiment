@@ -10,37 +10,110 @@
 
 **Site flags:** **US-CMW is excluded (groundwater-dependent riparian mesquite woodland: tower ET 662 mm/yr against 263 mm/yr precipitation; a single-point CLM column cannot supply that water).** CZ-Stn and DE-Lnf (DBF 100, vegetation gone in AD years 14–15) are under investigation with a 50-year diagnostic re-run. See [section 11 of the log](docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md#11-site-anomaly-checks-us-cmw-cz-stn-de-lnf-2026-11-01).
 
-## Site screening: groundwater and land-use change (4 November 2026)
+## Special site events and conditions (4 November 2026)
 
-Two checks over all 86 sites of the five AmeriFlux and four ICOS batches. Nothing new is excluded; the
-flags decide how a site's GPP/NEE bias is read. Full tables, evidence and sources:
-[groundwater](docs/GROUNDWATER_SCREENING.md) · [land use and disturbance](docs/LAND_USE_CHANGE_SCREENING.md).
+The experiment spins every site up for 800 years with fixed vegetation and compares the equilibrium model
+with the tower. That is only a fair test where the tower measures an old, undisturbed stand of the modelled
+vegetation that lives on local rain. This chapter lists every site where that is not true. **Nothing new is
+excluded and no output is deleted**; the entries decide which tower years and which fluxes are compared.
 
-**Groundwater / water table** (the reason US-CMW is excluded). No other site meets the US-CMW criterion
-(tower ET ≫ P every year) in the data checked so far.
+- Machine-readable register: [`data/site_special_events.csv`](data/site_special_events.csv) (one row per event,
+  with the comparison rule and the source).
+- Evidence and method: [land use and disturbance](docs/LAND_USE_CHANGE_SCREENING.md) ·
+  [groundwater](docs/GROUNDWATER_SCREENING.md).
+- Scope: all 86 sites of AmeriFlux B01–B05 and ICOS B01–B04. **No site is a forest converted to cropland.**
 
-| Class | Sites |
-|---|---|
-| EXCLUDED | US-CMW (tower ET/P 2.5) |
-| HIGH: groundwater use measured, or water table in the root zone | US-Ton (blue oaks take ~80 % of summer ET from groundwater at ~8 m), US-NC2 (drained coastal-plain plantation, high water table), BE-Bra (perched water table 0.8–2.5 m), RU-Fyo (paludified shallow-peat spruce), FI-Let (drained fen peatland) |
-| MEDIUM: poorly drained, perched or wet patches in the footprint | US-Ho1, US-Ho2, US-Ho3, CA-Man, US-SP1, FR-Fon, CH-Fru, DE-RuR, GF-Guy |
-| PERMAFROST: water perched on permafrost (separate issue) | US-BZS (ET/P 1.11), US-Uaf, US-Rpf, US-EML, US-ICh, US-ICt, GL-ZaH |
-| LOW-WATCH | CH-Cha, AT-Neu, FI-Sod, US-Syv, BR-Ma2, US-Kon |
+### A. Events: disturbance and land-use change (8 in the record, 7 young stands, 5 on former land use, 1 to confirm)
 
-Tower ET/P is in the repository for 25 sites only. For all 86 run the read-only
-[`30_groundwater_screen_tower_ET_P.py`](examples/Cross_cohort_NORMAL400/scripts/30_groundwater_screen_tower_ET_P.py) on IRIDIS.
+Rules: **in the record** → split the EC years at the event and never fit parameters across the break;
+**young stand** → compare GPP seasonality, not GPP magnitude or NEE; **former land use** → GPP yes, but NEE and
+soil carbon are not an equilibrium test.
 
-**Land use and disturbance.** No site is a forest converted to cropland. 19 sites are not an old, undisturbed
-stand of their vegetation, which the 800-year equilibrium spin-up assumes:
+**Disturbance inside the flux record** (8)
 
-| Type | Sites | How to compare |
+| Site | Batch | Year | What happened | In flux record | How to compare |
+|---|---|---|---|---|---|
+| [US-Vcm](https://ameriflux.lbl.gov/sites/siteinfo/US-Vcm) | AmeriFlux B05 | 2013 | Thompson Ridge fire (late May 2013), stand-replacing: every tree killed; flux gap May 2013-Jan 2014; tower rebuilt in the burned stand | yes | split EC at 2013; post-fire years are not the modelled forest |
+| [US-UMd](https://www.osti.gov/dataexplorer/biblio/dataset/1246134) | AmeriFlux B05 | 2008 | FASET: every aspen and birch (>6700 trees, ~35% of canopy LAI) girdled over 39 ha in spring 2008 | yes | split EC at 2008 |
+| [US-GLE](https://www.osti.gov/dataexplorer/biblio/dataset/1246056) | AmeriFlux B02 | ≤2008 | Decade-long spruce beetle outbreak, peak 2008, 85% of forest basal area killed | yes | split EC around 2008; treat later years as a dead-canopy stand |
+| [CA-LP1](https://www.osti.gov/biblio/1660337) | AmeriFlux B01 | 2006–2011 | Mountain pine beetle attack on a pure lodgepole pine stand from summer 2006 (five-year disturbance) | yes | whole record is a disturbed stand; no equilibrium comparison of GPP magnitude |
+| [US-Slt](https://www.osti.gov/dataexplorer/biblio/dataset/1246096) | AmeriFlux B04 | 2006–2008 | Gypsy moth defoliation 2006-2008, complete in 2007 | yes | exclude 2006-2008 from GPP statistics |
+| [FI-Let](https://meta.icos-cp.eu/objects/XCbOcz7bn_Fs-SsN1vyner9J/ICOSETC_FI-Let_FLUXNET_HH_L2.zip.json) | ICOS B03 | 2016 | Fen drained for forestry in 1969 (land-use change); partial harvest March 2016 | yes | split EC at 2016; drained peat soil carbon not at equilibrium |
+| [US-Ho3](https://research.fs.usda.gov/nrs/forestsandranges/locations/howland) | AmeriFlux B02 | to confirm | Howland harvest site: commercial shelterwood harvest; uptake reduced for about 7 years (harvest year to confirm from BADM) | yes | split EC at the harvest year |
+| [CH-Cha](https://holukas.github.io/dataset_ch-cha_flux_product/intro.html) | ICOS B03 | 2012 | Intensively managed grassland; grassland restoration (renewal) in 2012 | yes | exclude 2012 (and 2013) from GPP statistics |
+
+**Young stand (clear-cut, windthrow, fire, plantation)** (7)
+
+| Site | Batch | Year | What happened | In flux record | How to compare |
+|---|---|---|---|---|---|
+| [DE-Hzd](https://deims.org/api/sites/bf152bfd-f7b4-4a4b-9785-282a8f8ba539) | ICOS B03 | 2007 | Storm Kyrill windthrow (40 ha) in 2007; oaks planted afterwards; flux record from 2010 | yes (whole record) | GPP seasonality only; not a reference for mature DBF; not NEE |
+| [CA-TP1](https://ameriflux-new.hyperarts.com/sites/siteinfo/CA-TP1) | AmeriFlux B01 | 2002 | White pine planted 2002 on a sandy agricultural field abandoned three years earlier | yes (whole record) | GPP seasonality only; not NEE or soil carbon |
+| [CA-Ca3](https://www.osti.gov/dataexplorer/biblio/dataset/1480302) | AmeriFlux B01 | 1987–1988 | Douglas-fir harvested 1987, broadcast-burned, replanted 1988 | before record | GPP seasonality only; not NEE |
+| [US-Me6](https://www.osti.gov/dataexplorer/biblio/dataset/1246128) | AmeriFlux B03 | 1979–1990 | Severe fire 1979, salvage-logged, replanted 1990; young ponderosa pine, LAI 0.6-0.8 | before record | GPP seasonality only; not NEE |
+| [US-Rpf](https://www.osti.gov/dataexplorer/biblio/dataset/1579540) | AmeriFlux B04 | to confirm | Burned black spruce forest now dominated by deciduous trees and shrubs (fire year to confirm from BADM) | before record | GPP seasonality only; not NEE |
+| [US-NC2](https://www.mdpi.com/1238472) | AmeriFlux B03 | to confirm | Intensively managed loblolly plantation on drained forested wetland, 15-28 years old during the record, ~30-year rotations | yes (whole record) | GPP seasonality only; not NEE |
+| [CZ-BK1](https://training.deims.org/a61dd7df-5fd7-47b4-8172-b7dfaf969748) | ICOS B01 | 1981 | Managed secondary pure Norway spruce stand planted 1981 with 4-year-old seedlings | before record | GPP seasonality only; not NEE |
+
+**Planted/restored on former farmland, heath or shrubland** (5)
+
+| Site | Batch | Year | What happened | In flux record | How to compare |
+|---|---|---|---|---|---|
+| [IL-Yat](https://meta.icos-cp.eu/resources/stations/ES_IL-Yat) | ICOS B03 | 1964 | Aleppo pine afforestation from 1964 on former semi-arid shrubland; soil carbon still accumulating | before record | GPP yes; NEE and soil carbon not an equilibrium test |
+| [BE-Bra](https://deims.org/api/sites/68e6a8e5-d6d2-4c8c-91c4-10e7f87ac556) | ICOS B02 | 1929 | Scots pine planted 1929 on former heathland | before record | GPP yes; NEE and soil carbon not an equilibrium test |
+| [CA-TP3](https://www.osti.gov/dataexplorer/biblio/dataset/1881566) | AmeriFlux B01 | 1974 | White pine plantation established 1974 on sandy abandoned land | before record | GPP yes; NEE and soil carbon not an equilibrium test |
+| [CA-TP4](https://www.osti.gov/biblio/1246012) | AmeriFlux B01 | 1939 | White pine plantation established 1939 on sandy abandoned land | before record | GPP yes; NEE and soil carbon not an equilibrium test |
+| [US-UiD](https://ameriflux.lbl.gov/sites/siteinfo/US-UiD) | AmeriFlux B05 | to confirm | Restored native prairie on the University of Illinois Energy Farm (prime farmland); restoration year to confirm | unknown | GPP yes; NEE and soil carbon not an equilibrium test |
+
+**To confirm** (1)
+
+| Site | Batch | Year | What happened | In flux record | How to compare |
+|---|---|---|---|---|---|
+| [US-Vcp](https://fluxnet.org/2014/04/30/thompson-ridge-wildfire-takes-out-ameriflux-core-site/) | AmeriFlux B05 | 2013 | Thompson Ridge fire burned the same Valles Caldera preserve; whether the ponderosa tower footprint burned is not stated | unknown | check BADM disturbance records |
+
+### B. Site conditions: groundwater and water table
+
+US-CMW is excluded because its tower ET is 2.5 × precipitation (riparian phreatophytes on groundwater a
+single-point CLM column cannot supply). No other site meets that criterion in the data checked so far.
+
+| Class | Sites | Reading |
 |---|---|---|
-| Disturbance inside the flux record | US-Vcm (stand-replacing fire 2013), US-UMd (aspen/birch girdling 2008), US-GLE (spruce beetle, 85 % basal area, peak 2008), CA-LP1 (mountain pine beetle from 2006), US-Slt (gypsy moth 2006–08), FI-Let (partial harvest 2016), US-Ho3 (harvest site), CH-Cha (grassland renewal 2012) | split the EC years at the disturbance |
-| Young stand after clear-cut, windthrow or fire | DE-Hzd (Kyrill windthrow 2007, oaks planted), CA-TP1 (planted 2002 on farmland), CA-Ca3 (replanted 1988), US-Me6 (burned 1979, replanted 1990), US-Rpf (fire scar, deciduous succession), US-NC2 (managed rotation) | GPP seasonality only; not NEE |
-| Planted on former farmland, heath or shrubland | IL-Yat (1964, shrubland), BE-Bra (1929, heath), CA-TP3 (1974), CA-TP4 (1939), US-UiD (restored prairie) | GPP yes; NEE and soil carbon not as an equilibrium test |
+| EXCLUDED | US-CMW | not used to judge GPP |
+| HIGH: groundwater use measured, or water table in the root zone | US-Ton (blue oaks take ~80 % of summer ET from groundwater at ~8 m), US-NC2 (drained coastal-plain plantation, high water table), BE-Bra (perched water table 0.8–2.5 m), RU-Fyo (paludified shallow-peat spruce), FI-Let (drained fen peatland) | check model ZWT/BTRAN before blaming vegetation parameters |
+| MEDIUM: poorly drained, perched, or wet patches in the footprint | US-Ho1, US-Ho2, US-Ho3, CA-Man, US-SP1, FR-Fon, CH-Fru, DE-RuR, GF-Guy | model check if a dry-spell GPP bias appears |
+| PERMAFROST: water perched on permafrost (separate issue) | US-BZS (ET/P 1.11), US-Uaf, US-Rpf, US-EML, US-ICh, US-ICt, GL-ZaH | judge with the arctic sites |
+| LOW-WATCH | CH-Cha, AT-Neu, FI-Sod, US-Syv, BR-Ma2, US-Kon | re-check after the ET/P screen |
 
-**DE-Hzd is the reference used for CZ-Stn and DE-Lnf** in the DBF diagnosis, but it is a young oak plantation
-on a windthrow area (and its EC precipitation is implausible); DE-Hai is the better reference.
+### C. Sites flagged more than once
+
+| Site | Flags | Consequence |
+|---|---|---|
+| US-NC2 | groundwater HIGH + managed young plantation | the least equilibrium-like site; GPP seasonality only |
+| BE-Bra | groundwater HIGH + planted on heath (1929) | GPP with model water table check; no NEE equilibrium test |
+| FI-Let | groundwater HIGH (drained peat) + harvest 2016 | split at 2016; drained-peat carbon not at equilibrium |
+| US-Ho3 | groundwater MEDIUM + harvest site | split at the harvest year |
+| US-Rpf | permafrost + fire-scar succession | arctic group; GPP seasonality only |
+| **DE-Hzd** | young oak plantation on a 2007 windthrow, EC precipitation implausible (3169 mm/yr) | **it is the reference used for CZ-Stn and DE-Lnf in the DBF diagnosis; use DE-Hai instead** |
+
+### D. What to run on IRIDIS (read only)
+
+```bash
+# one-time: a small read-only checkout of main (scripts + data only)
+git clone -q --depth 1 --filter=blob:none --sparse https://github.com/lyanyeung/Non-Competition-CLM-experiment ~/nc_main
+cd ~/nc_main && git sparse-checkout set examples/Cross_cohort_NORMAL400/scripts data
+# later: cd ~/nc_main && git pull
+S=examples/Cross_cohort_NORMAL400/scripts
+# 1) tower ET/P for all 86 sites (the US-CMW test)  -> ~/groundwater_screen_tower_ET_P.csv
+python3 -B $S/30_groundwater_screen_tower_ET_P.py | tee ~/gw_screen.txt
+# 2) events against each site's EC years + BADM disturbance/management entries -> ~/site_events_vs_flux_record.csv
+python3 -B $S/31_site_events_vs_flux_record.py --all-sites | tee ~/site_events.txt
+```
+
+Both need pandas (the `clm_fates_env` environment has it). Reading BADM `.xlsx` files needs openpyxl
+(`pip install --user openpyxl` if script 31 says so).
+
+Script 31 settles the open years (US-Ho3 harvest, US-Rpf fire, US-UiD restoration, whether US-Vcp burned) from
+the BADM `GRP_DM_*` records and lists BADM disturbances at sites not yet in the register. Its output goes back
+into `data/site_special_events.csv` and this chapter.
 
 ## NL-Loo V3 three-phase figures
 
