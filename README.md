@@ -10,6 +10,38 @@
 
 **Site flags:** **US-CMW is excluded (groundwater-dependent riparian mesquite woodland: tower ET 662 mm/yr against 263 mm/yr precipitation; a single-point CLM column cannot supply that water).** CZ-Stn and DE-Lnf (DBF 100, vegetation gone in AD years 14–15) are under investigation with a 50-year diagnostic re-run. See [section 11 of the log](docs/NEEDLELEAF_COLLAPSE_DIAGNOSIS.md#11-site-anomaly-checks-us-cmw-cz-stn-de-lnf-2026-11-01).
 
+## Site screening: groundwater and land-use change (4 November 2026)
+
+Two checks over all 86 sites of the five AmeriFlux and four ICOS batches. Nothing new is excluded; the
+flags decide how a site's GPP/NEE bias is read. Full tables, evidence and sources:
+[groundwater](docs/GROUNDWATER_SCREENING.md) · [land use and disturbance](docs/LAND_USE_CHANGE_SCREENING.md).
+
+**Groundwater / water table** (the reason US-CMW is excluded). No other site meets the US-CMW criterion
+(tower ET ≫ P every year) in the data checked so far.
+
+| Class | Sites |
+|---|---|
+| EXCLUDED | US-CMW (tower ET/P 2.5) |
+| HIGH: groundwater use measured, or water table in the root zone | US-Ton (blue oaks take ~80 % of summer ET from groundwater at ~8 m), US-NC2 (drained coastal-plain plantation, high water table), BE-Bra (perched water table 0.8–2.5 m), RU-Fyo (paludified shallow-peat spruce), FI-Let (drained fen peatland) |
+| MEDIUM: poorly drained, perched or wet patches in the footprint | US-Ho1, US-Ho2, US-Ho3, CA-Man, US-SP1, FR-Fon, CH-Fru, DE-RuR, GF-Guy |
+| PERMAFROST: water perched on permafrost (separate issue) | US-BZS (ET/P 1.11), US-Uaf, US-Rpf, US-EML, US-ICh, US-ICt, GL-ZaH |
+| LOW-WATCH | CH-Cha, AT-Neu, FI-Sod, US-Syv, BR-Ma2, US-Kon |
+
+Tower ET/P is in the repository for 25 sites only. For all 86 run the read-only
+[`30_groundwater_screen_tower_ET_P.py`](examples/Cross_cohort_NORMAL400/scripts/30_groundwater_screen_tower_ET_P.py) on IRIDIS.
+
+**Land use and disturbance.** No site is a forest converted to cropland. 19 sites are not an old, undisturbed
+stand of their vegetation, which the 800-year equilibrium spin-up assumes:
+
+| Type | Sites | How to compare |
+|---|---|---|
+| Disturbance inside the flux record | US-Vcm (stand-replacing fire 2013), US-UMd (aspen/birch girdling 2008), US-GLE (spruce beetle, 85 % basal area, peak 2008), CA-LP1 (mountain pine beetle from 2006), US-Slt (gypsy moth 2006–08), FI-Let (partial harvest 2016), US-Ho3 (harvest site), CH-Cha (grassland renewal 2012) | split the EC years at the disturbance |
+| Young stand after clear-cut, windthrow or fire | DE-Hzd (Kyrill windthrow 2007, oaks planted), CA-TP1 (planted 2002 on farmland), CA-Ca3 (replanted 1988), US-Me6 (burned 1979, replanted 1990), US-Rpf (fire scar, deciduous succession), US-NC2 (managed rotation) | GPP seasonality only; not NEE |
+| Planted on former farmland, heath or shrubland | IL-Yat (1964, shrubland), BE-Bra (1929, heath), CA-TP3 (1974), CA-TP4 (1939), US-UiD (restored prairie) | GPP yes; NEE and soil carbon not as an equilibrium test |
+
+**DE-Hzd is the reference used for CZ-Stn and DE-Lnf** in the DBF diagnosis, but it is a young oak plantation
+on a windthrow area (and its EC precipitation is implausible); DE-Hai is the better reference.
+
 ## NL-Loo V3 three-phase figures
 
 [NL-Loo PRE50 → AD200 → POST300 convergence and EC plotting](docs/NL_LOO_THREE_PHASE_PLOTS.md) checks the actual V3 history, marks incomplete phases and PRE50-based EC comparisons as interim, and uses NT-first tower GPP. It does not infer that POST300 has run.
