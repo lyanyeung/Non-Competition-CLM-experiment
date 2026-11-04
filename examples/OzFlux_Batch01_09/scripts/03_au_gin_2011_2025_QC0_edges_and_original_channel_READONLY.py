@@ -100,7 +100,7 @@ def main():
         ("JUL2025",dt.datetime(2025,6,27),dt.datetime(2025,7,2)),
         ("DEC2025",dt.datetime(2025,12,30),dt.datetime(2026,1,1))])
     context=[];alarms=defaultdict(list);alarm_counts=Counter()
-    months=defaultdict(lambda:{"n":0,"q":Counter(),"missing":0})
+    months=defaultdict(lambda:{"n":0,"q":Counter(),"finite_by_q":Counter(),"missing":0})
     raw_pairs=defaultdict(lambda:{"n":0,"exact":0,"max_abs":0.,"diffs":[]})
     first=None;last=None;prior_end=None;prior_values={};prior_q={}
     n=0;qc0_missing=Counter()
@@ -130,6 +130,8 @@ def main():
                     if vv[v] is None:
                         mm["missing"]+=1
                         if qq[v]=="0":qc0_missing[v]+=1
+                    else:
+                        mm["finite_by_q"][qq[v]]+=1
                     for flag,mag in threshold(v,vv[v],vv["TA"]):
                         label=(v,flag,qq[v])
                         alarm_counts[label]+=1
@@ -173,10 +175,11 @@ def main():
             for v in MET:
                 m=months[(year,month,v)]
                 monthrows.append({"year":year,"month":month,"var":v,
-                  "records":m["n"],"QC0_finite":m["q"]["0"]-(
-                            qc0_missing[v] if False else 0),
-                  "QC1_finite":m["q"]["1"],"QC2_finite":m["q"]["2"],
-                  "QC_other_finite":m["q"]["other"],"F_missing":m["missing"],
+                  "records":m["n"],"QC0_finite":m["finite_by_q"]["0"],
+                  "QC1_finite":m["finite_by_q"]["1"],
+                  "QC2_finite":m["finite_by_q"]["2"],
+                  "QC_other_finite":m["finite_by_q"]["other"],
+                  "F_missing":m["missing"],
                   "QC2_total":m["q"]["2"]})
     # Count flag origin rather than interpreting all flags as observation validity.
     alarmrows=[]
