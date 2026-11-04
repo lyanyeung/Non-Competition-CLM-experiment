@@ -1,10 +1,11 @@
 # OzFlux AU-ASM bedrock (zbedrock) v3 on the verified SITE-SOIL v2 Surface (2026-11-03)
 
-## Operator decision (2026-11-03)
+## Operator decision (2026-11-04, revising 2026-11-03)
 
-- **`use_bedrock = .true.` for the OzFlux / JapanFlux sites** (option B of the upstream SurfaceFields topic), starting with AU-ASM.
-- **Sensitivity pair for the fissured-lava and permeable-pumice sites JP-Fjy, JP-Tmd and JP-Tom:** run each with `use_bedrock` on and off.
-- **Other networks unchanged.** The 78 finished ICOS / AmeriFlux NORMAL400 spin-ups keep the FATES default (`.false.`), so OZ / JP differ from them here by design.
+- **`use_bedrock = .true.` at AU-ASM only** (option C of the upstream SurfaceFields topic). The 2026-11-03 decision (option B) had it on for all 20 OzFlux / JapanFlux sites; the operator revised that on 2026-11-04.
+- **The other 19 OzFlux / JapanFlux sites keep the FATES default (`.false.`)**, as the 78 finished ICOS / AmeriFlux NORMAL400 spin-ups do.
+- **JP-Fjy, JP-Tmd, JP-Tom and JP-Tef:** baseline off. An on run is an optional sensitivity case with its own spin-up. These sites are not part of this AU-ASM pipeline.
+- The per-site table is `data/use_bedrock_decision_20261104.csv` (blob `ed9e316ef895735b1b6d858289fbae2c1414eb9f`), at commit `5c1797ca65e776c8f6002164944dc0752ad720b7` of the upstream branch.
 
 ## Upstream authority
 

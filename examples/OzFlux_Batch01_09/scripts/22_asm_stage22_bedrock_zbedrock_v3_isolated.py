@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """OzFlux AU-ASM Stage22: source-pinned zbedrock (siliceous hardpan) on the verified Stage13 SITE-SOIL v2 Surface.
 
-Operator decision 2026-11-03: use_bedrock = .true. for the OzFlux / JapanFlux sites, AU-ASM first. Upstream
-science choice is OzFlux_JapanFlux_SurfaceFields, branch oz-jp-surface-carbon-20261103, commit
+Operator decision 2026-11-04 (revising 2026-11-03): among the 20 OzFlux / JapanFlux sites, use_bedrock = .true.
+only at AU-ASM; the other 19 keep the FATES default (.false.). Upstream science choice is OzFlux_JapanFlux_SurfaceFields, branch oz-jp-surface-carbon-20261103, commit
 b10377c624e7fbd4712be29ce04d99c4858cc676: AU-ASM zbedrock = 1.0 m, the siliceous hardpan at ~1 m with roots above
 it and a perched reservoir. With CTSM d5ea9d01 and 20SL_8.5m that is bedrock layer 9, so the column bottom is
 1.20 m. ORGANIC stays f09 for AU-ASM.
@@ -210,6 +210,7 @@ def main():
       "zbedrock_old_m":old["zbedrock"],"zbedrock_new_m":ZBEDROCK,
       "clm_nbedrock_20SL_8.5m":NBEDROCK,"clm_column_bottom_m":COLUMN_BOTTOM_M,
       "use_bedrock_required":True,"use_bedrock_namelist":"use_bedrock = .true.",
+      "use_bedrock_scope":"AU-ASM only of the 20 OzFlux / JapanFlux sites (operator decision 2026-11-04)",
       "lower_boundary_condition_required":2,
       "ORGANIC_changed":False,"texture_changed_vs_v2":False,"PFT_landunit_changed":False,
       "candidate_path":str(candidate),"candidate_sha256":sha256(candidate),"proof":proof,
