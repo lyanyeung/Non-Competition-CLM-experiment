@@ -195,7 +195,21 @@ def selftest():
     update_bin(b,dt.datetime(2011,1,1),"TA",10, "QC0",11)
     need(summary_year(2011,"TA",b)["ERA_minus_F_at_QC0_RMSE"]==1.0,
          "per QC class stats")
-    print("OZFLUX AU-GIN STAGE02 SELFTEST PASS | exact source/year/month/QC0/ERA and 2011 origin; READ ONLY")
+    # Reproduce the actual 0xB5 failure against a synthetic ZIP, in memory.
+    demo_name="TERN_AU-Gin_FLUXNET_BIF_2011-2025_v1.3_r1.csv"
+    demo=(b"SITE_ID,GROUP_ID,VARIABLE_GROUP,VARIABLE,DATAVALUE\n"
+          b"AU-Gin,1,SITE,HEIGHT,11.6 \xb5m\n")
+    sample=io.BytesIO()
+    with zipfile.ZipFile(sample,"w",compression=zipfile.ZIP_DEFLATED) as demo_zip:
+        demo_zip.writestr(demo_name,demo)
+    sample.seek(0)
+    with zipfile.ZipFile(sample,"r") as demo_zip:
+        check=bif_samples(demo_zip)[demo_name]
+    need(check["encoding_used"]=="cp1252" and
+         check["selected_provenance_fields"][0]["value"]=="11.6 µm" and
+         check["original_BIF_member_SHA256"]==hashlib.sha256(demo).hexdigest(),
+         "0xB5 BIF metadata fallback and raw checksum self-test")
+    print("OZFLUX AU-GIN STAGE02V2 SELFTEST PASS | strict BIF 0xB5 CP1252 source hash + 15y QC; READ ONLY")
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--self-test",action="store_true")
@@ -293,7 +307,7 @@ def main():
         for j,x in enumerate(sorted_sp,1):
             largest.append({**x,"rank_within_class":j,
                             "source_QC_approved":False})
-    results={"site":"AU-Gin","stage":"Stage02 original TERN FLUXNET HH source/QC",
+    results={"site":"AU-Gin","stage":"Stage02V2 source-exact TERN FLUXNET HH QC with BIF encoding ledger",
       "original_ZIP_SHA256":EXPECTED,"member":MEMBER,"original_file_size_bytes":SOURCE.stat().st_size,
       "first_timestamp_start":first_start.isoformat(sep=" "),
       "last_timestamp_end":last_end.isoformat(sep=" "),
@@ -316,6 +330,7 @@ def main():
       "source_physics_VPD_exceeds_saturation_at_reported_Ta_1p05":vpd_ta_supersaturation,
       "all_annual_qc_summary":summary,
       "BIF_BIFVARINFO_original_metadata_excerpts":bif,
+      "BIF_non_UTF8_metadata_encoding_recorded_without_replacing_bytes":True,
       "source_2011_before_station_June_established_provenanced":False,
       "15_calendar_years_label_verified":True,
       "15_full_years_original_tower_met_verified":False,
@@ -348,8 +363,10 @@ def main():
             if sp:
                 print("LONGEST",v,cat,sp[0]["first_native"],sp[0]["last_native"],
                       "HH",sp[0]["n_HH"])
-    print("BIF_METADATA_SOURCE_EXCERPT_COUNTS",
-          json.dumps({k:{"rows":x["rows"],"selected":len(x["selected_provenance_fields"])}
+    print("BIF_METADATA_ENCODING_AND_SHA256",
+          json.dumps({k:{"rows":x["rows"],"selected":len(x["selected_provenance_fields"]),
+                        "encoding":x["encoding_used"],"original_SHA256":x["original_BIF_member_SHA256"],
+                        "non_ascii_bytes":x["non_ascii_byte_count"],"warning":x["decoding_warning"]}
                       for k,x in bif.items()}))
     print("STAGE02 READONLY QC SOURCE TRIAGE PASS; SCIENCE HOLD; NO DATM/AD400/SLURM")
     print("REPORT_DIR",o)
