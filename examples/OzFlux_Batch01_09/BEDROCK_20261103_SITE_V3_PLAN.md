@@ -65,6 +65,21 @@ Script: `scripts/22_asm_stage22_bedrock_zbedrock_v3_isolated.py`. It follows the
 - `AD400_authorised = false`;
 - `forcing_science_hold = true`.
 
+## Actual Stage22-bedrock operator result (IRIDIS6, 2026-11-04 03:09 UTC)
+
+Script blob `196feafe53204d2254d8bd8a630ac19dcd040679` (commit `3b4f6a89523763745c78ea34124a53b15283d8d1`) and the upstream CSV blob `abb142ab` were verified. `self-test`, `plan`, `build` and the independent `verify` all passed.
+
+| Item | Value |
+| --- | --- |
+| v2 source SHA256 | `2c3de9a54b11189ab4d6413eb29fe91fe36b6ec0f87b9a3ae999d6a7a3a7e8a1`, still equal after the build |
+| `zbedrock` | 31.042877564793134 m → **1.0 m** (CLM layer 9, column bottom 1.20 m) |
+| Other variables | 88 byte-identical; texture, PFT, landunits and `ORGANIC` unchanged |
+| **v3 candidate** | `/home/ly3n24/ozflux_nc_stage22_bedrock_20261104T030937Z/surfdata_AU-ASM_NC_FIXNC_PFT_v1p1_SITE_SOIL_v2_BEDROCK_v3_20261103_INTERIM.nc` |
+| **v3 SHA256** | **`a354a939e6ad3eb0b743fd600739253d8a9688dda2019c02f852926c9447944b`** |
+| Receipt | `/home/ly3n24/ozflux_nc_stage22_bedrock_20261104T030937Z/stage22_AU_ASM_v3_BEDROCK_candidate_NOT_MODEL_APPROVED.json` |
+
+**Naming note.** The forcing-QC branch `feat/ozflux-asm-stage09-native-met-forensic-20261103` also has a Stage22: `22_asm_SH235_PyFluxPro_exact_formula_QC_provenance_READONLY.py`, the 2014 specific-humidity audit. The two are unrelated. This document calls the surface step **Stage22-bedrock**. Its receipt and output directory names (`stage22_..._BEDROCK_...`, `ozflux_nc_stage22_bedrock_*`) already tell them apart.
+
 ## Requirements for any later controller binding v3
 
 These apply to AD400, NORMAL400 and the observation run alike.
