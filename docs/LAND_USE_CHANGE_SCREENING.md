@@ -51,8 +51,12 @@ Nothing is excluded or deleted by this screen. It decides which years and which 
 | US-UiD | AmeriFlux B05 | **RESTORED GRASSLAND** | Restored native prairie at the University of Illinois energy-farm cluster; prior land use most likely cropland (not confirmed in the sources found) | [AmeriFlux US-UiD](https://ameriflux.lbl.gov/sites/siteinfo/US-UiD) |
 
 To check, not yet confirmed: **US-Vcp** (the 2013 Thompson Ridge fire burned the same preserve; whether
-the ponderosa site burned was not found). Open years: US-Ho3 harvest, US-Rpf fire, US-UiD restoration
-(the Energy Farm is described as prime farmland, so former cropland is likely).
+the ponderosa site burned was not found). The other open years were settled on 4 November
+(the FLUXNET-product BIF files carry no disturbance records, so from the literature): **US-Ho3** shelterwood
+harvest in 2002, EC from 2003 ([Scott et al.](https://core.ac.uk/download/71262083.pdf)); **US-Rpf** fire in late
+June 2004, tower from August 2008 ([NIPR ADS record](https://data.arcticobserving.org/metsis/metadata/A20140624-028));
+**US-UiD** prairie planted on Energy Farm cropland in 2008, the first EC year, mown every winter from 2009
+([AmeriFlux US-UiD](https://ameriflux.lbl.gov/sites/siteinfo/US-UiD)). Register: `data/site_special_events.csv`.
 
 All other sites were not flagged: their site descriptions used for the PFT set-up describe old or
 semi-natural stands, permanent grassland, or shrubland without a recorded land-use change. They were not
