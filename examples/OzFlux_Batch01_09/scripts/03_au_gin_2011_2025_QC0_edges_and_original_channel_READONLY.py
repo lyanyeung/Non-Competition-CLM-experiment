@@ -185,7 +185,7 @@ def main():
     alarmrows=[]
     for (v,label,q),events in sorted(alarms.items()):
         for when_,obs,flag,era,mag in events:
-            alarmrows.append({"time":str(when_),"variable":v,
+            alarmrows.append({"native_time":str(when_),"variable":v,
                               "value_F":obs,"QC_F":flag,
                               "ERA_value":era,"alarm":label,"score":mag})
     pairsout={v:{q:x for (name,q),x in raw_pairs.items() if name==v}
