@@ -257,7 +257,13 @@ It was printed by `22_phenology_patch_rollout.py plan` on 2026-11-02 22:11 UTC (
   - Its PFT lines were wrong: it read `fates_hlm_pft_map` transposed and one row off. HLM 13 C3 grass came out as
     `c4_grass`, and ES-Agu's HLM 9 evergreen shrub as `broadleaf_colddecid_arctic_shrub`.
   - Fixed at 167adbc, with the same reading as script 22.
-  - **To do:** rerun the check. If ES-Agu shows a cold-deciduous FATES PFT, its AD400 and Normal400 ran without the
-    phenology patch and must be redone. Script 22's 2026-11-02 classification of the Batch04 sites says 0 %.
+  - **Rerun at 167adbc (2026-11-05 04:15 UTC):** neither fix applies to these sites, so no rerun is needed.
+    - DE-Gri, DE-RuR, IT-Tor and CH-Aws: HLM 13 100 % -> FATES 13 `cool_c3_grass` (`leaf_habit` 3).
+    - ES-Agu: bare 49 %, HLM 9 22 % -> FATES 7 `broadleaf_evergreen_extratrop_shrub` (`leaf_habit` 1), and HLM 13 29 %
+      -> `cool_c3_grass`.
+    - No PFT 2 and no cold-deciduous PFT at any of them.
+    - GL-ZaH `_PHEN` (private map): HLM 9 -> `broadleaf_evergreen_arctic_shrub`, and HLM 11 / 12 ->
+      `broadleaf_colddecid_arctic_shrub` / `arctic_c3_grass` (`leaf_habit` 2). It is cold-deciduous and patched, as
+      expected.
 - **Still to start:** the Normal400 of CZ-BK1, US-Me6 and US-MtB (`20b normal-run`), and of CA-TP4 and IT-Lav
   (`22 normal-run`). `auto_normal_last5.sh` (167adbc) starts each one once its resumed AD reaches 400 years.
