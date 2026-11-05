@@ -5,6 +5,8 @@
 #      <site>_GPP_NEE_monthly_overview.png (+ convergence / flux metric CSVs)
 #   2) 07_plot_full_sequence_GPP_NEE_with_EC.py: 800-year GPP / NEE / NPP / LAI with the EC reference, plus
 #      ALL_SITES_*_full_sequence_overview.png
+#   3) 24_last_cycle_vs_ec.py: last complete forcing cycle vs EC (monthly series, seasonal cycle, 1:1 scatter;
+#      "before fix" Normal drawn where still archived), ALL_SITES_last_cycle_* overviews, last_cycle_metrics.csv
 # Inputs are read only; output goes to a new folder on Home. AD case = RUN_REFCASE of the Normal case.
 # Finished = NLF_STATE.json phase SUBMITTED (scripts 20/20b/21/22/23), 80 restart sets (400 y), nothing queued.
 #
@@ -58,7 +60,8 @@ RAW=https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$
 TOOL=$(mktemp -d "$HOME/CLM_FATES_PLOTS/plot_tool.XXXXXXXX")
 curl -fsSL "$RAW/examples/Batch03_10/scripts/15_plot_AD400_NORMAL400_convergence_and_EC.py" -o "$TOOL/plot.py" || exit 1
 curl -fsSL "$RAW/examples/Cross_cohort_NORMAL400/scripts/07_plot_full_sequence_GPP_NEE_with_EC.py" -o "$TOOL/fullseq.py" || exit 1
-"$PY" -m py_compile "$TOOL/plot.py" "$TOOL/fullseq.py" || exit 1
+curl -fsSL "$RAW/examples/Cross_cohort_NORMAL400/scripts/24_last_cycle_vs_ec.py" -o "$TOOL/lastcycle.py" || exit 1
+"$PY" -m py_compile "$TOOL/plot.py" "$TOOL/fullseq.py" "$TOOL/lastcycle.py" || exit 1
 OUT="$HOME/CLM_FATES_PLOTS/NewNormal400_figures_$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$OUT"
 printf '%s\n' "${pairs15[@]}" > "$OUT/pairs.txt"
@@ -71,6 +74,9 @@ echo "######## 2) full sequence GPP / NEE with EC     $(date -u '+%H:%M UTC')"
 "$PY" -u -B "$TOOL/fullseq.py" --pairs "${pairs07[@]}" --output-root "$OUT/full_sequence" \
       --workers "$WORKERS" --plot-module "$TOOL/plot.py"
 s07=$?
-echo "######## finished $(date -u '+%H:%M UTC')  stage15 exit $s15, full-sequence exit $s07"
+echo "######## 3) last forcing cycle vs EC            $(date -u '+%H:%M UTC')"
+"$PY" -u -B "$TOOL/lastcycle.py" --pairs-file "$OUT/pairs.txt" --output-root "$OUT/last_cycle_EC" --plot-module "$TOOL/plot.py"
+s24=$?
+echo "######## finished $(date -u '+%H:%M UTC')  stage15 exit $s15, full-sequence exit $s07, last-cycle exit $s24"
 echo "PNGs:"; find "$OUT" -name '*.png' | sort | sed 's/^/  /'
-echo "summaries: $OUT/convergence_EC/AD400_NORMAL400_summary.csv  $OUT/full_sequence/full_sequence_summary.csv"
+echo "summaries: $OUT/convergence_EC/AD400_NORMAL400_summary.csv  $OUT/full_sequence/full_sequence_summary.csv  $OUT/last_cycle_EC/last_cycle_metrics.csv"

@@ -3,7 +3,7 @@
 
 Uploads, to main: figures/NewNormal400/<folder stamp>/
   - every PNG (Stage15 convergence_EC/<site>/..., full_sequence/<site>/<case>/..., ALL_SITES overviews)
-  - result tables that hold metrics only: AD400_NORMAL400_summary.csv, full_sequence_summary.csv,
+  - result tables that hold metrics only: AD400_NORMAL400_summary.csv, full_sequence_summary.csv, last_cycle_metrics.csv,
     <site>_convergence_metrics.csv, <site>_flux_metrics.csv, <site>_metadata.json, pairs.txt
   - README.md (index: one row per site with links, overviews inline), SHA256SUMS
 Not uploaded: daily / monthly / annual time-series tables (they carry EC observation values), model output.
@@ -25,7 +25,7 @@ from pathlib import Path
 
 REPO = "git@github.com:lyanyeung/Non-Competition-CLM-experiment.git"
 WEB = "https://github.com/lyanyeung/Non-Competition-CLM-experiment"
-KEEP_NAMES = ("AD400_NORMAL400_summary.csv", "full_sequence_summary.csv", "pairs.txt")
+KEEP_NAMES = ("AD400_NORMAL400_summary.csv", "full_sequence_summary.csv", "last_cycle_metrics.csv", "pairs.txt")
 KEEP_SUFFIXES = (".png", "_convergence_metrics.csv", "_flux_metrics.csv", "_metadata.json")
 MAX_MB = 200
 
@@ -75,8 +75,9 @@ def readme(root: Path, dest_rel: str, files):
     lines = [
         f"# New Normal400 figures: {stamp}",
         "",
-        f"Made with `plot_done_normal400.sh`, which uses Stage15 (carbon-pool convergence and monthly GPP / NEE "
-        f"against EC) and script 07 (800-year full sequence with the EC reference). Published "
+        f"Made with `plot_done_normal400.sh`: script 24 (last complete forcing cycle against the EC tower), Stage15 "
+        f"(carbon-pool convergence and monthly GPP / NEE against EC) and script 07 (800-year full sequence with the EC "
+        f"reference). Published "
         f"{datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC. Inputs: AD400 = `RUN_REFCASE` of each Normal400 case "
         "(needleleaf variant F `_NLF` / `_NLFP`, phenology patch `_PHEN`, Batch04 and HINONE cases).",
         "",
@@ -86,23 +87,41 @@ def readme(root: Path, dest_rel: str, files):
         "## Overviews",
         "",
     ]
-    for ov in ("full_sequence/ALL_SITES_GPP_full_sequence_overview.png",
+    for ov in ("last_cycle_EC/ALL_SITES_last_cycle_mean_vs_EC.png",
+               "last_cycle_EC/ALL_SITES_last_cycle_GPP_seasonal_cycle.png",
+               "last_cycle_EC/ALL_SITES_last_cycle_NEE_seasonal_cycle.png",
+               "full_sequence/ALL_SITES_GPP_full_sequence_overview.png",
                "full_sequence/ALL_SITES_NEE_full_sequence_overview.png"):
         if ov in rel:
             lines += [f"![{Path(ov).stem}]({ov})", ""]
-    head = ["Site", "AD400 → Normal400", "Carbon pools 800 y", "Normal panels", "Monthly GPP/NEE vs EC",
-            "Full sequence"] + cols
+    lc = {}
+    lcp = root / "last_cycle_EC" / "last_cycle_metrics.csv"
+    if lcp.is_file():
+        with lcp.open(newline="", encoding="utf-8") as f:
+            for r in csv.DictReader(f):
+                if r.get("Case") == "new" and r.get("Status") == "OK":
+                    lc[(r["Site"], r["Flux"])] = r
+    lc_cols = [("GPP", "Mean_model", "GPP model"), ("GPP", "Mean_EC", "GPP EC"), ("GPP", "Ratio", "GPP model/EC"),
+               ("GPP", "R2", "GPP R²"), ("NEE", "Mean_model", "NEE model"), ("NEE", "Mean_EC", "NEE EC"),
+               ("NEE", "R2", "NEE R²")] if lc else []
+    head = ["Site", "AD400 → Normal400", "Last cycle vs EC", "Carbon pools 800 y", "Normal panels",
+            "Monthly GPP/NEE vs EC (Stage15)", "Full sequence"] + [c[2] for c in lc_cols] + cols
     lines += ["## Sites", "", "| " + " | ".join(head) + " |", "|" + "---|" * len(head)]
     for site, ad, normal in pairs:
         c = f"convergence_EC/{site}/{site}"
         row = [site, f"`{ad}` → `{normal}`",
+               link(f"last_cycle_EC/{site}/{site}_last_cycle_GPP_NEE_vs_EC.png", "png"),
                link(f"{c}_01_carbon_pools_AD400_NORMAL400.png", "png"),
                link(f"{c}_02_carbon_pools_NORMAL400_panels.png", "png"),
                link(f"{c}_GPP_NEE_monthly_overview.png", "png"),
                link(f"full_sequence/{site}/{normal}/{site}_03_GPP_NEE_full_sequence_AD400_NORMAL400.png", "png")]
+        row += [fmt(lc.get((site, fl), {}).get(k, "")) for fl, k, _ in lc_cols]
         row += [fmt(fs.get(site, {}).get(k, "")).replace("|", "/") for k in cols]
         lines.append("| " + " | ".join(row) + " |")
-    lines += ["", "Tables: [convergence / flux summary](convergence_EC/AD400_NORMAL400_summary.csv), "
+    lines += ["", "Model / EC columns: mean monthly flux over the paired months of the last complete forcing cycle "
+              "(g C m-2 d-1, new Normal400). "
+              "Tables: [last-cycle metrics](last_cycle_EC/last_cycle_metrics.csv), "
+              "[convergence / flux summary](convergence_EC/AD400_NORMAL400_summary.csv), "
               "[full-sequence summary](full_sequence/full_sequence_summary.csv). Checksums: `SHA256SUMS`.", ""]
     return "\n".join(lines)
 
@@ -119,7 +138,7 @@ def main(argv=None):
     ap.add_argument("--repo", default=REPO)
     a = ap.parse_args(argv)
     root = a.folder.expanduser().resolve()
-    if not (root / "convergence_EC").is_dir() and not (root / "full_sequence").is_dir():
+    if not any((root / d).is_dir() for d in ("convergence_EC", "full_sequence", "last_cycle_EC")):
         ap.error(f"{root}: no convergence_EC/ or full_sequence/ - not a plot_done_normal400.sh output")
     files = selected(root)
     pngs = [p for p in files if p.suffix == ".png"]
