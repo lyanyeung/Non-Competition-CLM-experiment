@@ -57,6 +57,13 @@ CENTER_FIELDS=("group_id","native_time","variable","flag_type","source_QC",
       "orig_PA","orig_WS","orig_P",
       "event_derived_RH_pct","NOAA_or_BoM_independently_verified",
       "repair_authorised")
+NEIGHBOR_FIELDS=("group_id","native_time","variable","flag_type","QC_current",
+   "F_previous_HH","QC_previous_HH","F_flagged_HH","F_next_HH",
+   "QC_next_HH","delta_current_minus_previous","delta_next_minus_current",
+   "three_point_center_minus_neighbor_mean","ERA_at_flagged_HH",
+   "F_minus_ERA_at_flagged_HH","TA_F_at_flagged_HH",
+   "VPD_F_at_flagged_HH","derived_RH_pct",
+   "station_source_UTC_vs_local_unknown","scientific_edit_approved")
 def need(v,msg):
     if not v:raise ValueError(str(msg))
 def sha(path):
@@ -226,6 +233,7 @@ def main():
             context[v+"_ERA"]=line[v+"_ERA"]
         for v in RAWS:context[v]=line.get(v)
         contexts.append(context)
+    neighborrows=[]
     for event in sorted(rows,key=lambda x:(x["time"],x["key"])):
         t=event["time"]
         line=selected[t]
@@ -243,6 +251,31 @@ def main():
             center["original_event_"+v+"_F_QC"]=line[v+"_F_QC"]
         for v in ("PA","P","WS"):center["orig_"+v]=line.get(v)
         center_rows.append(center)
+        var=event["var"]
+        p=selected.get(t-dt.timedelta(minutes=30))
+        nxt=selected.get(t+dt.timedelta(minutes=30))
+        need(p is not None and nxt is not None,
+             "Expected exact previous and next HH missing around event "+str(t))
+        pv=num(p[var+"_F"]);cv=num(line[var+"_F"]);nv=num(nxt[var+"_F"])
+        neigh={
+          "group_id":";".join(tagged[t]),
+          "native_time":as_time(t),"variable":var,
+          "flag_type":event["alarm"],
+          "QC_current":line[var+"_F_QC"],
+          "F_previous_HH":pv,
+          "QC_previous_HH":p[var+"_F_QC"],
+          "F_flagged_HH":cv,"F_next_HH":nv,
+          "QC_next_HH":nxt[var+"_F_QC"],
+          "delta_current_minus_previous":(cv-pv) if cv is not None and pv is not None else None,
+          "delta_next_minus_current":(nv-cv) if nv is not None and cv is not None else None,
+          "three_point_center_minus_neighbor_mean":(cv-(pv+nv)/2) if cv is not None and pv is not None and nv is not None else None,
+          "ERA_at_flagged_HH":event["era"],
+          "F_minus_ERA_at_flagged_HH":(cv-event["era"]) if cv is not None and event["era"] is not None else None,
+          "TA_F_at_flagged_HH":ta,"VPD_F_at_flagged_HH":vpd,
+          "derived_RH_pct":rh(ta,vpd),
+          "station_source_UTC_vs_local_unknown":True,
+          "scientific_edit_approved":False}
+        neighborrows.append(neigh)
     # Highest external priority is simultaneous multi-variable or pressure/wind,
     # but no alarm is by itself approval to alter source.
     priority=sorted(metadata,key=lambda x:(
@@ -260,6 +293,7 @@ def main():
       "unique_flagged_HH":len(tagged),
       "number_of_grouped_events":len(grps),
       "source_context_halfhours_in_windows":len(contexts),
+      "exact_F_prev_current_next_QC0_triangle_rows":len(neighborrows),
       "external_priority_event_groups":priority,
       "independent_NOAA_or_BoM_not_used_or_proven":True,
       "station_heights_pressure_datum_UTC_local_not_verified":True,
@@ -274,6 +308,10 @@ def main():
     o.mkdir(mode=0o700,parents=False,exist_ok=False)
     write(o/"stage05_AU_Gin_44_flag_centres_original_F_ERA_raw.tsv",
           CENTER_FIELDS,center_rows)
+    need(len(neighborrows)==44 and len(center_rows)==44,
+         "44 exact source flags must yield 44 centre+neighbour audit rows")
+    write(o/"stage05_AU_Gin_44_flag_previous_next_HH_differentials.tsv",
+          NEIGHBOR_FIELDS,neighborrows)
     write(o/"stage05_AU_Gin_28group_priorities.tsv",
           EVENT_FIELDS,priority)
     write(o/"stage05_AU_Gin_6h_source_QC_ERA_context.tsv",
@@ -289,6 +327,15 @@ def main():
               event["first_flag_native"],"to",event["last_flag_native"],
               "FLAGS",event["n_flag_rows"],"TIMES",event["n_unique_flag_times"],
               "VARS",event["variables"],"TYPES",event["categories"])
+    for row in sorted(neighborrows,key=lambda x:(
+            0 if x["variable"] in ("PA","WS") else 1,
+            x["native_time"]))[:22]:
+        print("FLAG_HH_NEIGHBORS",row["native_time"],row["variable"],
+              "PRIOR",row["F_previous_HH"],"QC",row["QC_previous_HH"],
+              "CENTER",row["F_flagged_HH"],"QC",row["QC_current"],
+              "NEXT",row["F_next_HH"],"QC",row["QC_next_HH"],
+              "ERA",row["ERA_at_flagged_HH"],
+              "TRIANGLE",row["three_point_center_minus_neighbor_mean"])
     for row in center_rows[:15]:
         print("FLAG_SOURCE",row["native_time"],row["variable"],
               row["flag_type"],"F",row["F_value"],"QC",row["source_QC"],
