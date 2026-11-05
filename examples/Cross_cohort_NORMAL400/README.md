@@ -17,6 +17,7 @@ one-action-at-a-time guard sees its own file name in the wrapper's command line 
 | `resume_failed_segment.sh` | Resumes a 5-year chain whose run job died (NODE_FAIL or TIMEOUT, not a model error) from its last archived restart. |
 | `triage_failed_chains.sh` | Read only. For every `st_archive` job held as `DependencyNeverSatisfied`, shows the case, the dead run job, its Slurm state, its node and the error lines in its logs. |
 | `spinup_overview.sh` | Read only. Shows AD400 and Normal400 of every site (scripts 20, 21, 22 and 23), the queue, failures in the last 14 h, the slowest segments, and the HOLD lines of the last normal-run log. |
+| `auto_normal_last5.sh` | Runs on the login node with `setsid nohup`. Every 20 min it runs `20b normal-run` for CZ-BK1, US-Me6 and US-MtB, and `22 normal-run` for CA-TP4 and IT-Lav, until each site's Normal400 is submitted. A site whose AD is not yet at 400 years is a HOLD and is tried again at the next check. The script stops after 30 h, or as soon as a prepare has failed (`PREPARE_ATTEMPTED`). |
 | `b04_fix_check.py` | Read only. For the Batch04 cases, shows the executable, whether the phenology patch is in SourceMods, the parameter file, the surface PFTs, the FATES PFTs and their `leaf_habit`. Use it to check whether either fix would apply to them. |
 
 Download a script by commit SHA:

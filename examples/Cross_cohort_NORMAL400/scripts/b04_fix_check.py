@@ -22,10 +22,11 @@ def xq(case, var):
 
 
 def find(obj, key):
+    """The entry of `key` in a FATES JSON parameter file: {"data": ..., "dims": [...]} (or the bare value)."""
     if isinstance(obj, dict):
         for k, v in obj.items():
             if k == key:
-                return v.get("data", v.get("value", v)) if isinstance(v, dict) else v
+                return v if isinstance(v, dict) else {"data": v}
             r = find(v, key)
             if r is not None:
                 return r
@@ -38,8 +39,8 @@ def find(obj, key):
 
 
 def params(pf):
-    keys = ("fates_pftname", "fates_phen_leaf_habit", "fates_phen_season_decid", "fates_alloc_storage_cushion",
-            "fates_leaf_slatop", "fates_hlm_pft_map")
+    """{key: {"data": ..., "dims": [...]}} for the keys below, from a JSON or NetCDF parameter file."""
+    keys = ("fates_pftname", "fates_phen_leaf_habit", "fates_phen_season_decid", "fates_hlm_pft_map")
     out = {}
     if pf.endswith(".json"):
         d = json.loads(Path(pf).read_text())
@@ -50,9 +51,21 @@ def params(pf):
             for k in keys:
                 if k in ds.variables:
                     v = ds.variables[k]
-                    out[k] = ["".join(c.decode() if isinstance(c, bytes) else str(c) for c in row).strip()
-                              for row in np.ma.filled(v[:], b" ")] if k == "fates_pftname" else np.asarray(v[:]).tolist()
+                    data = ["".join(c.decode() if isinstance(c, bytes) else str(c) for c in row).strip()
+                            for row in np.ma.filled(v[:], b" ")] if k == "fates_pftname" else np.asarray(v[:]).tolist()
+                    out[k] = {"data": data, "dims": list(v.dimensions)}
     return out
+
+
+def pft_axis(ent, npft):
+    """Same rule as script 13 / 22: the 'fates_pft' dimension, else the axis whose length is the PFT count."""
+    dims = ent.get("dims") or []
+    if "fates_pft" in dims:
+        return dims.index("fates_pft")
+    shape = np.shape(ent["data"])
+    if npft in shape:
+        return list(shape).index(npft)
+    raise ValueError("no PFT dimension in fates_hlm_pft_map")
 
 
 for name in (sys.argv[1:] or DEFAULT):
@@ -78,19 +91,25 @@ for name in (sys.argv[1:] or DEFAULT):
         P = params(pf)
     except Exception as e:
         print(f"  cannot read parameter file: {e}"); continue
-    names, habit = P.get("fates_pftname") or [], P.get("fates_phen_leaf_habit") or P.get("fates_phen_season_decid")
-    hmap = P.get("fates_hlm_pft_map")
-    used = set()
-    if hmap is not None:
-        m = np.asarray(hmap, dtype=float)          # [hlm_pft, fates_pft] or transposed
-        if m.shape[0] != len(pct):
-            m = m.T
-        for i in hlm:
-            if i > 0 and i < m.shape[0]:
-                used |= {j + 1 for j in np.nonzero(m[i] > 0)[0]}
-    print(f"  FATES PFTs used (1-based, via fates_hlm_pft_map): {sorted(used) or 'map not readable'}")
-    for j in sorted(used) or range(1, len(names) + 1):
-        h = habit[j - 1] if habit is not None and j - 1 < len(habit) else "?"
-        nm = names[j - 1] if j - 1 < len(names) else "?"
-        print(f"    FATES {j:2d} {nm:45s} leaf_habit={h}{'  <- cold-deciduous (patch applies)' if h == 2 else ''}"
-              f"{'  <- PFT 2 (needleleaf F applies)' if j == 2 else ''}")
+    names = [str(x).strip() for x in (P.get("fates_pftname") or {}).get("data", [])]
+    hab = P.get("fates_phen_leaf_habit") or P.get("fates_phen_season_decid")
+    flag = 2 if P.get("fates_phen_leaf_habit") else 1
+    habit = np.asarray(hab["data"], float).ravel() if hab else None
+    ent = P.get("fates_hlm_pft_map")
+    if not ent or not names:
+        print("  parameter file has no fates_hlm_pft_map / fates_pftname"); continue
+    # rows = HLM natural PFTs 1..n (bare ground excluded), columns = FATES PFTs; same as script 22 decid_share
+    m = np.moveaxis(np.asarray(ent["data"], float), pft_axis(ent, len(names)), -1)
+    print(f"  fates_hlm_pft_map dims {ent.get('dims')} -> rows HLM 1..{m.shape[0]}, columns FATES 1..{m.shape[1]}")
+    for i, p in hlm.items():
+        if i == 0:
+            print(f"    HLM  0 {p:5.1f} %  bare ground")
+            continue
+        if i - 1 >= m.shape[0]:
+            print(f"    HLM {i:2d} {p:5.1f} %  outside the map"); continue
+        for j in np.nonzero(m[i - 1] > 0)[0]:
+            h = habit[j] if habit is not None else float("nan")
+            flags = ("  <- cold-deciduous (phenology patch applies)" if h == flag else "") + \
+                    ("  <- PFT 2 (needleleaf F applies)" if j + 1 == 2 else "")
+            print(f"    HLM {i:2d} {p:5.1f} %  -> FATES {j + 1:2d} {names[j]:40s} weight {m[i - 1, j]:.2f} "
+                  f"leaf_habit={h:g}{flags}")
