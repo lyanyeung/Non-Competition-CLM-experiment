@@ -33,7 +33,7 @@ sacct -u "$USER" -S now-14hours -X -n -P -o JobID,JobName%90,State,Start,Elapsed
   | awk -F'|' '$2~/^run\./ && $3!~/COMPLETED|RUNNING|PENDING/'
 echo "======== slowest COMPLETED segments in the last 14 h (normal is 7-9 min)"
 sacct -u "$USER" -S now-14hours -X -n -P -o JobName%90,State,Elapsed,NodeList | awk -F'|' '$1~/^run\./&&$2=="COMPLETED"' | sort -t'|' -k3,3r | head -5
-L=$(ls -t $HOME/CLM_FATES_PLOTS/normal_run_*.log 2>/dev/null | head -1)
+L=$(ls -t $HOME/CLM_FATES_PLOTS/normal_run*.log 2>/dev/null | head -1)
 if [ -n "$L" ]; then
   echo "======== last normal-run log: $L"
   echo "submitted: $(grep -ac '^  SUBMITTED' "$L")"
