@@ -1,5 +1,27 @@
 # Cross-cohort: verified AD400 → direct NORMAL400 (27 October 2026)
 
+## Normal400 rollout after the needleleaf / phenology reruns (4–5 November 2026)
+
+The decisions and deletions are recorded in the main branch, `maintenance/README.md`. Run everything on the login
+node, from `$HOME/CLM_FATES_PLOTS/diag_rerun_tool`, with `PY=$HOME/.conda/envs/clm_fates_env/bin/python`.
+
+**Start scripts 22 and 23 directly with `setsid nohup $PY -B ...`.** Do not start them inside `bash -c "..."`. Their
+one-action-at-a-time guard sees its own file name in the wrapper's command line and refuses to run.
+
+| Script | Use |
+|---|---|
+| `20_...normal-run` | Normal400 of the KEEP_NLF sites (`<Normal>_NLF`, cloned from the original Normal). |
+| `20b_normal_spinup_state_tolerance.py` | `normal-run`: the same as script 20, but accepts one difference only: the original Normal `lnd_in` has no `spinup_state` line and the new one has `spinup_state = 0` (CTSM default). This held CA-Ca3, CA-LP1, US-GLE, US-Mpj, US-NR1, US-Vcm, US-Vcp and US-Wjs on 4 Nov. `clean-failed [--confirm REMOVE_FAILED_NORMAL_PREPARE]` removes a `PREPARE_ATTEMPTED` half-made Normal case and writes its file list to the ledger first. |
+| `22_...normal-run` | Normal400 of the NLFP / PHEN sites and GL-ZaH. |
+| `23_normal400_extra_ad_cases.py` | `check` / `prepare` / `run` / `status` / `clean-failed`: Normal400 of the ICOS Batch04 AD cases (DE-Gri, DE-RuR, IT-Tor, ES-Agu, CH-Aws `_HINONE`). Scripts 20, 21 and 22 cannot take these cases because they have no `NLF_STATE.json`. It uses the script-21 Normal method. AD completion is checked without the state file. `hist_fincl` lists are compared without blanks after commas. |
+| `resume_failed_segment.sh` | Resumes a 5-year chain whose run job died (NODE_FAIL or TIMEOUT, not a model error) from its last archived restart. |
+| `triage_failed_chains.sh` | Read only. For every `st_archive` job held as `DependencyNeverSatisfied`, shows the case, the dead run job, its Slurm state, its node and the error lines in its logs. |
+| `spinup_overview.sh` | Read only. Shows AD400 and Normal400 of every site (scripts 20, 21, 22 and 23), the queue, failures in the last 14 h, the slowest segments, and the HOLD lines of the last normal-run log. |
+| `b04_fix_check.py` | Read only. For the Batch04 cases, shows the executable, whether the phenology patch is in SourceMods, the parameter file, the surface PFTs, the FATES PFTs and their `leaf_habit`. Use it to check whether either fix would apply to them. |
+
+Download a script by commit SHA:
+`curl -fsSL -O https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/<sha>/examples/Cross_cohort_NORMAL400/scripts/<file>`
+
 ## Login-node plotting and publishing
 
 [Login-node retry and publication runbook](LOGIN_PLOTS_AND_PUBLISH.md) reuses available results from jobs 4764252 and 4766277, completes the current analysis interactively, and uploads available PNGs from the login node without submitting Slurm jobs.
