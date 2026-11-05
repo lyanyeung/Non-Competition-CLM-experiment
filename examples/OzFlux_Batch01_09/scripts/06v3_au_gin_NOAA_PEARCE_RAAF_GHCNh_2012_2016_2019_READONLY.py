@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """AU-Gin Stage06v3: operator-verified Pearce RAAF GHCNh independent source (not Gingin Aero).
 
+Actual Stage06v2 reported ZERO GHCNh matches for Gingin Aero WMO 95612.
+The nearest candidate in the actual 2026-11-05 NOAA station-list is Pearce
+RAAF (ASN00009053, WMO 94612), 43.35 km from AU-Gin, NOT Gingin Aero.
+
 Two phases:
- discover: original official NOAA GHCNh station-list CSV => exact WMO 95612
-    AND plausible GINGIN AERO location/name. Only a uniquely matched actual
-    GHCN station ID is accepted. Do not invent source IDs.
- audit: read exact official GHCNh year-PSV files for 2012, 2016, 2019,
+ discover: SHA-verify the exact original official NOAA GHCNh station list,
+    recheck that Gingin Aero has zero exact matches and the separate Pearce
+    RAAF ID/name/WMO/coordinates match the actual operator report.
+ audit: read official Pearce RAAF GHCNh station/year PSV files (if present)
+    for 2012, 2016, 2019,
     source SHA each file, validate header/time and print original hourly
     observations at ±8h/local-versus-UTC alternative alignments around the
     source-flagged PA/TA/WS events. Preserve original NOAA QC/source codes.
@@ -204,6 +209,7 @@ def selftest():
     need(norm("wind_speed_Quality_Code")=="WINDSPEEDQUALITYCODE","NOAA metadata columns")
     need(len(YEARS)==3 and len(CASES)==5,"source cases")
     need(43<distance(TOWER,(-31.6669,116.0189))<44,"Pearce distance")
+    need(distance(AERO,TOWER)<18,"Gingin Aero geometry is distinct")
     print("OZFLUX AU-GIN STAGE06V3 SELFTEST PASS | GHCNh source station identity, UTC dual-window and no automatic repairs")
 def main():
     p=argparse.ArgumentParser(description=__doc__)
