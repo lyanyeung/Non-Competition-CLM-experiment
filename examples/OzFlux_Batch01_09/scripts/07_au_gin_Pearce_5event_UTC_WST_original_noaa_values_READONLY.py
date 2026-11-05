@@ -182,6 +182,8 @@ def test():
     need(norm("station_level_pressure_Quality_Code")=="stationlevelpressurequalitycode",
          "NOAA original column")
     need(len(EVENTS)==5 and len(FILESHA)==3,"5 cases 3 years")
+    need(2*sum(2 if v in EXTRA else 1 for _,_,v in EVENTS)==16,
+         "5 event / two alignment / ancillary row-count invariant")
     print("AU-GIN STAGE07 SELF-TEST PASS | GHCNh raw QC/UTC, 5 events x 2 hypotheses; READ ONLY")
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
@@ -227,7 +229,7 @@ def main():
                     out.append(match_event(case,t,v,original[case],series,hyp,offset,EXTRA["PA"],True))
                 if v=="WS":
                     out.append(match_event(case,t,v,original[case],series,hyp,offset,EXTRA["WS"],True))
-    need(len(out)==14,"Expected five events x 2 hypotheses, with 2 PA + 1 WS ancillary types")
+    need(len(out)==16,"Expected 5 main events x 2 alignments + 2 PA MSL + 1 WS gust times 2 = 16 rows")
     report={"site":"AU-Gin","stage":"Stage07 NOAA Pearce five original event QC/clock evidence",
         "source_GHCNh_station":"ASN00009053 PEARCE RAAF", "not_Gingin_Aero":True,
         "source_GHCNh_verified_distance_km":43.35,
