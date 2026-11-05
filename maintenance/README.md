@@ -267,3 +267,19 @@ It was printed by `22_phenology_patch_rollout.py plan` on 2026-11-02 22:11 UTC (
       expected.
 - **Still to start:** the Normal400 of CZ-BK1, US-Me6 and US-MtB (`20b normal-run`), and of CA-TP4 and IT-Lav
   (`22 normal-run`). `auto_normal_last5.sh` (167adbc) starts each one once its resumed AD reaches 400 years.
+
+### 2026-11-05 15:32 UTC: three Normal400 chains stopped by NODE_FAIL on red6087
+
+- **What happened:** node red6087 failed. The three run jobs on it were killed at the same moment (SIGNAL Killed,
+  Slurm state `NODE_FAIL`), with no model error in `cesm.log`.
+- **How they were resumed:** `resume_failed_segment.sh --submit` on 2026-11-05 at about 18:40 UTC, from the last
+  archived restart. It also cancelled the orphaned `st_archive` jobs. The ledger is `resubmits.log`.
+
+  | Case | Failed run | Orphan cancelled | From restart | New run / archive |
+  |---|---|---|---|---|
+  | `CH-Dav_B01_FIXNC_NORMAL400_NLF` | 4843042 | 4843043 | 2777-01-01 | 4845148 / 4845149 |
+  | `US-NR1_AMF_B03_FIXNC_NORMAL400_DIRECT_NLF` | 4843040 | 4843041 | 2529-01-01 | 4845150 / 4845151 |
+  | `IT-Tor_ICOS_B04_FIXNC_NORMAL400_DIRECT` | 4843246 | 4843247 | 2608-01-01 | 4845152 / 4845153 |
+
+- **Remaining Normal400 starts:** by 18:38 UTC, `auto_normal_last5.sh` had submitted the Normal400 of CZ-BK1, US-Me6,
+  US-MtB and CA-TP4. Only IT-Lav waits for its AD.
