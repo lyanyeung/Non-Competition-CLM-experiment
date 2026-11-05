@@ -8,7 +8,8 @@ Files in this folder:
   needleleaf parameters. Neither is in the shared source, so a default case runs the old code.
 - [`20261102_purge_and_replace.sh`](20261102_purge_and_replace.sh) records the stop, delete and replace commands run on
   2026-11-02. It downloads every script at the exact commit used. The deletion code itself is `purge_old()` /
-  `old_nc_files()` in script 20 and `purge_old()` / `cancel_nlf()` in script 22 (branch `full-sequence-gpp-nee-ec`).
+  `old_nc_files()` in script 20 and `purge_old()` / `cancel_nlf()` in script 22 (branch `full-sequence-gpp-nee-ec`). Failed
+  Normal prepares are removed by `clean_failed()` in scripts 20b and 23 (branch `normal400-rollout-20261105`).
 - [`summarize_purge_ledger.py`](summarize_purge_ledger.py) (read only) reads the file lists written before every deletion
   and reports files and GB per site and case. It also lists files that still exist, which means that purge was
   interrupted.
@@ -145,3 +146,100 @@ It was printed by `22_phenology_patch_rollout.py plan` on 2026-11-02 22:11 UTC (
   The 18 KEEP_NLF `_NLF` cases and US-Aud `_HINONE` continue.
 - **Since then, script 22 refuses a second concurrent action**, and `watch_rollout.sh` warns about duplicate `ad-run`
   processes.
+
+### 2026-11-04 07:00–13:00 UTC: five AD chains stopped by TIMEOUT on a slow node (red6085)
+
+- **What happened:** five run jobs hit the 1 h wall-clock limit on node red6085. They were in the middle of a 5-year
+  segment, and there was no model error. The usual segment time is 7–9 min on every node. Between about 07:00 and
+  13:00 UTC, red6085 ran about 7× slower, and three other segments there only just finished (56–60 min). By the
+  afternoon it was back to 7–9 min.
+
+  | Case | Run job | Last archived restart | Resumed run / archive |
+  |---|---|---|---|
+  | `IT-Lav_B03_FIXNC_AD400_NLFP` | 4829008 | 2178-01-01 | 4836460 / 4836461 |
+  | `CA-TP4_AMF_FIXNC_AD400_UTC_V3_PTS_AD5_NLFP` | 4829057 | 2372-01-01 | 4836458 / 4836459 |
+  | `US-Me6_AMF_B03_FIXNC_AD400_DIRECT_NLF` | 4831116 | 2380-01-01 | 4836456 / 4836457 |
+  | `CZ-BK1_B01_FIXNC_AD400_NLF` | 4831135 | 2314-01-01 | 4836454 / 4836455 |
+  | `US-MtB_AMF_B03_FIXNC_AD400_DIRECT_NLF` | 4831154 | 2379-01-01 | 4836452 / 4836453 |
+
+- **How they were resumed:** the orphaned `st_archive` jobs (`DependencyNeverSatisfied`) were cancelled, and the
+  chains were resumed with `resume_failed_segment.sh --submit` on 2026-11-05 at about 03:55 UTC, from the last
+  archived restart. Wall-clock time was not changed. The ledger is `Needleleaf_F_rerun/resubmits.log`.
+- **Partial history files:** the killed segments left partial history files in the RUNDIR. The resumed segment writes
+  the same file names again.
+
+### 2026-11-04 16:34 UTC: Normal400 rollout, first attempt (scripts 20 / 22 / 21)
+
+- **Script 20 `normal-run`:**
+  - 7 sites were submitted: CH-Dav, DE-Obe, FI-Sod, FR-FBn, IL-Yat, US-Me2 and US-SP1.
+  - 3 sites were held because their AD was still running: CZ-BK1, US-Me6 and US-MtB.
+  - 8 sites were held with `no overlay reproduces the AD lnd_in`: CA-Ca3, CA-LP1, US-GLE, US-Mpj, US-NR1, US-Vcm,
+    US-Vcp and US-Wjs. See the next entry.
+- **Script 21 `normal-run`:**
+  - US-Aud `_NORMAL400_DIRECT_HINONE` was submitted.
+  - CH-Aws was held with `not submitted (None)`. Its AD case was made by Batch04 06c and has no `NLF_STATE.json`.
+    It is handled by script 23.
+- **Script 22 `normal-run` did not run.**
+  - The three scripts were started inside one `setsid nohup bash -c "..."`.
+  - Script 22's one-action-at-a-time guard found its own file name in that wrapper's command line and refused:
+    "another script-22 action is running".
+  - **Rule:** start script 22 (and 23) directly with `setsid nohup $PY -B 22_... normal-run`, never inside a `bash -c`
+    wrapper.
+
+### 2026-11-05 ~03:50 UTC: script 22 Normal400, started directly
+
+- `22_phenology_patch_rollout.py normal-run` was started directly.
+- 40 sites were submitted: every NLFP / PHEN site whose AD had finished 400 years by then (FR-Pue included), and
+  GL-ZaH. The run ended `74/76 sites OK, 2 HOLD`.
+- CA-TP4 and IT-Lav were held because their AD was still running.
+- Log: `~/CLM_FATES_PLOTS/normal_run22_<UTC>.log`.
+
+### 2026-11-05 03:56 UTC: 8 KEEP_NLF Normals; failed prepares removed; script 20b
+
+- **Cause of the 8 holds:** the only difference was `clm_inparm.spinup_state`.
+  - The original Normal `lnd_in` has no `spinup_state` line, but the regenerated one has `spinup_state = 0`.
+  - Every other key was identical to the original Normal.
+  - The two are equivalent. With `CLM_ACCELERATED_SPINUP` off, CTSM uses 0, and script 20 itself accepts `""` or `"0"`
+    for the new Normal.
+- **New `20b_normal_spinup_state_tolerance.py`** (branch `normal400-rollout-20261105`, commit d1f3b9d):
+  - It runs script 20 `normal_prepare` / `submit` unchanged, except that it accepts this one difference: original
+    absent, new exactly 0.
+  - Any other value, or any other differing key, is still held.
+- **What was deleted (`20b clean-failed --confirm REMOVE_FAILED_NORMAL_PREPARE`):** the 8 half-made Normal cases from
+  the 16:34 attempt.
+  - Their phase was `PREPARE_ATTEMPTED`. They were never submitted and had no output.
+  - Each had 204 files, 0.02 GB in total: the case directory, plus `<OUT>/<case>/run` with copies of the year-400 AD
+    restarts. The originals stay in the AD archive.
+  - Removed directories:
+    - `CA-Ca3_AMF_FIXNC_NORMAL400_UTC_V2_PTS_NLF`
+    - `CA-LP1_AMF_FIXNC_NORMAL400_UTC_V2_PTS_NLF`
+    - `US-GLE_AMF_B02_FIXNC_NORMAL400_DIRECT_NLF`
+    - `US-Mpj_AMF_B03_FIXNC_NORMAL400_DIRECT_NLF`
+    - `US-NR1_AMF_B03_FIXNC_NORMAL400_DIRECT_NLF`
+    - `US-Vcm_AMF_B05_FIXNC_NORMAL400_DIRECT_NLF`
+    - `US-Vcp_AMF_B05_FIXNC_NORMAL400_DIRECT_NLF`
+    - `US-Wjs_AMF_B05_FIXNC_NORMAL400_DIRECT_NLF`
+  - File lists: `Needleleaf_F_rerun/<site>_failed_normal_prepare_removed_2026-11-05T0356*.txt`.
+- **Result:** `20b normal-run` verified and submitted all 8, with run jobs 4836486 to 4836516.
+
+### 2026-11-05: Normal400 of the ICOS Batch04 AD cases (script 23)
+
+- **Why a new script:** DE-Gri, DE-RuR, IT-Tor, ES-Agu and CH-Aws (`_HINONE`) were made by the Batch04 scripts.
+  Scripts 20, 21 and 22 cannot take them.
+- **New `23_normal400_extra_ad_cases.py`** (same commit):
+  - It uses the script-21 Normal method: a clone `--keepexe` of the AD, hybrid from the year-400 restarts,
+    spinup off, and the parameter file pinned to the AD's file.
+  - AD completion is checked without `NLF_STATE.json`.
+  - The AD RUNDIR and archive are read from the case.
+  - Normal names: `<AD name with _AD400 -> _NORMAL400>`.
+- **Why the fixes are not used:** these sites have neither PFT 2 nor a cold-deciduous PFT (entry of 2026-11-02 22:36).
+  They keep the shared unpatched executable and their own parameter files.
+- **First `prepare`:** DE-RuR, IT-Tor, ES-Agu and CH-Aws were verified.
+- **DE-Gri was held:** `hist_fincl1` had the same 7 fields in the same order, but with blanks after the commas in the
+  AD `lnd_in` and none in the new one.
+  - Script 23 now compares `hist_fincl` lists without those blanks.
+  - Its half-made Normal case was removed with `23 clean-failed --confirm REMOVE_FAILED_NORMAL_PREPARE`. The file list
+    is in the ledger.
+- **Pending:** `23 run` for the 5 cases. Add the run job ids here when it has run.
+- **Still to start:** the Normal400 of CZ-BK1, US-Me6 and US-MtB (`20b normal-run --sites ...`), and of CA-TP4 and
+  IT-Lav (`22 normal-run --sites ...`). Start them once their resumed AD reaches 400 years.
