@@ -201,7 +201,7 @@ It was printed by `22_phenology_patch_rollout.py plan` on 2026-11-02 22:11 UTC (
   - Every other key was identical to the original Normal.
   - The two are equivalent. With `CLM_ACCELERATED_SPINUP` off, CTSM uses 0, and script 20 itself accepts `""` or `"0"`
     for the new Normal.
-- **New `20b_normal_spinup_state_tolerance.py`** (branch `normal400-rollout-20261105`, commit d1f3b9d):
+- **New `20b_normal_spinup_state_tolerance.py`** (branch `normal400-rollout-20261105`, commit d1f3b9d; tools at 167adbc):
   - It runs script 20 `normal_prepare` / `submit` unchanged, except that it accepts this one difference: original
     absent, new exactly 0.
   - Any other value, or any other differing key, is still held.
@@ -240,6 +240,24 @@ It was printed by `22_phenology_patch_rollout.py plan` on 2026-11-02 22:11 UTC (
   - Script 23 now compares `hist_fincl` lists without those blanks.
   - Its half-made Normal case was removed with `23 clean-failed --confirm REMOVE_FAILED_NORMAL_PREPARE`. The file list
     is in the ledger.
-- **Pending:** `23 run` for the 5 cases. Add the run job ids here when it has run.
-- **Still to start:** the Normal400 of CZ-BK1, US-Me6 and US-MtB (`20b normal-run --sites ...`), and of CA-TP4 and
-  IT-Lav (`22 normal-run --sites ...`). Start them once their resumed AD reaches 400 years.
+- **2026-11-05 04:07 UTC:** DE-Gri's failed prepare was removed (183 files, 0.02 GB). The file list is in
+  `Needleleaf_F_rerun/DE-Gri_ICOS_B04_FIXNC_NORMAL400_DIRECT_failed_normal_prepare_removed_2026-11-05T040715*.txt`.
+  `23 run` then submitted all 5:
+
+  | Case | Run / archive job |
+  |---|---|
+  | DE-Gri `_NORMAL400_DIRECT` | 4836555 / 4836556 |
+  | DE-RuR | 4836557 / 4836558 |
+  | IT-Tor | 4836560 / 4836561 |
+  | ES-Agu | 4836562 / 4836563 |
+  | CH-Aws `_NORMAL400_DIRECT_HINONE` | 4836564 / 4836565 |
+
+- **Check that the fixes do not apply:** `b04_fix_check.py` at d1f3b9d confirmed the shared unpatched executable, no
+  SourceMods and `fates_params_default.json` for all five. It also confirmed that GL-ZaH `_PHEN` is patched.
+  - Its PFT lines were wrong: it read `fates_hlm_pft_map` transposed and one row off. HLM 13 C3 grass came out as
+    `c4_grass`, and ES-Agu's HLM 9 evergreen shrub as `broadleaf_colddecid_arctic_shrub`.
+  - Fixed at 167adbc, with the same reading as script 22.
+  - **To do:** rerun the check. If ES-Agu shows a cold-deciduous FATES PFT, its AD400 and Normal400 ran without the
+    phenology patch and must be redone. Script 22's 2026-11-02 classification of the Batch04 sites says 0 %.
+- **Still to start:** the Normal400 of CZ-BK1, US-Me6 and US-MtB (`20b normal-run`), and of CA-TP4 and IT-Lav
+  (`22 normal-run`). `auto_normal_last5.sh` (167adbc) starts each one once its resumed AD reaches 400 years.
