@@ -1,0 +1,77 @@
+{
+  "site": "IL-Yat",
+  "cohort": "explicit",
+  "ad_case": "IL-Yat_B03_FIXNC_BARE52_AD400_NLF",
+  "normal_case": "IL-Yat_B03_FIXNC_BARE52_NORMAL400_NLF",
+  "status": "OK",
+  "interim": false,
+  "ec_error": "",
+  "ad_years": [
+    2000,
+    2399
+  ],
+  "normal_years": [
+    2400,
+    2799
+  ],
+  "forcing_first_last_align": [
+    2000,
+    2024,
+    2000
+  ],
+  "model_history_frequency": "daily",
+  "ec_cycle_model_years": [
+    2775,
+    2799
+  ],
+  "gpp_policy": "NT takes priority across all sources; DT only when the source has no usable NT and no NT is available for that day",
+  "ec_gpp_columns_used": [
+    "GPP_NT_VUT_REF"
+  ],
+  "ec_sources": [
+    {
+      "path": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/IL-Yat/forcing/raw/EUF_IL-Yat_FLUXNET_2000-2024_v1.3_r1/EUF_IL-Yat_FLUXNET_FLUXMET_HH_2000-2024_v1.3_r1.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "sample_interval_seconds": 1800,
+      "valid_GPP_days": 8374,
+      "valid_NEE_days": 8739
+    }
+  ],
+  "ec_source_priority": {
+    "ICOS": 0,
+    "ICOSETC": 1,
+    "EUF": 2,
+    "FLX": 3,
+    "AMF": 4
+  },
+  "model_gpp": "FATES_GPP",
+  "model_nee": "-FATES_NEP",
+  "ec_nee": "NEE_VUT_REF",
+  "flux_units": "g C m-2 d-1",
+  "carbon_variables": [
+    "TOTSOMC"
+  ],
+  "carbon_units": {
+    "TOTSOMC": {
+      "factor": 1.0,
+      "plot_units": "g C m$^{-2}$",
+      "csv_units": "g C m-2",
+      "original_units": "gC/m^2"
+    }
+  },
+  "missing_primary_carbon_variables": [
+    "TOTECOSYSC",
+    "FATES_VEGC"
+  ],
+  "caveat": "AD/Normal transition may include pool rescaling. 800 years is not proof of equilibrium. EC/model day alignment uses native timestamps without a timezone conversion; verify the clock basis, especially for UTC-shifted AmeriFlux forcing.",
+  "files": [
+    "IL-Yat_01_carbon_pools_AD400_NORMAL400.png",
+    "IL-Yat_02_carbon_pools_NORMAL400_panels.png",
+    "IL-Yat_GPP_NEE_monthly_overview.png",
+    "IL-Yat_carbon_annual_means.csv",
+    "IL-Yat_convergence_metrics.csv",
+    "IL-Yat_daily_FATES_vs_EC.csv",
+    "IL-Yat_flux_metrics.csv",
+    "IL-Yat_monthly_FATES_vs_EC.csv"
+  ]
+}

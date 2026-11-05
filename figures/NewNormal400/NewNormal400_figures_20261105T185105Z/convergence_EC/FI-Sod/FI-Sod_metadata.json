@@ -1,0 +1,84 @@
+{
+  "site": "FI-Sod",
+  "cohort": "explicit",
+  "ad_case": "FI-Sod_B01_FIXNC_AD400_NLF",
+  "normal_case": "FI-Sod_B01_FIXNC_NORMAL400_NLF",
+  "status": "OK",
+  "interim": false,
+  "ec_error": "",
+  "ad_years": [
+    2001,
+    2400
+  ],
+  "normal_years": [
+    2401,
+    2800
+  ],
+  "forcing_first_last_align": [
+    2001,
+    2025,
+    2001
+  ],
+  "model_history_frequency": "daily",
+  "ec_cycle_model_years": [
+    2776,
+    2800
+  ],
+  "gpp_policy": "NT takes priority across all sources; DT only when the source has no usable NT and no NT is available for that day",
+  "ec_gpp_columns_used": [
+    "GPP_NT_VUT_REF"
+  ],
+  "ec_sources": [
+    {
+      "path": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/FI-Sod/forcing/raw_multisource_v1/ICOS/ICOS_FI-Sod_FLUXNET_FLUXMET_HH_2023-2026_v1.3_r1.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "sample_interval_seconds": 1800,
+      "valid_GPP_days": 1001,
+      "valid_NEE_days": 1001
+    },
+    {
+      "path": "/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/FI-Sod/forcing/raw_multisource_v1/FLX/FLX_FI-Sod_FLUXNET2015_FULLSET_HH_2001-2014_1-4.csv",
+      "gpp_column": "GPP_NT_VUT_REF",
+      "sample_interval_seconds": 1800,
+      "valid_GPP_days": 5110,
+      "valid_NEE_days": 5110
+    }
+  ],
+  "ec_source_priority": {
+    "ICOS": 0,
+    "ICOSETC": 1,
+    "EUF": 2,
+    "FLX": 3,
+    "AMF": 4
+  },
+  "model_gpp": "FATES_GPP",
+  "model_nee": "-FATES_NEP",
+  "ec_nee": "NEE_VUT_REF",
+  "flux_units": "g C m-2 d-1",
+  "carbon_variables": [
+    "TOTSOMC"
+  ],
+  "carbon_units": {
+    "TOTSOMC": {
+      "factor": 1.0,
+      "plot_units": "g C m$^{-2}$",
+      "csv_units": "g C m-2",
+      "original_units": "gC/m^2"
+    }
+  },
+  "missing_primary_carbon_variables": [
+    "TOTECOSYSC",
+    "FATES_VEGC"
+  ],
+  "caveat": "AD/Normal transition may include pool rescaling. 800 years is not proof of equilibrium. EC/model day alignment uses native timestamps without a timezone conversion; verify the clock basis, especially for UTC-shifted AmeriFlux forcing.",
+  "files": [
+    "FI-Sod_01_carbon_pools_AD400_NORMAL400.png",
+    "FI-Sod_02_carbon_pools_NORMAL400_panels.png",
+    "FI-Sod_GPP_NEE_monthly_overview.png",
+    "FI-Sod_carbon_annual_means.csv",
+    "FI-Sod_convergence_metrics.csv",
+    "FI-Sod_daily_FATES_vs_EC.csv",
+    "FI-Sod_flux_metrics.csv",
+    "FI-Sod_monthly_FATES_vs_EC.csv"
+  ]
+}
