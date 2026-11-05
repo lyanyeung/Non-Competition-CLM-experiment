@@ -49,7 +49,7 @@ FIELDS=("event_id","tower_local_start","variable",
         "time_alignment_hypothesis","airport_UTC_observation",
         "minutes_airport_minus_assumed_event_UTC",
         "airport_variable","airport_original_value","airport_original_unit",
-        "airport_value_in_tower_units",
+        "airport_value_in_comparison_units",
         "airport_original_quality_code","airport_original_source_code",
         "NOAA_hourly_valid_observations_within_6h",
         "flagged_minus_airport_in_common_units",
@@ -102,7 +102,7 @@ def source_BIF(z):
 def selftest():
     require(len(CASES)==5 and sum(v[3]==10 for v in CASES.values())==2,
             "5 exact cases, two station pressure conversion cases")
-    require(minus(101.4*10,988.7)==25.299999999999955,
+    require(abs(minus(101.4*10,988.7)-25.3)<1e-9,
             "pressure source units kPa->hPa")
     require(abs(((-4.63)-(15.42+12.44)/2)-(-18.56))<1e-8,
             "three-point temperature diagnostic")
@@ -160,7 +160,6 @@ def main():
             cv=n(t.get("F_flagged_HH"))
             nv=n(t.get("F_next_HH"))
             raw=n(m.get("NOAA_raw"))
-            converted=raw if conversion==1 else (raw if raw is None else raw)
             # Convert TOWER kPa to hPa, not airport hPa to kPa; preserve NOAA raw.
             prevTower=pv*conversion if pv is not None else None
             centerTower=cv*conversion if cv is not None else None
@@ -188,7 +187,7 @@ def main():
                 "airport_variable":noaaVar,
                 "airport_original_value":raw,
                 "airport_original_unit":commonunit,
-                "airport_value_in_tower_units":raw,
+                "airport_value_in_comparison_units":raw,
                 "airport_original_quality_code":m["NOAA_Quality_Code"],
                 "airport_original_source_code":m["NOAA_Source_Code"],
                 "NOAA_hourly_valid_observations_within_6h":int(m["valid_hours_within_6h"]),
