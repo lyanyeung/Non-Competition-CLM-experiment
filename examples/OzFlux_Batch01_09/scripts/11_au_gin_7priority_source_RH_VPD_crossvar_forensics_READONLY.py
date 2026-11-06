@@ -73,9 +73,8 @@ SPIKE_COLS=("focus_id","original_native_AWST","variable",
             "source_center_P_F","source_center_P_F_QC",
             "three_point_range","source_screen_classification",
             "science_repair_approved","forcing_or_original_writes")
-SUMMARY_COLS=("group","source_records","matched_28_groups",
-              "operator_44_flags","priority_context_HH",
-              "scientific_release","AD400_authorised")
+SUMMARY_COLS=("group_id","science_review_type","group_original_flag_count",
+              "source_science_release","AD400_authorised")
 def require(cond,why):
     if not cond:raise ValueError(str(why))
 def digest(p):
@@ -275,11 +274,15 @@ def main():
     out.mkdir(mode=0o700,exist_ok=False)
     tsv(out/"stage11_AU_Gin_2VPD_QC1_source_RH_physics.tsv",VPD_COLS,vpd_out)
     tsv(out/"stage11_AU_Gin_5spike_multivar_source_gate.tsv",SPIKE_COLS,spike_out)
-    tsv(out/"stage11_AU_Gin_28group_HOLD_receipt.tsv",SUMMARY_COLS,[{
-        "group":"ALL_28_SOURCE_ANOMALY_GROUPS","source_records":91,
-        "matched_28_groups":len(allgroups),"operator_44_flags":len(flags),
-        "priority_context_HH":len(context),"scientific_release":False,
-        "AD400_authorised":False}])
+    require(len({x["group_id"] for x in allgroups})==28 and
+            sum(int(x["n_flag_rows"]) for x in allgroups)==44,
+            "Source 28 group IDs must partition exactly 44 original flags")
+    tsv(out/"stage11_AU_Gin_28group_HOLD_receipt.tsv",SUMMARY_COLS,[
+        {"group_id":x["group_id"],
+         "science_review_type":x["science_review_type"],
+         "group_original_flag_count":int(x["n_flag_rows"]),
+         "source_science_release":False,"AD400_authorised":False}
+        for x in allgroups])
     (out/"stage11_AU_Gin_7priority_source_science_HOLD.json").write_text(
          json.dumps(report,indent=2,ensure_ascii=False),encoding="utf-8")
     print("STAGE11 ORIGINAL TERN ZIP & ACTUAL STAGE10 SOURCE SHA256 VERIFIED")
