@@ -10,6 +10,9 @@ Not uploaded: daily / monthly / annual time-series tables (they carry EC observa
 
   python -B publish_new_normal400_figures.py <output folder>            # dry run: lists what would be pushed
   python -B publish_new_normal400_figures.py <output folder> --push     # clone main, add, commit, push
+  python -B publish_new_normal400_figures.py <output folder> --push --update
+        the folder is already on main (e.g. published before step 3): add the new files, replace changed ones,
+        rebuild README.md and SHA256SUMS; nothing on main is deleted
 """
 from __future__ import annotations
 
@@ -135,6 +138,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("folder", type=Path)
     ap.add_argument("--push", action="store_true")
+    ap.add_argument("--update", action="store_true", help="add to / refresh a folder already on main")
     ap.add_argument("--repo", default=REPO)
     a = ap.parse_args(argv)
     root = a.folder.expanduser().resolve()
@@ -158,9 +162,15 @@ def main(argv=None):
         repo = Path(tmp) / "repo"
         run(["git", "clone", "--depth", "1", "--branch", "main", a.repo, str(repo)])
         dest = repo / dest_rel
-        if dest.exists():
-            ap.error(f"{dest_rel} already exists on main; nothing pushed")
+        if dest.exists() and not a.update:
+            ap.error(f"{dest_rel} already exists on main; nothing pushed (add --update to add the new files)")
+        new = changed = 0
         for p in files:
+            q0 = dest / p.relative_to(root)
+            if not q0.exists():
+                new += 1
+            elif q0.read_bytes() != p.read_bytes():
+                changed += 1
             q = dest / p.relative_to(root)
             q.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(p, q)
@@ -168,9 +178,14 @@ def main(argv=None):
         sums = [f"{hashlib.sha256(q.read_bytes()).hexdigest()}  {q.relative_to(dest).as_posix()}"
                 for q in sorted(dest.rglob("*")) if q.is_file() and q.name != "SHA256SUMS"]
         (dest / "SHA256SUMS").write_text("\n".join(sums) + "\n")
+        print(f"  {new} new file(s), {changed} changed file(s)", flush=True)
         run(["git", "add", dest_rel], cwd=repo)
-        run(["git", "commit", "-q", "-m", f"figures: new Normal400 convergence + EC figures {root.name} "
-             f"({len(pngs)} PNG)"], cwd=repo)
+        if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=repo).returncode == 0:
+            print("nothing changed on main; nothing pushed")
+            return 0
+        what = "update" if a.update else "new Normal400 convergence + EC figures"
+        run(["git", "commit", "-q", "-m", f"figures: {what} {root.name} ({len(pngs)} PNG; +{new} new, {changed} changed)"],
+            cwd=repo)
         for attempt in range(3):
             try:
                 run(["git", "push", "origin", "HEAD:main"], cwd=repo)
