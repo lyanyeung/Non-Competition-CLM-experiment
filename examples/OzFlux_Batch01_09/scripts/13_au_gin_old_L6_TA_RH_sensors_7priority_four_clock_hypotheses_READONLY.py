@@ -181,8 +181,8 @@ def main():
         for name,v in ds.variables.items():
             typ=classify(name)
             if typ is None:continue
-            if not v.dimensions or v.dimensions[0]!="time" or
-               any(int(q)!=1 for q in v.shape[1:]):
+            if (not v.dimensions or v.dimensions[0]!="time"
+                    or any(int(q)!=1 for q in v.shape[1:])):
                 continue
             if name not in allmeta:
                 continue
