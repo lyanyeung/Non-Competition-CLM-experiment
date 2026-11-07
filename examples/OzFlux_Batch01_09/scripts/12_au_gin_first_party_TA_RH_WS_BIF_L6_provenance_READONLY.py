@@ -38,7 +38,7 @@ TARGETS={
  "WS_20190913":("2019-09-13 03:00:00","WS"),
  "VPD_QC1_20130205":("2013-02-05 06:30:00","VPD"),
  "VPD_QC1_20130216":("2013-02-16 07:00:00","VPD")}
-TGT_STRINGS={x[0].replace("-","").replace(" ","").replace(":","") for x in TARGETS.values()}
+TGT_STRINGS={dt.datetime.fromisoformat(x[0]).strftime("%Y%m%d%H%M") for x in TARGETS.values()}
 INV_COLS=("zip_member","uncompressed_size_bytes","compressed_size_bytes",
           "is_csv","looks_like_hh_timestamped_data","timestamp_field",
           "column_count","raw_like_TA_columns","raw_like_RH_columns",
@@ -167,7 +167,8 @@ def selftest():
            and not is_raw("TA_ERA","TA"),"Don't confuse TA_F with raw TA")
     require(is_raw("WS_1_1_1","WS") and is_raw("RH_RAW","RH"),"Source name detector")
     require(exact_stamp("2013-02-05 06:30:00")=="201302050630","Native local HH time")
-    require(len(TARGETS)==7 and len(TGT_STRINGS)==7,"Seven unique source times")
+    require(len(TARGETS)==7 and len(TGT_STRINGS)==7
+            and "201302050630" in TGT_STRINGS,"Seven true 12-digit times")
     require(is_relevant_bif({"VARIABLE_GROUP":"UTC_OFFSET","VARIABLE":"UTC_OFFSET"}),
             "UTC BIF rows")
     print("AU-GIN STAGE12 SELFTEST PASS | source file and first-party TA/RH/WS identity; NO REPAIR")
@@ -247,8 +248,8 @@ def main():
                 text,decoder=decode(raw)
                 rd=csv.DictReader(io.StringIO(text,newline=""))
                 for i,row in enumerate(rd):
-                    if member.filename==BIF and
-                       (row.get("SITE_ID") or "").strip()!="AU-Gin":
+                    if (member.filename==BIF and
+                            (row.get("SITE_ID") or "").strip()!="AU-Gin"):
                         continue
                     if not is_relevant_bif(row):continue
                     bif.append({
@@ -279,8 +280,10 @@ def main():
         for c in scan_candidates[:4]:
             name=c["zip_member"]
             try:
+                with z.open(name,"r") as hf:
+                    hdr=hf.readline(1<<20).decode("utf-8-sig").strip("\r\n")
                 matched,seen=scan_member(z,z.getinfo(name),
-                     next(csv.reader([z.open(name).readline().decode("utf-8-sig").strip("\r\n")])))
+                     next(csv.reader([hdr])))
                 sourceRows.extend(matched)
                 candidate_scanned.append({"member":name,
                                           "original_native_source_rows_scanned":seen,
