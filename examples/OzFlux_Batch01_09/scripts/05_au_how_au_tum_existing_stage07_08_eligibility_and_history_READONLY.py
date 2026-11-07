@@ -208,7 +208,7 @@ def main():
         "nine_existing_fixed_PFT_Surface_candidates_must_not_rebuild":True,
         "QCFlag0_is_NOT_automatically_verified_instrument_observation":True,
         "stage07_structural_candidate_IS_NOT_source_approval":True,
-        "new_noncompetition_AD5_or_AD400_submitted":False,
+        "new_noncompetition_AD5_or_AD400_submission_independently_checked":False,
         "future_model_run_authorised":False,
         "no_original_or_surface_or_forcing_or_cime_or_slurm_changes":True}
     (out/"au_how_tum_prior_work_reuse_and_source_eligibility_HOLD.json").write_text(
