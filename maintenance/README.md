@@ -283,3 +283,39 @@ It was printed by `22_phenology_patch_rollout.py plan` on 2026-11-02 22:11 UTC (
 
 - **Remaining Normal400 starts:** by 18:38 UTC, `auto_normal_last5.sh` had submitted the Normal400 of CZ-BK1, US-Me6,
   US-MtB and CA-TP4. Only IT-Lav waits for its AD.
+
+### 2026-11-07 05:18 UTC: AmeriFlux Batch01 default-parameter outputs deleted (CA-TP1, CA-TP3, CA-Cbo, CA-Man)
+
+- **Why these sites:** five AmeriFlux Batch01 sites ran on the Stage21 controller, outside the needleleaf / phenology
+  rollout. They used the default parameter file and unpatched FATES. All five have PFT 2.
+- **What the default runs showed:** checked with `pft2_health_check.py` and script 24 (last cycle against EC).
+
+  | Site | Default-parameter result | Decision |
+  |---|---|---|
+  | CA-Man | needleleaf dead: no live cohort, GPP 0 | deleted, rerun |
+  | CA-TP1 | GPP model/EC 0.34 | deleted, rerun |
+  | CA-TP3 | GPP model/EC 0.47 | deleted, rerun |
+  | CA-Cbo | AD only | deleted, rerun |
+  | US-Bar | GPP model/EC 1.02, R² 0.93 | **kept** as the default-parameter reference, for a version comparison |
+
+- **What was deleted (user decision):** `25_ameriflux_b01_remaining.py purge-old --confirm DELETE_B01_DEFAULT_OUTPUTS`
+  (branch `normal400-rollout-20261105`, 6a1586d). Only `*.nc` in RUNDIR and the archive was removed. Case directories,
+  CaseDocs, `user_nl_*` and stream xml were kept, because the new `_NLFP` AD is cloned from the original case. Files
+  that the original case reads as inputs are refused.
+
+  | Case | Files | Size |
+  |---|---:|---:|
+  | CA-TP1 AD + Normal | 2175 | 5.16 GB |
+  | CA-TP3 AD + Normal | 2175 | 5.16 GB |
+  | CA-Cbo AD | 805 | 2.07 GB |
+  | CA-Man AD | 805 | 1.28 GB |
+  | **Total** | **5960** | **13.67 GB** |
+
+  The file lists are in `Needleleaf_F_rerun/<site>_b01_default_purged_files_2026-11-07T0518*.txt`.
+- **Reruns:** each site gets `<AD>_NLFP` → `<Normal>_NLFP`, with needleleaf F and the phenology patch, through script
+  22's procedure.
+  - `ad-run` for CA-TP1, CA-TP3, CA-Cbo and CA-Man was started at 05:19 UTC.
+  - `b01_chain.sh` then runs US-Bar `_NLFP` and `auto-normal` for all five.
+- **NL-Loo:** only the old `PRE50` / `V2_PRE50` normal-mode cases remain; there is no AD400 or Normal400. Its surface
+  (`surfdata_NL-Loo_obsPFT_grass_proxy_v1.nc`, despite the name) is HLM 1 93.6 % (PFT 2), HLM 7 2.9 % and HLM 13 3.5 %,
+  so both fixes apply. A fresh AD400 + Normal400 will be built after `nlloo_inspect.sh`.
