@@ -1,0 +1,30 @@
+# AU-How and AU-Tum: GitHub-verified prior work and next source-only gate (7 Nov 2026)
+
+Purpose: prevent duplicate OzFlux preparation or contamination of previously run Howard Springs competitive FATES work; continue with original L6 source eligibility evidence before any fresh FIXNC AD5/AD400.
+
+## Two separate workflows exist
+
+1. `lyanyeung/CLM-FATES-single-site-workflows/examples/OzFlux_AU-How/` **historical successfully run forward** `AU-How_FATES_1PT`, original `HowardSprings_L6.nc`. Historical example: OzFlux 2003–2025 simulation, NO_LEAP, 30-minute ATM_NCPL=48, ZBOT 23m, 1-year stop ×23, `RESUBMIT=22`. It builds processed CSV/annual DATM files and a historic surface `surfdata_AU-How_hist_2000_16pfts_c260929.nc`. **Do not run historical `scripts/05_make_datm.py` on the new cohort**; it replaces matching existing outputs. Historical successful forward model is *not* evidence of new non-competition FIXNC AD400, nor endorsement of current stricter source QC.
+2. `lyanyeung/CLM-FATES-single-site-workflows/examples/OzFlux_MultiSite_09/`: source-preserving 9-site/10 native L6 intake. All 10/10 original L6s uploaded and inspected; native metadata all accessed; Stage07 original 169 file-years, 67 structural candidate-only and 102 HOLD; Stage08 cross-check documented. `AU-How` has 2006 and 2007 as its only Stage07 strict structural years (2/25). `AU-Tum` has 7/21. **AU-Tum native L6 has 1-hour steps (3600s)**, not compatible with 30-minute assumptions (ATM_NCPL=48) without independent scientifically approved handling. Historical AU-How processing remains separate. Not every original QC0 or structural candidate year is scientifically validated tower measurement.
+3. `lyanyeung/Non-Competition-CLM-experiment/examples/OzFlux_Batch01_09/`: nine OzFlux source-selected FIXNC v1.1 PFTs and **9/9 isolated PFT-specific Surface CANDIDATES** created on IRIDIS6 (operator Stage03 PASS, Nov 2). AU-How candidate SHA256 `cedaf296f9e557d61559d00fafee8d0b636e993729f45f796bc6806372214cd0`; AU-Tum candidate SHA256 `8e6a600563781d32342f7e701a64974be6c25a21f1369f8f9fa4be680cb8f793`. These use 10 CTSM gridded reference soil layers, not measured tower soil. Operator v1.1 primaries: AU-How TropEBT 39.8 / C4 44.3 / bare 15.9; AU-Tum EBT 100. These are fixed experimental hypotheses, not audited footprint observations. **No new FIXNC CIME/AD5/AD400 approval or run confirmed**; Stage04 prior user log initially false-stopped on HOME alias path and corrected GitHub source was published; do not assume rerun succeeded without operator output.
+
+## Source metadata and source file locations
+
+Expected original in-site files (do not alter):
+- AU-How `/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/AU-How/forcing/raw/HowardSprings_L6.nc`; user verified exists and size **466,671,090 bytes**, Saturday 7 Nov 2026.
+- AU-Tum `/iridisfs/scratch/ly3n24/CLM_FATES/sites/MY_EC_SITE/AU-Tum/forcing/raw/Tumbarumba1_L6.nc`, according to source manifest; operator must verify existence and SHA against original Stage00 manifest before any new evaluation.
+
+Earlier canonical Stage07 source reports on IRIDIS6: `$HOME/ozflux_stage07_20261101T062633Z/stage07_file_summary.tsv`, `stage07_year_status.tsv`, `stage07_year_variable_qc.tsv`, `stage07_native_year_provenance.json`. Stage08 user document has `stage08_review_summary.json`, `stage08_year_reason_ledger.tsv`, `stage08_contiguous_candidate_blocks.tsv`, `stage08_source_qc_per_year.tsv` under earlier `$HOME/ozflux_stage08_*`. Use the **existing** reports first; do not repeat the 10-site original NetCDF full scan or reupload native data. Distinguish seven met variables `Ta,SH,ps,Fsd,Fld,Ws,Precip`, original native QCFlag=0 versus interpolated/other (50, 400, 410, 420, 430, 440), missingness/physical flags and actual time-label conventions; avoid inferring donor truth or full-year 15-year completeness from file/row totals.
+
+## Next gate and stop/go
+
+- First run **read-only targeted comparison of existing Stage07 year-status and per-variable-QC for AU-How + AU-Tum**, plus existing Stage08 year reasons, and inspect separately whether the old AU-How competitive case is still present on IRIDIS6. Annual structural candidate count is diagnostic, not actual usable full-year count or enough for 15-year *measured* forcing gate.
+- Count per-year QC0 fractions, missing, physical alarms, exact native first/last labels and annual structural reasons. Identify root causes of AU-How 23 non-candidates and AU-Tum 14 non-candidates. If issues are only first/last interval labels, apply an independently documented time-source gate rather than automatic replacement. If one source variable has gaps, investigate alternatives only with QC lineage.
+- AU-Tum hourly source must retain `ATM_NCPL=24` if the model uses direct native-hour forcing; 48 requires an approved resampling algorithm. Verify historical NSW site 2019/2020 fires and vegetation regime before using fixed EBT100 across long periods; this is an independent land-cover science gate.
+- Keep **historical AU-How case untouched**. Any new non-competition experiment must use an isolated directory/new case name, its independently validated FIXNC surface, source-approved DATM, proper FATES parameter map and mode settings, short smoke validation then AD400 only after all gates; do not automatically start AD400.
+- AU-Gin Stage16 fully documented separately, paused due to <15 genuinely observed source-year span and unresolved 28 science-HOLD anomaly groups; AU-ASM / AU-DaS are also science HOLD.
+
+### Prior first-party GitHub source documents
+- Historical AU-How: https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/OzFlux_AU-How/README.md
+- Native 10 NetCDFs and Stage07/08 source: https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/OzFlux_MultiSite_09/README.md
+- FIXNC Stage03 9/9 point candidates: https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/feat/ozflux-au-gin-tern-fluxnet-20261104/examples/OzFlux_Batch01_09/README.md
