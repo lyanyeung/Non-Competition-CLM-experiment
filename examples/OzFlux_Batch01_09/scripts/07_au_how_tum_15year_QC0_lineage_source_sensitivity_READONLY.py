@@ -217,7 +217,7 @@ def main():
       "thresholds_0_50_80_90pct_ARE_DESCRIPTIVE_NOT_approval":True,
       "site_specific_QCFlag_codes_NOT_independent_measured_source":True,
       "annual_time_axis_full_NOT_equivalent_to_measured_year":True,
-      "not_a_gapfill_or_D​ATM_or_approved_forcing_product":True,
+      "not_a_gapfill_or_DATM_or_approved_forcing_product":True,
       "prior_successful_AU_How_Competition_CIME_remains_untouched":True,
       "9_existing_FIXNC_surface_candidates_not_rebuilt":True,
       "AU_Tum_hourly_not_resampled":True,
