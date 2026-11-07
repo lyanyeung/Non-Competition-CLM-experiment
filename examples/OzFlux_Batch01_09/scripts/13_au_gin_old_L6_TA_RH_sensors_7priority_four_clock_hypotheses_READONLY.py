@@ -163,13 +163,21 @@ def main():
          "Original Stage12 actual L6 358 headers / BIF 334 metadata changed")
     need(len(rows(T11))==2 and len(rows(SPIKES))==5,
          "Original Stage11 RH-QC1 and spike center data changed")
-    candidates=[]; time_summ=[];samples=[]
+    candidates=[]; time_summ=[];samples=[];time_context={}
     with netCDF4.Dataset(str(L6),"r") as ds:
         need("time" in ds.variables,"Original L6 missing time axis")
         tim=ds.variables["time"]
         need(tim.ndim==1 and tim.dimensions==("time",),"Old L6 primary time not one-dimensional")
         units=str(getattr(tim,"units",""))
         calendar=str(getattr(tim,"calendar","standard"))
+        time_context={
+          "old_L6_time_variable_original_attributes":{
+            k:str(tim.getncattr(k))[:450] for k in tim.ncattrs()},
+          "old_L6_global_time_site_original_attributes":{
+            k:str(ds.getncattr(k))[:450] for k in ds.ncattrs()
+            if any(w in k.lower() for w in
+                  ("time","utc","zone","offset","site","period","interval",
+                   "start","end","height","latitude","longitude"))}}
         need("days since 1800-01-01" in units and len(tim)==250821,
              "Old L6 actual Stage12 250821 CF-date axis changed")
         rawtime=np.ma.filled(tim[:],np.nan).astype(float)
@@ -276,6 +284,7 @@ def main():
      "Stage11_source_receipt_SHA256":sha(S11),
      "old_L6_calendar":calendar,
      "old_L6_time_units":units,
+     "old_L6_native_time_metadata_NOT_automatically_reconciled":time_context,
      "old_L6_time_length":len(rawtime),
      "old_L6_source_sensor_candidate_count":len(candidates),
      "old_L6_candidate_class_counts":dict(Counter(x["variable_class"] for x in candidates)),
@@ -300,6 +309,7 @@ def main():
     print("STAGE13 ORIGINAL TERN ZIP, OLD L6, ACTUAL STAGE11/STAGE12 SHA256 VERIFIED")
     print("OLD_L6_TIME",units,"CALENDAR",calendar,
           "N",len(rawtime))
+    print("OLD_L6_TIME_PROVENANCE",json.dumps(time_context,ensure_ascii=False)[:4500])
     print("OLD_L6_SENSOR_CANDIDATES",len(candidates),
           "BY_CLASS",dict(Counter(x["variable_class"] for x in candidates)))
     for x in candidates[:70]:
