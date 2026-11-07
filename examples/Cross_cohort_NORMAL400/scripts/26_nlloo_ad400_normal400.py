@@ -21,6 +21,11 @@ Put next to 25 and 22 (needs 25 -> 22 -> 20/21/17/18/13/09). Run with setsid noh
   stage-base    make + verify the base AD case (no build, no submit)
   ad-run        build + verify + submit NL-Loo_OBSPFT_NC_V4_AD400_NLFP
   normal-run | auto-normal | status   as script 25
+  purge-legacy [--confirm DELETE_NLLOO_LEGACY_PRE50]   delete the obsolete legacy run NL-Loo_OBSPFT_NC_PRE50 (user
+                decision 2026-11-07): its output folders <OUT>/NL-Loo_OBSPFT_NC_PRE50 and <OUT>/archive/... and its case
+                directory. Dry run without --confirm; the file list goes to the ledger first. Never V2_PRE50 (template
+                and provenance of the new base), never a folder holding an input of V2_PRE50 / the base, never a build
+                directory, never with queued jobs.
 """
 from __future__ import annotations
 
@@ -36,6 +41,8 @@ SRC = "NL-Loo_OBSPFT_NC_V2_PRE50"
 BASE = "NL-Loo_OBSPFT_NC_V4_AD400"
 START = "1997-01-01"
 HIST = "'TOTSOMC','TOTSOMN','TLAI','FATES_GPP','FATES_NPP','TWS','H2OSNO'"
+LEGACY = "NL-Loo_OBSPFT_NC_PRE50"
+CONFIRM_PURGE = "DELETE_NLLOO_LEGACY_PRE50"
 M25 = M22 = M20 = T = R = None
 
 
@@ -103,9 +110,56 @@ def stage_base():
           f"(not built, not submitted)", flush=True)
 
 
+def purge_legacy(confirm):
+    import shutil
+    case = R.CASES / LEGACY
+    dirs = [d for d in (R.OUT / LEGACY, R.OUT / "archive" / LEGACY, case) if d.exists()]
+    if not dirs:
+        print(f"{LEGACY}: nothing left to delete", flush=True)
+        return
+    if M20.jobs(LEGACY):
+        R.fail(f"{LEGACY} has queued/running jobs")
+    for d in dirs:
+        if d.is_symlink() or d.name != LEGACY or d.parent not in (R.OUT, R.OUT / "archive", R.CASES):
+            R.fail(f"unexpected path {d}; nothing deleted")
+    keep = [R.CASES / SRC, R.CASES / BASE, R.OUT / SRC, R.OUT / BASE]
+    refs = set()
+    for c in (R.CASES / SRC, R.CASES / BASE):
+        if (c / "CaseDocs" / "lnd_in").is_file():
+            refs |= M25.referenced_files(c)
+    exes = set()
+    if (case / "env_build.xml").is_file():
+        exes.add(Path(R.xq(case, "EXEROOT")).resolve())
+    for d in dirs:
+        rd = d.resolve()
+        if any(rd == k.resolve() or k.resolve() in rd.parents for k in keep if k.exists()):
+            R.fail(f"{d} overlaps a kept case; nothing deleted")
+        if any(e == rd or rd in e.parents for e in exes) or (d / "bld").exists():
+            R.fail(f"{d} holds a build directory; nothing deleted")
+        hit = [r for r in refs if Path(r) == rd or rd in Path(r).parents]
+        if hit:
+            R.fail(f"{d} holds an input of V2_PRE50 / the base ({hit[0]}); nothing deleted")
+    files = [(f, f.stat().st_size) for d in dirs for f in sorted(d.rglob("*")) if f.is_file() and not f.is_symlink()]
+    size = sum(s for _, s in files)
+    for d in dirs:
+        n = sum(1 for f, _ in files if d in f.parents)
+        print(f"  {d}: {n} files", flush=True)
+    print(f"  {LEGACY}: {len(files)} files, {size / 1e6:.1f} MB", flush=True)
+    if confirm != CONFIRM_PURGE:
+        print(f"  DRY RUN, nothing deleted; add --confirm {CONFIRM_PURGE}", flush=True)
+        return
+    lst = M20.ledger() / f"NL-Loo_legacy_PRE50_purged_files_{R.utc()[:19].replace(':', '')}.txt"
+    lst.write_text("".join(f"{f}\t{s}\n" for f, s in files) + "".join(f"DIR\t{d}\n" for d in dirs))
+    for d in dirs:
+        shutil.rmtree(d)
+    print(f"  DELETED {len(dirs)} folders, {len(files)} files, {size / 1e6:.1f} MB (list: {lst})", flush=True)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("action", choices=("plan", "stage-base", "ad-run", "normal-run", "auto-normal", "status"))
+    ap.add_argument("action", choices=("plan", "stage-base", "ad-run", "normal-run", "auto-normal", "status",
+                                       "purge-legacy"))
+    ap.add_argument("--confirm", default="")
     ap.add_argument("--every", type=int, default=1200)
     ap.add_argument("--max-hours", type=float, default=60)
     a = ap.parse_args(argv)
@@ -125,6 +179,9 @@ def main(argv=None):
             return 0
         if a.action == "stage-base":
             stage_base()
+            return 0
+        if a.action == "purge-legacy":
+            purge_legacy(a.confirm)
             return 0
         if a.action in ("ad-run", "normal-run") and M20.read_state(R.CASES / BASE).get("phase") != "BASE_VERIFIED":
             R.fail(f"{BASE} is not BASE_VERIFIED; run stage-base first")
