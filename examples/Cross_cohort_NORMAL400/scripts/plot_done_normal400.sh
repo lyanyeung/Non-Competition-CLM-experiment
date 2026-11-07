@@ -16,9 +16,11 @@
 #   setsid nohup bash plot_done_normal400.sh > $HOME/CLM_FATES_PLOTS/plot_done_$(date -u +%Y%m%dT%H%MZ).log 2>&1 < /dev/null &
 #   bash plot_done_normal400.sh --sites DE-Obe FI-Sod      # only these sites (must be finished)
 #   SKIP_DONE_IN=<earlier output folder> bash plot_done_normal400.sh   # skip sites already plotted there
+#   EXTRA_LASTCYCLE=<file of SITE:AD:NORMAL> ...   extra pairs for step 3 only (e.g. the UNCHANGED sites, whose
+#       original runs already have Stage15 / full-sequence figures but no last-cycle figure)
 # Tools are fetched by commit (REF) into a new folder; WORKERS (default 4) sites in parallel for the full sequence.
 set -uo pipefail
-REF=${REF:-2df56ef68828e70981d119bb79273bd818fe657f}   # any commit that has Stage15 and script 07
+REF=${REF:-5e4ef8381e12ee75d452ff98be8e878371343504}   # a commit that has Stage15, script 07 and script 24
 CASES=${CASES:-/iridisfs/scratch/ly3n24/CLM_FATES/cases}
 OUT_SCR=${OUT_SCR:-/scratch/ly3n24/CTSM_FATES_OUTPUTS}
 PY=${PY:-$HOME/.conda/envs/clm_fates_env/bin/python}
@@ -53,8 +55,13 @@ for d in "$CASES"/*_NORMAL400*; do
   pairs15+=("$site:$ad:$c"); pairs07+=("$site:$c")
 done
 echo "== ${#pairs15[@]} case pair(s)"
+extra=()
+if [ -n "${EXTRA_LASTCYCLE:-}" ]; then
+  while read -r p; do [ "$(echo "$p" | tr -cd ':' | wc -c)" = 2 ] && extra+=("$p"); done < "$EXTRA_LASTCYCLE"
+  echo "== ${#extra[@]} extra pair(s) for the last-cycle figure only:"; printf '  %s\n' "${extra[@]}"
+fi
 [ "$LIST" = 1 ] && exit 0
-[ ${#pairs15[@]} -gt 0 ] || { echo "nothing to plot"; exit 0; }
+[ $(( ${#pairs15[@]} + ${#extra[@]} )) -gt 0 ] || { echo "nothing to plot"; exit 0; }
 
 RAW=https://raw.githubusercontent.com/lyanyeung/Non-Competition-CLM-experiment/$REF
 TOOL=$(mktemp -d "$HOME/CLM_FATES_PLOTS/plot_tool.XXXXXXXX")
@@ -65,17 +72,22 @@ curl -fsSL "$RAW/examples/Cross_cohort_NORMAL400/scripts/24_last_cycle_vs_ec.py"
 OUT="$HOME/CLM_FATES_PLOTS/NewNormal400_figures_$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$OUT"
 printf '%s\n' "${pairs15[@]}" > "$OUT/pairs.txt"
+[ ${#extra[@]} -gt 0 ] && printf '%s\n' "${extra[@]}" > "$OUT/pairs_last_cycle_only.txt"
 echo "tool $TOOL (commit $REF)"; echo "output $OUT"
 
-echo "######## 1) Stage15 convergence + monthly EC   $(date -u '+%H:%M UTC')"
-"$PY" -u -B "$TOOL/plot.py" --pair "${pairs15[@]}" --output-root "$OUT/convergence_EC"
-s15=$?
-echo "######## 2) full sequence GPP / NEE with EC     $(date -u '+%H:%M UTC')"
-"$PY" -u -B "$TOOL/fullseq.py" --pairs "${pairs07[@]}" --output-root "$OUT/full_sequence" \
-      --workers "$WORKERS" --plot-module "$TOOL/plot.py"
-s07=$?
+s15=0; s07=0
+if [ ${#pairs15[@]} -gt 0 ]; then
+  echo "######## 1) Stage15 convergence + monthly EC   $(date -u '+%H:%M UTC')"
+  "$PY" -u -B "$TOOL/plot.py" --pair "${pairs15[@]}" --output-root "$OUT/convergence_EC"
+  s15=$?
+  echo "######## 2) full sequence GPP / NEE with EC     $(date -u '+%H:%M UTC')"
+  "$PY" -u -B "$TOOL/fullseq.py" --pairs "${pairs07[@]}" --output-root "$OUT/full_sequence" \
+        --workers "$WORKERS" --plot-module "$TOOL/plot.py"
+  s07=$?
+fi
 echo "######## 3) last forcing cycle vs EC            $(date -u '+%H:%M UTC')"
-"$PY" -u -B "$TOOL/lastcycle.py" --pairs-file "$OUT/pairs.txt" --output-root "$OUT/last_cycle_EC" --plot-module "$TOOL/plot.py"
+"$PY" -u -B "$TOOL/lastcycle.py" --pairs-file "$OUT/pairs.txt" --pairs "${extra[@]}" \
+      --output-root "$OUT/last_cycle_EC" --plot-module "$TOOL/plot.py"
 s24=$?
 echo "######## finished $(date -u '+%H:%M UTC')  stage15 exit $s15, full-sequence exit $s07, last-cycle exit $s24"
 echo "PNGs:"; find "$OUT" -name '*.png' | sort | sed 's/^/  /'

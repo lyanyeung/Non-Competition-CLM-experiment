@@ -28,7 +28,8 @@ from pathlib import Path
 
 REPO = "git@github.com:lyanyeung/Non-Competition-CLM-experiment.git"
 WEB = "https://github.com/lyanyeung/Non-Competition-CLM-experiment"
-KEEP_NAMES = ("AD400_NORMAL400_summary.csv", "full_sequence_summary.csv", "last_cycle_metrics.csv", "pairs.txt")
+KEEP_NAMES = ("AD400_NORMAL400_summary.csv", "full_sequence_summary.csv", "last_cycle_metrics.csv", "pairs.txt",
+              "pairs_last_cycle_only.txt")
 KEEP_SUFFIXES = (".png", "_convergence_metrics.csv", "_flux_metrics.csv", "_metadata.json")
 MAX_MB = 200
 
@@ -59,8 +60,10 @@ def fmt(v):
 
 def readme(root: Path, dest_rel: str, files):
     stamp = root.name
-    pairs = [ln.split(":") for ln in (root / "pairs.txt").read_text().split() if ln.count(":") == 2] \
-        if (root / "pairs.txt").is_file() else []
+    pairs = []
+    for fn in ("pairs.txt", "pairs_last_cycle_only.txt"):
+        if (root / fn).is_file():
+            pairs += [ln.split(":") for ln in (root / fn).read_text().split() if ln.count(":") == 2]
     fs = summary_rows(root / "full_sequence" / "full_sequence_summary.csv")
     rel = {p.relative_to(root).as_posix() for p in files}
 
