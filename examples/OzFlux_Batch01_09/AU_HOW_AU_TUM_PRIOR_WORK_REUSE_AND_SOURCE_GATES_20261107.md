@@ -28,3 +28,9 @@ Earlier canonical Stage07 source reports on IRIDIS6: `$HOME/ozflux_stage07_20261
 - Historical AU-How: https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/OzFlux_AU-How/README.md
 - Native 10 NetCDFs and Stage07/08 source: https://github.com/lyanyeung/CLM-FATES-single-site-workflows/blob/main/examples/OzFlux_MultiSite_09/README.md
 - FIXNC Stage03 9/9 point candidates: https://github.com/lyanyeung/Non-Competition-CLM-experiment/blob/feat/ozflux-au-gin-tern-fluxnet-20261104/examples/OzFlux_Batch01_09/README.md
+
+## New operator task (not yet run on IRIDIS6)
+
+Read-only reuse script: `scripts/05_au_how_au_tum_existing_stage07_08_eligibility_and_history_READONLY.py` Git commit `e30b403390124624d680b6bc0d915de5c0e05e1d`, immutable blob SHA `7dfd9c726ca759fc8e485eebb39d6a7c31b0a82a`. It REUSES the actual old operator Stage07 10 files/169 years/1,183 variable-year QC TSV rows, validates 67 structural-only candidate-year count, separately checks existing local immutable AU-How/Tum original L6 file identities and their native 1800/3600-second sampling, and reports exact 25 AU-How years (2 structural-only candidates) and 21 AU-Tum years (7 structural-only), with per-variable native QC0 fractions, missing and physics flags. If existing Stage08 year-reason TSV exists under `$HOME/ozflux_stage08_*`, it extracts only the two site rows; otherwise it explicitly reports no Stage08 output and does not silently rescan. Writes only new HOME TSV/JSON reports. It does **not** verify actual Slurm/case status, so no claim that historical AU-How case is still active or no unknown later model jobs have been submitted; GitHub prior documentation is not a live scheduler snapshot.
+
+Next operator outputs to interpret: `STRUCTURAL_ONLY_YEARS`, `ANNUAL_STAGE07_STATUS`, `SOURCE_MET_QC`, `YEAR_HOLD`, `PRIOR_STAGE08_LEDGER`, `REPORT_DIR`. Do NOT run any old AU-How DATM writer, reupload files, build surfaces or submit Slurm.
