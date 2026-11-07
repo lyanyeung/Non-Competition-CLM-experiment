@@ -34,3 +34,33 @@ Earlier canonical Stage07 source reports on IRIDIS6: `$HOME/ozflux_stage07_20261
 Read-only reuse script: `scripts/05_au_how_au_tum_existing_stage07_08_eligibility_and_history_READONLY.py` Git commit `e30b403390124624d680b6bc0d915de5c0e05e1d`, immutable blob SHA `7dfd9c726ca759fc8e485eebb39d6a7c31b0a82a`. It REUSES the actual old operator Stage07 10 files/169 years/1,183 variable-year QC TSV rows, validates 67 structural-only candidate-year count, separately checks existing local immutable AU-How/Tum original L6 file identities and their native 1800/3600-second sampling, and reports exact 25 AU-How years (2 structural-only candidates) and 21 AU-Tum years (7 structural-only), with per-variable native QC0 fractions, missing and physics flags. If existing Stage08 year-reason TSV exists under `$HOME/ozflux_stage08_*`, it extracts only the two site rows; otherwise it explicitly reports no Stage08 output and does not silently rescan. Writes only new HOME TSV/JSON reports. It does **not** verify actual Slurm/case status, so no claim that historical AU-How case is still active or no unknown later model jobs have been submitted; GitHub prior documentation is not a live scheduler snapshot.
 
 Next operator outputs to interpret: `STRUCTURAL_ONLY_YEARS`, `ANNUAL_STAGE07_STATUS`, `SOURCE_MET_QC`, `YEAR_HOLD`, `PRIOR_STAGE08_LEDGER`, `REPORT_DIR`. Do NOT run any old AU-How DATM writer, reupload files, build surfaces or submit Slurm.
+
+## Actual Stage05 operator PASS: annual-source reuse (2026-11-07 05:34 UTC)
+
+The operator executed source/SHA-pinned Stage05 `scripts/05_au_how_au_tum_existing_stage07_08_eligibility_and_history_READONLY.py` successfully. Existing 2026-11-01 Stage07 (10 original L6, 169 annual rows, 1183 variable-years) and Stage08 reason ledger (46 AU-How/Tum rows) were reused **without reading original NetCDF arrays or rebuilding forcing**. Real IRIDIS6 result: `/home/ly3n24/ozflux_how_tum_reuse_20261107T053429Z`. Original AU-How L6 exists and is exactly 466,671,090 bytes. Original AU-Tum L6 also exists.
+
+Actual native time results:
+
+| Field | AU-How HowardSprings_L6.nc | AU-Tum Tumbarumba1_L6.nc |
+|---|---|---|
+| Original timestamp span | 2002-01-01 06:00 to 2026-02-02 00:00 | 2002-01-07 16:00 to 2022-12-03 18:00 |
+| Number of original records | 422293 | 183243 |
+| Original native median interval | 1800 seconds, **30 min** | 3600 seconds, **hourly** |
+| Native timezone label | `Australia/Darwin` | `Australia/Sydney` |
+| Internal unusual time steps | 0 | 0 |
+| **Full native calendar-year time axis** (count and boundary match) | **2003–2025: 23 consecutive years** | **2003–2021: 19 consecutive years** |
+| Conservative Stage07 all-7-met nonmissing structural years | **2006, 2007 only: 2/25 source years** | **2003, 2005, 2008, 2018, 2019, 2020, 2021: 7/21** |
+| Total source seven-met missing value cells | **351** = WS **345** + FSDS **6** | **658** = specific humidity **658** |
+| Source missing cells within completely time-labelled years | **351** (2003–2025) | **197** (2003–2021); 44 in partial 2002 and 417 in partial 2022 |
+| Native original 7-met broad physics alarms in annual Stage07 | 0 | 0 |
+| Weakest whole-file native original QC0 category coverage | precipitation **55.568%** | longwave-downward **64.362%** |
+
+Additional whole-file original QC0 fractions: **AU-How** Ta 87.346%, SH 87.350%, ps 86.758%, Fsd 96.512%, Fld 91.824%, Ws 85.250%, Precip 55.568%. **AU-Tum** Ta 90.817%, SH 90.817%, ps 91.463%, Fsd 89.926%, Fld 64.362%, Ws 90.665%, Precip 89.088%. Original QC0 is a pipeline label, not independent proof of actual tower sensor observation: instrument/QCFlag processing lineage still required.
+
+**Interpretation correcting earlier misuse:** AU-How and AU-Tum have **23 and 19 full native calendar-time-axis years**, respectively, NOT merely 2 and 7 years of measurements. Stage07's zero-gap all-seven-variable classification is intentionally ultra-conservative: **a few missing halfhour/hourly cells demote an entire year** despite otherwise complete time axes. This does NOT make all such years model-ready either. To meet the separate >=15 genuine tower observation rule, confirm measured input source provenance and annual coverage for all important meteorological drivers, especially AU-How precipitation (many non-QC0) and AU-Tum Fld (many non-QC0), as well as gaps/physically consistent long-term forcing. The completed historic AU-How forward experiment is not new FIXNC AD400 approval.
+
+## Prepared Stage06 annual QC0 / missing-cell source triage (operator execution pending)
+
+GitHub script: `scripts/06_au_how_tum_23y_19y_QC0_missing_annual_handoff_READONLY.py`, pinned commit `f8a26ee3d4eeb63ec992b27131ac7468a2b6343f`, Git blob `58fb4b45e44ebd7a5fa35b26d8965b01f5f69ab3`. **No new full L6 scan**: reads actual earlier Stage05 receipt, existing 169-year Stage07 + 169-year Stage08, 1183 seven-met QC rows each, verifies full keys/source/year status, validates AU-How 23 and AU-Tum 19 consecutive full native calendar-time-year labels, exact original 351 vs 658 missing source cells, and native source file identities/cadences.
+
+Outputs 46 year rows with exact missing by each seven meteorological variables, original Stage08 year reason codes, weakest original per-year QC0 category, unrecognized source variable unit range screenings; 322 year-variable rows with QC0/10/50/400/410/420/430/440 and missing/physics counts; JSON distinguishing **structural zero gap** from **actually measured 15-year scientifically approved**. Prints `YEAR_SOURCE_GATE`, `SITE_NATIVE_FULL_YEARS`, then source-QC HOLD. No original, source, forcing, surface, old competition case, CIME, Slurm or AD400 changes. It cannot establish exact time locations of the remaining original gaps without a later scoped source-read, and it does not authorize a donor replacement. Strict >=15 real measured years and final input remain science HOLD.
