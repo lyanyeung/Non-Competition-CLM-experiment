@@ -23,6 +23,13 @@ setsid nohup, directly (not inside bash -c), one at a time.
   normal-run    Normal400 of the sites whose new AD finished 400 years (HOLD otherwise)
   auto-normal   normal-run every --every s until all five are submitted (max --max-hours)
   status        READ ONLY
+  purge-old [--confirm DELETE_B01_DEFAULT_OUTPUTS]   delete the *.nc output (RUNDIR + archive: history, restarts) of
+                the ORIGINAL default-parameter AD / Normal cases of CA-TP1, CA-TP3, CA-Cbo, CA-Man (user decision
+                2026-11-07). US-Bar is KEPT (default run matches EC: GPP model/EC 1.02, R2 0.93). Dry run without
+                --confirm; the file list goes to the ledger first. Case directories, CaseDocs, user_nl_*, stream xml
+                and the RUNDIR datm.streams.xml stay (the new AD is cloned from the original case and carries its
+                streams); a file referenced by the original's lnd_in or DATM streams is never deleted; never a
+                build directory; never a case with queued jobs.
 """
 from __future__ import annotations
 
@@ -38,6 +45,8 @@ SITES5 = {"CA-TP1": "CA-TP1_AMF_B01SIX_FIXNC_AD400_DIRECT", "CA-TP3": "CA-TP3_AM
           "US-Bar": "US-Bar_AMF_B01SIX_FIXNC_AD400_DIRECT", "CA-Cbo": "CA-Cbo_AMF_B01SIX_FIXNC_AD400_DIRECT",
           "CA-Man": "CA-Man_AMF_B01SIX_FIXNC_AD400_DIRECT"}
 ACT = "B01_NLFP"
+KEEP_DEFAULT = {"US-Bar"}                 # 2026-11-07: default run kept (GPP model/EC 1.02, R2 0.93)
+CONFIRM_PURGE = "DELETE_B01_DEFAULT_OUTPUTS"
 SUF = "_NLFP"
 M22 = M20 = M18 = R = None
 
@@ -106,17 +115,62 @@ def status(site):
     print(f"{site:7s} " + " | ".join(parts), flush=True)
 
 
+def referenced_files(case):
+    """Every absolute path named in the original's lnd_in and in the DATM stream file it read."""
+    import re
+    import xml.etree.ElementTree as ET
+    refs = set(re.findall(r"'(/[^']+)'", (case / "CaseDocs" / "lnd_in").read_text()))
+    eff = M20.effective_streams(case)
+    if eff.is_file():
+        refs |= {e.text.strip() for e in ET.parse(eff).getroot().iter("file") if (e.text or "").strip()}
+    return {str(Path(r).resolve()) for r in refs}
+
+
+def purge_old(site, confirm):
+    if site in KEEP_DEFAULT:
+        print(f"{site}: default-parameter run kept by decision; nothing deleted", flush=True)
+        return 0
+    i = ident(site)
+    targets = [("ad0", i["ad0"])] + ([] if i["ad_only"] else [("n0", i["n0"])])
+    refs = referenced_files(i["ad0_case"])
+    total, plan_ = 0, []
+    for key, name in targets:
+        if M20.jobs(name):
+            R.fail(f"{name} has queued/running jobs")
+        files = M20.old_nc_files(i[key + "_case"], name)
+        hit = [p for p in files if str(p.resolve()) in refs]
+        if hit:
+            R.fail(f"{name}: {len(hit)} file(s) to delete are inputs of the original case, e.g. {hit[0]}; nothing deleted")
+        size = sum(p.stat().st_size for p in files)
+        total += size
+        plan_.append((name, files))
+        print(f"  {site} {name}: {len(files)} .nc files, {size / 1e9:.2f} GB", flush=True)
+    if confirm != CONFIRM_PURGE:
+        print(f"  {site}: DRY RUN, nothing deleted ({total / 1e9:.2f} GB would be freed)", flush=True)
+        return total
+    lst = M20.ledger() / f"{site}_b01_default_purged_files_{R.utc()[:19].replace(':', '')}.txt"
+    lst.write_text("".join(f"{p}\t{p.stat().st_size}\n" for _, fs in plan_ for p in fs))
+    for _, fs in plan_:
+        for p in fs:
+            os.remove(p)
+    print(f"  {site}: DELETED {sum(len(fs) for _, fs in plan_)} files, {total / 1e9:.2f} GB (list: {lst})", flush=True)
+    return total
+
+
 def normal_submitted(site):
     return M20.read_state(ident(site)["n_case"]).get("phase") in ("SUBMITTED", "SUBMIT_ATTEMPTED_UNCERTAIN")
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("action", choices=("plan", "ad-run", "normal-run", "auto-normal", "status"))
-    ap.add_argument("--sites", nargs="+", default=list(SITES5))
+    ap.add_argument("action", choices=("plan", "ad-run", "normal-run", "auto-normal", "status", "purge-old"))
+    ap.add_argument("--sites", nargs="+", default=None, help="default: all five (purge-old: all but US-Bar)")
+    ap.add_argument("--confirm", default="")
     ap.add_argument("--every", type=int, default=1200)
     ap.add_argument("--max-hours", type=float, default=36)
     a = ap.parse_args(argv)
+    if a.sites is None:
+        a.sites = [s for s in SITES5 if a.action != "purge-old" or s not in KEEP_DEFAULT]
     load()
     if a.action not in ("plan", "status"):
         out = R.cmd(["ps", "-u", R.USER, "-o", "pid=,args="], timeout=30)
@@ -145,7 +199,8 @@ def main(argv=None):
                 return 1
             time.sleep(a.every)
     bad = 0
-    fn = {"plan": plan, "status": status, "ad-run": M22.ad_run, "normal-run": M22.normal_run}[a.action]
+    fn = {"plan": plan, "status": status, "ad-run": M22.ad_run, "normal-run": M22.normal_run,
+          "purge-old": lambda x: purge_old(x, a.confirm)}[a.action]
     for s in a.sites:
         try:
             fn(s)
