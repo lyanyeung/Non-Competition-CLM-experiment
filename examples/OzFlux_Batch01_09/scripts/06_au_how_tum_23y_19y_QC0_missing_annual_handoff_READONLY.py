@@ -46,6 +46,7 @@ YEAR_COLS=("site","year","original_time_count","expected_time_count",
  "Stage08_original_reason_codes","missing_Ta","missing_SH","missing_ps",
  "missing_Fsd","missing_Fld","missing_Ws","missing_Precip",
  "all_seven_met_missing_cells","broad_physics_alarm_cells",
+ "unscreened_broad_physics_variable_names",
  "all_met_variables_no_data_gaps","minimum_original_QC0_fraction_7_met",
  "minimum_original_QC0_variable","mean_original_QC0_fraction_7_met",
  "source_observation_15years_scientifically_verified",
@@ -72,6 +73,12 @@ def val(r,k):
     x=r.get(k)
     need(x not in (None,""),"Prior source report missing "+k+" in "+str(r)[:180])
     return int(float(x))
+def nullable_alarm(r):
+    x=r.get("physical_alarm")
+    if x in ("",None):return None
+    z=int(float(x))
+    need(z>=0,"Negative original alarm count")
+    return z
 def truth(r,k):
     x=r.get(k)
     need(x in ("True","False"),"Prior source report boolean "+k+" invalid")
@@ -157,7 +164,9 @@ def main():
             allmissing=sum(val(r,"missing") for r in varrows)
             need(allmissing==val(y,"missing_met_rows_across_fields"),
                  "Annual seven-variable source-gap accounting mismatch "+str(ky))
-            totalalarms=sum(val(r,"physical_alarm") for r in varrows)
+            unchecked=[variable for variable,row in zip(MET,varrows)
+                       if nullable_alarm(row) is None]
+            totalalarms=sum(nullable_alarm(r) or 0 for r in varrows)
             need(totalalarms==val(y,"physical_alarm_met_rows_across_fields")
                  and totalalarms==0,"Unexpected original source physics alarms "+str(ky))
             all_missing+=allmissing
@@ -179,7 +188,7 @@ def main():
                   "native_data_cells":n,"original_QC0_cells":q0,
                   "original_QC0_fraction_NOT_verified_observation":round(frac,6),
                   "missing_original_data_cells":val(row,"missing"),
-                  "original_broad_physics_alarm_cells":val(row,"physical_alarm"),
+                  "original_broad_physics_alarm_cells":nullable_alarm(row),
                   **{"native_QC"+str(flag)+"_cells":val(row,"qc"+str(flag))
                      for flag in (10,50,400,410,420,430,440)},
                   "original_QC0_instrument_provenance_verified":False,
@@ -196,6 +205,7 @@ def main():
               **{"missing_"+v:val(vindex[(site,name,year,v)],"missing") for v in MET},
               "all_seven_met_missing_cells":allmissing,
               "broad_physics_alarm_cells":totalalarms,
+              "unscreened_broad_physics_variable_names":";".join(unchecked),
               "all_met_variables_no_data_gaps":allmissing==0,
               "minimum_original_QC0_fraction_7_met":round(minfrac,6),
               "minimum_original_QC0_variable":minvar,
@@ -208,6 +218,7 @@ def main():
                   {v:val(vindex[(site,name,year,v)],"missing")
                    for v in MET if val(vindex[(site,name,year,v)],"missing")>0},
                   "WEAKEST_QC0",minvar,round(minfrac,4),
+                  "UNSCREENED_UNITS",unchecked,
                   "STAGE08_REASONS",l["reason_codes"])
         need(full==meta["full_year_range"],"Original "+site+" complete-year native chronology altered")
         need(all_missing==meta["total_missing"] and
